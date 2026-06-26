@@ -1,0 +1,11 @@
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\bin\Debug\net8.0\XparkGMAO.Shared.deps.json
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\bin\Debug\net8.0\XparkGMAO.Shared.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\bin\Debug\net8.0\XparkGMAO.Shared.pdb
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.AssemblyInfoInputs.cache
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.AssemblyInfo.cs
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.csproj.CoreCompileInputs.cache
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\refint\XparkGMAO.Shared.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.pdb
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\ref\XparkGMAO.Shared.dll

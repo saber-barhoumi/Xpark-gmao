@@ -1,0 +1,17 @@
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Application.deps.json
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Application.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Application.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Core.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Infrastructure.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Core.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\bin\Debug\net8.0\XparkGMAO.Infrastructure.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.csproj.AssemblyReference.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.AssemblyInfoInputs.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.AssemblyInfo.cs
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.csproj.CoreCompileInputs.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMA.39C98AEB.Up2Date
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\refint\XparkGMAO.Application.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\XparkGMAO.Application.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Application\obj\Debug\net8.0\ref\XparkGMAO.Application.dll

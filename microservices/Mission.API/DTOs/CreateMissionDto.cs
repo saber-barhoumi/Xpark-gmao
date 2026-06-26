@@ -1,0 +1,16 @@
+namespace Mission.API.DTOs;
+
+public class CreateMissionDto
+{
+    public DateTime  DateDepart            { get; set; }
+    public DateTime? DateRetour            { get; set; }
+    public string    Destination           { get; set; } = string.Empty;
+    public double    KilometrageDepart     { get; set; }
+    public string    ObjetMission          { get; set; } = string.Empty;
+    public long      VehiculeId            { get; set; }
+    public long      EmployeeId            { get; set; }
+    public bool      BonCarburantAccorde   { get; set; }
+    public string?   NumeroBonCarburant    { get; set; }
+    public bool      VerificationDocuments { get; set; }
+    public bool      CarteAutorouteRemise  { get; set; }
+}

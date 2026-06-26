@@ -1,0 +1,15 @@
+using Mission.API.DTOs;
+using Mission.API.Entities;
+
+namespace Mission.API.Services;
+
+public interface IMissionService
+{
+    Task<IEnumerable<MissionResponseDto>> GetAllAsync();
+    Task<MissionResponseDto?>             GetByIdAsync(long id);
+    Task<IEnumerable<MissionResponseDto>> GetByStatutAsync(StatutMission statut);
+    Task<MissionResponseDto>              CreateMissionAsync(CreateMissionDto dto);
+    Task<MissionResponseDto>              CloseMissionAsync(long missionId, double kilometrageRetour);
+    Task<bool>                            CancelMissionAsync(long id);
+    Task<bool>                            DeleteAsync(long id);
+}

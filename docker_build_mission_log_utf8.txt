@@ -1,0 +1,22 @@
+﻿--progress is a global compose flag, better use `docker compose --progress xx build ...
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [mission-service internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.38kB done
+#1 DONE 0.0s
+
+#2 [mission-service internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0-alpine
+#2 ...
+
+#3 [mission-service internal] load metadata for mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+#3 ERROR: failed to do request: Head "https://mcr.microsoft.com/v2/dotnet/aspnet/manifests/8.0-alpine": dialing mcr.microsoft.com:443 container via direct connection because  has no HTTPS proxy: connecting to mcr.microsoft.com:443: dial tcp: lookup mcr.microsoft.com: no such host
+
+#2 [mission-service internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0-alpine
+#2 ERROR: failed to do request: Head "https://mcr.microsoft.com/v2/dotnet/sdk/manifests/8.0-alpine": dialing mcr.microsoft.com:443 container via direct connection because  has no HTTPS proxy: connecting to mcr.microsoft.com:443: dial tcp: lookup mcr.microsoft.com: no such host
+------
+ > [mission-service internal] load metadata for mcr.microsoft.com/dotnet/aspnet:8.0-alpine:
+------
+------
+ > [mission-service internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0-alpine:
+------
+failed to solve: mcr.microsoft.com/dotnet/aspnet:8.0-alpine: failed to resolve source metadata for mcr.microsoft.com/dotnet/aspnet:8.0-alpine: failed to do request: Head "https://mcr.microsoft.com/v2/dotnet/aspnet/manifests/8.0-alpine": dialing mcr.microsoft.com:443 container via direct connection because  has no HTTPS proxy: connecting to mcr.microsoft.com:443: dial tcp: lookup mcr.microsoft.com: no such host

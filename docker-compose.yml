@@ -1,0 +1,270 @@
+# ============================================================
+# XPARK GMAO – Microservices Docker Compose
+# All services share the same PostgreSQL database (xpark_gmao)
+# so the frontend continues to work while microservices are active.
+# The monolith (backend) manages EF migrations.
+# ============================================================
+
+services:
+
+  # ── Infrastructure ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: xpark-postgres
+    environment:
+      POSTGRES_USER: xpark_user
+      POSTGRES_PASSWORD: xpark_password_2026
+      POSTGRES_DB: xpark_gmao
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xpark_user -d xpark_gmao"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: xpark-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: xpark
+      RABBITMQ_DEFAULT_PASS: xpark_secret
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── IAM Service (Auth + Users + Employees) ─────────────────────
+  iam-api:
+    build:
+      context: ./microservices
+      dockerfile: IAM.API/Dockerfile
+    container_name: xpark-iam-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5001:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Fleet Service (Vehicules + Sources + Carburants) ───────────
+  fleet-api:
+    build:
+      context: ./microservices
+      dockerfile: Fleet.API/Dockerfile
+    container_name: xpark-fleet-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5002:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Mission Service ─────────────────────────────────────────────
+  mission-api:
+    build:
+      context: ./microservices
+      dockerfile: Mission.API/Dockerfile
+    container_name: xpark-mission-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5003:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Maintenance Service ─────────────────────────────────────────
+  maintenance-api:
+    build:
+      context: ./microservices
+      dockerfile: Maintenance.API/Dockerfile
+    container_name: xpark-maintenance-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5004:80"
+    volumes:
+      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Finance Service ─────────────────────────────────────────────
+  finance-api:
+    build:
+      context: ./microservices
+      dockerfile: Finance.API/Dockerfile
+    container_name: xpark-finance-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5005:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Alerts Service ──────────────────────────────────────────────
+  alerts-api:
+    build:
+      context: ./microservices
+      dockerfile: Alerts.API/Dockerfile
+    container_name: xpark-alerts-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5006:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── NGINX API Gateway ───────────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: xpark-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./microservices/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - iam-api
+      - fleet-api
+      - mission-api
+      - maintenance-api
+      - finance-api
+      - alerts-api
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Backoffice Admin Frontend ───────────────────────────────────
+  backoffice:
+    build:
+      context: ./frontend/backoffice
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
+    container_name: xpark-backoffice
+    ports:
+      - "3000:80"
+    volumes:
+      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/usr/share/nginx/html/uploads:ro
+    depends_on:
+      - nginx
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Frontoffice Public Frontend ─────────────────────────────────
+  frontoffice:
+    build:
+      context: ./frontend/frontoffice
+      dockerfile: Dockerfile
+    container_name: xpark-frontoffice
+    ports:
+      - "3001:3000"
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+networks:
+  xpark-network:
+    driver: bridge
+
+volumes:
+  postgres-data: {}
+  rabbitmq-data: {}

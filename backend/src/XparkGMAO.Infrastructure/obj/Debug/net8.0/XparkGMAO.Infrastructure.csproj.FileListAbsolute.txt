@@ -1,0 +1,17 @@
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\bin\Debug\net8.0\XparkGMAO.Infrastructure.deps.json
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\bin\Debug\net8.0\XparkGMAO.Infrastructure.runtimeconfig.json
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\bin\Debug\net8.0\XparkGMAO.Infrastructure.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\bin\Debug\net8.0\XparkGMAO.Infrastructure.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\bin\Debug\net8.0\XparkGMAO.Core.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\bin\Debug\net8.0\XparkGMAO.Core.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.AssemblyInfo.cs
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMA.2D2F251D.Up2Date
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\refint\XparkGMAO.Infrastructure.dll
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.pdb
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\XparkGMAO.Infrastructure.genruntimeconfig.cache
+C:\Users\saber\Desktop\Xpark gmao\backend\src\XparkGMAO.Infrastructure\obj\Debug\net8.0\ref\XparkGMAO.Infrastructure.dll

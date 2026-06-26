@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "dgSpecHash": "FuF3tbrpFIs=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\saber\\Desktop\\Xpark gmao\\backend\\src\\XparkGMAO.Core\\XparkGMAO.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\saber\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
+    "C:\\Users\\saber\\.nuget\\packages\\mailkit\\4.15.1\\mailkit.4.15.1.nupkg.sha512",
+    "C:\\Users\\saber\\.nuget\\packages\\mimekit\\4.15.1\\mimekit.4.15.1.nupkg.sha512",
+    "C:\\Users\\saber\\.nuget\\packages\\system.formats.asn1\\8.0.1\\system.formats.asn1.8.0.1.nupkg.sha512",
+    "C:\\Users\\saber\\.nuget\\packages\\system.security.cryptography.pkcs\\8.0.1\\system.security.cryptography.pkcs.8.0.1.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'MailKit' 4.15.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr",
+      "projectPath": "C:\\Users\\saber\\Desktop\\Xpark gmao\\backend\\src\\XparkGMAO.Core\\XparkGMAO.Core.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\saber\\Desktop\\Xpark gmao\\backend\\src\\XparkGMAO.Core\\XparkGMAO.Core.csproj",
+      "libraryId": "MailKit",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}
