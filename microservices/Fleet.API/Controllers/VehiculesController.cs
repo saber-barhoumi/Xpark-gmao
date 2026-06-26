@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Fleet.API.Data;
 using Fleet.API.DTOs;
 using Fleet.API.Services;
+using XparkGMAO.Shared.Enums;
 
 namespace Fleet.API.Controllers;
 
@@ -12,11 +15,13 @@ public class VehiculesController : ControllerBase
 {
     private readonly IVehiculeService _vehiculeService;
     private readonly ILogger<VehiculesController> _logger;
+    private readonly FleetDbContext _context;
 
-    public VehiculesController(IVehiculeService vehiculeService, ILogger<VehiculesController> logger)
+    public VehiculesController(IVehiculeService vehiculeService, ILogger<VehiculesController> logger, FleetDbContext context)
     {
         _vehiculeService = vehiculeService;
         _logger = logger;
+        _context = context;
     }
 
     [HttpGet]
@@ -92,5 +97,44 @@ public class VehiculesController : ControllerBase
         var result = await _vehiculeService.DeleteAsync(id);
         if (!result) return NotFound(new { message = $"Véhicule {id} introuvable" });
         return NoContent();
+    }
+
+    [HttpGet("alert-data")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAlertData()
+    {
+        // Load vehicles with their documents/assurances in memory.
+        // TypeDocument filtering must happen in C# (not SQL) because the DB column
+        // is stored as integer while EF has HasConversion<string>() — SQL comparison
+        // with string values fails on integer columns.
+        var vehicules = await _context.Vehicules
+            .Include(v => v.Assurances)
+            .Include(v => v.Documents)
+            .Where(v => v.Actif)
+            .ToListAsync();
+
+        var data = vehicules.Select(v => new {
+            v.IdVehicule,
+            v.Immatriculation,
+            DateAssurance = v.Assurances
+                .Where(a => a.Actif)
+                .OrderByDescending(a => a.DateFin)
+                .Select(a => (DateTime?)a.DateFin)
+                .FirstOrDefault(),
+            DateVignette = v.Documents
+                .Where(d => d.TypeDocument == TypeDocument.VIGNETTE)
+                .OrderByDescending(d => d.DateExpiration)
+                .Select(d => (DateTime?)d.DateExpiration)
+                .FirstOrDefault(),
+            DateVisiteTechnique = v.Documents
+                .Where(d => d.TypeDocument == TypeDocument.VISITE_TECHNIQUE)
+                .OrderByDescending(d => d.DateExpiration)
+                .Select(d => (DateTime?)d.DateExpiration)
+                .FirstOrDefault(),
+            KilometrageActuel = (double?)v.Kilometrage,
+            KilometrageProchaineMaintenance = v.KilometrageProchainRevision
+        });
+
+        return Ok(data);
     }
 }

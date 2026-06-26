@@ -27,13 +27,14 @@ const profileService = {
   /** Récupérer les détails complets du profil */
   async getProfile(userId: number): Promise<UserProfile> {
     const res = await api.get(`/users/${userId}/details`)
-    return res.data
+    // IAM.API wraps in ApiResponse<T>: { success, data: {...} }
+    return res.data?.data ?? res.data
   },
 
   /** Récupérer les stats GMAO de l'utilisateur */
   async getStats(userId: number): Promise<ProfileStats> {
     const res = await api.get(`/users/${userId}/stats`)
-    return res.data
+    return res.data?.data ?? res.data
   },
 
   /** Uploader une photo de profil */
@@ -46,7 +47,8 @@ const profileService = {
         'Content-Type': 'multipart/form-data',
       },
     })
-    return res.data.photoUrl
+    // ApiResponse<{photoUrl}> → unwrap .data.photoUrl
+    return (res.data?.data ?? res.data)?.photoUrl
   },
 
   /** Mettre à jour le profil utilisateur */

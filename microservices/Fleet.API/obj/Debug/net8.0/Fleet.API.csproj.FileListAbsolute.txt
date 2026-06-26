@@ -137,3 +137,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\Fleet.API\obj\Debug\net8.0\refin
 C:\Users\saber\Desktop\Xpark gmao\microservices\Fleet.API\obj\Debug\net8.0\Fleet.API.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\Fleet.API\obj\Debug\net8.0\Fleet.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\Fleet.API\obj\Debug\net8.0\ref\Fleet.API.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Fleet.API\obj\Debug\net8.0\Fleet.API.sourcelink.json

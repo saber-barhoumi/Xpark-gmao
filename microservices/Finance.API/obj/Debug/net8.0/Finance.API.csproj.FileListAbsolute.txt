@@ -134,3 +134,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\Finance.API\obj\Debug\net8.0\ref
 C:\Users\saber\Desktop\Xpark gmao\microservices\Finance.API\obj\Debug\net8.0\Finance.API.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\Finance.API\obj\Debug\net8.0\Finance.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\Finance.API\obj\Debug\net8.0\ref\Finance.API.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Finance.API\obj\Debug\net8.0\Finance.API.sourcelink.json

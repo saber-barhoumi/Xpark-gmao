@@ -27,6 +27,7 @@ public class AlertesController(IAlertService service, ILogger<AlertesController>
 
     [HttpGet("count")]
     [HttpGet("count-unread")]    // frontend alias
+    [AllowAnonymous]
     public async Task<IActionResult> CountNonLues()
     {
         var count = await service.CountNonLuesAsync();

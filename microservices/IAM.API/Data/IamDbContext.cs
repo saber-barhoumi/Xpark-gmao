@@ -12,8 +12,6 @@ public class IamDbContext(DbContextOptions<IamDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("iam");
-
         mb.Entity<Utilisateur>(e =>
         {
             e.ToTable("Utilisateurs");

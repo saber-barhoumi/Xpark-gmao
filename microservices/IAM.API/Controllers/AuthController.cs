@@ -151,7 +151,8 @@ public class AuthController(
     public async Task<ActionResult<ApiResponse<string>>> ResendConfirmation(
         [FromBody] ResendConfirmationDto dto)
     {
-        var user = await db.Utilisateurs.FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower());
+        var emailLower = dto.Email.ToLower();
+        var user = await db.Utilisateurs.FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
         if (user is null) return Ok(ApiResponse<string>.Ok("Si cet email existe, un lien a été envoyé."));
 
         var token = Guid.NewGuid().ToString("N");

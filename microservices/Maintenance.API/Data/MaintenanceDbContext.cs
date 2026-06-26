@@ -15,8 +15,6 @@ public class MaintenanceDbContext(DbContextOptions<MaintenanceDbContext> options
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("maintenance");
-
         mb.Entity<Intervention>(e =>
         {
             e.ToTable("Interventions");

@@ -134,3 +134,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\Alerts.API\obj\Debug\net8.0\refi
 C:\Users\saber\Desktop\Xpark gmao\microservices\Alerts.API\obj\Debug\net8.0\Alerts.API.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\Alerts.API\obj\Debug\net8.0\Alerts.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\Alerts.API\obj\Debug\net8.0\ref\Alerts.API.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Alerts.API\obj\Debug\net8.0\Alerts.API.sourcelink.json

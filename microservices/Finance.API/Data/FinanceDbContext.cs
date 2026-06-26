@@ -9,8 +9,6 @@ public class FinanceDbContext(DbContextOptions<FinanceDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("finance");
-
         mb.Entity<Facture>(e =>
         {
             e.ToTable("Factures");

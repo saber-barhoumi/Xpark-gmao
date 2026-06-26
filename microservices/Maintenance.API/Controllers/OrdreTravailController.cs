@@ -169,9 +169,113 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
         return NoContent();
     }
 
+    [HttpGet("kanban")]
+    public async Task<IActionResult> GetKanban()
+    {
+        var items = await context.OrdresTravail
+            .Include(ot => ot.Interventions)
+            .OrderBy(ot => ot.Priorite).ThenByDescending(ot => ot.DateCreation)
+            .ToListAsync();
+
+        var result = new Dictionary<string, object>();
+        foreach (var col in new[] { "PLANIFIE", "EN_COURS", "TERMINE", "ANNULE" })
+            result[col] = new List<object>();
+
+        foreach (var g in items.GroupBy(ot => ot.Statut.ToString()))
+        {
+            result[g.Key] = g.Select(ot => (object)new {
+                id               = ot.IdOrdreTravail.ToString(),
+                type             = "OT",
+                reference        = ot.Reference,
+                titre            = ot.Description ?? ot.Reference,
+                description      = ot.Observations,
+                priorite         = ot.Priorite.ToString(),
+                statut           = ot.Statut.ToString(),
+                dateCreation     = ot.DateCreation,
+                dateEcheance     = ot.DateFin,
+                technicienId     = ot.TechnicienId,
+                vehiculeId       = ot.VehiculeId,
+                hasAttachments   = false,
+                commentsCount    = ot.Interventions.Count,
+                hasSpareParts    = false,
+                tags             = Array.Empty<string>()
+            }).ToList();
+        }
+
+        return Ok(result);
+    }
+
+    [HttpGet("kanban/metadata")]
+    public async Task<IActionResult> GetKanbanMetadata()
+    {
+        var vehiculeIds = await context.OrdresTravail
+            .Where(ot => ot.VehiculeId != 0)
+            .Select(ot => ot.VehiculeId)
+            .Distinct().ToListAsync();
+
+        var technicienIds = await context.OrdresTravail
+            .Where(ot => ot.TechnicienId.HasValue)
+            .Select(ot => ot.TechnicienId!.Value)
+            .Distinct().ToListAsync();
+
+        // Query the shared DB for vehicle immatriculations
+        var vehicules = new List<object>();
+        if (vehiculeIds.Any())
+        {
+            var idList = string.Join(",", vehiculeIds);
+            var rows = await context.Database
+                .SqlQueryRaw<VehiculeMetaRow>($"SELECT \"IdVehicule\" as id, \"Immatriculation\" as immatriculation FROM \"Vehicules\" WHERE \"IdVehicule\" IN ({idList})")
+                .ToListAsync();
+            vehicules = rows.Select(r => (object)new {
+                idVehicule = r.Id,
+                affichage  = r.Immatriculation ?? r.Id.ToString()
+            }).ToList();
+        }
+
+        // Query the shared DB for technician names
+        var techniciens = new List<object>();
+        if (technicienIds.Any())
+        {
+            var idList = string.Join(",", technicienIds);
+            var rows = await context.Database
+                .SqlQueryRaw<TechnicienMetaRow>($"SELECT \"IdUtilisateur\" as id, \"Nom\" as nom, \"Prenom\" as prenom FROM \"Utilisateurs\" WHERE \"IdUtilisateur\" IN ({idList})")
+                .ToListAsync();
+            techniciens = rows.Select(r => (object)new {
+                idUtilisateur = r.Id,
+                nomComplet    = $"{r.Prenom} {r.Nom}".Trim()
+            }).ToList();
+        }
+
+        return Ok(new { vehicules, techniciens });
+    }
+
+    [HttpPut("{id:long}/statut")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE,TECHNICIEN")]
+    public async Task<IActionResult> UpdateStatut(long id, [FromBody] UpdateStatutRequest dto)
+    {
+        var ot = await context.OrdresTravail.FindAsync(id);
+        if (ot == null) return NotFound(new { message = $"Ordre de travail {id} introuvable" });
+
+        if (!Enum.TryParse<StatutOrdreTravail>(dto.Statut, true, out var newStatut))
+            return BadRequest(new { message = $"Statut invalide: {dto.Statut}" });
+
+        context.HistoriqueStatutsOT.Add(new HistoriqueStatutOT {
+            OrdreTravailId = id, AncienStatut = ot.Statut.ToString(),
+            NouveauStatut  = newStatut.ToString(), UtilisateurId = GetUserId(),
+            DateChangement = DateTime.UtcNow
+        });
+        ot.Statut = newStatut;
+        await context.SaveChangesAsync();
+        return Ok(new { message = "Statut mis à jour" });
+    }
+
     private long GetUserId() =>
         long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 }
+
+// Raw SQL projection types for cross-service reads from the shared DB
+public class VehiculeMetaRow   { public long Id { get; set; } public string? Immatriculation { get; set; } }
+public class TechnicienMetaRow { public long Id { get; set; } public string? Nom { get; set; }  public string? Prenom { get; set; } }
 
 public class CreateOrdreTravailRequest
 {

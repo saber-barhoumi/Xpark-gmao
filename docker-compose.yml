@@ -66,6 +66,8 @@ services:
       - RabbitMQ__Password=xpark_secret
     ports:
       - "5001:80"
+    volumes:
+      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -212,6 +214,30 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── Monolith Backend (SignalR hubs: chatHub, kanbanHub) ────────
+  backend:
+    build:
+      context: ./backend/src
+      dockerfile: XparkGMAO.API/Dockerfile
+    container_name: xpark-backend
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - JwtSettings__Secret=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - JwtSettings__Issuer=XparkGMAO
+      - JwtSettings__Audience=XparkGMAO
+    ports:
+      - "5000:80"
+    volumes:
+      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
   # ── NGINX API Gateway ───────────────────────────────────────────
   nginx:
     image: nginx:1.25-alpine
@@ -227,6 +253,7 @@ services:
       - maintenance-api
       - finance-api
       - alerts-api
+      - backend
     networks:
       - xpark-network
     restart: unless-stopped

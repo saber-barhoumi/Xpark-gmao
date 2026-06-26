@@ -9,3 +9,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.
 C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\refint\XparkGMAO.Shared.dll
 C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\ref\XparkGMAO.Shared.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\XparkGMAO.Shared\obj\Debug\net8.0\XparkGMAO.Shared.sourcelink.json
