@@ -351,19 +351,24 @@ const Chat = ({
   }
 
   return (
-    <div className="chat-user-list border-end" style={{ display: 'grid', gridTemplateRows: 'auto auto auto 1fr', height: '100%', overflow: 'hidden' }}>
+    <div
+      className="chat-user-list border-end"
+      style={{ display: 'grid', gridTemplateRows: 'auto auto auto 1fr', height: '100%', overflow: 'hidden', background: '#fff' }}
+    >
 
-      {/* ── Header current user ───────────────────────────────── */}
-      {/* Use plain div — Bootstrap's CardBody has flex:1 1 auto which grows and steals space */}
-      <div className="border-bottom" style={{ padding: '8px 12px' }}>
-        <div className="d-flex align-items-center gap-2 py-1">
-          {/* Avatar courant */}
+      {/* ══ Row 1 — Profile header ══════════════════════════════ */}
+      <div style={{ padding: '10px 14px', borderBottom: `1px solid ${COLOR.border}`, background: '#fafbfc' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          {/* Avatar */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{
-              width: 40, height: 40, borderRadius: '50%',
-              background: COLOR.avatarBg, color: COLOR.avatarColor,
+              width: 44, height: 44, borderRadius: '50%',
+              background: `linear-gradient(135deg, ${COLOR.accent}, #4f9cf9)`,
+              color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: 14, overflow: 'hidden',
+              fontWeight: 700, fontSize: 15, overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(13,110,253,0.25)',
             }}>
               {currentUser?.photo || currentUser?.photoUrl ? (
                 <img src={`${API_URL}${currentUser.photo || currentUser.photoUrl}`} alt="avatar"
@@ -374,140 +379,154 @@ const Chat = ({
             </div>
             <span style={{
               position: 'absolute', bottom: 1, right: 1,
-              width: 10, height: 10, borderRadius: '50%',
-              background: COLOR.online, border: '2px solid #fff',
+              width: 12, height: 12, borderRadius: '50%',
+              background: COLOR.online, border: '2px solid #fafbfc',
+              boxShadow: '0 0 0 1px #31a24c33',
             }} />
           </div>
 
-          <div className="flex-grow-1 overflow-hidden">
-            <p className="mb-0 fw-semibold text-truncate" style={{ fontSize: 14, color: COLOR.text }}>
+          {/* Name + status */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: COLOR.text, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Moi'}
             </p>
-            <p className="mb-0" style={{ fontSize: 12, color: COLOR.online }}>En ligne</p>
+            <p style={{ margin: 0, fontSize: 11, color: COLOR.online, lineHeight: 1.35 }}>● En ligne</p>
           </div>
 
-          <Dropdown className="lh-1" align="end">
-            <DropdownToggle as="span" style={{ cursor: 'pointer', padding: 6 }} data-bs-toggle="dropdown" aria-expanded="false">
-              <IconifyIcon width={20} height={20} icon="solar:settings-outline" className="text-muted" />
-            </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-end">
-              <DropdownItem onClick={() => { setShowNewContactModal(true); setContactSearch(''); searchUsers(''); }}>
-                <IconifyIcon icon="tabler:user-plus" className="me-1 fs-17 align-middle" />
-                <span className="align-middle">Nouveau Contact</span>
-              </DropdownItem>
-              <DropdownItem onClick={() => { setShowGroupModal(true); setGroupName(''); setGroupParticipants([]); setGroupSearch(''); searchUsers(''); }}>
-                <IconifyIcon icon="tabler:users-plus" className="me-1 fs-17 align-middle" />
-                <span className="align-middle">Nouveau Groupe</span>
-              </DropdownItem>
-              <DropdownItem onClick={() => setActiveFilter('favorites')}>
-                <IconifyIcon icon="tabler:star" className="me-1 fs-17 align-middle" />
-                <span className="align-middle">Favoris</span>
-              </DropdownItem>
-              <DropdownItem onClick={() => setActiveFilter('archived')}>
-                <IconifyIcon icon="tabler:archive" className="me-1 fs-17 align-middle" />
-                <span className="align-middle">Archivés</span>
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+          {/* Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+            <button
+              onClick={() => { setShowNewContactModal(true); setContactSearch(''); searchUsers(''); }}
+              title="Nouveau message"
+              style={{
+                width: 32, height: 32, borderRadius: '50%', border: 'none',
+                background: 'transparent', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: COLOR.subText, transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = COLOR.hover)}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <IconifyIcon icon="tabler:edit" style={{ fontSize: 18 }} />
+            </button>
 
-          <button
-            onClick={chatSetting.toggle}
-            type="button"
-            className="flex-grow-0 btn btn-sm btn-icon btn-soft-danger d-xl-none"
-          >
-            <IconifyIcon icon="tabler:x" className="fs-20" />
-          </button>
+            <Dropdown align="end">
+              <DropdownToggle
+                as="span"
+                style={{
+                  width: 32, height: 32, borderRadius: '50%', border: 'none',
+                  background: 'transparent', cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  color: COLOR.subText,
+                }}
+              >
+                <IconifyIcon icon="tabler:dots-vertical" style={{ fontSize: 18 }} />
+              </DropdownToggle>
+              <DropdownMenu className="dropdown-menu-end shadow-sm" style={{ minWidth: 200, borderRadius: 12, border: `1px solid ${COLOR.border}` }}>
+                <DropdownItem onClick={() => { setShowGroupModal(true); setGroupName(''); setGroupParticipants([]); setGroupSearch(''); searchUsers(''); }}>
+                  <IconifyIcon icon="tabler:users-plus" className="me-2 fs-16 align-middle" />
+                  <span>Nouveau Groupe</span>
+                </DropdownItem>
+                <DropdownItem onClick={() => setActiveFilter('favorites')}>
+                  <IconifyIcon icon="tabler:star" className="me-2 fs-16 align-middle" />
+                  <span>Favoris</span>
+                </DropdownItem>
+                <DropdownItem onClick={() => setActiveFilter('archived')}>
+                  <IconifyIcon icon="tabler:archive" className="me-2 fs-16 align-middle" />
+                  <span>Archivés</span>
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+
+            <button
+              onClick={chatSetting.toggle}
+              type="button"
+              className="btn btn-sm btn-icon btn-soft-danger d-xl-none"
+              style={{ width: 32, height: 32, borderRadius: '50%' }}
+            >
+              <IconifyIcon icon="tabler:x" style={{ fontSize: 16 }} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Search bar ───────────────────────────────────────── */}
-      <div style={{ padding: '8px 12px 0' }}>
+      {/* ══ Row 2 — Search ══════════════════════════════════════ */}
+      <div style={{ padding: '10px 12px 6px' }}>
         <div style={{ position: 'relative' }}>
           <IconifyIcon
             icon="tabler:search"
-            style={{
-              position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-              color: COLOR.subText, fontSize: 16, pointerEvents: 'none',
-            }}
+            style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: COLOR.subText, fontSize: 15, pointerEvents: 'none' }}
           />
           <input
             type="text"
             style={{
-              width: '100%', padding: '8px 12px 8px 32px',
-              borderRadius: 20, border: 'none',
-              background: COLOR.hover, fontSize: 14,
-              color: COLOR.text, outline: 'none',
+              width: '100%', padding: '8px 32px 8px 34px',
+              borderRadius: 22, border: `1.5px solid ${COLOR.border}`,
+              background: COLOR.hover, fontSize: 13, color: COLOR.text, outline: 'none',
+              transition: 'border-color 0.15s',
             }}
+            onFocus={e => (e.currentTarget.style.borderColor = COLOR.accent)}
+            onBlur={e => (e.currentTarget.style.borderColor = COLOR.border)}
             placeholder="Rechercher..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: COLOR.subText, padding: 2 }}
+            >
+              <IconifyIcon icon="tabler:x" style={{ fontSize: 14 }} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── Filter tabs / archived header ─────────────────── */}
+      {/* ══ Row 3 — Filter tabs / Archived header ═══════════════ */}
       {activeFilter === 'archived' ? (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '8px 12px', borderBottom: `1px solid ${COLOR.border}`, flexShrink: 0,
-          background: '#fff8e7',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 8px', borderBottom: `1px solid ${COLOR.border}`, background: '#fff8e7' }}>
           <button
             onClick={() => setActiveFilter('all')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '4px 10px', borderRadius: 20, border: 'none',
-              background: 'rgba(0,0,0,0.08)', color: COLOR.text,
-              fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 20, border: 'none', background: 'rgba(0,0,0,0.08)', color: COLOR.text, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
           >
-            <IconifyIcon icon="tabler:arrow-left" style={{ fontSize: 14 }} />
+            <IconifyIcon icon="tabler:arrow-left" style={{ fontSize: 13 }} />
             Retour
           </button>
-          <IconifyIcon icon="tabler:archive" style={{ fontSize: 16, color: '#b45309' }} />
+          <IconifyIcon icon="tabler:archive" style={{ fontSize: 15, color: '#b45309' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: '#b45309' }}>Archivées</span>
           {archivedConversations.length > 0 && (
-            <span style={{
-              background: '#b45309', color: '#fff',
-              borderRadius: 10, fontSize: 10, fontWeight: 700,
-              padding: '1px 6px', marginLeft: 'auto',
-            }}>
+            <span style={{ background: '#b45309', color: '#fff', borderRadius: 10, fontSize: 10, fontWeight: 700, padding: '1px 6px', marginLeft: 'auto' }}>
               {archivedConversations.length}
             </span>
           )}
         </div>
       ) : (
-        <div style={{
-          display: 'flex', gap: 4, padding: '8px 10px',
-          borderBottom: `1px solid ${COLOR.border}`, flexShrink: 0,
-          overflowX: 'auto',
-        }}>
+        <div style={{ display: 'flex', gap: 6, padding: '0 12px 8px', borderBottom: `1px solid ${COLOR.border}`, overflowX: 'auto' }}>
           {([
-            { key: 'all',       label: 'Toutes',    badge: 0 },
-            { key: 'unread',    label: 'Non lues',  badge: totalUnread },
-            { key: 'favorites', label: 'Favoris',   badge: 0 },
-            { key: 'groups',    label: 'Groupes',   badge: groupsCount },
+            { key: 'all',       label: 'Toutes',   badge: 0 },
+            { key: 'unread',    label: 'Non lues', badge: totalUnread },
+            { key: 'favorites', label: 'Favoris',  badge: 0 },
+            { key: 'groups',    label: 'Groupes',  badge: groupsCount },
           ] as { key: FilterTab; label: string; badge: number }[]).map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveFilter(tab.key)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4,
-                padding: '4px 12px', borderRadius: 20, border: 'none',
-                background: activeFilter === tab.key ? COLOR.accent : COLOR.hover,
-                color: activeFilter === tab.key ? '#fff' : COLOR.text,
+                padding: '5px 13px', borderRadius: 20,
+                border: activeFilter === tab.key ? 'none' : `1px solid ${COLOR.border}`,
+                background: activeFilter === tab.key ? COLOR.accent : 'transparent',
+                color: activeFilter === tab.key ? '#fff' : COLOR.subText,
                 fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                whiteSpace: 'nowrap', flexShrink: 0,
-                transition: 'all 0.15s',
+                whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.15s',
               }}
             >
               {tab.label}
               {tab.badge > 0 && (
                 <span style={{
-                  background: activeFilter === tab.key ? 'rgba(255,255,255,0.3)' : COLOR.badge,
-                  color: '#fff',
-                  borderRadius: 10, fontSize: 10, fontWeight: 700,
-                  padding: '1px 5px', minWidth: 16, textAlign: 'center',
+                  background: activeFilter === tab.key ? 'rgba(255,255,255,0.3)' : COLOR.accent,
+                  color: '#fff', borderRadius: 10, fontSize: 10, fontWeight: 700,
+                  padding: '0 5px', minWidth: 16, textAlign: 'center',
                 }}>
                   {tab.badge > 99 ? '99+' : tab.badge}
                 </span>
@@ -517,10 +536,10 @@ const Chat = ({
         </div>
       )}
 
-      {/* ── List ─────────────────────────────────────────────── */}
-      {/* flex:1 + minHeight:0 on wrapper lets it shrink; Simplebar fills 100% inside */}
-      <div style={{ position: 'relative', overflow: 'hidden' }}>
-      <SimplebarReactClient style={{ position: 'absolute', inset: 0 }}>
+      {/* ══ Row 4 — Conversations list (1fr) ════════════════════ */}
+      {/* minHeight:0 prevents grid item from overflowing; Simplebar fills 100% of the row */}
+      <div style={{ minHeight: 0, overflow: 'hidden' }}>
+      <SimplebarReactClient style={{ height: '100%' }}>
 
         {activeFilter === 'archived' ? (
           /* ── Archived conversations ── */
@@ -641,7 +660,7 @@ const Chat = ({
           </>
         )}
       </SimplebarReactClient>
-      </div>
+      </div>{/* end row-4 wrapper */}
 
       {/* ── Context menu ─────────────────────────────────────── */}
       {ctxMenu && (
