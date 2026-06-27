@@ -60,7 +60,7 @@ const ChatData = () => {
 
   return (
     <Card>
-      <div className="chat d-flex">
+      <div className="chat d-flex" style={{ height: 'calc(100vh - 180px)', minHeight: 500 }}>
         {/* Desktop: Collapsible sidebar */}
         <div className="d-none d-xxl-block">
           <Collapse in={chatList.open} dimension="width">
@@ -74,6 +74,7 @@ const ChatData = () => {
                 searchUsers={searchUsers}
                 searchResults={searchResults}
                 onStartChat={createPrivateChat}
+                refreshConversations={refreshConversations}
               />
             </div>
           </Collapse>
@@ -97,6 +98,7 @@ const ChatData = () => {
             searchUsers={searchUsers}
             searchResults={searchResults}
             onStartChat={createPrivateChat}
+            refreshConversations={refreshConversations}
           />
         </Offcanvas>
 

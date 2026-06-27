@@ -8,7 +8,6 @@ import EmojiPicker from '@emoji-mart/react';
 import api from '@/lib/axiosConfig';
 import data from '@emoji-mart/data';
 import { Card, CardHeader, Col, Dropdown, DropdownMenu, DropdownToggle } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 
 import { useLayoutContext } from '@/context/useLayoutContext';
 import { useChatContext } from '@/context/useChatContext';
@@ -352,7 +351,7 @@ const ChatArea = ({
   const [typingTimeout, setTypingTimeoutState] = useState<ReturnType<typeof setTimeout> | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const simplebarRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -383,11 +382,19 @@ const ChatArea = ({
   const prevConvIdRef = useRef<number | null>(null);
   const prevMsgCountRef = useRef(0);
 
-  const handleChatScroll = useCallback(() => {
-    const el = chatContainerRef.current;
-    if (!el) return;
-    const threshold = 80;
-    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+  // Attach scroll tracking to Simplebar's actual scroll element (not the wrapper div)
+  useEffect(() => {
+    let removeListener: (() => void) | undefined;
+    const timer = setTimeout(() => {
+      const el = simplebarRef.current?.getScrollElement?.();
+      if (!el) return;
+      const handler = () => {
+        isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= 80;
+      };
+      el.addEventListener('scroll', handler, { passive: true });
+      removeListener = () => el.removeEventListener('scroll', handler);
+    }, 200);
+    return () => { clearTimeout(timer); removeListener?.(); };
   }, []);
 
   const scrollToBottom = useCallback((force = false) => {
@@ -566,7 +573,7 @@ const ChatArea = ({
 
             <div>
               <h5 className="my-0 lh-base">
-                <Link to="" className="text-reset">{displayName}</Link>
+                <span className="text-reset">{displayName}</span>
               </h5>
               <p className="mb-0 text-muted icons-center">
                 {isUserTyping ? (
@@ -614,8 +621,8 @@ const ChatArea = ({
       </CardHeader>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflow: 'hidden' }} ref={chatContainerRef} onScroll={handleChatScroll}>
-        <SimplebarReactClient style={{ height: '100%', padding: '8px 0' }}>
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <SimplebarReactClient ref={simplebarRef} style={{ height: '100%', padding: '8px 0' }}>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {messages.map((msg, i) => {
               const showDate = i === 0 || !isSameDay(msg.dateEnvoi, messages[i - 1].dateEnvoi);

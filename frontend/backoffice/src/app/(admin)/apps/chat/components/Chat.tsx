@@ -3,9 +3,10 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import SimplebarReactClient from '@/components/wrappers/SimplebarReactClient'
 import { useChatContext } from '@/context/useChatContext'
 import { Conversation, ChatUtilisateur } from '@/services/chatService'
+import chatService from '@/services/chatService'
 import { getFirstTwoLetters } from '@/utils/change-casing'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CardBody, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Modal } from 'react-bootstrap'
 
 const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
@@ -29,6 +30,10 @@ const COLOR = {
   groupColor:   '#ffc107',
 }
 
+type FilterTab = 'all' | 'unread' | 'groups' | 'favorites'
+
+type ConvAction = 'pin' | 'mute' | 'archive' | 'markUnread' | 'favorite'
+
 type ChatProps = {
   conversations: Conversation[]
   activeConversation: Conversation | null
@@ -38,6 +43,7 @@ type ChatProps = {
   searchUsers: (query: string) => void
   searchResults: ChatUtilisateur[]
   onStartChat: (userId: number) => void
+  refreshConversations?: () => void
 }
 
 const Chat = ({
@@ -48,12 +54,29 @@ const Chat = ({
   currentUserId,
   searchUsers,
   searchResults,
-  onStartChat
+  onStartChat,
+  refreshConversations,
 }: ChatProps) => {
   const { chatSetting } = useChatContext()
   const [searchTerm, setSearchTerm] = useState('')
   const [showNewContactModal, setShowNewContactModal] = useState(false)
   const [contactSearch, setContactSearch] = useState('')
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
+
+  // Context menu for conversations
+  const [ctxMenu, setCtxMenu] = useState<{ conv: Conversation; x: number; y: number } | null>(null)
+  const ctxMenuRef = useRef<HTMLDivElement>(null)
+
+  // Local unread markers (frontend-only, reset on select)
+  const [localUnread, setLocalUnread] = useState<Set<number>>(new Set())
+
+  // Favorites stored in localStorage
+  const [favorites, setFavorites] = useState<Set<number>>(() => {
+    try {
+      const stored = localStorage.getItem('chat_favorites')
+      return stored ? new Set<number>(JSON.parse(stored)) : new Set<number>()
+    } catch { return new Set<number>() }
+  })
 
   useEffect(() => {
     if (showNewContactModal) {
@@ -66,6 +89,30 @@ const Chat = ({
     const timer = setTimeout(() => searchUsers(searchTerm), 300)
     return () => clearTimeout(timer)
   }, [searchTerm, searchUsers])
+
+  // Close context menu on outside click
+  useEffect(() => {
+    if (!ctxMenu) return
+    const handler = (e: MouseEvent) => {
+      if (ctxMenuRef.current && !ctxMenuRef.current.contains(e.target as Node)) {
+        setCtxMenu(null)
+      }
+    }
+    window.addEventListener('mousedown', handler)
+    return () => window.removeEventListener('mousedown', handler)
+  }, [ctxMenu])
+
+  // Clear localUnread when conversation is selected
+  useEffect(() => {
+    if (activeConversation) {
+      setLocalUnread(prev => {
+        if (!prev.has(activeConversation.idConversation)) return prev
+        const next = new Set(prev)
+        next.delete(activeConversation.idConversation)
+        return next
+      })
+    }
+  }, [activeConversation])
 
   const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim()
 
@@ -134,6 +181,20 @@ const Chat = ({
     return ts(b) - ts(a)
   })
 
+  // Compute filter counts
+  const totalUnread = uniqueConversations.reduce((sum, c) => sum + getUnreadCount(c) + (localUnread.has(c.idConversation) ? 1 : 0), 0)
+  const groupsCount = uniqueConversations.filter(c => c.typeConversation === 'GROUPE').length
+
+  // Apply active filter
+  const filteredByTab = uniqueConversations.filter(conv => {
+    switch (activeFilter) {
+      case 'unread': return getUnreadCount(conv) > 0 || localUnread.has(conv.idConversation)
+      case 'groups': return conv.typeConversation === 'GROUPE'
+      case 'favorites': return favorites.has(conv.idConversation)
+      default: return true
+    }
+  })
+
   const finalSearchResults = searchResults.filter(u =>
     normalizeId(u.idUtilisateur) !== normalizeId(currentUserId) &&
     !conversations.some(c =>
@@ -142,16 +203,66 @@ const Chat = ({
     )
   )
 
-  const pinnedConversations = uniqueConversations.filter(conv =>
+  const pinnedConversations = filteredByTab.filter(conv =>
     conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && p.estEpingle)
   )
-  const otherConversations = uniqueConversations.filter(conv =>
+  const otherConversations = filteredByTab.filter(conv =>
     !conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && p.estEpingle)
   )
 
   const currentUser = conversations.length > 0
     ? conversations[0].participants.find(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId))?.utilisateur
     : null
+
+  // ── Conversation right-click menu handler ────────────────────────
+  const openCtxMenu = (e: React.MouseEvent, conv: Conversation) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const menuW = 230
+    const menuH = 320
+    const x = e.clientX + menuW > window.innerWidth ? e.clientX - menuW : e.clientX
+    const y = e.clientY + menuH > window.innerHeight ? e.clientY - menuH : e.clientY
+    setCtxMenu({ conv, x, y })
+  }
+
+  const handleConvAction = async (action: ConvAction, conv: Conversation) => {
+    setCtxMenu(null)
+    try {
+      switch (action) {
+        case 'pin':
+          await chatService.togglePin(conv.idConversation)
+          refreshConversations?.()
+          break
+        case 'mute':
+          await chatService.toggleMute(conv.idConversation)
+          refreshConversations?.()
+          break
+        case 'archive':
+          await chatService.toggleArchive(conv.idConversation)
+          refreshConversations?.()
+          break
+        case 'markUnread':
+          setLocalUnread(prev => {
+            const next = new Set(prev)
+            if (next.has(conv.idConversation)) next.delete(conv.idConversation)
+            else next.add(conv.idConversation)
+            return next
+          })
+          break
+        case 'favorite':
+          setFavorites(prev => {
+            const next = new Set(prev)
+            if (next.has(conv.idConversation)) next.delete(conv.idConversation)
+            else next.add(conv.idConversation)
+            localStorage.setItem('chat_favorites', JSON.stringify([...next]))
+            return next
+          })
+          break
+      }
+    } catch (err) {
+      console.error('[Chat] action error:', err)
+    }
+  }
 
   return (
     <div className="chat-user-list border-end" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -201,7 +312,7 @@ const Chat = ({
                 <IconifyIcon icon="tabler:users-plus" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Nouveau Groupe</span>
               </DropdownItem>
-              <DropdownItem>
+              <DropdownItem onClick={() => setActiveFilter('favorites')}>
                 <IconifyIcon icon="tabler:star" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Favoris</span>
               </DropdownItem>
@@ -223,7 +334,7 @@ const Chat = ({
       </CardBody>
 
       {/* ── Search bar ───────────────────────────────────────── */}
-      <div style={{ padding: '10px 12px', flexShrink: 0 }}>
+      <div style={{ padding: '10px 12px 0', flexShrink: 0 }}>
         <div style={{ position: 'relative' }}>
           <IconifyIcon
             icon="tabler:search"
@@ -245,6 +356,46 @@ const Chat = ({
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
+      </div>
+
+      {/* ── Filter tabs ──────────────────────────────────────── */}
+      <div style={{
+        display: 'flex', gap: 4, padding: '8px 10px',
+        borderBottom: `1px solid ${COLOR.border}`, flexShrink: 0,
+        overflowX: 'auto',
+      }}>
+        {([
+          { key: 'all',       label: 'Toutes',    badge: 0 },
+          { key: 'unread',    label: 'Non lues',  badge: totalUnread },
+          { key: 'favorites', label: 'Favoris',   badge: 0 },
+          { key: 'groups',    label: 'Groupes',   badge: groupsCount },
+        ] as { key: FilterTab; label: string; badge: number }[]).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveFilter(tab.key)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '4px 12px', borderRadius: 20, border: 'none',
+              background: activeFilter === tab.key ? COLOR.accent : COLOR.hover,
+              color: activeFilter === tab.key ? '#fff' : COLOR.text,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              whiteSpace: 'nowrap', flexShrink: 0,
+              transition: 'all 0.15s',
+            }}
+          >
+            {tab.label}
+            {tab.badge > 0 && (
+              <span style={{
+                background: activeFilter === tab.key ? 'rgba(255,255,255,0.3)' : COLOR.badge,
+                color: activeFilter === tab.key ? '#fff' : '#fff',
+                borderRadius: 10, fontSize: 10, fontWeight: 700,
+                padding: '1px 5px', minWidth: 16, textAlign: 'center',
+              }}>
+                {tab.badge > 99 ? '99+' : tab.badge}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* ── List ─────────────────────────────────────────────── */}
@@ -276,13 +427,16 @@ const Chat = ({
                 isActive={activeConversation?.idConversation === conv.idConversation}
                 displayName={getDisplayName(conv)}
                 lastMessage={getLastMessage(conv)}
-                unreadCount={getUnreadCount(conv)}
+                unreadCount={getUnreadCount(conv) + (localUnread.has(conv.idConversation) ? 1 : 0)}
                 isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
                 time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
                 lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
                 lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
                 currentUserId={currentUserId}
+                isMuted={conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && !p.notificationsActivees)}
+                isFavorite={favorites.has(conv.idConversation)}
                 onSelect={() => onSelectConversation(conv)}
+                onContextMenu={e => openCtxMenu(e, conv)}
               />
             ))}
           </>
@@ -299,25 +453,105 @@ const Chat = ({
                 isActive={activeConversation?.idConversation === conv.idConversation}
                 displayName={getDisplayName(conv)}
                 lastMessage={getLastMessage(conv)}
-                unreadCount={getUnreadCount(conv)}
+                unreadCount={getUnreadCount(conv) + (localUnread.has(conv.idConversation) ? 1 : 0)}
                 isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
                 time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
                 lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
                 lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
                 currentUserId={currentUserId}
+                isMuted={conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && !p.notificationsActivees)}
+                isFavorite={favorites.has(conv.idConversation)}
                 onSelect={() => onSelectConversation(conv)}
+                onContextMenu={e => openCtxMenu(e, conv)}
               />
             ))}
           </>
         )}
 
-        {otherConversations.length === 0 && pinnedConversations.length === 0 && !searchTerm && (
+        {filteredByTab.length === 0 && !searchTerm && (
           <div style={{ textAlign: 'center', padding: '40px 16px', color: COLOR.subText }}>
             <IconifyIcon icon="tabler:message-off" style={{ fontSize: 40, display: 'block', margin: '0 auto 12px', opacity: 0.4 }} />
-            <p style={{ margin: 0, fontSize: 13 }}>Aucune conversation</p>
+            <p style={{ margin: 0, fontSize: 13 }}>
+              {activeFilter === 'unread' ? 'Aucun message non lu' :
+               activeFilter === 'favorites' ? 'Aucun favori' :
+               activeFilter === 'groups' ? 'Aucun groupe' :
+               'Aucune conversation'}
+            </p>
           </div>
         )}
       </SimplebarReactClient>
+
+      {/* ── Context menu ─────────────────────────────────────── */}
+      {ctxMenu && (
+        <div
+          ref={ctxMenuRef}
+          style={{
+            position: 'fixed',
+            top: ctxMenu.y, left: ctxMenu.x,
+            zIndex: 99999,
+            background: '#fff',
+            borderRadius: 10,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+            minWidth: 220,
+            padding: '6px 0',
+            border: `1px solid ${COLOR.border}`,
+          }}
+        >
+          {(() => {
+            const conv = ctxMenu.conv
+            const myPart = conv.participants.find(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId))
+            const isPinned = myPart?.estEpingle ?? false
+            const isMuted = !(myPart?.notificationsActivees ?? true)
+            const isFavorite = favorites.has(conv.idConversation)
+            const hasUnread = localUnread.has(conv.idConversation)
+
+            const items = [
+              {
+                icon: isPinned ? 'tabler:pin-off' : 'solar:pin-bold-duotone',
+                label: isPinned ? 'Désépingler' : 'Épingler',
+                action: 'pin' as ConvAction,
+              },
+              {
+                icon: isMuted ? 'tabler:bell' : 'tabler:bell-off',
+                label: isMuted ? 'Activer les notifications' : 'Mode silencieux',
+                action: 'mute' as ConvAction,
+              },
+              {
+                icon: isFavorite ? 'tabler:star-off' : 'tabler:star',
+                label: isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
+                action: 'favorite' as ConvAction,
+              },
+              {
+                icon: hasUnread ? 'tabler:message-check' : 'tabler:message-dots',
+                label: hasUnread ? 'Marquer comme lue' : 'Marquer comme non lue',
+                action: 'markUnread' as ConvAction,
+              },
+              { divider: true },
+              {
+                icon: 'tabler:archive',
+                label: 'Archiver la discussion',
+                action: 'archive' as ConvAction,
+                danger: false,
+              },
+            ]
+
+            return items.map((item, i) => {
+              if ('divider' in item) {
+                return <div key={i} style={{ height: 1, background: COLOR.border, margin: '4px 0' }} />
+              }
+              return (
+                <CtxMenuItem
+                  key={i}
+                  icon={item.icon}
+                  label={item.label}
+                  danger={item.danger}
+                  onClick={() => handleConvAction(item.action, conv)}
+                />
+              )
+            })
+          })()}
+        </div>
+      )}
 
       {/* Modal Nouveau Contact */}
       <NewContactModal
@@ -334,7 +568,32 @@ const Chat = ({
   )
 }
 
-// ── Section label (non-sticky — prevents scroll jump inside Simplebar) ──
+// ── Context menu item ──────────────────────────────────────────────
+const CtxMenuItem = ({
+  icon, label, danger, onClick
+}: { icon: string; label: string; danger?: boolean; onClick: () => void }) => {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '9px 16px', cursor: 'pointer',
+        background: hovered ? (danger ? '#fff5f5' : COLOR.hover) : 'transparent',
+        color: danger ? '#dc3545' : COLOR.text,
+        fontSize: 13, fontWeight: 500,
+        transition: 'background 0.1s',
+      }}
+    >
+      <IconifyIcon icon={icon} style={{ fontSize: 16, flexShrink: 0, color: danger ? '#dc3545' : COLOR.subText }} />
+      {label}
+    </div>
+  )
+}
+
+// ── Section label (non-sticky) ────────────────────────────────────
 const SectionLabel = ({ icon, label }: { icon: string; label: string }) => (
   <div style={{
     display: 'flex', alignItems: 'center', gap: 6,
@@ -359,12 +618,16 @@ interface ConvItemProps {
   lastMsgIsMine: boolean
   lastMsgIsRead: boolean
   currentUserId: string
+  isMuted: boolean
+  isFavorite: boolean
   onSelect: () => void
+  onContextMenu: (e: React.MouseEvent) => void
 }
 
 const ConvItem = ({
   conv, isActive, displayName, lastMessage, unreadCount,
-  isOnline, time, lastMsgIsMine, lastMsgIsRead, currentUserId, onSelect
+  isOnline, time, lastMsgIsMine, lastMsgIsRead, currentUserId,
+  isMuted, isFavorite, onSelect, onContextMenu
 }: ConvItemProps) => {
   const [hovered, setHovered] = useState(false)
   const isGroup = conv.typeConversation === 'GROUPE'
@@ -381,6 +644,7 @@ const ConvItem = ({
   return (
     <div
       onClick={onSelect}
+      onContextMenu={onContextMenu}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -425,20 +689,22 @@ const ConvItem = ({
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 }}>
-          <span style={{
-            fontWeight: unreadCount > 0 ? 700 : 500,
-            fontSize: 14, color: COLOR.text,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            maxWidth: '70%',
-          }}>
-            {displayName}
-          </span>
-          <span style={{ fontSize: 11, color: COLOR.subText, whiteSpace: 'nowrap', marginLeft: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+            <span style={{
+              fontWeight: unreadCount > 0 ? 700 : 500,
+              fontSize: 14, color: COLOR.text,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {displayName}
+            </span>
+            {isFavorite && <IconifyIcon icon="tabler:star-filled" style={{ fontSize: 11, color: '#ffc107', flexShrink: 0 }} />}
+            {isMuted && <IconifyIcon icon="tabler:bell-off" style={{ fontSize: 11, color: COLOR.subText, flexShrink: 0 }} />}
+          </div>
+          <span style={{ fontSize: 11, color: COLOR.subText, whiteSpace: 'nowrap', marginLeft: 4, flexShrink: 0 }}>
             {time}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {/* Read checkmarks for own messages */}
           {lastMsgIsMine && unreadCount === 0 && (
             <IconifyIcon
               icon={lastMsgIsRead ? 'tabler:checks' : 'tabler:check'}

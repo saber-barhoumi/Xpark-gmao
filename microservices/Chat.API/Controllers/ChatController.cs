@@ -241,6 +241,46 @@ public class ChatController(
         return Ok();
     }
 
+    // ── Conversation actions ────────────────────────────────────────────────────
+
+    [HttpPut("conversations/{id:long}/pin")]
+    public async Task<IActionResult> TogglePin(long id)
+    {
+        var userId = GetUserId();
+        var p = await db.ConversationParticipants
+            .FirstOrDefaultAsync(x => x.ConversationId == id && x.UtilisateurId == userId);
+        if (p == null) return NotFound();
+        p.EstEpingle = !p.EstEpingle;
+        await db.SaveChangesAsync();
+        return Ok(new { epingle = p.EstEpingle });
+    }
+
+    [HttpPut("conversations/{id:long}/mute")]
+    public async Task<IActionResult> ToggleMute(long id)
+    {
+        var userId = GetUserId();
+        var p = await db.ConversationParticipants
+            .FirstOrDefaultAsync(x => x.ConversationId == id && x.UtilisateurId == userId);
+        if (p == null) return NotFound();
+        p.NotificationsActivees = !p.NotificationsActivees;
+        await db.SaveChangesAsync();
+        return Ok(new { mute = !p.NotificationsActivees });
+    }
+
+    [HttpPut("conversations/{id:long}/archive")]
+    public async Task<IActionResult> ToggleArchive(long id)
+    {
+        var userId = GetUserId();
+        var conv = await db.Conversations.FindAsync(id);
+        if (conv == null) return NotFound();
+        var isP = await db.ConversationParticipants
+            .AnyAsync(x => x.ConversationId == id && x.UtilisateurId == userId);
+        if (!isP) return Forbid();
+        conv.EstArchivee = !conv.EstArchivee;
+        await db.SaveChangesAsync();
+        return Ok(new { archivee = conv.EstArchivee });
+    }
+
     // ── Users ──────────────────────────────────────────────────────────────────
 
     [HttpGet("users/online")]
