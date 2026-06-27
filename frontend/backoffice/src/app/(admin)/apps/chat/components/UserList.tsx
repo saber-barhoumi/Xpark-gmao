@@ -42,8 +42,8 @@ const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
   const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
 
   return (
-    <div>
-      <CardBody className="py-2 px-3 border-bottom">
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardBody className="py-2 px-3 border-bottom flex-shrink-0">
         <div className="d-flex align-items-center gap-2 py-1">
           <IconifyIcon icon="tabler:users" className="fs-20 text-primary" />
           <h5 className="mb-0 fw-semibold">Utilisateurs en ligne</h5>
@@ -51,7 +51,7 @@ const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
         </div>
       </CardBody>
 
-      <SimplebarReactClient style={{ maxHeight: 'calc(100vh - 250px)' }}>
+      <SimplebarReactClient style={{ flex: 1, overflowY: 'auto' }}>
         <div className="p-2">
           {onlineUsers.length === 0 && (
             <div className="text-center py-4">
