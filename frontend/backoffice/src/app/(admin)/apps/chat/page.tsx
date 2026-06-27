@@ -5,22 +5,49 @@ import PageBreadcrumb from '@/components/PageBreadcrumb'
 
 const ChatPage = () => {
   useEffect(() => {
-    // Hide footer and lock page scroll for full-screen chat layout
-    const footer = document.querySelector<HTMLElement>('.footer')
-    const pageContent = document.querySelector<HTMLElement>('.page-content')
-    if (footer) footer.style.display = 'none'
+    const pageContent    = document.querySelector<HTMLElement>('.page-content')
+    const containerFluid = pageContent?.querySelector<HTMLElement>('.container-fluid')
+    const footer         = document.querySelector<HTMLElement>('.footer')
+
+    // Lock the outer page so only internal chat panels scroll
     if (pageContent) {
+      pageContent.style.height   = 'calc(100vh - var(--ct-topbar-height, 85px))'
       pageContent.style.overflow = 'hidden'
-      pageContent.style.display = 'flex'
+      pageContent.style.display  = 'flex'
       pageContent.style.flexDirection = 'column'
     }
+
+    // Make container-fluid a flex column that fills the remaining height
+    if (containerFluid) {
+      containerFluid.style.flex          = '1'
+      containerFluid.style.overflow      = 'hidden'
+      containerFluid.style.minHeight     = '0'
+      containerFluid.style.display       = 'flex'
+      containerFluid.style.flexDirection = 'column'
+      containerFluid.style.paddingTop    = '0'
+      containerFluid.style.paddingBottom = '0'
+    }
+
+    // Hide footer — chat is full-screen
+    if (footer) footer.style.display = 'none'
+
     return () => {
-      if (footer) footer.style.display = ''
       if (pageContent) {
-        pageContent.style.overflow = ''
-        pageContent.style.display = ''
+        pageContent.style.height        = ''
+        pageContent.style.overflow      = ''
+        pageContent.style.display       = ''
         pageContent.style.flexDirection = ''
       }
+      if (containerFluid) {
+        containerFluid.style.flex          = ''
+        containerFluid.style.overflow      = ''
+        containerFluid.style.minHeight     = ''
+        containerFluid.style.display       = ''
+        containerFluid.style.flexDirection = ''
+        containerFluid.style.paddingTop    = ''
+        containerFluid.style.paddingBottom = ''
+      }
+      if (footer) footer.style.display = ''
     }
   }, [])
 

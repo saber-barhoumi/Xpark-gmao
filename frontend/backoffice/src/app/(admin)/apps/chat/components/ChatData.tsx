@@ -7,42 +7,26 @@ import Chat from './Chat'
 import ChatArea from './ChatArea'
 import UserList from './UserList'
 
-// Full height = viewport minus sticky topbar (CSS variable set by theme)
-const CHAT_HEIGHT = 'calc(100vh - var(--ct-topbar-height, 85px))'
+// Shared style: fills parent, clips overflow so only inner panels scroll
+const FILL: React.CSSProperties = { height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }
 
 const ChatData = () => {
   const currentUserId = useCurrentUserId()
   const {
-    conversations,
-    activeConversation,
-    messages,
-    onlineUsers,
-    loading,
-    connected,
-    selectConversation,
-    sendMessage,
-    sendFile,
-    typing,
-    createPrivateChat,
-    searchUsers,
-    searchResults,
-    isUserTyping,
-    isUserOnline,
-    deleteMessage,
-    pinMessage,
-    refreshConversations,
+    conversations, activeConversation, messages, onlineUsers,
+    loading, connected, selectConversation, sendMessage, sendFile,
+    typing, createPrivateChat, searchUsers, searchResults,
+    isUserTyping, isUserOnline, deleteMessage, pinMessage, refreshConversations,
   } = useChat()
 
   const { chatList, chatSetting } = useChatContext()
 
   if (loading) {
     return (
-      <Card style={{ height: CHAT_HEIGHT, overflow: 'hidden' }}>
-        <div className="d-flex align-items-center justify-content-center h-100">
-          <div className="text-center">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-3 text-muted">Chargement du chat...</p>
-          </div>
+      <Card className="flex-1" style={{ flex: 1, ...FILL, justifyContent: 'center', alignItems: 'center' }}>
+        <div className="text-center">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-3 text-muted">Chargement du chat...</p>
         </div>
       </Card>
     )
@@ -50,27 +34,33 @@ const ChatData = () => {
 
   if (!connected) {
     return (
-      <Card style={{ height: CHAT_HEIGHT, overflow: 'hidden' }}>
-        <div className="d-flex align-items-center justify-content-center h-100">
-          <div className="text-center">
-            <i className="ri-wifi-off-line fs-1 text-danger"></i>
-            <p className="mt-3 text-danger">Connexion au serveur perdue. Reconnexion en cours...</p>
-          </div>
+      <Card style={{ flex: 1, ...FILL, justifyContent: 'center', alignItems: 'center' }}>
+        <div className="text-center">
+          <i className="ri-wifi-off-line fs-1 text-danger"></i>
+          <p className="mt-3 text-danger">Connexion au serveur perdue. Reconnexion en cours...</p>
         </div>
       </Card>
     )
   }
 
   return (
-    // Height is on the Card so all children can use height: 100%
-    <Card style={{ height: CHAT_HEIGHT, overflow: 'hidden', marginBottom: 0 }}>
-      <div className="chat d-flex" style={{ height: '100%' }}>
+    /*
+     * Card takes flex: 1 to fill container-fluid (which page.tsx forces to
+     * display:flex flex-direction:column). overflow:hidden prevents the card
+     * from growing past the viewport — only internal panels scroll.
+     */
+    <Card style={{ flex: 1, ...FILL, marginBottom: 0 }}>
+      {/* .chat is a flex row that fills the card */}
+      <div className="chat d-flex" style={{ height: '100%', overflow: 'hidden' }}>
 
-        {/* Desktop: Collapsible sidebar — must be full height */}
-        <div className="d-none d-xxl-block" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* ── Desktop sidebar — must carry 100% height down to <Chat> ── */}
+        <div className="d-none d-xxl-block" style={FILL}>
           <Collapse in={chatList.open} dimension="width">
-            {/* This div IS the Collapse element — must carry height */}
-            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/*
+             * This <div> IS the Collapse element (react-bootstrap clones it).
+             * height:100% + display:flex ensures <Chat> fills all available height.
+             */}
+            <div style={FILL}>
               <Chat
                 conversations={conversations}
                 activeConversation={activeConversation}
@@ -86,7 +76,7 @@ const ChatData = () => {
           </Collapse>
         </div>
 
-        {/* Mobile: Offcanvas sidebar */}
+        {/* ── Mobile: Offcanvas sidebar ── */}
         <Offcanvas
           show={chatSetting.open}
           onHide={chatSetting.toggle}
@@ -108,7 +98,7 @@ const ChatData = () => {
           />
         </Offcanvas>
 
-        {/* Chat Area — already uses h-100 internally */}
+        {/* ── Chat area — ChatArea already uses h-100 d-flex flex-column ── */}
         {activeConversation ? (
           <ChatArea
             conversation={activeConversation}
@@ -125,18 +115,16 @@ const ChatData = () => {
             refreshConversations={refreshConversations}
           />
         ) : (
-          <Card className="chat-content rounded-0 shadow-none mb-0" style={{ flex: 1, height: '100%' }}>
-            <div className="d-flex align-items-center justify-content-center h-100">
-              <div className="text-center">
-                <i className="ri-message-3-line" style={{ fontSize: '4rem', color: '#adb5bd' }}></i>
-                <p className="text-muted mt-3 fs-16">Sélectionnez une conversation pour commencer</p>
-              </div>
+          <div className="d-flex align-items-center justify-content-center" style={{ flex: 1 }}>
+            <div className="text-center">
+              <i className="ri-message-3-line" style={{ fontSize: '4rem', color: '#adb5bd' }}></i>
+              <p className="text-muted mt-3 fs-16">Sélectionnez une conversation pour commencer</p>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Online Users Sidebar — desktop only, full height */}
-        <div className="d-none d-xxl-block border-start" style={{ minWidth: '260px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* ── Online users sidebar — desktop only ── */}
+        <div className="d-none d-xxl-block border-start" style={{ minWidth: '260px', ...FILL }}>
           <UserList
             onlineUsers={onlineUsers}
             onStartChat={createPrivateChat}
