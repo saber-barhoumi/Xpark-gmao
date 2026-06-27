@@ -2,7 +2,7 @@
 import { useChatContext } from '@/context/useChatContext'
 import { useChat } from '@/hooks/useChat'
 import { useCurrentUserId } from '../hooks/useCurrentUserId'
-import { Card, Collapse, Offcanvas, Spinner } from 'react-bootstrap'
+import { Card, Offcanvas, Spinner } from 'react-bootstrap'
 import Chat from './Chat'
 import ChatArea from './ChatArea'
 import UserList from './UserList'
@@ -53,27 +53,35 @@ const ChatData = () => {
       {/* .chat is a flex row that fills the card */}
       <div className="chat d-flex" style={{ height: '100%', overflow: 'hidden' }}>
 
-        {/* ── Desktop sidebar — must carry 100% height down to <Chat> ── */}
-        <div className="d-none d-xxl-block" style={FILL}>
-          <Collapse in={chatList.open} dimension="width">
-            {/*
-             * This <div> IS the Collapse element (react-bootstrap clones it).
-             * height:100% + display:flex ensures <Chat> fills all available height.
-             */}
-            <div style={FILL}>
-              <Chat
-                conversations={conversations}
-                activeConversation={activeConversation}
-                onSelectConversation={selectConversation}
-                isUserOnline={isUserOnline}
-                currentUserId={currentUserId}
-                searchUsers={searchUsers}
-                searchResults={searchResults}
-                onStartChat={createPrivateChat}
-                refreshConversations={refreshConversations}
-              />
-            </div>
-          </Collapse>
+        {/*
+         * Desktop sidebar — CSS width transition replaces React-Bootstrap Collapse.
+         * Collapse broke the height chain (its root div is display:block with no
+         * explicit height, so height:100% inside Chat resolved to 0).
+         * d-xxl-flex gives display:flex !important at ≥1400px so height:100%
+         * from the flex-stretch parent propagates correctly into Chat.
+         */}
+        <div
+          className="d-none d-xxl-flex flex-column"
+          style={{
+            height: '100%',
+            width: chatList.open ? '340px' : '0',
+            minWidth: '0',
+            flexShrink: 0,
+            overflow: 'hidden',
+            transition: 'width 0.3s ease',
+          }}
+        >
+          <Chat
+            conversations={conversations}
+            activeConversation={activeConversation}
+            onSelectConversation={selectConversation}
+            isUserOnline={isUserOnline}
+            currentUserId={currentUserId}
+            searchUsers={searchUsers}
+            searchResults={searchResults}
+            onStartChat={createPrivateChat}
+            refreshConversations={refreshConversations}
+          />
         </div>
 
         {/* ── Mobile: Offcanvas sidebar ── */}

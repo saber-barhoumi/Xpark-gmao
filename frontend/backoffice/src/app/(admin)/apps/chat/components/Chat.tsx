@@ -351,11 +351,11 @@ const Chat = ({
   }
 
   return (
-    <div className="chat-user-list border-end" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div className="chat-user-list border-end" style={{ display: 'grid', gridTemplateRows: 'auto auto auto 1fr', height: '100%', overflow: 'hidden' }}>
 
       {/* ── Header current user ───────────────────────────────── */}
       {/* Use plain div — Bootstrap's CardBody has flex:1 1 auto which grows and steals space */}
-      <div className="border-bottom" style={{ padding: '8px 12px', flexShrink: 0, flexGrow: 0 }}>
+      <div className="border-bottom" style={{ padding: '8px 12px' }}>
         <div className="d-flex align-items-center gap-2 py-1">
           {/* Avatar courant */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -421,7 +421,7 @@ const Chat = ({
       </div>
 
       {/* ── Search bar ───────────────────────────────────────── */}
-      <div style={{ padding: '8px 12px 0', flexShrink: 0, flexGrow: 0 }}>
+      <div style={{ padding: '8px 12px 0' }}>
         <div style={{ position: 'relative' }}>
           <IconifyIcon
             icon="tabler:search"
@@ -519,8 +519,8 @@ const Chat = ({
 
       {/* ── List ─────────────────────────────────────────────── */}
       {/* flex:1 + minHeight:0 on wrapper lets it shrink; Simplebar fills 100% inside */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-      <SimplebarReactClient style={{ height: '100%' }}>
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+      <SimplebarReactClient style={{ position: 'absolute', inset: 0 }}>
 
         {activeFilter === 'archived' ? (
           /* ── Archived conversations ── */
