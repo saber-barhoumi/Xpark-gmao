@@ -139,7 +139,7 @@ const Chat = ({
   }
 
   const getLastMessage = (conv: Conversation): string => {
-    if (!conv.messages?.length) return 'Aucun message'
+    if (!conv.messages?.length) return ''
     const last = conv.messages[conv.messages.length - 1]
     if (last.estSupprime) return 'Message supprimé'
     if (last.typeMessage === 'IMAGE') return '📷 Image'
@@ -161,13 +161,19 @@ const Chat = ({
   })
 
   const uniqueConversations: Conversation[] = []
-  const seenUserIds = new Set<number>()
+  const seenKeys = new Set<string>()
   for (const conv of filteredConversations) {
+    const convKey = String(conv.idConversation)
+    if (seenKeys.has(convKey)) continue
     if (conv.typeConversation === 'PRIVEE') {
-      const otherId = getOtherUserId(conv)
-      if (seenUserIds.has(otherId)) continue
-      seenUserIds.add(otherId)
+      const participantKey = conv.participants
+        .map(p => String(p.utilisateurId))
+        .sort()
+        .join('-')
+      if (participantKey && seenKeys.has(participantKey)) continue
+      if (participantKey) seenKeys.add(participantKey)
     }
+    seenKeys.add(convKey)
     uniqueConversations.push(conv)
   }
 

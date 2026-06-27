@@ -60,7 +60,7 @@ const ChatData = () => {
 
   return (
     <Card>
-      <div className="chat d-flex" style={{ height: 'calc(100vh - 180px)', minHeight: 500 }}>
+      <div className="chat d-flex" style={{ height: 'calc(100vh - var(--ct-topbar-height, 85px) - 62px)', minHeight: 500 }}>
         {/* Desktop: Collapsible sidebar */}
         <div className="d-none d-xxl-block">
           <Collapse in={chatList.open} dimension="width">
