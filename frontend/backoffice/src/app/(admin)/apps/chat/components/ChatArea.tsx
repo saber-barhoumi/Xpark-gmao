@@ -365,7 +365,7 @@ const ChatArea = ({
   }, [messages, onPinMessage, showToast]);
 
   return (
-    <Card className="chat-content rounded-0 shadow-none mb-0 h-100 d-flex flex-column">
+    <Card className="chat-content rounded-0 shadow-none mb-0 d-flex flex-column" style={{ minHeight: 0 }}>
       {/* Header */}
       <CardHeader className="py-2 px-3 border-bottom flex-shrink-0">
         <div className="d-flex align-items-center justify-content-between py-1">

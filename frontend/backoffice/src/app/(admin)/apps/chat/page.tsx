@@ -11,6 +11,7 @@ const ChatPage = () => {
     // Lock page-content to viewport height — no main-page scroll
     if (pageContent) {
       pageContent.style.height        = 'calc(100vh - var(--ct-topbar-height, 85px))'
+      pageContent.style.minHeight     = '0'
       pageContent.style.overflow      = 'hidden'
       pageContent.style.display       = 'flex'
       pageContent.style.flexDirection = 'column'
@@ -34,6 +35,7 @@ const ChatPage = () => {
     return () => {
       if (pageContent) {
         pageContent.style.height        = ''
+        pageContent.style.minHeight     = ''
         pageContent.style.overflow      = ''
         pageContent.style.display       = ''
         pageContent.style.flexDirection = ''

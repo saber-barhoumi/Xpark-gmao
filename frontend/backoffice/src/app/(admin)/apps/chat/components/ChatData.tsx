@@ -46,8 +46,8 @@ const ChatData = () => {
      * overflow:hidden prevents the card from growing past the viewport.
      */
     <Card className="chat-fill" style={{ flex: 1, marginBottom: 0 }}>
-      {/* Flex row that fills the card */}
-      <div className="chat d-flex chat-fill">
+      {/* Flex ROW: sidebar | chat area | user list — must NOT be column */}
+      <div className="chat" style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
         {/*
          * Desktop sidebar — CSS width transition (not React-Bootstrap Collapse).
@@ -118,7 +118,7 @@ const ChatData = () => {
         )}
 
         {/* Online users sidebar — desktop only */}
-        <div className="d-none d-xxl-block border-start chat-fill" style={{ minWidth: '260px' }}>
+        <div className="d-none d-xxl-flex flex-column border-start" style={{ width: '260px', flexShrink: 0, minHeight: 0, overflow: 'hidden' }}>
           <UserList onlineUsers={onlineUsers} onStartChat={createPrivateChat} />
         </div>
       </div>

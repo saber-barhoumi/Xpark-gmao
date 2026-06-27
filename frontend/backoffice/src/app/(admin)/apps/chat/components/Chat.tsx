@@ -407,7 +407,7 @@ const Chat = ({
 
       {/* ══ Row 4 — Conversations list ══════════════════════════ */}
       <div className="chat-sidebar__list">
-        <SimplebarReactClient style={{ minHeight: '100%' }}>
+        <SimplebarReactClient style={{ height: '100%' }}>
 
           {activeFilter === 'archived' ? (
             loadingArchived ? (

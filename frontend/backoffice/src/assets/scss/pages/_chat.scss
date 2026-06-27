@@ -40,7 +40,9 @@ $c-group-color:  #ffc107;
 
 // Shared "fill parent as flex column" helper
 .chat-fill {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -61,7 +63,8 @@ $c-group-color:  #ffc107;
 .chat-sidebar {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: #fff;
 
@@ -298,10 +301,11 @@ $c-group-color:  #ffc107;
   }
 
   // ── Row 4: Conversations list ──────────────────────────────────────────────
+  // overflow: hidden here — Simplebar handles scrolling internally
   &__list {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   // ── Empty state ────────────────────────────────────────────────────────────
@@ -1754,7 +1758,8 @@ $c-group-color:  #ffc107;
 }
 
 .chat-content {
-  flex: 1 1 auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .chat {
