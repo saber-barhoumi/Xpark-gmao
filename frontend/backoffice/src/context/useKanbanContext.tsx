@@ -4,6 +4,7 @@ import React, {
 } from 'react'
 import { DropResult } from '@hello-pangea/dnd'
 import * as signalR from '@microsoft/signalr'
+import ConfirmModal from '@/components/ConfirmModal'
 import kanbanService, {
   KanbanCard, KANBAN_SECTIONS,
 } from '@/services/kanbanService'
@@ -17,7 +18,7 @@ interface KanbanContextType {
   addCard:              (sectionId: string) => void
   editCard:             (card: KanbanCard) => void
   deleteCard:           (id: string) => Promise<void>
-  clearColumn:          (statut: string) => Promise<void>
+  clearColumn:          (statut: string) => void
   selectedCard:         KanbanCard | null
   showModal:            boolean
   modalSection:         string | null
@@ -54,6 +55,9 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
   // Métadonnées pour les sélecteurs
   const [technicianList, setTechnicianList] = useState<any[]>([])
   const [vehiculeList,   setVehiculeList]   = useState<any[]>([])
+
+  // Confirm modal
+  const [clearConfirm, setClearConfirm] = useState<{ show: boolean; statut: string }>({ show: false, statut: '' })
 
   // États de filtrage
   const [searchTerm,       setSearchTerm]       = useState('')
@@ -219,8 +223,12 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [loadCards])
 
-  const clearColumn = useCallback(async (statut: string) => {
-    if (!window.confirm(`Voulez-vous vraiment vider la colonne "${statut}" ?`)) return
+  const clearColumn = useCallback((statut: string) => {
+    setClearConfirm({ show: true, statut })
+  }, [])
+
+  const confirmClearColumn = useCallback(async (statut: string) => {
+    setClearConfirm({ show: false, statut: '' })
     try {
       await kanbanService.clearSection(statut)
       setCards(prev => prev.filter(c => c.statut !== statut))
@@ -256,6 +264,15 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
       vehiculeList
     }}>
       {children}
+      <ConfirmModal
+        show={clearConfirm.show}
+        title="Vider la colonne"
+        message={`Voulez-vous vraiment vider la colonne "${clearConfirm.statut}" ? Toutes les tâches seront supprimées.`}
+        confirmLabel="Vider"
+        variant="warning"
+        onConfirm={() => confirmClearColumn(clearConfirm.statut)}
+        onCancel={() => setClearConfirm({ show: false, statut: '' })}
+      />
     </KanbanContext.Provider>
   )
 }

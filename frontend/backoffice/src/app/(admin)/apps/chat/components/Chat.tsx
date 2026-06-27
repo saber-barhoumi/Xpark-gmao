@@ -1,4 +1,5 @@
 
+import ConfirmModal from '@/components/ConfirmModal'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import SimplebarReactClient from '@/components/wrappers/SimplebarReactClient'
 import { useChatContext } from '@/context/useChatContext'
@@ -77,6 +78,14 @@ const Chat = ({
   const [groupParticipants, setGroupParticipants] = useState<ChatUtilisateur[]>([])
   const [groupSearch, setGroupSearch] = useState('')
   const [creatingGroup, setCreatingGroup] = useState(false)
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  }>({ show: false, title: '', message: '', onConfirm: () => {} })
 
   // Local unread markers (frontend-only, reset on select)
   const [localUnread, setLocalUnread] = useState<Set<number>>(new Set())
@@ -300,12 +309,23 @@ const Chat = ({
           }
           break
         case 'delete':
-          if (!window.confirm('Supprimer définitivement cette discussion ?')) return
-          await chatService.deleteConversation(conv.idConversation)
-          refreshConversations?.()
-          if (activeFilter === 'archived') {
-            setArchivedConversations(prev => prev.filter(c => c.idConversation !== conv.idConversation))
-          }
+          setConfirmModal({
+            show: true,
+            title: 'Supprimer la discussion',
+            message: 'Cette action est irréversible. Tous les messages seront définitivement supprimés.',
+            onConfirm: async () => {
+              setConfirmModal(m => ({ ...m, show: false }))
+              try {
+                await chatService.deleteConversation(conv.idConversation)
+                refreshConversations?.()
+                if (activeFilter === 'archived') {
+                  setArchivedConversations(prev => prev.filter(c => c.idConversation !== conv.idConversation))
+                }
+              } catch (err) {
+                console.error('[Chat] delete error:', err)
+              }
+            },
+          })
           break
         case 'markUnread':
           setLocalUnread(prev => {
@@ -718,6 +738,17 @@ const Chat = ({
         contactSearch={contactSearch}
         setContactSearch={setContactSearch}
         onStartChat={onStartChat}
+      />
+
+      {/* Confirm delete dialog */}
+      <ConfirmModal
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmLabel="Supprimer"
+        variant="danger"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(m => ({ ...m, show: false }))}
       />
 
       {/* Modal Nouveau Groupe */}

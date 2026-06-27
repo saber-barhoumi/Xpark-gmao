@@ -7,6 +7,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import EmojiPicker from '@emoji-mart/react';
 import api from '@/lib/axiosConfig';
 import data from '@emoji-mart/data';
+import ConfirmModal from '@/components/ConfirmModal';
 import { Card, CardHeader, Col, Dropdown, DropdownMenu, DropdownToggle } from 'react-bootstrap';
 
 import { useLayoutContext } from '@/context/useLayoutContext';
@@ -481,6 +482,7 @@ const ChatArea = ({
 
   // ── Modal Transférer ──────────────────────────────────────────────
   const [forwardModal, setForwardModal] = useState<number | null>(null); // messageId à transférer
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null); // messageId à supprimer
 
   // ── Actions menu contextuel ───────────────────────────────────────
   const handleAction = useCallback(async (action: MessageAction, messageId: number) => {
@@ -509,9 +511,7 @@ const ChatArea = ({
         break;
 
       case 'delete':
-        if (window.confirm('Supprimer ce message ?')) {
-          if (onDeleteMessage) onDeleteMessage(messageId);
-        }
+        setDeleteConfirm(messageId);
         break;
 
       case 'pin':
@@ -720,6 +720,20 @@ const ChatArea = ({
         isMine={menu.isMine}
         onAction={handleAction}
         onClose={closeMenu}
+      />
+
+      {/* Confirm delete message */}
+      <ConfirmModal
+        show={deleteConfirm !== null}
+        title="Supprimer le message"
+        message="Ce message sera définitivement supprimé pour tous les participants."
+        confirmLabel="Supprimer"
+        variant="danger"
+        onConfirm={() => {
+          if (deleteConfirm !== null && onDeleteMessage) onDeleteMessage(deleteConfirm);
+          setDeleteConfirm(null);
+        }}
+        onCancel={() => setDeleteConfirm(null)}
       />
 
       {/* Modal Transférer */}
