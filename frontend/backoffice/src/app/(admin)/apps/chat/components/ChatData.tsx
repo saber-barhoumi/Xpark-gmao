@@ -7,9 +7,6 @@ import Chat from './Chat'
 import ChatArea from './ChatArea'
 import UserList from './UserList'
 
-// Shared style: fills parent, clips overflow so only inner panels scroll
-const FILL: React.CSSProperties = { height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }
-
 const ChatData = () => {
   const currentUserId = useCurrentUserId()
   const {
@@ -23,7 +20,7 @@ const ChatData = () => {
 
   if (loading) {
     return (
-      <Card className="flex-1" style={{ flex: 1, ...FILL, justifyContent: 'center', alignItems: 'center' }}>
+      <Card className="chat-fill flex-1" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <div className="text-center">
           <Spinner animation="border" variant="primary" />
           <p className="mt-3 text-muted">Chargement du chat...</p>
@@ -34,7 +31,7 @@ const ChatData = () => {
 
   if (!connected) {
     return (
-      <Card style={{ flex: 1, ...FILL, justifyContent: 'center', alignItems: 'center' }}>
+      <Card className="chat-fill" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <div className="text-center">
           <i className="ri-wifi-off-line fs-1 text-danger"></i>
           <p className="mt-3 text-danger">Connexion au serveur perdue. Reconnexion en cours...</p>
@@ -45,31 +42,20 @@ const ChatData = () => {
 
   return (
     /*
-     * Card takes flex: 1 to fill container-fluid (which page.tsx forces to
-     * display:flex flex-direction:column). overflow:hidden prevents the card
-     * from growing past the viewport — only internal panels scroll.
+     * Card fills container-fluid (page.tsx forces flex-column).
+     * overflow:hidden prevents the card from growing past the viewport.
      */
-    <Card style={{ flex: 1, ...FILL, marginBottom: 0 }}>
-      {/* .chat is a flex row that fills the card */}
-      <div className="chat d-flex" style={{ height: '100%', overflow: 'hidden' }}>
+    <Card className="chat-fill" style={{ flex: 1, marginBottom: 0 }}>
+      {/* Flex row that fills the card */}
+      <div className="chat d-flex chat-fill">
 
         {/*
-         * Desktop sidebar — CSS width transition replaces React-Bootstrap Collapse.
-         * Collapse broke the height chain (its root div is display:block with no
-         * explicit height, so height:100% inside Chat resolved to 0).
-         * d-xxl-flex gives display:flex !important at ≥1400px so height:100%
-         * from the flex-stretch parent propagates correctly into Chat.
+         * Desktop sidebar — CSS width transition (not React-Bootstrap Collapse).
+         * d-xxl-flex propagates height correctly into Chat component.
          */}
         <div
-          className="d-none d-xxl-flex flex-column"
-          style={{
-            height: '100%',
-            width: chatList.open ? '340px' : '0',
-            minWidth: '0',
-            flexShrink: 0,
-            overflow: 'hidden',
-            transition: 'width 0.3s ease',
-          }}
+          className="d-none d-xxl-flex flex-column chat-sidebar-container"
+          style={{ width: chatList.open ? '340px' : '0' }}
         >
           <Chat
             conversations={conversations}
@@ -84,7 +70,7 @@ const ChatData = () => {
           />
         </div>
 
-        {/* ── Mobile: Offcanvas sidebar ── */}
+        {/* Mobile: Offcanvas sidebar */}
         <Offcanvas
           show={chatSetting.open}
           onHide={chatSetting.toggle}
@@ -106,7 +92,7 @@ const ChatData = () => {
           />
         </Offcanvas>
 
-        {/* ── Chat area — ChatArea already uses h-100 d-flex flex-column ── */}
+        {/* Chat area */}
         {activeConversation ? (
           <ChatArea
             conversation={activeConversation}
@@ -131,12 +117,9 @@ const ChatData = () => {
           </div>
         )}
 
-        {/* ── Online users sidebar — desktop only ── */}
-        <div className="d-none d-xxl-block border-start" style={{ minWidth: '260px', ...FILL }}>
-          <UserList
-            onlineUsers={onlineUsers}
-            onStartChat={createPrivateChat}
-          />
+        {/* Online users sidebar — desktop only */}
+        <div className="d-none d-xxl-block border-start chat-fill" style={{ minWidth: '260px' }}>
+          <UserList onlineUsers={onlineUsers} onStartChat={createPrivateChat} />
         </div>
       </div>
     </Card>
