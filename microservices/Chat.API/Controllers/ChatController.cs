@@ -33,6 +33,49 @@ public class ChatController(
         return Ok(list);
     }
 
+    [HttpGet("conversations/archived")]
+    public async Task<IActionResult> GetArchivedConversations()
+    {
+        var userId = GetUserId();
+        var list = await db.Conversations
+            .Where(c => c.Participants.Any(p => p.UtilisateurId == userId) && c.EstArchivee)
+            .Include(c => c.Participants).ThenInclude(p => p.Utilisateur)
+            .Include(c => c.Messages.OrderByDescending(m => m.DateEnvoi).Take(1))
+                .ThenInclude(m => m.Expediteur)
+            .OrderByDescending(c => c.DernierMessageDate)
+            .ToListAsync();
+        return Ok(list);
+    }
+
+    [HttpDelete("conversations/{id:long}")]
+    public async Task<IActionResult> DeleteConversation(long id)
+    {
+        var userId = GetUserId();
+        var conv = await db.Conversations
+            .Include(c => c.Participants)
+            .FirstOrDefaultAsync(c => c.IdConversation == id);
+        if (conv == null) return NotFound();
+        if (!conv.Participants.Any(p => p.UtilisateurId == userId)) return Forbid();
+
+        // Clear reply references first to avoid self-FK violation
+        var msgs = await db.ChatMessages.Where(m => m.ConversationId == id).ToListAsync();
+        foreach (var m in msgs.Where(m => m.ReponseAMessageId != null))
+            m.ReponseAMessageId = null;
+        await db.SaveChangesAsync();
+
+        // Delete reactions, then messages
+        var msgIds = msgs.Select(m => m.IdMessage).ToList();
+        var reactions = await db.MessageReactions.Where(r => msgIds.Contains(r.MessageId)).ToListAsync();
+        db.MessageReactions.RemoveRange(reactions);
+        db.ChatMessages.RemoveRange(msgs);
+        await db.SaveChangesAsync();
+
+        db.ConversationParticipants.RemoveRange(conv.Participants);
+        db.Conversations.Remove(conv);
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
     [HttpGet("conversations/{id:long}")]
     public async Task<IActionResult> GetConversation(long id)
     {

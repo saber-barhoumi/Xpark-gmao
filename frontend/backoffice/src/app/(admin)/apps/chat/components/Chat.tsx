@@ -30,9 +30,9 @@ const COLOR = {
   groupColor:   '#ffc107',
 }
 
-type FilterTab = 'all' | 'unread' | 'groups' | 'favorites'
+type FilterTab = 'all' | 'unread' | 'groups' | 'favorites' | 'archived'
 
-type ConvAction = 'pin' | 'mute' | 'archive' | 'markUnread' | 'favorite'
+type ConvAction = 'pin' | 'mute' | 'archive' | 'markUnread' | 'favorite' | 'delete'
 
 type ChatProps = {
   conversations: Conversation[]
@@ -67,6 +67,17 @@ const Chat = ({
   const [ctxMenu, setCtxMenu] = useState<{ conv: Conversation; x: number; y: number } | null>(null)
   const ctxMenuRef = useRef<HTMLDivElement>(null)
 
+  // Archived conversations
+  const [archivedConversations, setArchivedConversations] = useState<Conversation[]>([])
+  const [loadingArchived, setLoadingArchived] = useState(false)
+
+  // New group modal
+  const [showGroupModal, setShowGroupModal] = useState(false)
+  const [groupName, setGroupName] = useState('')
+  const [groupParticipants, setGroupParticipants] = useState<ChatUtilisateur[]>([])
+  const [groupSearch, setGroupSearch] = useState('')
+  const [creatingGroup, setCreatingGroup] = useState(false)
+
   // Local unread markers (frontend-only, reset on select)
   const [localUnread, setLocalUnread] = useState<Set<number>>(new Set())
 
@@ -89,6 +100,22 @@ const Chat = ({
     const timer = setTimeout(() => searchUsers(searchTerm), 300)
     return () => clearTimeout(timer)
   }, [searchTerm, searchUsers])
+
+  useEffect(() => {
+    if (showGroupModal) {
+      const timer = setTimeout(() => searchUsers(groupSearch), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [groupSearch, showGroupModal, searchUsers])
+
+  useEffect(() => {
+    if (activeFilter !== 'archived') return
+    setLoadingArchived(true)
+    chatService.getArchivedConversations()
+      .then(setArchivedConversations)
+      .catch(console.error)
+      .finally(() => setLoadingArchived(false))
+  }, [activeFilter])
 
   // Close context menu on outside click
   useEffect(() => {
@@ -220,6 +247,28 @@ const Chat = ({
     ? conversations[0].participants.find(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId))?.utilisateur
     : null
 
+  // ── Group creation ──────────────────────────────────────────────
+  const createGroup = async () => {
+    if (!groupName.trim() || groupParticipants.length === 0) return
+    setCreatingGroup(true)
+    try {
+      const conv = await chatService.createGroupConversation(
+        groupName.trim(),
+        groupParticipants.map(u => u.idUtilisateur)
+      )
+      setShowGroupModal(false)
+      setGroupName('')
+      setGroupParticipants([])
+      setGroupSearch('')
+      refreshConversations?.()
+      onSelectConversation(conv)
+    } catch (err) {
+      console.error('[Chat] createGroup error:', err)
+    } finally {
+      setCreatingGroup(false)
+    }
+  }
+
   // ── Conversation right-click menu handler ────────────────────────
   const openCtxMenu = (e: React.MouseEvent, conv: Conversation) => {
     e.preventDefault()
@@ -246,6 +295,17 @@ const Chat = ({
         case 'archive':
           await chatService.toggleArchive(conv.idConversation)
           refreshConversations?.()
+          if (activeFilter === 'archived') {
+            setArchivedConversations(prev => prev.filter(c => c.idConversation !== conv.idConversation))
+          }
+          break
+        case 'delete':
+          if (!window.confirm('Supprimer définitivement cette discussion ?')) return
+          await chatService.deleteConversation(conv.idConversation)
+          refreshConversations?.()
+          if (activeFilter === 'archived') {
+            setArchivedConversations(prev => prev.filter(c => c.idConversation !== conv.idConversation))
+          }
           break
         case 'markUnread':
           setLocalUnread(prev => {
@@ -314,7 +374,7 @@ const Chat = ({
                 <IconifyIcon icon="tabler:user-plus" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Nouveau Contact</span>
               </DropdownItem>
-              <DropdownItem>
+              <DropdownItem onClick={() => { setShowGroupModal(true); setGroupName(''); setGroupParticipants([]); setGroupSearch(''); searchUsers(''); }}>
                 <IconifyIcon icon="tabler:users-plus" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Nouveau Groupe</span>
               </DropdownItem>
@@ -322,7 +382,7 @@ const Chat = ({
                 <IconifyIcon icon="tabler:star" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Favoris</span>
               </DropdownItem>
-              <DropdownItem>
+              <DropdownItem onClick={() => setActiveFilter('archived')}>
                 <IconifyIcon icon="tabler:archive" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Archivés</span>
               </DropdownItem>
@@ -364,126 +424,198 @@ const Chat = ({
         </div>
       </div>
 
-      {/* ── Filter tabs ──────────────────────────────────────── */}
-      <div style={{
-        display: 'flex', gap: 4, padding: '8px 10px',
-        borderBottom: `1px solid ${COLOR.border}`, flexShrink: 0,
-        overflowX: 'auto',
-      }}>
-        {([
-          { key: 'all',       label: 'Toutes',    badge: 0 },
-          { key: 'unread',    label: 'Non lues',  badge: totalUnread },
-          { key: 'favorites', label: 'Favoris',   badge: 0 },
-          { key: 'groups',    label: 'Groupes',   badge: groupsCount },
-        ] as { key: FilterTab; label: string; badge: number }[]).map(tab => (
+      {/* ── Filter tabs / archived header ─────────────────── */}
+      {activeFilter === 'archived' ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 12px', borderBottom: `1px solid ${COLOR.border}`, flexShrink: 0,
+          background: '#fff8e7',
+        }}>
           <button
-            key={tab.key}
-            onClick={() => setActiveFilter(tab.key)}
+            onClick={() => setActiveFilter('all')}
             style={{
               display: 'flex', alignItems: 'center', gap: 4,
-              padding: '4px 12px', borderRadius: 20, border: 'none',
-              background: activeFilter === tab.key ? COLOR.accent : COLOR.hover,
-              color: activeFilter === tab.key ? '#fff' : COLOR.text,
+              padding: '4px 10px', borderRadius: 20, border: 'none',
+              background: 'rgba(0,0,0,0.08)', color: COLOR.text,
               fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              whiteSpace: 'nowrap', flexShrink: 0,
-              transition: 'all 0.15s',
             }}
           >
-            {tab.label}
-            {tab.badge > 0 && (
-              <span style={{
-                background: activeFilter === tab.key ? 'rgba(255,255,255,0.3)' : COLOR.badge,
-                color: activeFilter === tab.key ? '#fff' : '#fff',
-                borderRadius: 10, fontSize: 10, fontWeight: 700,
-                padding: '1px 5px', minWidth: 16, textAlign: 'center',
-              }}>
-                {tab.badge > 99 ? '99+' : tab.badge}
-              </span>
-            )}
+            <IconifyIcon icon="tabler:arrow-left" style={{ fontSize: 14 }} />
+            Retour
           </button>
-        ))}
-      </div>
+          <IconifyIcon icon="tabler:archive" style={{ fontSize: 16, color: '#b45309' }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#b45309' }}>Archivées</span>
+          {archivedConversations.length > 0 && (
+            <span style={{
+              background: '#b45309', color: '#fff',
+              borderRadius: 10, fontSize: 10, fontWeight: 700,
+              padding: '1px 6px', marginLeft: 'auto',
+            }}>
+              {archivedConversations.length}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex', gap: 4, padding: '8px 10px',
+          borderBottom: `1px solid ${COLOR.border}`, flexShrink: 0,
+          overflowX: 'auto',
+        }}>
+          {([
+            { key: 'all',       label: 'Toutes',    badge: 0 },
+            { key: 'unread',    label: 'Non lues',  badge: totalUnread },
+            { key: 'favorites', label: 'Favoris',   badge: 0 },
+            { key: 'groups',    label: 'Groupes',   badge: groupsCount },
+          ] as { key: FilterTab; label: string; badge: number }[]).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFilter(tab.key)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '4px 12px', borderRadius: 20, border: 'none',
+                background: activeFilter === tab.key ? COLOR.accent : COLOR.hover,
+                color: activeFilter === tab.key ? '#fff' : COLOR.text,
+                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                whiteSpace: 'nowrap', flexShrink: 0,
+                transition: 'all 0.15s',
+              }}
+            >
+              {tab.label}
+              {tab.badge > 0 && (
+                <span style={{
+                  background: activeFilter === tab.key ? 'rgba(255,255,255,0.3)' : COLOR.badge,
+                  color: '#fff',
+                  borderRadius: 10, fontSize: 10, fontWeight: 700,
+                  padding: '1px 5px', minWidth: 16, textAlign: 'center',
+                }}>
+                  {tab.badge > 99 ? '99+' : tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── List ─────────────────────────────────────────────── */}
       <SimplebarReactClient style={{ flex: 1, overflowY: 'auto' }}>
 
-        {/* Search results (new contacts) */}
-        {searchTerm && finalSearchResults.length > 0 && (
+        {activeFilter === 'archived' ? (
+          /* ── Archived conversations ── */
+          loadingArchived ? (
+            <div style={{ textAlign: 'center', padding: '40px 16px', color: COLOR.subText }}>
+              <p style={{ margin: 0, fontSize: 13 }}>Chargement...</p>
+            </div>
+          ) : archivedConversations.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 16px', color: COLOR.subText }}>
+              <IconifyIcon icon="tabler:archive-off" style={{ fontSize: 40, display: 'block', margin: '0 auto 12px', opacity: 0.4 }} />
+              <p style={{ margin: 0, fontSize: 13 }}>Aucune discussion archivée</p>
+            </div>
+          ) : (
+            <>
+              <SectionLabel icon="tabler:archive" label="Discussions archivées" />
+              {archivedConversations.map(conv => (
+                <ConvItem
+                  key={conv.idConversation}
+                  conv={conv}
+                  isActive={activeConversation?.idConversation === conv.idConversation}
+                  displayName={getDisplayName(conv)}
+                  lastMessage={getLastMessage(conv)}
+                  unreadCount={0}
+                  isOnline={false}
+                  time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
+                  lastMsgIsMine={false}
+                  lastMsgIsRead={true}
+                  currentUserId={currentUserId}
+                  isMuted={false}
+                  isFavorite={false}
+                  onSelect={() => onSelectConversation(conv)}
+                  onContextMenu={e => openCtxMenu(e, conv)}
+                />
+              ))}
+            </>
+          )
+        ) : (
+          /* ── Normal conversations ── */
           <>
-            <SectionLabel icon="tabler:users-search" label="Contacts trouvés" />
-            {finalSearchResults.map(user => (
-              <ContactSearchItem
-                key={user.idUtilisateur}
-                user={user}
-                isOnline={isUserOnline(user.idUtilisateur)}
-                onStart={() => { onStartChat(user.idUtilisateur); setSearchTerm('') }}
-              />
-            ))}
-          </>
-        )}
+            {/* Search results (new contacts) */}
+            {searchTerm && finalSearchResults.length > 0 && (
+              <>
+                <SectionLabel icon="tabler:users-search" label="Contacts trouvés" />
+                {finalSearchResults.map(user => (
+                  <ContactSearchItem
+                    key={user.idUtilisateur}
+                    user={user}
+                    isOnline={isUserOnline(user.idUtilisateur)}
+                    onStart={() => { onStartChat(user.idUtilisateur); setSearchTerm('') }}
+                  />
+                ))}
+              </>
+            )}
 
-        {/* Pinned */}
-        {pinnedConversations.length > 0 && (
-          <>
-            <SectionLabel icon="solar:pin-bold-duotone" label="Épinglés" />
-            {pinnedConversations.map(conv => (
-              <ConvItem
-                key={conv.idConversation}
-                conv={conv}
-                isActive={activeConversation?.idConversation === conv.idConversation}
-                displayName={getDisplayName(conv)}
-                lastMessage={getLastMessage(conv)}
-                unreadCount={getUnreadCount(conv) + (localUnread.has(conv.idConversation) ? 1 : 0)}
-                isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
-                time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
-                lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
-                lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
-                currentUserId={currentUserId}
-                isMuted={conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && !p.notificationsActivees)}
-                isFavorite={favorites.has(conv.idConversation)}
-                onSelect={() => onSelectConversation(conv)}
-                onContextMenu={e => openCtxMenu(e, conv)}
-              />
-            ))}
-          </>
-        )}
+            {/* Pinned */}
+            {pinnedConversations.length > 0 && (
+              <>
+                <SectionLabel icon="solar:pin-bold-duotone" label="Épinglés" />
+                {pinnedConversations.map(conv => (
+                  <ConvItem
+                    key={conv.idConversation}
+                    conv={conv}
+                    isActive={activeConversation?.idConversation === conv.idConversation}
+                    displayName={getDisplayName(conv)}
+                    lastMessage={getLastMessage(conv)}
+                    unreadCount={getUnreadCount(conv) + (localUnread.has(conv.idConversation) ? 1 : 0)}
+                    isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
+                    time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
+                    lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
+                    lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
+                    currentUserId={currentUserId}
+                    isMuted={conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && !p.notificationsActivees)}
+                    isFavorite={favorites.has(conv.idConversation)}
+                    onSelect={() => onSelectConversation(conv)}
+                    onContextMenu={e => openCtxMenu(e, conv)}
+                  />
+                ))}
+              </>
+            )}
 
-        {/* All conversations */}
-        {otherConversations.length > 0 && (
-          <>
-            <SectionLabel icon="solar:chat-line-bold-duotone" label="Conversations" />
-            {otherConversations.map(conv => (
-              <ConvItem
-                key={conv.idConversation}
-                conv={conv}
-                isActive={activeConversation?.idConversation === conv.idConversation}
-                displayName={getDisplayName(conv)}
-                lastMessage={getLastMessage(conv)}
-                unreadCount={getUnreadCount(conv) + (localUnread.has(conv.idConversation) ? 1 : 0)}
-                isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
-                time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
-                lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
-                lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
-                currentUserId={currentUserId}
-                isMuted={conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && !p.notificationsActivees)}
-                isFavorite={favorites.has(conv.idConversation)}
-                onSelect={() => onSelectConversation(conv)}
-                onContextMenu={e => openCtxMenu(e, conv)}
-              />
-            ))}
-          </>
-        )}
+            {/* All conversations */}
+            {otherConversations.length > 0 && (
+              <>
+                <SectionLabel icon="solar:chat-line-bold-duotone" label="Conversations" />
+                {otherConversations.map(conv => (
+                  <ConvItem
+                    key={conv.idConversation}
+                    conv={conv}
+                    isActive={activeConversation?.idConversation === conv.idConversation}
+                    displayName={getDisplayName(conv)}
+                    lastMessage={getLastMessage(conv)}
+                    unreadCount={getUnreadCount(conv) + (localUnread.has(conv.idConversation) ? 1 : 0)}
+                    isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
+                    time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
+                    lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
+                    lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
+                    currentUserId={currentUserId}
+                    isMuted={conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && !p.notificationsActivees)}
+                    isFavorite={favorites.has(conv.idConversation)}
+                    onSelect={() => onSelectConversation(conv)}
+                    onContextMenu={e => openCtxMenu(e, conv)}
+                  />
+                ))}
+              </>
+            )}
 
-        {filteredByTab.length === 0 && !searchTerm && (
-          <div style={{ textAlign: 'center', padding: '40px 16px', color: COLOR.subText }}>
-            <IconifyIcon icon="tabler:message-off" style={{ fontSize: 40, display: 'block', margin: '0 auto 12px', opacity: 0.4 }} />
-            <p style={{ margin: 0, fontSize: 13 }}>
-              {activeFilter === 'unread' ? 'Aucun message non lu' :
-               activeFilter === 'favorites' ? 'Aucun favori' :
-               activeFilter === 'groups' ? 'Aucun groupe' :
-               'Aucune conversation'}
-            </p>
-          </div>
+            {filteredByTab.length === 0 && !searchTerm && (
+              <div style={{ textAlign: 'center', padding: '40px 16px', color: COLOR.subText }}>
+                <IconifyIcon icon="tabler:message-off" style={{ fontSize: 40, display: 'block', margin: '0 auto 12px', opacity: 0.4 }} />
+                <p style={{ margin: 0, fontSize: 13 }}>
+                  {activeFilter === 'unread' ? 'Aucun message non lu' :
+                   activeFilter === 'favorites' ? 'Aucun favori' :
+                   activeFilter === 'groups' ? 'Aucun groupe' :
+                   'Aucune conversation'}
+                </p>
+              </div>
+            )}
+          </>
         )}
       </SimplebarReactClient>
 
@@ -511,33 +643,50 @@ const Chat = ({
             const isFavorite = favorites.has(conv.idConversation)
             const hasUnread = localUnread.has(conv.idConversation)
 
+            const isArchived = activeFilter === 'archived'
             const items = [
-              {
-                icon: isPinned ? 'tabler:pin-off' : 'solar:pin-bold-duotone',
-                label: isPinned ? 'Désépingler' : 'Épingler',
-                action: 'pin' as ConvAction,
-              },
-              {
-                icon: isMuted ? 'tabler:bell' : 'tabler:bell-off',
-                label: isMuted ? 'Activer les notifications' : 'Mode silencieux',
-                action: 'mute' as ConvAction,
-              },
-              {
-                icon: isFavorite ? 'tabler:star-off' : 'tabler:star',
-                label: isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
-                action: 'favorite' as ConvAction,
-              },
-              {
-                icon: hasUnread ? 'tabler:message-check' : 'tabler:message-dots',
-                label: hasUnread ? 'Marquer comme lue' : 'Marquer comme non lue',
-                action: 'markUnread' as ConvAction,
-              },
+              ...(!isArchived ? [
+                {
+                  icon: isPinned ? 'tabler:pin-off' : 'solar:pin-bold-duotone',
+                  label: isPinned ? 'Désépingler' : 'Épingler',
+                  action: 'pin' as ConvAction,
+                },
+                {
+                  icon: isMuted ? 'tabler:bell' : 'tabler:bell-off',
+                  label: isMuted ? 'Activer les notifications' : 'Mode silencieux',
+                  action: 'mute' as ConvAction,
+                },
+                {
+                  icon: isFavorite ? 'tabler:star-off' : 'tabler:star',
+                  label: isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
+                  action: 'favorite' as ConvAction,
+                },
+                {
+                  icon: hasUnread ? 'tabler:message-check' : 'tabler:message-dots',
+                  label: hasUnread ? 'Marquer comme lue' : 'Marquer comme non lue',
+                  action: 'markUnread' as ConvAction,
+                },
+                { divider: true },
+                {
+                  icon: 'tabler:archive',
+                  label: 'Archiver la discussion',
+                  action: 'archive' as ConvAction,
+                  danger: false,
+                },
+              ] : [
+                {
+                  icon: 'tabler:archive-off',
+                  label: 'Désarchiver la discussion',
+                  action: 'archive' as ConvAction,
+                  danger: false,
+                },
+              ]),
               { divider: true },
               {
-                icon: 'tabler:archive',
-                label: 'Archiver la discussion',
-                action: 'archive' as ConvAction,
-                danger: false,
+                icon: 'tabler:trash',
+                label: 'Supprimer la discussion',
+                action: 'delete' as ConvAction,
+                danger: true,
               },
             ]
 
@@ -569,6 +718,23 @@ const Chat = ({
         contactSearch={contactSearch}
         setContactSearch={setContactSearch}
         onStartChat={onStartChat}
+      />
+
+      {/* Modal Nouveau Groupe */}
+      <NewGroupModal
+        show={showGroupModal}
+        onHide={() => setShowGroupModal(false)}
+        groupName={groupName}
+        setGroupName={setGroupName}
+        groupSearch={groupSearch}
+        setGroupSearch={setGroupSearch}
+        searchResults={searchResults}
+        currentUserId={currentUserId}
+        isUserOnline={isUserOnline}
+        groupParticipants={groupParticipants}
+        setGroupParticipants={setGroupParticipants}
+        onConfirm={createGroup}
+        creating={creatingGroup}
       />
     </div>
   )
@@ -788,6 +954,188 @@ const ContactSearchItem = ({
         </p>
       </div>
     </div>
+  )
+}
+
+// ── Modal Nouveau Groupe ──────────────────────────────────────────
+const NewGroupModal = ({
+  show, onHide, groupName, setGroupName, groupSearch, setGroupSearch,
+  searchResults, currentUserId, isUserOnline, groupParticipants, setGroupParticipants,
+  onConfirm, creating,
+}: {
+  show: boolean; onHide: () => void
+  groupName: string; setGroupName: (v: string) => void
+  groupSearch: string; setGroupSearch: (v: string) => void
+  searchResults: ChatUtilisateur[]; currentUserId: string
+  isUserOnline: (userId: number) => boolean
+  groupParticipants: ChatUtilisateur[]
+  setGroupParticipants: React.Dispatch<React.SetStateAction<ChatUtilisateur[]>>
+  onConfirm: () => void; creating: boolean
+}) => {
+  const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim()
+  const available = searchResults.filter(u =>
+    normalizeId(u.idUtilisateur) !== normalizeId(currentUserId) &&
+    !groupParticipants.some(p => p.idUtilisateur === u.idUtilisateur)
+  )
+
+  const toggleParticipant = (user: ChatUtilisateur) => {
+    setGroupParticipants(prev =>
+      prev.some(p => p.idUtilisateur === user.idUtilisateur)
+        ? prev.filter(p => p.idUtilisateur !== user.idUtilisateur)
+        : [...prev, user]
+    )
+  }
+
+  return (
+    <Modal show={show} onHide={onHide} centered size="lg">
+      <Modal.Header closeButton style={{ borderBottom: 'none', paddingBottom: 0 }}>
+        <Modal.Title style={{ fontSize: 18, fontWeight: 700 }}>
+          <IconifyIcon icon="tabler:users-plus" className="me-2" style={{ color: COLOR.accent }} />
+          Nouveau Groupe
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body style={{ padding: '12px 20px 20px' }}>
+        {/* Group name */}
+        <div style={{ marginBottom: 12 }}>
+          <input
+            type="text"
+            value={groupName}
+            onChange={e => setGroupName(e.target.value)}
+            placeholder="Nom du groupe..."
+            autoFocus
+            style={{
+              width: '100%', padding: '10px 14px',
+              borderRadius: 10, border: `1px solid ${COLOR.border}`,
+              fontSize: 14, color: COLOR.text, outline: 'none',
+              background: COLOR.hover, fontWeight: 600,
+            }}
+          />
+        </div>
+
+        {/* Selected participants chips */}
+        {groupParticipants.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+            {groupParticipants.map(u => (
+              <span key={u.idUtilisateur} style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: COLOR.accentSoft, color: COLOR.accent,
+                borderRadius: 20, padding: '4px 10px',
+                fontSize: 12, fontWeight: 600,
+              }}>
+                {u.prenom} {u.nom}
+                <button
+                  onClick={() => toggleParticipant(u)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: COLOR.accent, lineHeight: 1 }}
+                >
+                  <IconifyIcon icon="tabler:x" style={{ fontSize: 12 }} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Search */}
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <IconifyIcon icon="tabler:search" style={{
+            position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+            color: COLOR.subText, fontSize: 16, pointerEvents: 'none',
+          }} />
+          <input
+            type="text"
+            value={groupSearch}
+            onChange={e => setGroupSearch(e.target.value)}
+            placeholder="Ajouter des participants..."
+            style={{
+              width: '100%', padding: '8px 12px 8px 34px',
+              borderRadius: 20, border: `1px solid ${COLOR.border}`,
+              fontSize: 13, color: COLOR.text, outline: 'none',
+              background: COLOR.hover,
+            }}
+          />
+        </div>
+
+        <SimplebarReactClient style={{ maxHeight: 280 }}>
+          {available.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: COLOR.subText }}>
+              <p style={{ margin: 0, fontSize: 13 }}>Aucun utilisateur trouvé</p>
+            </div>
+          ) : (
+            available.map(user => {
+              const online = isUserOnline(user.idUtilisateur)
+              const photo = user.photo || user.photoUrl
+              return (
+                <div
+                  key={user.idUtilisateur}
+                  onClick={() => toggleParticipant(user)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '8px', borderRadius: 8, cursor: 'pointer',
+                    marginBottom: 2, transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = COLOR.hover)}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      background: COLOR.avatarBg, color: COLOR.avatarColor,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 700, fontSize: 13, overflow: 'hidden',
+                    }}>
+                      {photo
+                        ? <img src={`${API_URL}${photo}`} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>}
+                    </div>
+                    <span style={{
+                      position: 'absolute', bottom: 1, right: 1,
+                      width: 10, height: 10, borderRadius: '50%',
+                      background: online ? COLOR.online : COLOR.offline,
+                      border: '2px solid #fff',
+                    }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: 13, color: COLOR.text }}>
+                      {user.prenom} {user.nom}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11, color: COLOR.subText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {user.email}
+                    </p>
+                  </div>
+                  <IconifyIcon icon="tabler:circle-plus" style={{ fontSize: 20, color: COLOR.accent, flexShrink: 0 }} />
+                </div>
+              )
+            })
+          )}
+        </SimplebarReactClient>
+      </Modal.Body>
+      <Modal.Footer style={{ borderTop: `1px solid ${COLOR.border}` }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', width: '100%' }}>
+          <button
+            onClick={onHide}
+            style={{
+              padding: '8px 20px', borderRadius: 20,
+              border: `1px solid ${COLOR.border}`, background: 'transparent',
+              color: COLOR.text, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            }}
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!groupName.trim() || groupParticipants.length === 0 || creating}
+            style={{
+              padding: '8px 20px', borderRadius: 20, border: 'none',
+              background: !groupName.trim() || groupParticipants.length === 0 || creating
+                ? '#ccc' : COLOR.accent,
+              color: '#fff', fontWeight: 600, fontSize: 13,
+              cursor: !groupName.trim() || groupParticipants.length === 0 || creating ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {creating ? 'Création...' : `Créer le groupe (${groupParticipants.length} membre${groupParticipants.length > 1 ? 's' : ''})`}
+          </button>
+        </div>
+      </Modal.Footer>
+    </Modal>
   )
 }
 
