@@ -354,7 +354,7 @@ const Chat = ({
     <div className="chat-user-list border-end" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 
       {/* ── Header current user ───────────────────────────────── */}
-      <CardBody className="py-2 px-3 border-bottom flex-shrink-0">
+      <CardBody className="py-2 px-3 border-bottom flex-shrink-0 flex-grow-0">
         <div className="d-flex align-items-center gap-2 py-1">
           {/* Avatar courant */}
           <div style={{ position: 'relative', flexShrink: 0 }}>

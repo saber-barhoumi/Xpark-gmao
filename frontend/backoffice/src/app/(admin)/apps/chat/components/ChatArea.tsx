@@ -544,7 +544,7 @@ const ChatArea = ({
                 <IconifyIcon icon='tabler:chevrons-right' className="fs-20" />
               </button>
             )}
-            <button onClick={chatSetting.toggle} className="btn btn-sm btn-icon btn-ghost-light text-dark d-xl-none d-flex" type="button">
+            <button onClick={chatSetting.toggle} className="btn btn-sm btn-icon btn-ghost-light text-dark d-xxl-none d-flex" type="button">
               <IconifyIcon icon='tabler:menu-2' className="fs-20" />
             </button>
 
