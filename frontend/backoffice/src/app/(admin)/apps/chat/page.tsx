@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react'
 import ChatData from './components/ChatData'
-import PageBreadcrumb from '@/components/PageBreadcrumb'
 
 const ChatPage = () => {
   useEffect(() => {
@@ -9,15 +8,17 @@ const ChatPage = () => {
     const containerFluid = pageContent?.querySelector<HTMLElement>('.container-fluid')
     const footer         = document.querySelector<HTMLElement>('.footer')
 
-    // Lock the outer page so only internal chat panels scroll
+    // Lock page-content to viewport height — no main-page scroll
     if (pageContent) {
-      pageContent.style.height   = 'calc(100vh - var(--ct-topbar-height, 85px))'
-      pageContent.style.overflow = 'hidden'
-      pageContent.style.display  = 'flex'
+      pageContent.style.height        = 'calc(100vh - var(--ct-topbar-height, 85px))'
+      pageContent.style.overflow      = 'hidden'
+      pageContent.style.display       = 'flex'
       pageContent.style.flexDirection = 'column'
+      pageContent.style.paddingTop    = '0'
+      pageContent.style.paddingBottom = '0'
     }
 
-    // Make container-fluid a flex column that fills the remaining height
+    // container-fluid becomes the sole flex child that fills page-content
     if (containerFluid) {
       containerFluid.style.flex          = '1'
       containerFluid.style.overflow      = 'hidden'
@@ -28,7 +29,6 @@ const ChatPage = () => {
       containerFluid.style.paddingBottom = '0'
     }
 
-    // Hide footer — chat is full-screen
     if (footer) footer.style.display = 'none'
 
     return () => {
@@ -37,6 +37,8 @@ const ChatPage = () => {
         pageContent.style.overflow      = ''
         pageContent.style.display       = ''
         pageContent.style.flexDirection = ''
+        pageContent.style.paddingTop    = ''
+        pageContent.style.paddingBottom = ''
       }
       if (containerFluid) {
         containerFluid.style.flex          = ''
@@ -51,12 +53,7 @@ const ChatPage = () => {
     }
   }, [])
 
-  return (
-    <>
-      <PageBreadcrumb title='Chat' />
-      <ChatData />
-    </>
-  )
+  return <ChatData />
 }
 
 export default ChatPage

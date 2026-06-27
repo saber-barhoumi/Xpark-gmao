@@ -353,11 +353,11 @@ const Chat = ({
   return (
     <div
       className="chat-user-list border-end"
-      style={{ display: 'grid', gridTemplateRows: 'auto auto auto 1fr', height: '100%', overflow: 'hidden', background: '#fff' }}
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#fff' }}
     >
 
       {/* ══ Row 1 — Profile header ══════════════════════════════ */}
-      <div style={{ padding: '10px 14px', borderBottom: `1px solid ${COLOR.border}`, background: '#fafbfc' }}>
+      <div style={{ flexShrink: 0, padding: '10px 14px', borderBottom: `1px solid ${COLOR.border}`, background: '#fafbfc' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
           {/* Avatar */}
@@ -451,7 +451,7 @@ const Chat = ({
       </div>
 
       {/* ══ Row 2 — Search ══════════════════════════════════════ */}
-      <div style={{ padding: '10px 12px 6px' }}>
+      <div style={{ flexShrink: 0, padding: '10px 12px 6px' }}>
         <div style={{ position: 'relative' }}>
           <IconifyIcon
             icon="tabler:search"
@@ -484,7 +484,7 @@ const Chat = ({
 
       {/* ══ Row 3 — Filter tabs / Archived header ═══════════════ */}
       {activeFilter === 'archived' ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 8px', borderBottom: `1px solid ${COLOR.border}`, background: '#fff8e7' }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 8px', borderBottom: `1px solid ${COLOR.border}`, background: '#fff8e7' }}>
           <button
             onClick={() => setActiveFilter('all')}
             style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 20, border: 'none', background: 'rgba(0,0,0,0.08)', color: COLOR.text, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
@@ -501,7 +501,7 @@ const Chat = ({
           )}
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 6, padding: '0 12px 8px', borderBottom: `1px solid ${COLOR.border}`, overflowX: 'auto' }}>
+        <div style={{ flexShrink: 0, display: 'flex', gap: 6, padding: '0 12px 8px', borderBottom: `1px solid ${COLOR.border}`, overflowX: 'auto' }}>
           {([
             { key: 'all',       label: 'Toutes',   badge: 0 },
             { key: 'unread',    label: 'Non lues', badge: totalUnread },
@@ -536,10 +536,10 @@ const Chat = ({
         </div>
       )}
 
-      {/* ══ Row 4 — Conversations list (1fr) ════════════════════ */}
-      {/* minHeight:0 prevents grid item from overflowing; Simplebar fills 100% of the row */}
-      <div style={{ minHeight: 0, overflow: 'hidden' }}>
-      <SimplebarReactClient style={{ height: '100%' }}>
+      {/* ══ Row 4 — Conversations list ══════════════════════════ */}
+      {/* flex:1 + minHeight:0 = fills remaining flex space; overflowY scrolls only this panel */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      <SimplebarReactClient style={{ minHeight: '100%' }}>
 
         {activeFilter === 'archived' ? (
           /* ── Archived conversations ── */
