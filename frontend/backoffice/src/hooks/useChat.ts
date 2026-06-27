@@ -233,14 +233,14 @@ export function useChat() {
     return users ? users.size > 0 : false;
   };
 
-  const searchUsers = async (query: string) => {
+  const searchUsers = useCallback(async (query: string) => {
     try {
       const results = await chatService.searchUsers(query);
       if (mountedRef.current) setSearchResults(results);
     } catch (error) {
       console.error('Error searching users:', error);
     }
-  };
+  }, []);
 
   const isUserOnline = (userId: number): boolean => {
     return onlineUsers.some(u => u.utilisateurId === userId && u.statut === 'ENLIGNE');
