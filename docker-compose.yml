@@ -214,7 +214,36 @@ services:
       - xpark-network
     restart: unless-stopped
 
-  # ── Monolith Backend (SignalR hubs: chatHub, kanbanHub) ────────
+  # ── Chat Service (SignalR chatHub + REST /api/chat/) ───────────
+  chat-api:
+    build:
+      context: ./microservices
+      dockerfile: Chat.API/Dockerfile
+    container_name: xpark-chat-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=xpark
+      - RabbitMQ__Password=xpark_secret
+    ports:
+      - "5007:80"
+    volumes:
+      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Monolith Backend (SignalR hubs: kanbanHub only) ─────────────
   backend:
     build:
       context: ./backend/src
@@ -253,6 +282,7 @@ services:
       - maintenance-api
       - finance-api
       - alerts-api
+      - chat-api
       - backend
     networks:
       - xpark-network

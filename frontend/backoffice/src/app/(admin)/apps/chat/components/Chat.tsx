@@ -5,11 +5,29 @@ import { useChatContext } from '@/context/useChatContext'
 import { Conversation, ChatUtilisateur } from '@/services/chatService'
 import { getFirstTwoLetters } from '@/utils/change-casing'
 
-import { Fragment, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { CardBody, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Modal } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
 
 const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+
+// ── Palette Messenger ────────────────────────────────────────────
+const COLOR = {
+  accent:       '#0d6efd',
+  accentSoft:   '#e8f0fe',
+  hover:        '#f0f2f5',
+  active:       '#dbeafe',
+  activeBorder: '#0d6efd',
+  text:         '#050505',
+  subText:      '#65676b',
+  badge:        '#0d6efd',
+  border:       '#e4e6eb',
+  online:       '#31a24c',
+  offline:      '#ccd0d5',
+  avatarBg:     '#0d6efd22',
+  avatarColor:  '#0d6efd',
+  groupBg:      '#ffc10722',
+  groupColor:   '#ffc107',
+}
 
 type ChatProps = {
   conversations: Conversation[]
@@ -22,11 +40,11 @@ type ChatProps = {
   onStartChat: (userId: number) => void
 }
 
-const Chat = ({ 
-  conversations, 
-  activeConversation, 
-  onSelectConversation, 
-  isUserOnline, 
+const Chat = ({
+  conversations,
+  activeConversation,
+  onSelectConversation,
+  isUserOnline,
   currentUserId,
   searchUsers,
   searchResults,
@@ -37,92 +55,66 @@ const Chat = ({
   const [showNewContactModal, setShowNewContactModal] = useState(false)
   const [contactSearch, setContactSearch] = useState('')
 
-  // Trigger search when searchTerm changes
-  // Search contacts when modal is open
   useEffect(() => {
     if (showNewContactModal) {
-      const timer = setTimeout(() => {
-        searchUsers(contactSearch)
-      }, 300)
+      const timer = setTimeout(() => searchUsers(contactSearch), 300)
       return () => clearTimeout(timer)
     }
   }, [contactSearch, showNewContactModal, searchUsers])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      searchUsers(searchTerm)
-    }, 300)
+    const timer = setTimeout(() => searchUsers(searchTerm), 300)
     return () => clearTimeout(timer)
   }, [searchTerm, searchUsers])
 
-  const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim();
+  const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim()
 
-  // Get the display name for a conversation
   const getDisplayName = (conv: Conversation): string => {
-    if (conv.typeConversation === 'GROUPE') {
-      return conv.titre || 'Groupe'
-    }
-    const otherParticipant = conv.participants.find(p => normalizeId(p.utilisateurId) !== normalizeId(currentUserId))
-    if (otherParticipant?.utilisateur) {
-      return `${otherParticipant.utilisateur.prenom} ${otherParticipant.utilisateur.nom}`
-    }
-    return 'Utilisateur'
+    if (conv.typeConversation === 'GROUPE') return conv.titre || 'Groupe'
+    const other = conv.participants.find(p => normalizeId(p.utilisateurId) !== normalizeId(currentUserId))
+    return other?.utilisateur ? `${other.utilisateur.prenom} ${other.utilisateur.nom}` : 'Utilisateur'
   }
 
-  // Get the other user's ID (for private conversations)
   const getOtherUserId = (conv: Conversation): number => {
     const other = conv.participants.find(p => normalizeId(p.utilisateurId) !== normalizeId(currentUserId))
     return other?.utilisateurId || 0
   }
 
-  // Format time display
   const formatTime = (dateStr?: string): string => {
     if (!dateStr) return ''
     const d = new Date(dateStr)
     const now = new Date()
     const diff = now.getTime() - d.getTime()
-
     if (diff < 60000) return 'Maintenant'
     if (diff < 3600000) return `${Math.floor(diff / 60000)}min`
     if (diff < 86400000) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
   }
 
-  // Get last message preview
   const getLastMessage = (conv: Conversation): string => {
-    if (conv.messages && conv.messages.length > 0) {
-      const lastMsg = conv.messages[conv.messages.length - 1]
-      if (lastMsg.estSupprime) return 'Message supprimé'
-      if (lastMsg.typeMessage === 'IMAGE') return '📷 Image'
-      if (lastMsg.typeMessage === 'FICHIER') return '📎 Fichier'
-      if (lastMsg.typeMessage === 'APPEL') {
-        try {
-          const data = JSON.parse(lastMsg.contenu)
-          return `${data.icon || '📞'} ${data.label || 'Appel'}`
-        } catch { return '📞 Appel' }
-      }
-      return lastMsg.contenu
+    if (!conv.messages?.length) return 'Aucun message'
+    const last = conv.messages[conv.messages.length - 1]
+    if (last.estSupprime) return 'Message supprimé'
+    if (last.typeMessage === 'IMAGE') return '📷 Image'
+    if (last.typeMessage === 'FICHIER') return '📎 Fichier'
+    if (last.typeMessage === 'APPEL') {
+      try { const d = JSON.parse(last.contenu); return `${d.icon || '📞'} ${d.label || 'Appel'}` } catch { return '📞 Appel' }
     }
-    return 'Aucun message'
+    return last.contenu
   }
 
-  // Get unread count
   const getUnreadCount = (conv: Conversation): number => {
     if (!conv.messages) return 0
     return conv.messages.filter(m => !m.estLu && normalizeId(m.expediteurId) !== normalizeId(currentUserId)).length
   }
 
-  // Filter conversations by search
   const filteredConversations = conversations.filter(conv => {
     if (!searchTerm) return true
-    const name = getDisplayName(conv).toLowerCase()
-    return name.includes(searchTerm.toLowerCase())
+    return getDisplayName(conv).toLowerCase().includes(searchTerm.toLowerCase())
   })
 
-  // Failsafe: Filter duplicates (only keep one conversation per other user)
   const uniqueConversations: Conversation[] = []
   const seenUserIds = new Set<number>()
-
   for (const conv of filteredConversations) {
     if (conv.typeConversation === 'PRIVEE') {
       const otherId = getOtherUserId(conv)
@@ -132,35 +124,24 @@ const Chat = ({
     uniqueConversations.push(conv)
   }
 
-  // Bug 1 Fix — Sort by activity (descending)
   uniqueConversations.sort((a, b) => {
-    const getTimestamp = (c: Conversation) => {
-      const d1 = c.dernierMessageDate ? new Date(c.dernierMessageDate).getTime() : 0;
-      const d2 = (c.messages && c.messages.length > 0) ? new Date(c.messages[c.messages.length - 1].dateEnvoi).getTime() : 0;
-      const d3 = c.dateCreation ? new Date(c.dateCreation).getTime() : 0;
-      
-      const val = Math.max(
-        isNaN(d1) ? 0 : d1,
-        isNaN(d2) ? 0 : d2,
-        isNaN(d3) ? 0 : d3
-      );
-      return val || 0;
-    };
-    return getTimestamp(b) - getTimestamp(a);
-  });
-
-  // Filter search results - only show users NOT in existing conversations if they match searchTerm
-  const finalSearchResults = searchResults.filter(user => {
-    // Ne pas montrer l'utilisateur courant
-    if (normalizeId(user.idUtilisateur) === normalizeId(currentUserId)) return false
-    // Ne pas montrer si déjà une conversation privée existante
-    return !conversations.some(c => 
-      c.typeConversation === 'PRIVEE' && 
-      c.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(user.idUtilisateur))
-    )
+    const ts = (c: Conversation) => {
+      const d1 = c.dernierMessageDate ? new Date(c.dernierMessageDate).getTime() : 0
+      const d2 = c.messages?.length ? new Date(c.messages[c.messages.length - 1].dateEnvoi).getTime() : 0
+      const d3 = c.dateCreation ? new Date(c.dateCreation).getTime() : 0
+      return Math.max(isNaN(d1) ? 0 : d1, isNaN(d2) ? 0 : d2, isNaN(d3) ? 0 : d3)
+    }
+    return ts(b) - ts(a)
   })
 
-  // Separate pinned and all conversations
+  const finalSearchResults = searchResults.filter(u =>
+    normalizeId(u.idUtilisateur) !== normalizeId(currentUserId) &&
+    !conversations.some(c =>
+      c.typeConversation === 'PRIVEE' &&
+      c.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(u.idUtilisateur))
+    )
+  )
+
   const pinnedConversations = uniqueConversations.filter(conv =>
     conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && p.estEpingle)
   )
@@ -168,146 +149,175 @@ const Chat = ({
     !conv.participants.some(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId) && p.estEpingle)
   )
 
-  // Get the current user info from any conversation
   const currentUser = conversations.length > 0
     ? conversations[0].participants.find(p => normalizeId(p.utilisateurId) === normalizeId(currentUserId))?.utilisateur
     : null
 
   return (
-    <div className="chat-user-list border-end">
-      <CardBody className="py-2 px-3 border-bottom">
+    <div className="chat-user-list border-end" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+
+      {/* ── Header current user ───────────────────────────────── */}
+      <CardBody className="py-2 px-3 border-bottom flex-shrink-0">
         <div className="d-flex align-items-center gap-2 py-1">
-          <div className="chat-users">
-            <div className="avatar-lg chat-avatar-online">
-              <div className="h-100 w-100 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center overflow-hidden">
-                {currentUser?.photo || currentUser?.photoUrl ? (
-                  <img 
-                    src={`${API_URL}${currentUser.photo || currentUser.photoUrl}`} 
-                    alt="avatar" 
-                    className="h-100 w-100 rounded-circle" 
-                    style={{ objectFit: 'cover' }} 
-                  />
-                ) : (
-                  <span className="fw-semibold text-uppercase">{currentUser ? getFirstTwoLetters(`${currentUser.prenom} ${currentUser.nom}`) : 'ME'}</span>
-                )}
-              </div>
+          {/* Avatar courant */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%',
+              background: COLOR.avatarBg, color: COLOR.avatarColor,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 700, fontSize: 14, overflow: 'hidden',
+            }}>
+              {currentUser?.photo || currentUser?.photoUrl ? (
+                <img src={`${API_URL}${currentUser.photo || currentUser.photoUrl}`} alt="avatar"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span>{currentUser ? getFirstTwoLetters(`${currentUser.prenom} ${currentUser.nom}`) : 'ME'}</span>
+              )}
             </div>
+            <span style={{
+              position: 'absolute', bottom: 1, right: 1,
+              width: 10, height: 10, borderRadius: '50%',
+              background: COLOR.online, border: '2px solid #fff',
+            }} />
           </div>
-          <div className="flex-grow-1">
-            <h5 className="mb-0">
-              <Link to="" className="text-reset lh-base">{currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Moi'}</Link>
-            </h5>
-            <p className="mb-0 text-muted">En ligne</p>
+
+          <div className="flex-grow-1 overflow-hidden">
+            <p className="mb-0 fw-semibold text-truncate" style={{ fontSize: 14, color: COLOR.text }}>
+              {currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Moi'}
+            </p>
+            <p className="mb-0" style={{ fontSize: 12, color: COLOR.online }}>En ligne</p>
           </div>
-          <Dropdown className="lh-1" align={'end'}>
-            <DropdownToggle as={'a'} className="drop-arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-              <IconifyIcon width={20} height={20} icon="solar:settings-outline" className="align-middle" />
+
+          <Dropdown className="lh-1" align="end">
+            <DropdownToggle as="span" style={{ cursor: 'pointer', padding: 6 }} data-bs-toggle="dropdown" aria-expanded="false">
+              <IconifyIcon width={20} height={20} icon="solar:settings-outline" className="text-muted" />
             </DropdownToggle>
             <DropdownMenu className="dropdown-menu-end">
               <DropdownItem onClick={() => { setShowNewContactModal(true); setContactSearch(''); searchUsers(''); }}>
-                <IconifyIcon icon='tabler:user-plus' className="me-1 fs-17 align-middle" />
+                <IconifyIcon icon="tabler:user-plus" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Nouveau Contact</span>
               </DropdownItem>
               <DropdownItem>
-                <IconifyIcon icon='tabler:users-plus' className="me-1 fs-17 align-middle" />
+                <IconifyIcon icon="tabler:users-plus" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Nouveau Groupe</span>
               </DropdownItem>
               <DropdownItem>
-                <IconifyIcon icon='tabler:star' className="me-1 fs-17 align-middle" />
+                <IconifyIcon icon="tabler:star" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Favoris</span>
               </DropdownItem>
               <DropdownItem>
-                <IconifyIcon icon='tabler:archive' className="me-1 fs-17 align-middle" />
+                <IconifyIcon icon="tabler:archive" className="me-1 fs-17 align-middle" />
                 <span className="align-middle">Archivés</span>
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
-          <button onClick={chatSetting.toggle} type="button" className="flex-grow-0 btn btn-sm btn-icon btn-soft-danger d-xl-none" data-bs-dismiss="offcanvas" data-bs-target="#chatUserList" aria-label="Close">
-            <IconifyIcon icon='tabler:x' className="fs-20" />
+
+          <button
+            onClick={chatSetting.toggle}
+            type="button"
+            className="flex-grow-0 btn btn-sm btn-icon btn-soft-danger d-xl-none"
+          >
+            <IconifyIcon icon="tabler:x" className="fs-20" />
           </button>
         </div>
       </CardBody>
 
-      <div className="d-flex flex-column chat">
-        <SimplebarReactClient className="users-list position-relative list-scroll">
-          {/* Search */}
-          <div className="px-3 py-2">
-            <div className="app-search py-1">
-              <input
-                type="text"
-                className="form-control border-light bg-light bg-opacity-50 rounded-2"
-                placeholder="Rechercher une conversation ou un contact..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <IconifyIcon icon='tabler:search' className="app-search-icon text-muted fs-16" />
-            </div>
-          </div>
-
-          {/* Search Results (Global Contacts) */}
-          {searchTerm && finalSearchResults.length > 0 && (
-            <>
-              <div className="d-flex align-items-center px-3 py-2 bg-body-secondary position-sticky top-0 z-1">
-                <IconifyIcon icon="tabler:users-search" className="fs-18 text-muted" />
-                <h5 className="mb-0 ms-1 fw-semibold fs-14">Contacts trouvés</h5>
-              </div>
-              {finalSearchResults.map((user) => (
-                <div 
-                  key={user.idUtilisateur} 
-                  className="chat-users" 
-                  onClick={() => {
-                    onStartChat(user.idUtilisateur)
-                    setSearchTerm('')
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className={`avatar-md ${isUserOnline(user.idUtilisateur) ? 'chat-avatar-online' : 'chat-avatar-offline'}`}>
-                    <div className="h-100 w-100 rounded-circle bg-soft-primary text-primary d-flex align-items-center justify-content-center overflow-hidden">
-                      {user.photo || user.photoUrl ? (
-                        <img 
-                          src={`${API_URL}${user.photo || user.photoUrl}`} 
-                          alt="avatar" 
-                          className="h-100 w-100 rounded-circle" 
-                          style={{ objectFit: 'cover' }} 
-                        />
-                      ) : (
-                        <span className="fw-semibold text-uppercase">{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-grow-1 overflow-hidden">
-                    <h5 className="mt-0 mb-0 fs-13">{user.prenom} {user.nom}</h5>
-                    <p className="mt-1 mb-0 text-muted lh-1 text-truncate">{user.email}</p>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Pinned conversations */}
-          {pinnedConversations.length > 0 && (
-            <>
-              <div className="d-flex align-items-center px-3 py-2 bg-body-secondary position-sticky top-0 z-1">
-                <IconifyIcon icon="solar:pin-bold-duotone" className="fs-18 text-muted" />
-                <h5 className="mb-0 ms-1 fw-semibold fs-14">Épinglés</h5>
-              </div>
-              {pinnedConversations.map((conv) => renderConversationItem(conv))}
-            </>
-          )}
-
-          {/* All messages */}
-          <div className="d-flex align-items-center px-3 py-2 bg-body-secondary position-sticky top-0 z-1">
-            <IconifyIcon icon="solar:chat-line-bold-duotone" className="fs-18 text-muted" />
-            <h5 className="mb-0 ms-1 fw-semibold fs-14">Tous les messages</h5>
-          </div>
-          {otherConversations.length === 0 && pinnedConversations.length === 0 && !searchTerm && (
-            <div className="text-center p-4">
-              <p className="text-muted">Aucune conversation trouvée</p>
-            </div>
-          )}
-          {otherConversations.map((conv) => renderConversationItem(conv))}
-        </SimplebarReactClient>
+      {/* ── Search bar ───────────────────────────────────────── */}
+      <div style={{ padding: '10px 12px', flexShrink: 0 }}>
+        <div style={{ position: 'relative' }}>
+          <IconifyIcon
+            icon="tabler:search"
+            style={{
+              position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+              color: COLOR.subText, fontSize: 16, pointerEvents: 'none',
+            }}
+          />
+          <input
+            type="text"
+            style={{
+              width: '100%', padding: '8px 12px 8px 32px',
+              borderRadius: 20, border: 'none',
+              background: COLOR.hover, fontSize: 14,
+              color: COLOR.text, outline: 'none',
+            }}
+            placeholder="Rechercher..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
+
+      {/* ── List ─────────────────────────────────────────────── */}
+      <SimplebarReactClient style={{ flex: 1, overflowY: 'auto' }}>
+
+        {/* Search results (new contacts) */}
+        {searchTerm && finalSearchResults.length > 0 && (
+          <>
+            <SectionLabel icon="tabler:users-search" label="Contacts trouvés" />
+            {finalSearchResults.map(user => (
+              <ContactSearchItem
+                key={user.idUtilisateur}
+                user={user}
+                isOnline={isUserOnline(user.idUtilisateur)}
+                onStart={() => { onStartChat(user.idUtilisateur); setSearchTerm('') }}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Pinned */}
+        {pinnedConversations.length > 0 && (
+          <>
+            <SectionLabel icon="solar:pin-bold-duotone" label="Épinglés" />
+            {pinnedConversations.map(conv => (
+              <ConvItem
+                key={conv.idConversation}
+                conv={conv}
+                isActive={activeConversation?.idConversation === conv.idConversation}
+                displayName={getDisplayName(conv)}
+                lastMessage={getLastMessage(conv)}
+                unreadCount={getUnreadCount(conv)}
+                isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
+                time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
+                lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
+                lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
+                currentUserId={currentUserId}
+                onSelect={() => onSelectConversation(conv)}
+              />
+            ))}
+          </>
+        )}
+
+        {/* All conversations */}
+        {otherConversations.length > 0 && (
+          <>
+            <SectionLabel icon="solar:chat-line-bold-duotone" label="Conversations" />
+            {otherConversations.map(conv => (
+              <ConvItem
+                key={conv.idConversation}
+                conv={conv}
+                isActive={activeConversation?.idConversation === conv.idConversation}
+                displayName={getDisplayName(conv)}
+                lastMessage={getLastMessage(conv)}
+                unreadCount={getUnreadCount(conv)}
+                isOnline={conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false}
+                time={formatTime(conv.messages?.[conv.messages.length - 1]?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
+                lastMsgIsMine={conv.messages?.length ? normalizeId(conv.messages[conv.messages.length - 1].expediteurId) === normalizeId(currentUserId) : false}
+                lastMsgIsRead={conv.messages?.[conv.messages.length - 1]?.estLu ?? false}
+                currentUserId={currentUserId}
+                onSelect={() => onSelectConversation(conv)}
+              />
+            ))}
+          </>
+        )}
+
+        {otherConversations.length === 0 && pinnedConversations.length === 0 && !searchTerm && (
+          <div style={{ textAlign: 'center', padding: '40px 16px', color: COLOR.subText }}>
+            <IconifyIcon icon="tabler:message-off" style={{ fontSize: 40, display: 'block', margin: '0 auto 12px', opacity: 0.4 }} />
+            <p style={{ margin: 0, fontSize: 13 }}>Aucune conversation</p>
+          </div>
+        )}
+      </SimplebarReactClient>
 
       {/* Modal Nouveau Contact */}
       <NewContactModal
@@ -322,164 +332,299 @@ const Chat = ({
       />
     </div>
   )
-
-  function renderConversationItem(conv: Conversation) {
-    const displayName = getDisplayName(conv)
-    const isActive = activeConversation?.idConversation === conv.idConversation
-    const unreadCount = getUnreadCount(conv)
-    const lastMessage = conv.messages && conv.messages.length > 0 ? conv.messages[conv.messages.length - 1] : null
-    const isOnline = conv.typeConversation === 'PRIVEE' ? isUserOnline(getOtherUserId(conv)) : false
-
-    return (
-      <Fragment key={conv.idConversation}>
-        <div className="text-body d-block" style={{ cursor: 'pointer' }}>
-          <div className={`chat-users ${isActive && 'active'}`} onClick={() => onSelectConversation(conv)}>
-            <div className={`avatar-md ${isOnline ? 'chat-avatar-online' : 'chat-avatar-offline'}`}>
-              {conv.typeConversation === 'GROUPE' ? (
-                <div className="h-100 w-100 rounded-circle bg-warning text-white d-flex align-items-center justify-content-center">
-                  <IconifyIcon icon="tabler:users" className="fs-20" />
-                </div>
-              ) : (
-                <div className="h-100 w-100 rounded-circle bg-info text-white d-flex align-items-center justify-content-center overflow-hidden">
-                  {(() => {
-                    const otherPart = conv.participants.find(p => normalizeId(p.utilisateurId) !== normalizeId(currentUserId))?.utilisateur;
-                    const photo = otherPart?.photo || otherPart?.photoUrl;
-                    return photo ? (
-                      <img 
-                        src={`${API_URL}${photo}`} 
-                        alt="avatar" 
-                        className="h-100 w-100 rounded-circle" 
-                        style={{ objectFit: 'cover' }} 
-                      />
-                    ) : (
-                      <span className="fw-semibold text-uppercase">{getFirstTwoLetters(displayName)}</span>
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
-            <div className="flex-grow-1 overflow-hidden">
-              <h5 className="mt-0 mb-0 fs-13">
-                <span className="float-end text-muted fs-12">
-                  {formatTime(lastMessage?.dateEnvoi || conv.dernierMessageDate || conv.dateCreation)}
-                </span>
-                {displayName}
-              </h5>
-              <p className="mt-1 mb-0 text-muted lh-1">
-                {unreadCount > 0 && (
-                  <span className="w-25 float-end text-end">
-                    <span className="badge bg-danger-subtle text-danger">{unreadCount}</span>
-                  </span>
-                )}
-                {unreadCount === 0 && lastMessage && normalizeId(lastMessage.expediteurId) === normalizeId(currentUserId) && (
-                  <span className="w-25 text-end float-end text-success">
-                    <IconifyIcon icon={lastMessage.estLu ? "tabler:checks" : "tabler:check"} />
-                  </span>
-                )}
-                <span className="w-75 d-inline-block text-truncate overflow-hidden">
-                  {getLastMessage(conv)}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </Fragment>
-    )
-  }
 }
 
-// ── Modal Nouveau Contact ──────────────────────────────────────
-const NewContactModal = ({ 
-  show, 
-  onHide, 
-  searchResults, 
-  currentUserId, 
-  isUserOnline,
-  contactSearch,
-  setContactSearch,
-  onStartChat 
-}: {
-  show: boolean
-  onHide: () => void
-  searchResults: ChatUtilisateur[]
+// ── Section label (non-sticky — prevents scroll jump inside Simplebar) ──
+const SectionLabel = ({ icon, label }: { icon: string; label: string }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '10px 14px 4px',
+  }}>
+    <IconifyIcon icon={icon} style={{ fontSize: 14, color: COLOR.subText }} />
+    <span style={{ fontSize: 11, fontWeight: 600, color: COLOR.subText, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      {label}
+    </span>
+  </div>
+)
+
+// ── Single conversation item ──────────────────────────────────────
+interface ConvItemProps {
+  conv: Conversation
+  isActive: boolean
+  displayName: string
+  lastMessage: string
+  unreadCount: number
+  isOnline: boolean
+  time: string
+  lastMsgIsMine: boolean
+  lastMsgIsRead: boolean
   currentUserId: string
+  onSelect: () => void
+}
+
+const ConvItem = ({
+  conv, isActive, displayName, lastMessage, unreadCount,
+  isOnline, time, lastMsgIsMine, lastMsgIsRead, currentUserId, onSelect
+}: ConvItemProps) => {
+  const [hovered, setHovered] = useState(false)
+  const isGroup = conv.typeConversation === 'GROUPE'
+
+  const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim()
+  const otherPart = !isGroup
+    ? conv.participants.find(p => normalizeId(p.utilisateurId) !== normalizeId(currentUserId))?.utilisateur
+    : null
+  const photo = otherPart?.photo || otherPart?.photoUrl
+
+  const bg = isActive ? COLOR.active : hovered ? COLOR.hover : 'transparent'
+  const borderLeft = isActive ? `3px solid ${COLOR.activeBorder}` : '3px solid transparent'
+
+  return (
+    <div
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 14px 8px 11px',
+        cursor: 'pointer',
+        background: bg,
+        borderLeft,
+        transition: 'background 0.12s',
+        userSelect: 'none',
+      }}
+    >
+      {/* Avatar */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: isGroup ? COLOR.groupBg : COLOR.avatarBg,
+          color: isGroup ? COLOR.groupColor : COLOR.avatarColor,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 700, fontSize: 15, overflow: 'hidden',
+        }}>
+          {isGroup ? (
+            <IconifyIcon icon="tabler:users" style={{ fontSize: 20 }} />
+          ) : photo ? (
+            <img src={`${API_URL}${photo}`} alt="avatar"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(displayName)}</span>
+          )}
+        </div>
+        {/* Online dot */}
+        {!isGroup && (
+          <span style={{
+            position: 'absolute', bottom: 1, right: 1,
+            width: 11, height: 11, borderRadius: '50%',
+            background: isOnline ? COLOR.online : COLOR.offline,
+            border: '2px solid #fff',
+          }} />
+        )}
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 }}>
+          <span style={{
+            fontWeight: unreadCount > 0 ? 700 : 500,
+            fontSize: 14, color: COLOR.text,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            maxWidth: '70%',
+          }}>
+            {displayName}
+          </span>
+          <span style={{ fontSize: 11, color: COLOR.subText, whiteSpace: 'nowrap', marginLeft: 4 }}>
+            {time}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {/* Read checkmarks for own messages */}
+          {lastMsgIsMine && unreadCount === 0 && (
+            <IconifyIcon
+              icon={lastMsgIsRead ? 'tabler:checks' : 'tabler:check'}
+              style={{ fontSize: 13, color: lastMsgIsRead ? COLOR.accent : COLOR.subText, flexShrink: 0 }}
+            />
+          )}
+          <span style={{
+            fontSize: 12, color: unreadCount > 0 ? COLOR.text : COLOR.subText,
+            fontWeight: unreadCount > 0 ? 600 : 400,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+          }}>
+            {lastMessage}
+          </span>
+          {unreadCount > 0 && (
+            <span style={{
+              background: COLOR.badge, color: '#fff',
+              borderRadius: 10, fontSize: 11, fontWeight: 700,
+              padding: '1px 6px', flexShrink: 0, minWidth: 18, textAlign: 'center',
+            }}>
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Contact search result row ─────────────────────────────────────
+const ContactSearchItem = ({
+  user, isOnline, onStart,
+}: { user: ChatUtilisateur; isOnline: boolean; onStart: () => void }) => {
+  const [hovered, setHovered] = useState(false)
+  const photo = user.photo || user.photoUrl
+
+  return (
+    <div
+      onClick={onStart}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 14px', cursor: 'pointer',
+        background: hovered ? COLOR.hover : 'transparent',
+        transition: 'background 0.12s',
+      }}
+    >
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: COLOR.avatarBg, color: COLOR.avatarColor,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 700, fontSize: 13, overflow: 'hidden',
+        }}>
+          {photo ? (
+            <img src={`${API_URL}${photo}`} alt="avatar"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>
+          )}
+        </div>
+        <span style={{
+          position: 'absolute', bottom: 1, right: 1,
+          width: 10, height: 10, borderRadius: '50%',
+          background: isOnline ? COLOR.online : COLOR.offline,
+          border: '2px solid #fff',
+        }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ margin: 0, fontWeight: 600, fontSize: 13, color: COLOR.text }}>
+          {user.prenom} {user.nom}
+        </p>
+        <p style={{ margin: 0, fontSize: 11, color: COLOR.subText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {user.email}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ── Modal Nouveau Contact ─────────────────────────────────────────
+const NewContactModal = ({
+  show, onHide, searchResults, currentUserId, isUserOnline,
+  contactSearch, setContactSearch, onStartChat,
+}: {
+  show: boolean; onHide: () => void
+  searchResults: ChatUtilisateur[]; currentUserId: string
   isUserOnline: (userId: number) => boolean
-  contactSearch: string
-  setContactSearch: (v: string) => void
+  contactSearch: string; setContactSearch: (v: string) => void
   onStartChat: (userId: number) => void
 }) => {
-  const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim();
-  const filteredUsers = searchResults.filter(u => normalizeId(u.idUtilisateur) !== normalizeId(currentUserId))
+  const normalizeId = (id: any): string => String(id ?? '').toLowerCase().trim()
+  const filtered = searchResults.filter(u => normalizeId(u.idUtilisateur) !== normalizeId(currentUserId))
 
   return (
     <Modal show={show} onHide={onHide} centered size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>
-          <IconifyIcon icon="tabler:user-plus" className="me-2" />
-          Nouveau Contact
+      <Modal.Header closeButton style={{ borderBottom: 'none', paddingBottom: 0 }}>
+        <Modal.Title style={{ fontSize: 18, fontWeight: 700 }}>
+          <IconifyIcon icon="tabler:user-plus" className="me-2" style={{ color: COLOR.accent }} />
+          Nouveau message
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
-        <div className="app-search mb-3">
+      <Modal.Body style={{ padding: '12px 20px 20px' }}>
+        {/* Search */}
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <IconifyIcon icon="tabler:search" style={{
+            position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+            color: COLOR.subText, fontSize: 16, pointerEvents: 'none',
+          }} />
           <input
-            type="text"
-            className="form-control"
-            placeholder="Rechercher par nom ou email..."
-            value={contactSearch}
-            onChange={(e) => setContactSearch(e.target.value)}
             autoFocus
+            type="text"
+            value={contactSearch}
+            onChange={e => setContactSearch(e.target.value)}
+            placeholder="Rechercher par nom ou email..."
+            style={{
+              width: '100%', padding: '10px 12px 10px 34px',
+              borderRadius: 20, border: `1px solid ${COLOR.border}`,
+              fontSize: 14, color: COLOR.text, outline: 'none',
+              background: COLOR.hover,
+            }}
           />
-          <IconifyIcon icon='tabler:search' className="app-search-icon text-muted fs-16" />
         </div>
+
         <SimplebarReactClient style={{ maxHeight: 400 }}>
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-4 text-muted">
-              <IconifyIcon icon="tabler:users-minus" className="fs-32 d-block mx-auto mb-2 opacity-50" />
-              Aucun utilisateur trouvé
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '30px 0', color: COLOR.subText }}>
+              <IconifyIcon icon="tabler:users-minus" style={{ fontSize: 36, display: 'block', margin: '0 auto 10px', opacity: 0.4 }} />
+              <p style={{ margin: 0, fontSize: 13 }}>Aucun utilisateur trouvé</p>
             </div>
           ) : (
-            <div className="list-group list-group-flush">
-              {filteredUsers.map(user => {
-                const online = isUserOnline(user.idUtilisateur)
-                return (
-                  <div
-                    key={user.idUtilisateur}
-                    className="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2 border-0 rounded"
-                  >
-                    <div className={`avatar-md ${online ? 'chat-avatar-online' : 'chat-avatar-offline'}`}>
-                      <div className="h-100 w-100 rounded-circle bg-info text-white d-flex align-items-center justify-content-center overflow-hidden">
-                        {user.photo || user.photoUrl ? (
-                          <img 
-                            src={`${API_URL}${user.photo || user.photoUrl}`} 
-                            alt="avatar" 
-                            className="h-100 w-100 rounded-circle" 
-                            style={{ objectFit: 'cover' }} 
-                          />
-                        ) : (
-                          <span className="fw-semibold text-uppercase" style={{ fontSize: '0.75rem' }}>
-                            {getFirstTwoLetters(`${user.prenom} ${user.nom}`)}
-                          </span>
-                        )}
-                      </div>
+            filtered.map(user => {
+              const online = isUserOnline(user.idUtilisateur)
+              const photo = user.photo || user.photoUrl
+              return (
+                <div
+                  key={user.idUtilisateur}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 8px',
+                    borderBottom: `1px solid ${COLOR.border}`,
+                  }}
+                >
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%',
+                      background: COLOR.avatarBg, color: COLOR.avatarColor,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 700, fontSize: 14, overflow: 'hidden',
+                    }}>
+                      {photo ? (
+                        <img src={`${API_URL}${photo}`} alt="avatar"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>
+                      )}
                     </div>
-                    <div className="flex-grow-1 min-w-0">
-                      <h6 className="mb-0">{user.prenom} {user.nom}</h6>
-                      <p className="mb-0 text-muted small text-truncate">{user.email}</p>
-                    </div>
-                    <button
-                      className="btn btn-sm btn-soft-primary"
-                      onClick={() => {
-                        onStartChat(user.idUtilisateur)
-                        onHide()
-                      }}
-                    >
-                      <IconifyIcon icon="tabler:message-circle" className="me-1" />
-                      Démarrer
-                    </button>
+                    <span style={{
+                      position: 'absolute', bottom: 1, right: 1,
+                      width: 11, height: 11, borderRadius: '50%',
+                      background: online ? COLOR.online : COLOR.offline,
+                      border: '2px solid #fff',
+                    }} />
                   </div>
-                )
-              })}
-            </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: COLOR.text }}>
+                      {user.prenom} {user.nom}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 12, color: COLOR.subText, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      {user.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { onStartChat(user.idUtilisateur); onHide() }}
+                    style={{
+                      padding: '6px 14px', borderRadius: 20,
+                      border: 'none', background: COLOR.accent,
+                      color: '#fff', fontWeight: 600, fontSize: 13,
+                      cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    Démarrer
+                  </button>
+                </div>
+              )
+            })
           )}
         </SimplebarReactClient>
       </Modal.Body>
