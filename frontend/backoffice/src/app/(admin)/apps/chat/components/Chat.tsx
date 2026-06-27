@@ -8,7 +8,7 @@ import chatService from '@/services/chatService'
 import { getFirstTwoLetters } from '@/utils/change-casing'
 
 import { useState, useEffect, useRef } from 'react'
-import { CardBody, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Modal } from 'react-bootstrap'
+import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Modal } from 'react-bootstrap'
 
 const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
 
@@ -351,10 +351,11 @@ const Chat = ({
   }
 
   return (
-    <div className="chat-user-list border-end" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="chat-user-list border-end" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
       {/* ── Header current user ───────────────────────────────── */}
-      <CardBody className="py-2 px-3 border-bottom flex-shrink-0 flex-grow-0">
+      {/* Use plain div — Bootstrap's CardBody has flex:1 1 auto which grows and steals space */}
+      <div className="border-bottom" style={{ padding: '8px 12px', flexShrink: 0, flexGrow: 0 }}>
         <div className="d-flex align-items-center gap-2 py-1">
           {/* Avatar courant */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -417,10 +418,10 @@ const Chat = ({
             <IconifyIcon icon="tabler:x" className="fs-20" />
           </button>
         </div>
-      </CardBody>
+      </div>
 
       {/* ── Search bar ───────────────────────────────────────── */}
-      <div style={{ padding: '10px 12px 0', flexShrink: 0 }}>
+      <div style={{ padding: '8px 12px 0', flexShrink: 0, flexGrow: 0 }}>
         <div style={{ position: 'relative' }}>
           <IconifyIcon
             icon="tabler:search"
@@ -517,7 +518,9 @@ const Chat = ({
       )}
 
       {/* ── List ─────────────────────────────────────────────── */}
-      <SimplebarReactClient style={{ flex: 1, overflowY: 'auto' }}>
+      {/* flex:1 + minHeight:0 on wrapper lets it shrink; Simplebar fills 100% inside */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+      <SimplebarReactClient style={{ height: '100%' }}>
 
         {activeFilter === 'archived' ? (
           /* ── Archived conversations ── */
@@ -638,6 +641,7 @@ const Chat = ({
           </>
         )}
       </SimplebarReactClient>
+      </div>
 
       {/* ── Context menu ─────────────────────────────────────── */}
       {ctxMenu && (
