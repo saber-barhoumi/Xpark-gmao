@@ -29,6 +29,7 @@ builder.Services.AddAutoMapper(typeof(MissionProfile));
 // Repositories & Services
 builder.Services.AddScoped<IMissionRepository, MissionRepository>();
 builder.Services.AddScoped<IMissionService, MissionService>();
+builder.Services.AddScoped<IHistoricalMigrationService, HistoricalMigrationService>();
 
 // AI Telemetry — data collector for ML trip-price training dataset
 builder.Services.AddAiTelemetry(
