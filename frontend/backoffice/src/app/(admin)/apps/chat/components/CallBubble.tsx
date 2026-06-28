@@ -10,19 +10,16 @@ interface CallData {
 }
 
 interface CallBubbleProps {
-  contenu:       string;           // JSON stringifié
-  isMine:        boolean;          // true = j'ai initié l'appel
+  contenu:       string;
+  isMine:        boolean;
   dateEnvoi:     string;
   currentUserId: string;
   onCallback?:   (callType: 'audio' | 'video') => void;
 }
 
 const fmtHeure = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleTimeString('fr-FR', {
-      hour: '2-digit', minute: '2-digit',
-    });
-  } catch { return ''; }
+  try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+  catch { return ''; }
 };
 
 const formatDuration = (s: number): string => {
@@ -32,139 +29,62 @@ const formatDuration = (s: number): string => {
   return sec > 0 ? `${m} min ${sec} sec` : `${m} minute${m > 1 ? 's' : ''}`;
 };
 
-export const CallBubble: React.FC<CallBubbleProps> = ({
-  contenu, isMine, dateEnvoi, onCallback,
-}) => {
+export const CallBubble: React.FC<CallBubbleProps> = ({ contenu, isMine, dateEnvoi, onCallback }) => {
   let data: CallData | null = null;
   try { data = JSON.parse(contenu); } catch { return null; }
   if (!data) return null;
 
   const isVideo = data.callType === 'video';
+  const isMissed = data.status === 'Missed' || data.status === 'Cancelled';
+  const isClickable = !isMine && data.status !== 'Completed';
 
-  // ── Texte selon statut + point de vue ──
   const getStatusText = (): string => {
     switch (data!.status) {
       case 'Missed':
-      case 'Cancelled':
-        return isMine
-          ? 'Appel annulé'
-          : 'Appel manqué — Cliquez pour rappeler';
-      case 'Declined':
-        return isMine ? 'Appel refusé' : 'Vous avez refusé';
-      case 'Completed':
-        return formatDuration(data!.durationSeconds);
-      default:
-        return '';
+      case 'Cancelled': return isMine ? 'Appel annulé' : 'Appel manqué — Cliquez pour rappeler';
+      case 'Declined':  return isMine ? 'Appel refusé' : 'Vous avez refusé';
+      case 'Completed': return formatDuration(data!.durationSeconds);
+      default: return '';
     }
   };
 
-  // ── Icône selon type + statut ──
-  const getIconName = (): string => {
-    if (data!.status === 'Completed') {
-      return isVideo ? 'tabler:video' : 'tabler:phone-call';
-    }
-    return isVideo ? 'tabler:video-off' : 'tabler:phone-off';
-  };
+  const iconName = data.status === 'Completed'
+    ? (isVideo ? 'tabler:video' : 'tabler:phone-call')
+    : (isVideo ? 'tabler:video-off' : 'tabler:phone-off');
 
-  // ── Couleur du texte statut ──
-  const getStatusColor = (): string => {
-    if (data!.status === 'Completed') {
-      return isMine ? 'rgba(255,255,255,.75)' : '#198754';
-    }
-    // Manqué, annulé ou refusé
-    if (!isMine && (data!.status === 'Missed' || data!.status === 'Cancelled')) return '#dc3545'; // rouge chez l'appelé
-    return isMine ? 'rgba(255,255,255,.65)' : '#6c757d';
-  };
+  const statusMod = data.status === 'Completed'
+    ? (isMine ? '--mine' : '--completed')
+    : (isMissed && !isMine ? '--missed' : (isMine ? '--mine' : ''));
 
-  const isClickable = !isMine && data.status !== 'Completed';
+  const iconCircleMod = isMine ? '--mine' : (isMissed ? '--missed' : '');
+  const iconMod       = isMine ? '--mine' : (isMissed ? '--missed' : '');
 
   return (
-    <li style={{
-      display:        'flex',
-      justifyContent: isMine ? 'flex-end' : 'flex-start',
-      marginBottom:   8,
-      padding:        '2px 12px',
-      listStyle:      'none',
-    }}>
+    <li className={`call-bubble${isMine ? ' call-bubble--mine' : ''}`}>
       <div
+        className={`call-bubble__card${isMine ? ' call-bubble__card--mine' : ''}${isClickable ? ' call-bubble__card--clickable' : ''}`}
         onClick={() => isClickable && onCallback?.(data!.callType)}
-        style={{
-          display:      'flex',
-          alignItems:   'center',
-          gap:          12,
-          padding:      '12px 16px',
-          borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-          background:   isMine ? '#0d6efd' : '#f0f2f5',
-          color:        isMine ? '#fff' : '#212529',
-          boxShadow:    '0 1px 3px rgba(0,0,0,.1)',
-          cursor:       isClickable ? 'pointer' : 'default',
-          minWidth:     220,
-          maxWidth:     300,
-          transition:   'filter .15s',
-          userSelect:   'none',
-        }}
-        onMouseEnter={e => {
-          if (isClickable) e.currentTarget.style.filter = 'brightness(.93)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.filter = 'none';
-        }}
       >
-        {/* Cercle icône */}
-        <div style={{
-          width:          44,
-          height:         44,
-          borderRadius:   '50%',
-          flexShrink:     0,
-          background:     isMine
-            ? 'rgba(255,255,255,.18)'
-            : (data.status === 'Missed' || data.status === 'Cancelled') && !isMine
-              ? 'rgba(220,53,69,.12)'
-              : 'rgba(13,110,253,.1)',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'center',
-        }}>
+        {/* Icon circle */}
+        <div className={`call-bubble__icon-circle${iconCircleMod ? ` call-bubble__icon-circle${iconCircleMod}` : ''}`}>
           <IconifyIcon
-            icon={getIconName()}
-            style={{
-              fontSize: 22,
-              color: isMine
-                ? '#fff'
-                : (data.status === 'Missed' || data.status === 'Cancelled') && !isMine
-                  ? '#dc3545'
-                  : '#0d6efd',
-            }}
+            icon={iconName}
+            className={`call-bubble__icon${iconMod ? ` call-bubble__icon${iconMod}` : ''}`}
           />
         </div>
 
-        {/* Textes */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontWeight:   600,
-            fontSize:     14,
-            marginBottom: 3,
-            color:        isMine ? '#fff' : '#212529',
-          }}>
+        {/* Texts */}
+        <div className="call-bubble__texts">
+          <div className={`call-bubble__label${isMine ? ' call-bubble__label--mine' : ''}`}>
             {data.label}
           </div>
-          <div style={{
-            fontSize:   12,
-            color:      getStatusColor(),
-            fontWeight: (data.status === 'Missed' || data.status === 'Cancelled') && !isMine ? 700 : 400,
-          }}>
+          <div className={`call-bubble__status${statusMod ? ` call-bubble__status${statusMod}` : ''}`}>
             {getStatusText()}
           </div>
         </div>
 
-        {/* Heure */}
-        <div style={{
-          fontSize:   10,
-          color:      isMine ? 'rgba(255,255,255,.55)' : '#adb5bd',
-          alignSelf:  'flex-end',
-          flexShrink: 0,
-          marginLeft: 4,
-        }}>
+        {/* Time */}
+        <div className={`call-bubble__time${isMine ? ' call-bubble__time--mine' : ''}`}>
           {fmtHeure(dateEnvoi)}
         </div>
       </div>

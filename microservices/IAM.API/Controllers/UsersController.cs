@@ -1,3 +1,4 @@
+using IAM.API.Data;
 using IAM.API.DTOs;
 using IAM.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace IAM.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/users")]
-public class UsersController(IUserService userService) : ControllerBase
+public class UsersController(IUserService userService, IamDbContext db) : ControllerBase
 {
     [HttpGet("profile")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetProfile()
@@ -56,8 +57,35 @@ public class UsersController(IUserService userService) : ControllerBase
 
     [HttpPost("{id}/upload-avatar")]
     [Consumes("multipart/form-data")]
-    public ActionResult<ApiResponse<object>> UploadAvatar(long id, IFormFile? file) =>
-        Ok(ApiResponse<object>.Ok(new { photoUrl = (string?)null }));
+    public async Task<ActionResult<ApiResponse<object>>> UploadAvatar(long id, IFormFile? file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<object>.Fail("Aucun fichier fourni"));
+
+        var user = await db.Utilisateurs.FindAsync(id);
+        if (user == null)
+            return NotFound(ApiResponse<object>.Fail("Utilisateur introuvable"));
+
+        var uploadsPath = Path.Combine("/app/wwwroot/uploads/avatars");
+        Directory.CreateDirectory(uploadsPath);
+
+        var fileName = $"avatar_{id}_{DateTime.UtcNow.Ticks}{Path.GetExtension(file.FileName)}";
+        var filePath = Path.Combine(uploadsPath, fileName);
+
+        await using (var stream = new FileStream(filePath, FileMode.Create))
+            await file.CopyToAsync(stream);
+
+        if (!string.IsNullOrEmpty(user.Photo))
+        {
+            var oldPath = Path.Combine("/app/wwwroot", user.Photo.TrimStart('/'));
+            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+        }
+
+        user.Photo = $"/uploads/avatars/{fileName}";
+        await db.SaveChangesAsync();
+
+        return Ok(ApiResponse<object>.Ok(new { photoUrl = user.Photo }));
+    }
 
     [HttpPut("{id}/profile")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> UpdateProfileById(

@@ -9,8 +9,6 @@ public class AlertsDbContext(DbContextOptions<AlertsDbContext> options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("alerts");
-
         mb.Entity<Alerte>(e =>
         {
             e.ToTable("Alertes");

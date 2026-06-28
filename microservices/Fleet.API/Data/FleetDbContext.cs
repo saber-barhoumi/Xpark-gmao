@@ -14,8 +14,6 @@ public class FleetDbContext(DbContextOptions<FleetDbContext> options) : DbContex
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("fleet");
-
         mb.Entity<Vehicule>(e =>
         {
             e.ToTable("Vehicules");
@@ -42,7 +40,6 @@ public class FleetDbContext(DbContextOptions<FleetDbContext> options) : DbContex
         {
             e.ToTable("DocumentsAdministratifs");
             e.HasKey(d => d.IdDocument);
-            e.Property(d => d.TypeDocument).HasConversion<string>();
         });
 
         mb.Entity<Source>(e =>

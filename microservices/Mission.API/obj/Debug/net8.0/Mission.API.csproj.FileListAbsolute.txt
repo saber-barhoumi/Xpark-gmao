@@ -134,3 +134,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\ref
 C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\Mission.API.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\Mission.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\ref\Mission.API.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\Mission.API.sourcelink.json

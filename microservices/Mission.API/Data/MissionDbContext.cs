@@ -9,8 +9,6 @@ public class MissionDbContext(DbContextOptions<MissionDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("missions");
-
         mb.Entity<MissionEntity>(e =>
         {
             e.ToTable("Missions");

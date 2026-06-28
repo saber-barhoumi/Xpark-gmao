@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using XparkGMAO.Core.Entities.GestionFlotte;
 using XparkGMAO.Core.Entities.GestionOperations;
 
@@ -33,6 +34,7 @@ public class Employee
     public SpecialtyTechnician? Specialty { get; set; }
     public LevelTechnician? Level { get; set; }
 
-    // Navigation
+    // Navigation — [JsonIgnore] prevents partial serialization when Missions aren't loaded
+    [JsonIgnore]
     public ICollection<Mission> Missions { get; set; } = new List<Mission>();
 }

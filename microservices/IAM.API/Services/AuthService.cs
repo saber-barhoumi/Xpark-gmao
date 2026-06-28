@@ -19,8 +19,9 @@ public class AuthService(
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto, string ipAddress)
     {
+        var emailLower = dto.Email.ToLower();
         var user = await db.Utilisateurs
-            .FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower());
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.MotDePasse))
         {
@@ -123,8 +124,9 @@ public class AuthService(
 
     public async Task ConfirmEmailAsync(ConfirmEmailDto dto)
     {
+        var emailLower = dto.Email.ToLower();
         var user = await db.Utilisateurs.FirstOrDefaultAsync(u =>
-            u.Email == dto.Email.ToLower() &&
+            u.Email.ToLower() == emailLower &&
             u.EmailConfirmationToken == dto.Token &&
             u.EmailConfirmationTokenExpiry > DateTime.UtcNow);
 
@@ -142,7 +144,8 @@ public class AuthService(
 
     public async Task RecoverPasswordAsync(RecoverPasswordDto dto)
     {
-        var user = await db.Utilisateurs.FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower());
+        var emailLower = dto.Email.ToLower();
+        var user = await db.Utilisateurs.FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
         if (user is null) return; // silent – security best practice
 
         user.PasswordResetToken       = Guid.NewGuid().ToString("N");
@@ -157,8 +160,9 @@ public class AuthService(
         if (dto.NewPassword != dto.ConfirmPassword)
             throw new ArgumentException("Les mots de passe ne correspondent pas.");
 
+        var emailLower2 = dto.Email.ToLower();
         var user = await db.Utilisateurs.FirstOrDefaultAsync(u =>
-            u.Email == dto.Email.ToLower() &&
+            u.Email.ToLower() == emailLower2 &&
             u.PasswordResetToken == dto.Token &&
             u.PasswordResetTokenExpiry > DateTime.UtcNow);
 
@@ -185,7 +189,8 @@ public class AuthService(
 
     public async Task<AuthResponseDto> LoginPinAsync(LoginPinDto dto)
     {
-        var user = await db.Utilisateurs.FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower());
+        var emailLower = dto.Email.ToLower();
+        var user = await db.Utilisateurs.FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
 
         if (user is null || !user.HasPin || !BCrypt.Net.BCrypt.Verify(dto.Pin, user.Pin))
             throw new UnauthorizedAccessException("Email ou PIN incorrect.");

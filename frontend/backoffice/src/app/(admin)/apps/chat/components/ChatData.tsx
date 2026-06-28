@@ -2,7 +2,7 @@
 import { useChatContext } from '@/context/useChatContext'
 import { useChat } from '@/hooks/useChat'
 import { useCurrentUserId } from '../hooks/useCurrentUserId'
-import { Card, Collapse, Offcanvas, Spinner } from 'react-bootstrap'
+import { Card, Offcanvas, Spinner } from 'react-bootstrap'
 import Chat from './Chat'
 import ChatArea from './ChatArea'
 import UserList from './UserList'
@@ -10,36 +10,20 @@ import UserList from './UserList'
 const ChatData = () => {
   const currentUserId = useCurrentUserId()
   const {
-    conversations,
-    activeConversation,
-    messages,
-    onlineUsers,
-    loading,
-    connected,
-    selectConversation,
-    sendMessage,
-    sendFile,
-    typing,
-    createPrivateChat,
-    searchUsers,
-    searchResults,
-    isUserTyping,
-    isUserOnline,
-    deleteMessage,
-    pinMessage,
-    refreshConversations,
+    conversations, activeConversation, messages, onlineUsers,
+    loading, connected, selectConversation, sendMessage, sendFile,
+    typing, createPrivateChat, searchUsers, searchResults,
+    isUserTyping, isUserOnline, deleteMessage, pinMessage, refreshConversations,
   } = useChat()
 
   const { chatList, chatSetting } = useChatContext()
 
   if (loading) {
     return (
-      <Card>
-        <div className="d-flex align-items-center justify-content-center" style={{ height: '600px' }}>
-          <div className="text-center">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-3 text-muted">Chargement du chat...</p>
-          </div>
+      <Card className="chat-fill flex-1" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <div className="text-center">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-3 text-muted">Chargement du chat...</p>
         </div>
       </Card>
     )
@@ -47,36 +31,43 @@ const ChatData = () => {
 
   if (!connected) {
     return (
-      <Card>
-        <div className="d-flex align-items-center justify-content-center" style={{ height: '600px' }}>
-          <div className="text-center">
-            <i className="ri-wifi-off-line fs-1 text-danger"></i>
-            <p className="mt-3 text-danger">Connexion au serveur perdue. Reconnexion en cours...</p>
-          </div>
+      <Card className="chat-fill" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <div className="text-center">
+          <i className="ri-wifi-off-line fs-1 text-danger"></i>
+          <p className="mt-3 text-danger">Connexion au serveur perdue. Reconnexion en cours...</p>
         </div>
       </Card>
     )
   }
 
   return (
-    <Card>
-      <div className="chat d-flex">
-        {/* Desktop: Collapsible sidebar */}
-        <div className="d-none d-xxl-block">
-          <Collapse in={chatList.open} dimension="width">
-            <div>
-              <Chat
-                conversations={conversations}
-                activeConversation={activeConversation}
-                onSelectConversation={selectConversation}
-                isUserOnline={isUserOnline}
-                currentUserId={currentUserId}
-                searchUsers={searchUsers}
-                searchResults={searchResults}
-                onStartChat={createPrivateChat}
-              />
-            </div>
-          </Collapse>
+    /*
+     * Card fills container-fluid (page.tsx forces flex-column).
+     * overflow:hidden prevents the card from growing past the viewport.
+     */
+    <Card className="chat-fill" style={{ flex: 1, marginBottom: 0 }}>
+      {/* Flex ROW: sidebar | chat area | user list — must NOT be column */}
+      <div className="chat" style={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+
+        {/*
+         * Desktop sidebar — CSS width transition (not React-Bootstrap Collapse).
+         * d-xxl-flex propagates height correctly into Chat component.
+         */}
+        <div
+          className="d-none d-xxl-flex flex-column chat-sidebar-container"
+          style={{ width: chatList.open ? '340px' : '0' }}
+        >
+          <Chat
+            conversations={conversations}
+            activeConversation={activeConversation}
+            onSelectConversation={selectConversation}
+            isUserOnline={isUserOnline}
+            currentUserId={currentUserId}
+            searchUsers={searchUsers}
+            searchResults={searchResults}
+            onStartChat={createPrivateChat}
+            refreshConversations={refreshConversations}
+          />
         </div>
 
         {/* Mobile: Offcanvas sidebar */}
@@ -97,10 +88,11 @@ const ChatData = () => {
             searchUsers={searchUsers}
             searchResults={searchResults}
             onStartChat={createPrivateChat}
+            refreshConversations={refreshConversations}
           />
         </Offcanvas>
 
-        {/* Chat Area */}
+        {/* Chat area */}
         {activeConversation ? (
           <ChatArea
             conversation={activeConversation}
@@ -117,22 +109,17 @@ const ChatData = () => {
             refreshConversations={refreshConversations}
           />
         ) : (
-          <Card className="chat-content rounded-0 shadow-none mb-0">
-            <div className="d-flex align-items-center justify-content-center" style={{ height: '600px' }}>
-              <div className="text-center">
-                <i className="ri-message-3-line" style={{ fontSize: '4rem', color: '#adb5bd' }}></i>
-                <p className="text-muted mt-3 fs-16">Sélectionnez une conversation pour commencer</p>
-              </div>
+          <div className="d-flex align-items-center justify-content-center" style={{ flex: 1 }}>
+            <div className="text-center">
+              <i className="ri-message-3-line" style={{ fontSize: '4rem', color: '#adb5bd' }}></i>
+              <p className="text-muted mt-3 fs-16">Sélectionnez une conversation pour commencer</p>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Online Users Sidebar - desktop only */}
-        <div className="d-none d-xxl-block border-start" style={{ minWidth: '260px' }}>
-          <UserList
-            onlineUsers={onlineUsers}
-            onStartChat={createPrivateChat}
-          />
+        {/* Online users sidebar — desktop only */}
+        <div className="d-none d-xxl-flex flex-column border-start" style={{ width: '260px', flexShrink: 0, minHeight: 0, overflow: 'hidden' }}>
+          <UserList onlineUsers={onlineUsers} onStartChat={createPrivateChat} />
         </div>
       </div>
     </Card>

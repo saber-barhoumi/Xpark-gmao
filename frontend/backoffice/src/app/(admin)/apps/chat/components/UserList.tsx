@@ -9,41 +9,40 @@ type UserListProps = {
   onStartChat: (userId: number) => void
 }
 
+const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+
 const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
   const getStatusColor = (statut: string) => {
     switch (statut) {
       case 'ENLIGNE': return 'success'
-      case 'ABSENT': return 'warning'
-      case 'OCCUPE': return 'danger'
-      default: return 'secondary'
+      case 'ABSENT':  return 'warning'
+      case 'OCCUPE':  return 'danger'
+      default:        return 'secondary'
     }
   }
 
   const getStatusText = (statut: string) => {
     switch (statut) {
       case 'ENLIGNE': return 'En ligne'
-      case 'ABSENT': return 'Absent'
-      case 'OCCUPE': return 'Occupé'
-      default: return 'Hors ligne'
+      case 'ABSENT':  return 'Absent'
+      case 'OCCUPE':  return 'Occupé'
+      default:        return 'Hors ligne'
     }
   }
 
   const formatLastSeen = (dateStr: string) => {
-    const d = new Date(dateStr)
-    const now = new Date()
+    const d    = new Date(dateStr)
+    const now  = new Date()
     const diff = now.getTime() - d.getTime()
-
-    if (diff < 60000) return 'À l\'instant'
+    if (diff < 60000)   return "À l'instant"
     if (diff < 3600000) return `il y a ${Math.floor(diff / 60000)}min`
     if (diff < 86400000) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
   }
 
-  const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
-
   return (
-    <div>
-      <CardBody className="py-2 px-3 border-bottom">
+    <div className="user-list">
+      <CardBody className="py-2 px-3 border-bottom flex-shrink-0">
         <div className="d-flex align-items-center gap-2 py-1">
           <IconifyIcon icon="tabler:users" className="fs-20 text-primary" />
           <h5 className="mb-0 fw-semibold">Utilisateurs en ligne</h5>
@@ -51,7 +50,7 @@ const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
         </div>
       </CardBody>
 
-      <SimplebarReactClient style={{ maxHeight: 'calc(100vh - 250px)' }}>
+      <SimplebarReactClient style={{ flex: 1, overflowY: 'auto' }}>
         <div className="p-2">
           {onlineUsers.length === 0 && (
             <div className="text-center py-4">
@@ -60,32 +59,25 @@ const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
             </div>
           )}
 
-          {onlineUsers.map((user) => {
+          {onlineUsers.map(user => {
             const displayName = user.utilisateur
               ? `${user.utilisateur.prenom} ${user.utilisateur.nom}`
               : `Utilisateur #${user.utilisateurId}`
-
-            const photo = user.utilisateur?.photo || user.utilisateur?.photoUrl;
+            const photo = user.utilisateur?.photo || user.utilisateur?.photoUrl
 
             return (
               <div
                 key={user.utilisateurId}
-                className="d-flex align-items-center p-2 mb-1 rounded"
+                className="user-list__item d-flex align-items-center p-2 mb-1 rounded"
                 onClick={() => onStartChat(user.utilisateurId)}
-                style={{ cursor: 'pointer' }}
                 role="button"
               >
                 <div className="position-relative me-2 flex-shrink-0">
                   <div className="avatar-sm rounded-circle bg-info text-white d-flex align-items-center justify-content-center">
                     {photo ? (
-                      <img 
-                        src={`${API_URL}${photo}`} 
-                        alt={displayName} 
-                        className="h-100 w-100 rounded-circle" 
-                        style={{ objectFit: 'cover' }} 
-                      />
+                      <img src={`${API_URL}${photo}`} alt={displayName} className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }} />
                     ) : (
-                      <span className="fw-semibold" style={{ fontSize: '0.7rem' }}>
+                      <span className="fw-semibold user-list__avatar-font">
                         {getFirstTwoLetters(displayName)}
                       </span>
                     )}
@@ -93,7 +85,7 @@ const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
                   <span
                     className={`position-absolute bottom-0 end-0 bg-${getStatusColor(user.statut)} rounded-circle border border-2 border-white`}
                     style={{ width: '10px', height: '10px' }}
-                  ></span>
+                  />
                 </div>
 
                 <div className="flex-grow-1 overflow-hidden">

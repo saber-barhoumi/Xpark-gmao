@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("XparkGMAO.Shared")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dacde375d6eb93197f6f6b3c4b17444ed1d884c7")]
 [assembly: System.Reflection.AssemblyProductAttribute("XparkGMAO.Shared")]
 [assembly: System.Reflection.AssemblyTitleAttribute("XparkGMAO.Shared")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,12 +1,17 @@
 
 import type SimpleBarCore from 'simplebar-core'
 import SimpleBar, { type Props } from 'simplebar-react'
+import React from 'react'
 import { ChildrenType } from '../../types/component-props'
 
-type SimplebarReactClientProps = React.ForwardRefExoticComponent<Props & React.RefAttributes<SimpleBarCore | null>>['arguments'] & ChildrenType
+type SimplebarReactClientProps = Props & ChildrenType
 
-const SimplebarReactClient = ({ children, ...options }: SimplebarReactClientProps) => {
-  return <SimpleBar {...options}>{children}</SimpleBar>
-}
+const SimplebarReactClient = React.forwardRef<SimpleBarCore | null, SimplebarReactClientProps>(
+  ({ children, ...options }, ref) => {
+    return <SimpleBar ref={ref} {...options}>{children}</SimpleBar>
+  }
+)
+
+SimplebarReactClient.displayName = 'SimplebarReactClient'
 
 export default SimplebarReactClient

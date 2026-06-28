@@ -134,3 +134,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\Maintenance.API\obj\Debug\net8.0
 C:\Users\saber\Desktop\Xpark gmao\microservices\Maintenance.API\obj\Debug\net8.0\Maintenance.API.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\Maintenance.API\obj\Debug\net8.0\Maintenance.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\Maintenance.API\obj\Debug\net8.0\ref\Maintenance.API.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Maintenance.API\obj\Debug\net8.0\Maintenance.API.sourcelink.json

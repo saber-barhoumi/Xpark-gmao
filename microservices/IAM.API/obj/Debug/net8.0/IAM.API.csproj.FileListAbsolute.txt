@@ -141,3 +141,4 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\IAM.API\obj\Debug\net8.0\refint\
 C:\Users\saber\Desktop\Xpark gmao\microservices\IAM.API\obj\Debug\net8.0\IAM.API.pdb
 C:\Users\saber\Desktop\Xpark gmao\microservices\IAM.API\obj\Debug\net8.0\IAM.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\IAM.API\obj\Debug\net8.0\ref\IAM.API.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\IAM.API\obj\Debug\net8.0\IAM.API.sourcelink.json

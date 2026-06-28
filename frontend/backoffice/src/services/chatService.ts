@@ -125,6 +125,30 @@ export const chatService = {
     return response.data;
   },
 
+  togglePin: async (conversationId: number): Promise<{ epingle: boolean }> => {
+    const response = await api.put(`/chat/conversations/${conversationId}/pin`);
+    return response.data;
+  },
+
+  toggleMute: async (conversationId: number): Promise<{ mute: boolean }> => {
+    const response = await api.put(`/chat/conversations/${conversationId}/mute`);
+    return response.data;
+  },
+
+  toggleArchive: async (conversationId: number): Promise<{ archivee: boolean }> => {
+    const response = await api.put(`/chat/conversations/${conversationId}/archive`);
+    return response.data;
+  },
+
+  deleteConversation: async (conversationId: number): Promise<void> => {
+    await api.delete(`/chat/conversations/${conversationId}`);
+  },
+
+  getArchivedConversations: async (): Promise<Conversation[]> => {
+    const response = await api.get('/chat/conversations/archived');
+    return response.data;
+  },
+
   // Utilisateurs
   getOnlineUsers: async (): Promise<UserStatus[]> => {
     const response = await api.get('/chat/users/online');
