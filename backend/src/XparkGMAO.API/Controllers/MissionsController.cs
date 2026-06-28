@@ -44,8 +44,34 @@ public class MissionsController : ControllerBase
     [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> Create([FromBody] CreateMissionDto dto)
     {
-        if (dto.DateDepart < DateTime.UtcNow.Date)
-            return BadRequest(new { message = "La date de départ ne peut pas être dans le passé." });
+        // ── Required field lengths ──────────────────────────────────────
+        if (string.IsNullOrWhiteSpace(dto.Destination) || dto.Destination.Trim().Length < 3)
+            return BadRequest(new { message = "La destination doit contenir au moins 3 caractères." });
+
+        if (string.IsNullOrWhiteSpace(dto.ObjetMission) || dto.ObjetMission.Trim().Length < 5)
+            return BadRequest(new { message = "L'objet de la mission doit contenir au moins 5 caractères." });
+
+        // ── FK sanity ───────────────────────────────────────────────────
+        if (dto.VehiculeId <= 0)
+            return BadRequest(new { message = "Véhicule invalide." });
+
+        if (dto.EmployeeId <= 0)
+            return BadRequest(new { message = "Chauffeur invalide." });
+
+        // ── Kilométrage ─────────────────────────────────────────────────
+        if (dto.KilometrageDepart < 0)
+            return BadRequest(new { message = "Le kilométrage de départ ne peut pas être négatif." });
+
+        // ── Date / time ─────────────────────────────────────────────────
+        if (dto.DateDepart < DateTime.UtcNow)
+            return BadRequest(new { message = "La date et heure de départ ne peuvent pas être dans le passé." });
+
+        if (dto.DateRetour.HasValue && dto.DateRetour.Value <= dto.DateDepart)
+            return BadRequest(new { message = "La date de retour doit être postérieure à la date de départ." });
+
+        // ── Bon carburant ───────────────────────────────────────────────
+        if (dto.BonCarburantAccorde && string.IsNullOrWhiteSpace(dto.NumeroBonCarburant))
+            return BadRequest(new { message = "Le numéro du bon de carburant est obligatoire." });
 
         try
         {

@@ -22,22 +22,52 @@ interface MissionWizardModalProps {
 // -------------------------------------------------------------------------------------
 // STEP 1 : Détails de la Mission
 // -------------------------------------------------------------------------------------
+// Returns current local datetime as YYYY-MM-DDTHH:mm (NOT UTC — datetime-local is always local)
 const nowLocal = () => {
-    const now = new Date()
-    now.setSeconds(0, 0)
-    return now.toISOString().slice(0, 16)
+    const d = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
     const handleNext = () => {
-        if (!form.destination || !form.dateDepart || !form.objetMission) {
-            Swal.fire('Erreur', 'Veuillez remplir tous les champs obligatoires.', 'error')
-            return
+        // ── Required fields ──────────────────────────────────────────────
+        if (!form.destination?.trim()) {
+            Swal.fire('Erreur', 'La destination est obligatoire.', 'error'); return
         }
-        if (new Date(form.dateDepart) < new Date()) {
-            Swal.fire('Date invalide', 'La date de départ ne peut pas être dans le passé.', 'warning')
-            return
+        if (form.destination.trim().length < 3) {
+            Swal.fire('Erreur', 'La destination doit contenir au moins 3 caractères.', 'error'); return
         }
+        if (!form.dateDepart) {
+            Swal.fire('Erreur', 'La date de départ est obligatoire.', 'error'); return
+        }
+        if (!form.objetMission?.trim()) {
+            Swal.fire('Erreur', "L'objet de la mission est obligatoire.", 'error'); return
+        }
+        if (form.objetMission.trim().length < 5) {
+            Swal.fire('Erreur', "L'objet de la mission doit contenir au moins 5 caractères.", 'error'); return
+        }
+
+        // ── Date / time validation ───────────────────────────────────────
+        const selectedDt = new Date(form.dateDepart)
+        if (isNaN(selectedDt.getTime())) {
+            Swal.fire('Date invalide', 'La date de départ est invalide.', 'error'); return
+        }
+        if (selectedDt < new Date()) {
+            Swal.fire('Date invalide', 'La date et heure de départ ne peuvent pas être dans le passé.', 'warning'); return
+        }
+        if (form.dateRetour) {
+            const retourDt = new Date(form.dateRetour)
+            if (!isNaN(retourDt.getTime()) && retourDt <= selectedDt) {
+                Swal.fire('Date invalide', 'La date de retour doit être postérieure à la date de départ.', 'warning'); return
+            }
+        }
+
+        // ── Bon carburant ────────────────────────────────────────────────
+        if (form.bonCarburantAccorde && !form.numeroBonCarburant?.trim()) {
+            Swal.fire('Erreur', 'Veuillez saisir le numéro du bon de carburant.', 'error'); return
+        }
+
         nextStep()
     }
 
@@ -195,7 +225,6 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                     api.get('/vehicules/disponibles'),
                     employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' })
                 ])
-                console.log('[Step2] vRes.data:', vRes.data, '| dRes:', dRes)
                 return {
                     vehicles: Array.isArray(vRes.data) ? vRes.data : [],
                     drivers: Array.isArray(dRes) ? dRes : []
@@ -307,7 +336,7 @@ const Step3 = ({ previousStep, isActive, form, onFinish, isSaving }: any) => {
 const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProps) => {
     const [form, setForm] = useState<CreateMissionDto>({
         destination: '',
-        dateDepart: new Date().toISOString().slice(0, 16),
+        dateDepart: nowLocal(),
         dateRetour: '',
         objetMission: '',
         vehiculeId: 0,
@@ -333,7 +362,7 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
             // Reset form
             setForm({
                 destination: '',
-                dateDepart: new Date().toISOString().slice(0, 16),
+                dateDepart: nowLocal(),
                 dateRetour: '',
                 objetMission: '',
                 vehiculeId: 0,
