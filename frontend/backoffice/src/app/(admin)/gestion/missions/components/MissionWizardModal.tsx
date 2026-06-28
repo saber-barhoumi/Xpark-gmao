@@ -178,27 +178,34 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
     const loadResources = async () => {
         setLoading(true)
         clearError()
-        const res = await execute(async () => {
-            const [vRes, dRes] = await Promise.all([
-                api.get('/vehicules/disponibles'),
-                employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' })
-            ])
-            return { vehicles: vRes.data, drivers: dRes }
-        })
+        try {
+            const res = await execute(async () => {
+                const [vRes, dRes] = await Promise.all([
+                    api.get('/vehicules/disponibles'),
+                    employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' })
+                ])
+                return {
+                    vehicles: Array.isArray(vRes.data) ? vRes.data : [],
+                    drivers: Array.isArray(dRes) ? dRes : []
+                }
+            })
 
-        if (res) {
-            setVehicles(res.vehicles.map((v: any) => ({
-                value: v.idVehicule,
-                label: `${v.immatriculation} - ${v.marque} ${v.modele} (${v.kilometrage} km)`,
-                kilometrage: v.kilometrage
-            })))
-
-            setDrivers(res.drivers.map((d: any) => ({
-                value: d.idEmployee,
-                label: `${d.prenom} ${d.name} (${d.numeroMatricule})`
-            })))
+            if (res) {
+                setVehicles(res.vehicles.map((v: any) => ({
+                    value: v.idVehicule,
+                    label: `${v.immatriculation} - ${v.marque} ${v.modele} (${v.kilometrage} km)`,
+                    kilometrage: v.kilometrage
+                })))
+                setDrivers(res.drivers.map((d: any) => ({
+                    value: d.idEmployee,
+                    label: `${d.prenom} ${d.name} (${d.numeroMatricule})`
+                })))
+            }
+        } catch {
+            // execute() already shows Swal error; catch prevents uncaught promise rejection
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     const handleNext = () => {
