@@ -184,6 +184,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                     api.get('/vehicules/disponibles'),
                     employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' })
                 ])
+                console.log('[Step2] vRes.data:', vRes.data, '| dRes:', dRes)
                 return {
                     vehicles: Array.isArray(vRes.data) ? vRes.data : [],
                     drivers: Array.isArray(dRes) ? dRes : []
