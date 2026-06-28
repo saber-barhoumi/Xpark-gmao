@@ -8,6 +8,7 @@ using Mission.API.Mapping;
 using Mission.API.Middleware;
 using Mission.API.Repositories;
 using Mission.API.Services;
+using Mission.API.Startup;
 using Serilog;
 using XparkGMAO.Shared.AiTelemetry.Extensions;
 
@@ -73,8 +74,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Create AiTripTrainingData table on first run if it doesn't exist yet
+// ── AI Telemetry startup sequence ────────────────────────────────────────────
+// Step 1: Create AiTripTrainingData table if it does not exist yet (always runs)
 app.Services.EnsureAiTelemetryTable();
+
+// Step 2: ONE-TIME historical backfill — comment this out after the first run
+//         (safe to leave: idempotent, already-migrated rows are skipped automatically)
+await AiHistoricalSeeder.MigrateHistoricalMissionsAsync(app.Services);
+// ─────────────────────────────────────────────────────────────────────────────
 
 app.UseSerilogRequestLogging();
 app.UseCors("AllowAll");
