@@ -28,6 +28,17 @@ const STATUT_COLORS: Record<string, string> = {
 const STATUTS = ['PLANIFIE', 'EN_COURS', 'TERMINE', 'ANNULE']
 const PRIORITIES = ['BASSE', 'MOYENNE', 'HAUTE', 'URGENT']
 
+const todayStr = () => {
+    const d = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+const toLocalDateStr = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 export default function OrdresTravailPage() {
     const [ordres, setOrdres] = useState<OrdreTravail[]>([])
     const [total, setTotal] = useState(0)
@@ -96,8 +107,8 @@ export default function OrdresTravailPage() {
             vehiculeId: ordre.vehiculeId,
             technicienId: ordre.technicienId,
             priorite: ordre.priorite,
-            dateDebut: ordre.dateDebut ? new Date(ordre.dateDebut).toISOString().split('T')[0] : '',
-            dateFin: ordre.dateFin ? new Date(ordre.dateFin).toISOString().split('T')[0] : '',
+            dateDebut: ordre.dateDebut ? toLocalDateStr(new Date(ordre.dateDebut)) : '',
+            dateFin: ordre.dateFin ? toLocalDateStr(new Date(ordre.dateFin)) : '',
         })
         setValidated(false)
         setShowModal(true)
@@ -110,6 +121,18 @@ export default function OrdresTravailPage() {
             setValidated(true)
             return
         }
+
+        // ── Custom validations ──────────────────────────────────────────
+        if (form.description.trim().length < 10) {
+            Swal.fire('Erreur', 'La description doit contenir au moins 10 caractères.', 'error'); return
+        }
+        if (form.dateDebut && form.dateDebut < todayStr()) {
+            Swal.fire('Date invalide', 'La date de début ne peut pas être dans le passé.', 'warning'); return
+        }
+        if (form.dateDebut && form.dateFin && form.dateFin <= form.dateDebut) {
+            Swal.fire('Date invalide', 'La date de fin doit être postérieure à la date de début.', 'warning'); return
+        }
+
         setSaving(true)
         clearError()
         const payload = {
@@ -425,12 +448,12 @@ export default function OrdresTravailPage() {
                                 as="textarea"
                                 rows={2}
                                 required
-                                minLength={5}
+                                minLength={10}
                                 value={form.description}
                                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                                 placeholder="Objectif de la maintenance..."
                             />
-                            <Form.Control.Feedback type="invalid">La description est obligatoire (min. 5 caractères).</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">La description est obligatoire (min. 10 caractères).</Form.Control.Feedback>
                         </Form.Group>
                         <Row>
                             <Col md={6}>
@@ -439,6 +462,7 @@ export default function OrdresTravailPage() {
                                     <Form.Control
                                         type="date"
                                         value={form.dateDebut || ''}
+                                        min={todayStr()}
                                         onChange={e => setForm(f => ({ ...f, dateDebut: e.target.value }))}
                                     />
                                 </Form.Group>

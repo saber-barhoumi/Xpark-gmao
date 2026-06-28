@@ -46,6 +46,12 @@ const VEHICLE_ICONS: Record<string, string> = {
     default: 'ri:car-line'
 }
 
+const todayStr = () => {
+    const d = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 export default function InterventionsPage() {
     const [interventions, setInterventions] = useState<Intervention[]>([])
     const [total, setTotal] = useState(0)
@@ -64,7 +70,7 @@ export default function InterventionsPage() {
     const [editIntervention, setEditIntervention] = useState<Intervention | null>(null)
     const [saving, setSaving] = useState(false)
     const [form, setForm] = useState<CreateInterventionDto>({
-        dateIntervention: new Date().toISOString().split('T')[0],
+        dateIntervention: todayStr(),
         description: '',
         typeIntervention: 'PREVENTIVE',
         cout: 0,
@@ -106,7 +112,7 @@ export default function InterventionsPage() {
 
     const openCreate = () => {
         setEditIntervention(null)
-        setForm({ dateIntervention: new Date().toISOString().split('T')[0], description: '', typeIntervention: 'PREVENTIVE', cout: 0, vehiculeId: 0 })
+        setForm({ dateIntervention: todayStr(), description: '', typeIntervention: 'PREVENTIVE', cout: 0, vehiculeId: 0 })
         setValidated(false)
         setShowModal(true)
     }
@@ -136,6 +142,18 @@ export default function InterventionsPage() {
             setValidated(true)
             return
         }
+
+        // ── Custom validations ──────────────────────────────────────────
+        if (form.description.trim().length < 10) {
+            Swal.fire('Erreur', 'La description doit contenir au moins 10 caractères.', 'error'); return
+        }
+        if (form.dateIntervention && form.dateIntervention < todayStr()) {
+            Swal.fire('Date invalide', 'La date d\'intervention ne peut pas être dans le passé.', 'warning'); return
+        }
+        if (form.kilometrageIntervention !== undefined && form.kilometrageIntervention < 0) {
+            Swal.fire('Erreur', 'Le kilométrage ne peut pas être négatif.', 'error'); return
+        }
+
         setSaving(true)
         clearError()
         const payload = {
@@ -443,7 +461,7 @@ export default function InterventionsPage() {
                         <Row className="mb-3">
                             <Col md={6}>
                                 <Form.Label className="small fw-bold">Date <span className="text-danger">*</span></Form.Label>
-                                <Form.Control type="date" required value={form.dateIntervention} onChange={e => setForm(f => ({ ...f, dateIntervention: e.target.value }))} />
+                                <Form.Control type="date" required min={todayStr()} value={form.dateIntervention} onChange={e => setForm(f => ({ ...f, dateIntervention: e.target.value }))} />
                                 <Form.Control.Feedback type="invalid">La date est obligatoire.</Form.Control.Feedback>
                             </Col>
                             <Col md={6}>
@@ -454,8 +472,8 @@ export default function InterventionsPage() {
                         </Row>
                         <Form.Group className="mb-3">
                             <Form.Label className="small fw-bold">Description des Travaux <span className="text-danger">*</span></Form.Label>
-                            <Form.Control as="textarea" rows={3} required minLength={5} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-                            <Form.Control.Feedback type="invalid">La description est obligatoire (min. 5 caractères).</Form.Control.Feedback>
+                            <Form.Control as="textarea" rows={3} required minLength={10} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                            <Form.Control.Feedback type="invalid">La description est obligatoire (min. 10 caractères).</Form.Control.Feedback>
                         </Form.Group>
                         <Row>
                             <Col md={6}>
