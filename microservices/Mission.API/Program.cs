@@ -9,6 +9,7 @@ using Mission.API.Middleware;
 using Mission.API.Repositories;
 using Mission.API.Services;
 using Serilog;
+using XparkGMAO.Shared.AiTelemetry.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,12 @@ builder.Services.AddAutoMapper(typeof(MissionProfile));
 // Repositories & Services
 builder.Services.AddScoped<IMissionRepository, MissionRepository>();
 builder.Services.AddScoped<IMissionService, MissionService>();
+
+// AI Telemetry — data collector for ML trip-price training dataset
+builder.Services.AddAiTelemetry(
+    connectionString:   builder.Configuration.GetConnectionString("DefaultConnection")!,
+    fleetApiBaseUrl:    builder.Configuration["Services:FleetApi"]   ?? "http://fleet-api:8080/",
+    financeApiBaseUrl:  builder.Configuration["Services:FinanceApi"] ?? "http://finance-api:8080/");
 
 // JWT
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -64,6 +71,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Create AiTripTrainingData table on first run if it doesn't exist yet
+app.Services.EnsureAiTelemetryTable();
 
 app.UseSerilogRequestLogging();
 app.UseCors("AllowAll");

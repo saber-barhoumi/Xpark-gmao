@@ -1,17 +1,22 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using Mission.API.DTOs;
 using Mission.API.Entities;
 using Mission.API.Repositories;
+using XparkGMAO.Shared.AiTelemetry.Services;
 using MissionEntity = Mission.API.Entities.Mission;
 
 namespace Mission.API.Services;
 
-public class MissionService(IMissionRepository missionRepo, IMapper mapper) : IMissionService
+public class MissionService(
+    IMissionRepository   missionRepo,
+    IMapper              mapper,
+    IAiDataCollector     aiCollector,
+    ILogger<MissionService> logger) : IMissionService
 {
     public async Task<IEnumerable<MissionResponseDto>> GetAllAsync()
     {
         var all = await missionRepo.GetAllAsync();
-        // load with details by re-querying through repository
         var list = new List<MissionResponseDto>();
         foreach (var m in all.OrderByDescending(x => x.DateDepart))
             list.Add(mapper.Map<MissionResponseDto>(m));
@@ -32,28 +37,27 @@ public class MissionService(IMissionRepository missionRepo, IMapper mapper) : IM
 
     public async Task<MissionResponseDto> CreateMissionAsync(CreateMissionDto dto)
     {
-        // NOTE: cross-service validation (vehicle availability, employee role) would be
-        // done via HTTP calls to Fleet.API / IAM.API in a full microservices setup.
-        // Here we trust the client and focus on creating the mission record.
         var mission = new MissionEntity
         {
-            DateDepart = DateTime.SpecifyKind(dto.DateDepart, DateTimeKind.Utc),
-            DateRetour = dto.DateRetour.HasValue ? DateTime.SpecifyKind(dto.DateRetour.Value, DateTimeKind.Utc) : null,
-            Destination = dto.Destination,
-            KilometrageDepart = dto.KilometrageDepart,
-            ObjetMission = dto.ObjetMission,
-            VehiculeId = dto.VehiculeId,
-            EmployeeId = dto.EmployeeId,
-            Statut = StatutMission.EN_COURS,
-            KilometrageRetour = 0,
-            BonCarburantAccorde = dto.BonCarburantAccorde,
-            NumeroBonCarburant = dto.NumeroBonCarburant,
+            DateDepart            = DateTime.SpecifyKind(dto.DateDepart, DateTimeKind.Utc),
+            DateRetour            = dto.DateRetour.HasValue
+                                        ? DateTime.SpecifyKind(dto.DateRetour.Value, DateTimeKind.Utc)
+                                        : null,
+            Destination           = dto.Destination,
+            KilometrageDepart     = dto.KilometrageDepart,
+            ObjetMission          = dto.ObjetMission,
+            VehiculeId            = dto.VehiculeId,
+            EmployeeId            = dto.EmployeeId,
+            Statut                = StatutMission.EN_COURS,
+            KilometrageRetour     = 0,
+            BonCarburantAccorde   = dto.BonCarburantAccorde,
+            NumeroBonCarburant    = dto.NumeroBonCarburant,
             VerificationDocuments = dto.VerificationDocuments,
-            CarteAutorouteRemise = dto.CarteAutorouteRemise,
-            DateCreation = DateTime.UtcNow
+            CarteAutorouteRemise  = dto.CarteAutorouteRemise,
+            DateCreation          = DateTime.UtcNow
         };
 
-        var saved = await missionRepo.AddAsync(mission);
+        var saved       = await missionRepo.AddAsync(mission);
         var withDetails = await missionRepo.GetWithDetailsAsync(saved.IdMission);
         return mapper.Map<MissionResponseDto>(withDetails ?? saved);
     }
@@ -63,13 +67,38 @@ public class MissionService(IMissionRepository missionRepo, IMapper mapper) : IM
         var mission = await missionRepo.GetWithDetailsAsync(missionId)
             ?? throw new KeyNotFoundException("Mission introuvable");
 
-        double distance = kilometrageRetour - mission.KilometrageDepart;
+        double distance           = kilometrageRetour - mission.KilometrageDepart;
         mission.KilometrageRetour = kilometrageRetour;
-        mission.Statut = StatutMission.TERMINEE;
-        mission.DateRetour = DateTime.UtcNow;
-        mission.CoutTotal = distance * 0.15;
+        mission.Statut            = StatutMission.TERMINEE;
+        mission.DateRetour        = DateTime.UtcNow;
+        mission.CoutTotal         = distance * 0.15;
 
         await missionRepo.UpdateAsync(mission);
+
+        // ── AI Telemetry trigger ──────────────────────────────────────────────
+        // Runs AFTER the mission is safely persisted. Any telemetry failure is
+        // logged and swallowed — it must never roll back a correctly closed mission.
+        try
+        {
+            await aiCollector.LogMissionDataAsync(
+                missionId:            mission.IdMission,
+                vehiculeId:           mission.VehiculeId,
+                employeeId:           mission.EmployeeId,
+                kilometrageDepart:    mission.KilometrageDepart,
+                kilometrageRetour:    kilometrageRetour,
+                coutTotal:            mission.CoutTotal,
+                destination:          mission.Destination,
+                dateDepart:           mission.DateDepart,
+                carteAutorouteRemise: mission.CarteAutorouteRemise);
+        }
+        catch (Exception ex)
+        {
+            // Telemetry is non-critical — log and continue
+            logger.LogError(ex,
+                "[AiTelemetry] Logging failed for MissionId={MissionId}. Mission closure is unaffected.",
+                missionId);
+        }
+
         return mapper.Map<MissionResponseDto>(mission);
     }
 

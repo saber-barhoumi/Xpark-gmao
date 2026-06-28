@@ -18,5 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XparkGMAO.Shared\XparkGMAO.Shared.csproj" />
+    <ProjectReference Include="..\XparkGMAO.Shared.AiTelemetry\XparkGMAO.Shared.AiTelemetry.csproj" />
   </ItemGroup>
 </Project>
