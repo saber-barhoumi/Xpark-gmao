@@ -44,6 +44,9 @@ public class MissionsController : ControllerBase
     [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> Create([FromBody] CreateMissionDto dto)
     {
+        if (dto.DateDepart < DateTime.UtcNow.Date)
+            return BadRequest(new { message = "La date de départ ne peut pas être dans le passé." });
+
         try
         {
             var mission = await _missionService.CreateMissionAsync(dto);

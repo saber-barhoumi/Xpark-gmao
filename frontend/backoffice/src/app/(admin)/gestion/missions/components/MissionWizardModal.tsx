@@ -22,10 +22,20 @@ interface MissionWizardModalProps {
 // -------------------------------------------------------------------------------------
 // STEP 1 : Détails de la Mission
 // -------------------------------------------------------------------------------------
+const nowLocal = () => {
+    const now = new Date()
+    now.setSeconds(0, 0)
+    return now.toISOString().slice(0, 16)
+}
+
 const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
     const handleNext = () => {
         if (!form.destination || !form.dateDepart || !form.objetMission) {
             Swal.fire('Erreur', 'Veuillez remplir tous les champs obligatoires.', 'error')
+            return
+        }
+        if (new Date(form.dateDepart) < new Date()) {
+            Swal.fire('Date invalide', 'La date de départ ne peut pas être dans le passé.', 'warning')
             return
         }
         nextStep()
@@ -67,6 +77,7 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
                             size="sm"
                             type="datetime-local"
                             value={form.dateDepart}
+                            min={nowLocal()}
                             onChange={e => setForm({ ...form, dateDepart: e.target.value })}
                         />
                     </Form.Group>
