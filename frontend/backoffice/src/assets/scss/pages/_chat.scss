@@ -3,6 +3,12 @@
 // Chat application — complete styles
 // BEM naming: block__element--modifier
 //
+// Fallback values for Bootstrap variables (used when this file is compiled
+// standalone via Chat.tsx direct import — !default is a no-op if already defined)
+$primary: #0d6efd !default;
+$success: #198754 !default;
+$danger:  #dc3545 !default;
+$prefix:  bs- !default;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. PALETTE (local SCSS variables)
@@ -1743,7 +1749,7 @@ $c-group-color:  #ffc107;
   height: calc(100vh - 300px);
 }
 
-@include media-breakpoint-up(xl) {
+@media (min-width: 1200px) {
   .chat-user-list {
     width: 340px;
   }
