@@ -11,8 +11,34 @@ import missionService from '@/services/missionService'
 import employeeService from '@/services/employeeService'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
+import { CITY_GROUPS, DISTANCE_LOOKUP } from '@/data/distanceMatrix'
 
-const AI_API = process.env.NEXT_PUBLIC_AI_API_URL ?? 'http://localhost:8000'
+const AI_API = import.meta.env.VITE_AI_API_URL ?? 'http://localhost:8000'
+
+// ── Grouped city options for react-select ────────────────────────────────────
+const GROUPED_CITY_OPTIONS = Object.entries(CITY_GROUPS)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([gov, cities]) => ({
+        label: gov,
+        options: cities.map(c => ({ value: c, label: c, gov })),
+    }))
+
+const formatGroupLabel = (group: any) => (
+    <div className="d-flex align-items-center gap-1 py-1">
+        <IconifyIcon icon="ri:government-line" className="text-primary" style={{ fontSize: 13 }} />
+        <span className="text-primary fw-semibold" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {group.label}
+        </span>
+        <span className="ms-auto badge bg-light text-secondary" style={{ fontSize: 10 }}>{group.options.length}</span>
+    </div>
+)
+
+const formatOptionLabel = (opt: any) => (
+    <div className="d-flex align-items-center gap-2">
+        <IconifyIcon icon="ri:map-pin-line" className="text-muted flex-shrink-0" style={{ fontSize: 13 }} />
+        <span style={{ fontSize: 13 }}>{opt.label}</span>
+    </div>
+)
 
 interface MissionWizardModalProps {
     show: boolean
@@ -104,41 +130,27 @@ interface PredictionData {
 }
 
 // ── STEP 1 — Route & Mission Details ─────────────────────────────────────────
-const Step1 = ({ nextStep, isActive, form, setForm, cities }: any) => {
-    const [loadingDist, setLoadingDist] = useState(false)
+const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
     const [distError, setDistError] = useState('')
 
-    const cityOptions = (cities as string[]).map(c => ({ value: c, label: c }))
-
-    // Fetch distance when both cities are selected
+    // Local instant distance lookup — no API call needed
     useEffect(() => {
-        if (!form.villeDepart || !form.villeArrivee) {
+        if (!form.villeDepart || !form.villeArrivee) { setDistError(''); return }
+        if (form.villeDepart === form.villeArrivee) { setDistError("Départ et arrivée doivent être différents."); return }
+        const info = DISTANCE_LOOKUP[`${form.villeDepart}|${form.villeArrivee}`]
+        if (info) {
             setDistError('')
-            return
+            setForm((f: WizardForm) => ({
+                ...f,
+                distanceEstimee: info.km,
+                travelHours: parseFloat((info.km / 80).toFixed(2)),
+                departureGovernorate: info.depGov,
+                arrivalGovernorate: info.arrGov,
+            }))
+        } else {
+            setDistError('Distance non disponible pour cette paire de villes.')
+            setForm((f: WizardForm) => ({ ...f, distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))
         }
-        if (form.villeDepart === form.villeArrivee) {
-            setDistError('Ville de départ et d\'arrivée identiques.')
-            return
-        }
-
-        setLoadingDist(true)
-        setDistError('')
-        fetch(`${AI_API}/distance?departure=${encodeURIComponent(form.villeDepart)}&arrival=${encodeURIComponent(form.villeArrivee)}`)
-            .then(r => {
-                if (!r.ok) throw new Error('paire non trouvée')
-                return r.json()
-            })
-            .then(d => {
-                setForm((f: WizardForm) => ({
-                    ...f,
-                    distanceEstimee: d.distance_km,
-                    travelHours: d.travel_hours,
-                    departureGovernorate: d.departure_governorate,
-                    arrivalGovernorate: d.arrival_governorate,
-                }))
-            })
-            .catch(() => setDistError('Distance non disponible pour cette paire de villes.'))
-            .finally(() => setLoadingDist(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.villeDepart, form.villeArrivee])
 
@@ -180,35 +192,40 @@ const Step1 = ({ nextStep, isActive, form, setForm, cities }: any) => {
                 </h6>
                 <Row className="g-3">
                     <Col md={6}>
-                        <Form.Label className="small fw-bold">Ville de départ <span className="text-danger">*</span></Form.Label>
+                        <Form.Label className="small fw-bold">
+                            <IconifyIcon icon="ri:map-pin-2-fill" className="text-success me-1" />
+                            Ville de départ <span className="text-danger">*</span>
+                        </Form.Label>
                         <Select
-                            options={cityOptions}
+                            options={GROUPED_CITY_OPTIONS}
+                            formatGroupLabel={formatGroupLabel}
+                            formatOptionLabel={formatOptionLabel}
                             value={form.villeDepart ? { value: form.villeDepart, label: form.villeDepart } : null}
                             onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, villeDepart: o?.value ?? '', distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))}
-                            placeholder={cities.length === 0 ? 'Chargement…' : 'Choisir la ville…'}
-                            isLoading={cities.length === 0}
+                            placeholder="Tapez ou choisissez la ville…"
                             isClearable
+                            noOptionsMessage={() => 'Aucune ville trouvée'}
                         />
                     </Col>
                     <Col md={6}>
-                        <Form.Label className="small fw-bold">Ville d&apos;arrivée <span className="text-danger">*</span></Form.Label>
+                        <Form.Label className="small fw-bold">
+                            <IconifyIcon icon="ri:map-pin-2-fill" className="text-danger me-1" />
+                            Ville d&apos;arrivée <span className="text-danger">*</span>
+                        </Form.Label>
                         <Select
-                            options={cityOptions}
+                            options={GROUPED_CITY_OPTIONS}
+                            formatGroupLabel={formatGroupLabel}
+                            formatOptionLabel={formatOptionLabel}
                             value={form.villeArrivee ? { value: form.villeArrivee, label: form.villeArrivee } : null}
                             onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, villeArrivee: o?.value ?? '', distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))}
-                            placeholder="Choisir la ville…"
+                            placeholder="Tapez ou choisissez la ville…"
                             isClearable
+                            noOptionsMessage={() => 'Aucune ville trouvée'}
                         />
                     </Col>
                 </Row>
 
-                {/* Distance result */}
-                {loadingDist && (
-                    <div className="mt-2 small text-muted d-flex gap-2 align-items-center">
-                        <Spinner animation="border" size="sm" /> Calcul de la distance…
-                    </div>
-                )}
-                {!loadingDist && form.distanceEstimee > 0 && (
+                {form.distanceEstimee > 0 && (
                     <div className="mt-3 d-flex flex-wrap gap-3">
                         <div className="d-flex align-items-center gap-2 bg-white border rounded-2 px-3 py-2">
                             <IconifyIcon icon="ri:road-map-line" className="text-primary fs-5" />
@@ -700,16 +717,7 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
 const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProps) => {
     const [form, setForm] = useState<WizardForm>(emptyForm())
     const [isSaving, setIsSaving] = useState(false)
-    const [cities, setCities] = useState<string[]>([])
     const { error, execute, clearError } = useApiError()
-
-    // Load cities once from FastAPI
-    useEffect(() => {
-        fetch(`${AI_API}/cities`)
-            .then(r => r.json())
-            .then(d => setCities(d.cities ?? []))
-            .catch(() => {})
-    }, [])
 
     const resetAll = useCallback(() => setForm(emptyForm()), [])
 
@@ -760,7 +768,7 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                         onDismiss={clearError} className="mb-3" />
                 )}
                 <StepWizard>
-                    <Step1 form={form} setForm={setForm} cities={cities} />
+                    <Step1 form={form} setForm={setForm} />
                     <Step2 form={form} setForm={setForm} execute={execute} clearError={clearError} />
                     <Step3 form={form} setForm={setForm} onFinish={handleFinish} isSaving={isSaving} />
                 </StepWizard>
