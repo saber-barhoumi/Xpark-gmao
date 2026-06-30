@@ -5,23 +5,22 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy only package.json first for layer caching
-COPY package.json ./
+# Copy lockfile + manifest together so layer cache is invalidated only when deps change
+COPY package.json yarn.lock ./
 
 # VITE_API_URL is embedded at build time — default to relative /api so the
 # backoffice nginx proxy handles routing to the correct microservice
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=${VITE_API_URL}
 
-# google-maps-react@2 requires react@16 but the project uses react@18
-# --legacy-peer-deps ignores that incompatibility safely
-RUN npm install --legacy-peer-deps
+# Use yarn with frozen lockfile so Docker gets the exact same package versions as local
+RUN yarn install --frozen-lockfile
 
 # Copy remaining source code
 COPY . .
 
 # Build the production bundle
-RUN npm run build
+RUN yarn build
 
 # ============================================
 # Stage 2: Serve with Nginx
