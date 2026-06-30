@@ -39,6 +39,11 @@ export interface CreateMissionDto {
     numeroBonCarburant?: string;
     verificationDocuments: boolean;
     carteAutorouteRemise: boolean;
+    // AI estimation
+    villeDepart?: string;
+    villeArrivee?: string;
+    distanceEstimee?: number;
+    coutEstime?: number;
 }
 
 export interface CloseMissionDto {

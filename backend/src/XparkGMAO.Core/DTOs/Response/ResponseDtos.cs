@@ -99,6 +99,12 @@ public class MissionResponseDto
     public string? NumeroBonCarburant { get; set; }
     public bool VerificationDocuments { get; set; }
     public bool CarteAutorouteRemise { get; set; }
+
+    // AI estimation
+    public string? VilleDepart { get; set; }
+    public string? VilleArrivee { get; set; }
+    public double DistanceEstimee { get; set; }
+    public double CoutEstime { get; set; }
 }
 
 /// <summary>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Badge, Button, Col, Form, Modal, Row, Spinner } from 'react-bootstrap'
+import { Alert, Badge, Button, Col, Form, Modal, Row, Spinner, Table } from 'react-bootstrap'
 import StepWizard from 'react-step-wizard'
 import Select from 'react-select'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
@@ -7,7 +7,6 @@ import api from '@/lib/axiosConfig'
 import Swal from 'sweetalert2'
 import missionService from '@/services/missionService'
 import employeeService from '@/services/employeeService'
-import { CreateMissionDto } from '@/types/mission'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
 
@@ -19,204 +18,146 @@ interface MissionWizardModalProps {
     reloadList: () => void
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 const nowLocal = () => {
     const d = new Date()
-    const pad = (n: number) => String(n).padStart(2, '0')
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    const p = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-// -------------------------------------------------------------------------------------
-// AI Prediction state type
-// -------------------------------------------------------------------------------------
-interface AiPredictionState {
+// Handles plain arrays AND paginated { data:[...] } / { items:[...] } responses
+const toArray = (val: unknown): any[] => {
+    if (Array.isArray(val)) return val
+    if (val && typeof val === 'object') {
+        const v = val as Record<string, unknown>
+        for (const k of ['data', 'items', 'results', 'value']) {
+            if (Array.isArray(v[k])) return v[k] as any[]
+        }
+    }
+    return []
+}
+
+// ── Form state ───────────────────────────────────────────────────────────────
+
+interface WizardForm {
+    // Step 1 — Route
     villeDepart: string
     villeArrivee: string
-    predictedCost: number | null
-    distanceKm: number | null
-    isPredicting: boolean
-    cities: string[]
-}
-
-// -------------------------------------------------------------------------------------
-// AI Prediction card (shown in Step 1 interactively + Step 3 read-only)
-// -------------------------------------------------------------------------------------
-interface AiPanelProps {
-    ai: AiPredictionState
-    setAi: React.Dispatch<React.SetStateAction<AiPredictionState>>
+    distanceEstimee: number
+    travelHours: number
+    departureGovernorate: string
+    arrivalGovernorate: string
+    // Step 1 — Mission basics
     dateDepart: string
-    compact?: boolean
+    dateRetour: string
+    objetMission: string
+    // Step 2 — Resources
+    vehiculeId: number
+    vehiculeType: string
+    vehiculeCarburant: string
+    vehiculeConsommation: number
+    employeeId: number
+    kilometrageDepart: number
+    // Step 2 — Trip params for AI
+    cargoWeight: number
+    passengerCount: number
+    luggageWeight: number
+    trafficCondition: string
+    weatherCondition: string
+    // Step 2 — Checklist
+    bonCarburantAccorde: boolean
+    numeroBonCarburant: string
+    verificationDocuments: boolean
+    carteAutorouteRemise: boolean
+    // Step 3 — Cost
+    coutEstime: number
+    useManualCost: boolean
+    manualCoutInput: string
 }
 
-const AiPanel = ({ ai, setAi, dateDepart, compact = false }: AiPanelProps) => {
-    const cityOptions = ai.cities.map(c => ({ value: c, label: c }))
+const emptyForm = (): WizardForm => ({
+    villeDepart: '', villeArrivee: '', distanceEstimee: 0, travelHours: 0,
+    departureGovernorate: '', arrivalGovernorate: '',
+    dateDepart: nowLocal(), dateRetour: '', objetMission: '',
+    vehiculeId: 0, vehiculeType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
+    employeeId: 0, kilometrageDepart: 0,
+    cargoWeight: 0, passengerCount: 1, luggageWeight: 0,
+    trafficCondition: 'Normal', weatherCondition: 'Sunny',
+    bonCarburantAccorde: false, numeroBonCarburant: '', verificationDocuments: false, carteAutorouteRemise: false,
+    coutEstime: 0, useManualCost: false, manualCoutInput: '',
+})
 
-    if (compact) {
-        if (!ai.predictedCost) return null
-        return (
-            <div className="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-2 p-3 mb-3">
-                <div className="d-flex align-items-center justify-content-between">
-                    <span className="small fw-bold text-primary d-flex align-items-center gap-2">
-                        <IconifyIcon icon="ri:robot-line" />
-                        Estimation IA du coût de trajet
-                    </span>
-                    <Badge bg="primary" className="fs-6 px-3 py-2">
-                        {ai.predictedCost.toFixed(2)} DT
-                    </Badge>
-                </div>
-                <p className="mb-0 mt-1 small text-muted">
-                    {ai.villeDepart} → {ai.villeArrivee} · {ai.distanceKm} km
-                </p>
-            </div>
-        )
-    }
-
-    return (
-        <div className="mt-3 border border-dashed rounded-2 p-3 bg-light">
-            <h6 className="d-flex align-items-center mb-3 text-primary">
-                <IconifyIcon icon="ri:robot-line" className="me-2" />
-                Estimation IA du coût (optionnel)
-                {ai.cities.length === 0 && (
-                    <span className="ms-2 badge bg-secondary fw-normal small">Service IA non disponible</span>
-                )}
-            </h6>
-            <Row className="g-2">
-                <Col md={6}>
-                    <Form.Label className="small fw-semibold mb-1">Ville de départ</Form.Label>
-                    <Select
-                        options={cityOptions}
-                        value={ai.villeDepart ? { value: ai.villeDepart, label: ai.villeDepart } : null}
-                        onChange={(opt: any) =>
-                            setAi(s => ({ ...s, villeDepart: opt?.value ?? '', predictedCost: null, distanceKm: null }))
-                        }
-                        placeholder="Choisir..."
-                        isDisabled={ai.cities.length === 0}
-                        isClearable
-                    />
-                </Col>
-                <Col md={6}>
-                    <Form.Label className="small fw-semibold mb-1">Ville d&apos;arrivée</Form.Label>
-                    <Select
-                        options={cityOptions}
-                        value={ai.villeArrivee ? { value: ai.villeArrivee, label: ai.villeArrivee } : null}
-                        onChange={(opt: any) =>
-                            setAi(s => ({ ...s, villeArrivee: opt?.value ?? '', predictedCost: null, distanceKm: null }))
-                        }
-                        placeholder="Choisir..."
-                        isDisabled={ai.cities.length === 0}
-                        isClearable
-                    />
-                </Col>
-            </Row>
-
-            {ai.isPredicting && (
-                <div className="mt-2 d-flex align-items-center gap-2 text-muted small">
-                    <Spinner animation="border" size="sm" /> Calcul en cours...
-                </div>
-            )}
-
-            {!ai.isPredicting && ai.predictedCost !== null && (
-                <div className="mt-2 d-flex align-items-center gap-3 flex-wrap">
-                    <span className="small text-muted d-flex align-items-center gap-1">
-                        <IconifyIcon icon="ri:route-line" /> {ai.distanceKm} km
-                    </span>
-                    <span className="d-flex align-items-center gap-2">
-                        <IconifyIcon icon="ri:money-dollar-circle-line" className="text-success" />
-                        <strong className="text-success fs-6">{ai.predictedCost.toFixed(2)} DT</strong>
-                        <span className="small text-muted">coût estimé par l&apos;IA</span>
-                    </span>
-                </div>
-            )}
-
-            {!ai.isPredicting && ai.villeDepart && ai.villeArrivee && !dateDepart && ai.predictedCost === null && (
-                <p className="small text-warning mt-2 mb-0">
-                    <IconifyIcon icon="ri:information-line" className="me-1" />
-                    Sélectionnez une date de départ pour calculer l&apos;estimation.
-                </p>
-            )}
-        </div>
-    )
+// ── AI prediction data from the /predict endpoint ────────────────────────────
+interface PredictionData {
+    predicted_cost_tnd: number
+    distance_km: number
+    travel_hours: number
+    fuel_cost_tnd: number
+    labor_cost_tnd: number
+    toll_cost_tnd: number
+    driver_allowance_tnd: number
+    vehicle_type_used: string
+    fuel_type_used: string
 }
 
-// -------------------------------------------------------------------------------------
-// STEP 1 : Détails de la Mission
-// -------------------------------------------------------------------------------------
-const Step1 = ({ nextStep, isActive, form, setForm, ai, setAi }: any) => {
-    // Trigger AI prediction whenever departure city, arrival city, or date changes
+// ── STEP 1 — Route & Mission Details ─────────────────────────────────────────
+const Step1 = ({ nextStep, isActive, form, setForm, cities }: any) => {
+    const [loadingDist, setLoadingDist] = useState(false)
+    const [distError, setDistError] = useState('')
+
+    const cityOptions = (cities as string[]).map(c => ({ value: c, label: c }))
+
+    // Fetch distance when both cities are selected
     useEffect(() => {
-        if (!ai.villeDepart || !ai.villeArrivee || !form.dateDepart) {
-            setAi((s: AiPredictionState) => ({ ...s, predictedCost: null, distanceKm: null, isPredicting: false }))
+        if (!form.villeDepart || !form.villeArrivee) {
+            setDistError('')
+            return
+        }
+        if (form.villeDepart === form.villeArrivee) {
+            setDistError('Ville de départ et d\'arrivée identiques.')
             return
         }
 
-        setAi((s: AiPredictionState) => ({ ...s, isPredicting: true }))
-
-        const timer = setTimeout(async () => {
-            try {
-                const res = await fetch(`${AI_API}/predict`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        departure: ai.villeDepart,
-                        arrival: ai.villeArrivee,
-                        date_depart: form.dateDepart,
-                        has_autoroute: form.carteAutorouteRemise,
-                    }),
-                })
-                if (res.ok) {
-                    const data = await res.json()
-                    setAi((s: AiPredictionState) => ({
-                        ...s,
-                        isPredicting: false,
-                        predictedCost: data.predicted_cost_tnd,
-                        distanceKm: data.distance_km,
-                    }))
-                } else {
-                    setAi((s: AiPredictionState) => ({ ...s, isPredicting: false, predictedCost: null, distanceKm: null }))
-                }
-            } catch {
-                setAi((s: AiPredictionState) => ({ ...s, isPredicting: false, predictedCost: null, distanceKm: null }))
-            }
-        }, 600)
-
-        return () => clearTimeout(timer)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ai.villeDepart, ai.villeArrivee, form.dateDepart, form.carteAutorouteRemise])
+        setLoadingDist(true)
+        setDistError('')
+        fetch(`${AI_API}/distance?departure=${encodeURIComponent(form.villeDepart)}&arrival=${encodeURIComponent(form.villeArrivee)}`)
+            .then(r => {
+                if (!r.ok) throw new Error('paire non trouvée')
+                return r.json()
+            })
+            .then(d => {
+                setForm((f: WizardForm) => ({
+                    ...f,
+                    distanceEstimee: d.distance_km,
+                    travelHours: d.travel_hours,
+                    departureGovernorate: d.departure_governorate,
+                    arrivalGovernorate: d.arrival_governorate,
+                }))
+            })
+            .catch(() => setDistError('Distance non disponible pour cette paire de villes.'))
+            .finally(() => setLoadingDist(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.villeDepart, form.villeArrivee])
 
     const handleNext = () => {
-        if (!form.destination?.trim()) {
-            Swal.fire('Erreur', 'La destination est obligatoire.', 'error'); return
-        }
-        if (form.destination.trim().length < 3) {
-            Swal.fire('Erreur', 'La destination doit contenir au moins 3 caractères.', 'error'); return
-        }
-        if (!form.dateDepart) {
-            Swal.fire('Erreur', 'La date de départ est obligatoire.', 'error'); return
-        }
-        if (!form.objetMission?.trim()) {
-            Swal.fire('Erreur', "L'objet de la mission est obligatoire.", 'error'); return
-        }
-        if (form.objetMission.trim().length < 5) {
-            Swal.fire('Erreur', "L'objet de la mission doit contenir au moins 5 caractères.", 'error'); return
-        }
+        if (!form.villeDepart) { Swal.fire('Erreur', 'La ville de départ est obligatoire.', 'error'); return }
+        if (!form.villeArrivee) { Swal.fire('Erreur', 'La ville d\'arrivée est obligatoire.', 'error'); return }
+        if (form.villeDepart === form.villeArrivee) { Swal.fire('Erreur', 'Départ et arrivée doivent être différents.', 'error'); return }
+        if (form.distanceEstimee <= 0) { Swal.fire('Erreur', 'Impossible de calculer la distance. Vérifiez les villes.', 'warning'); return }
+        if (!form.dateDepart) { Swal.fire('Erreur', 'La date de départ est obligatoire.', 'error'); return }
+        if (!form.objetMission?.trim()) { Swal.fire('Erreur', "L'objet de la mission est obligatoire.", 'error'); return }
+        if (form.objetMission.trim().length < 5) { Swal.fire('Erreur', "L'objet de la mission doit contenir au moins 5 caractères.", 'error'); return }
 
-        const selectedDt = new Date(form.dateDepart)
-        if (isNaN(selectedDt.getTime())) {
-            Swal.fire('Date invalide', 'La date de départ est invalide.', 'error'); return
-        }
-        if (selectedDt < new Date()) {
-            Swal.fire('Date invalide', 'La date et heure de départ ne peuvent pas être dans le passé.', 'warning'); return
-        }
+        const depDt = new Date(form.dateDepart)
+        if (isNaN(depDt.getTime())) { Swal.fire('Date invalide', 'La date de départ est invalide.', 'error'); return }
+        if (depDt < new Date()) { Swal.fire('Date invalide', 'La date de départ ne peut pas être dans le passé.', 'warning'); return }
         if (form.dateRetour) {
-            const retourDt = new Date(form.dateRetour)
-            if (!isNaN(retourDt.getTime()) && retourDt <= selectedDt) {
+            const retDt = new Date(form.dateRetour)
+            if (!isNaN(retDt.getTime()) && retDt <= depDt) {
                 Swal.fire('Date invalide', 'La date de retour doit être postérieure à la date de départ.', 'warning'); return
             }
         }
-
-        if (form.bonCarburantAccorde && !form.numeroBonCarburant?.trim()) {
-            Swal.fire('Erreur', 'Veuillez saisir le numéro du bon de carburant.', 'error'); return
-        }
-
         nextStep()
     }
 
@@ -224,147 +165,132 @@ const Step1 = ({ nextStep, isActive, form, setForm, ai, setAi }: any) => {
         <div className={isActive ? 'd-block' : 'd-none'}>
             <div className="d-flex align-items-center justify-content-between mb-4">
                 <h5 className="mb-0">
-                    <IconifyIcon icon="ri:information-line" className="me-2 text-primary" />
-                    Étape 1 : Détails de la Mission
+                    <IconifyIcon icon="ri:route-line" className="me-2 text-primary" />
+                    Étape 1 — Informations du Trajet
                 </h5>
-                <Badge bg="light" text="primary" className="border">Détails requis</Badge>
+                <Badge bg="primary" className="opacity-75">1 / 3</Badge>
             </div>
 
-            <Row className="g-3">
-                <Col md={12}>
-                    <Form.Group>
-                        <Form.Label className="small fw-bold">Destination <span className="text-danger">*</span></Form.Label>
-                        <div className="input-group input-group-sm">
-                            <span className="input-group-text bg-light border-end-0">
-                                <IconifyIcon icon="ri:map-pin-2-line" />
-                            </span>
-                            <Form.Control
-                                size="sm"
-                                className="border-start-0"
-                                value={form.destination}
-                                onChange={e => setForm({ ...form, destination: e.target.value })}
-                                placeholder="Ex: Tunis, Sousse, Bureau Régional..."
-                            />
-                        </div>
-                    </Form.Group>
-                </Col>
-
-                <Col md={6}>
-                    <Form.Group>
-                        <Form.Label className="small fw-bold">Date de départ <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                            size="sm"
-                            type="datetime-local"
-                            value={form.dateDepart}
-                            min={nowLocal()}
-                            onChange={e => setForm({ ...form, dateDepart: e.target.value })}
-                        />
-                    </Form.Group>
-                </Col>
-                <Col md={6}>
-                    <Form.Group>
-                        <Form.Label className="small fw-bold">Date de retour (Prévue)</Form.Label>
-                        <Form.Control
-                            size="sm"
-                            type="datetime-local"
-                            value={form.dateRetour}
-                            onChange={e => setForm({ ...form, dateRetour: e.target.value })}
-                        />
-                    </Form.Group>
-                </Col>
-
-                <Col md={12}>
-                    <Form.Group>
-                        <Form.Label className="small fw-bold">Objet de la mission <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                            size="sm"
-                            as="textarea"
-                            rows={2}
-                            value={form.objetMission}
-                            onChange={e => setForm({ ...form, objetMission: e.target.value })}
-                            placeholder="Description succincte de l'objectif de la mission..."
-                        />
-                    </Form.Group>
-                </Col>
-            </Row>
-
-            <hr className="my-4 text-muted opacity-25" />
-
-            <div className="mb-3">
-                <h6 className="d-flex align-items-center mb-3">
-                    <IconifyIcon icon="ri:list-check-2" className="me-2 text-warning" />
-                    Checklist Logistique
+            {/* ── Departure / Arrival cities ───────────────────────── */}
+            <div className="border rounded-2 p-3 mb-3 bg-light">
+                <h6 className="mb-3 text-primary d-flex align-items-center gap-2">
+                    <IconifyIcon icon="ri:map-pin-2-line" /> Route
                 </h6>
-                <div className="bg-light p-3 rounded-2 border border-dashed">
-                    <Row className="g-2">
-                        <Col md={6}>
-                            <Form.Check
-                                type="checkbox"
-                                id="bon-carburant"
-                                label="Bon de Carburant Accordé"
-                                className="small"
-                                checked={form.bonCarburantAccorde}
-                                onChange={e => setForm({ ...form, bonCarburantAccorde: e.target.checked })}
-                            />
-                        </Col>
-                        {form.bonCarburantAccorde && (
-                            <Col md={6}>
-                                <Form.Control
-                                    size="sm"
-                                    type="text"
-                                    placeholder="N° du Bon"
-                                    value={form.numeroBonCarburant || ''}
-                                    onChange={e => setForm({ ...form, numeroBonCarburant: e.target.value })}
-                                />
-                            </Col>
+                <Row className="g-3">
+                    <Col md={6}>
+                        <Form.Label className="small fw-bold">Ville de départ <span className="text-danger">*</span></Form.Label>
+                        <Select
+                            options={cityOptions}
+                            value={form.villeDepart ? { value: form.villeDepart, label: form.villeDepart } : null}
+                            onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, villeDepart: o?.value ?? '', distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))}
+                            placeholder={cities.length === 0 ? 'Chargement…' : 'Choisir la ville…'}
+                            isLoading={cities.length === 0}
+                            isClearable
+                        />
+                    </Col>
+                    <Col md={6}>
+                        <Form.Label className="small fw-bold">Ville d&apos;arrivée <span className="text-danger">*</span></Form.Label>
+                        <Select
+                            options={cityOptions}
+                            value={form.villeArrivee ? { value: form.villeArrivee, label: form.villeArrivee } : null}
+                            onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, villeArrivee: o?.value ?? '', distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))}
+                            placeholder="Choisir la ville…"
+                            isClearable
+                        />
+                    </Col>
+                </Row>
+
+                {/* Distance result */}
+                {loadingDist && (
+                    <div className="mt-2 small text-muted d-flex gap-2 align-items-center">
+                        <Spinner animation="border" size="sm" /> Calcul de la distance…
+                    </div>
+                )}
+                {!loadingDist && form.distanceEstimee > 0 && (
+                    <div className="mt-3 d-flex flex-wrap gap-3">
+                        <div className="d-flex align-items-center gap-2 bg-white border rounded-2 px-3 py-2">
+                            <IconifyIcon icon="ri:road-map-line" className="text-primary fs-5" />
+                            <div>
+                                <div className="fw-bold text-primary fs-6">{form.distanceEstimee.toFixed(0)} km</div>
+                                <div className="small text-muted">Distance route</div>
+                            </div>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 bg-white border rounded-2 px-3 py-2">
+                            <IconifyIcon icon="ri:time-line" className="text-secondary fs-5" />
+                            <div>
+                                <div className="fw-bold text-secondary fs-6">~{form.travelHours.toFixed(1)} h</div>
+                                <div className="small text-muted">Durée estimée</div>
+                            </div>
+                        </div>
+                        {form.departureGovernorate && (
+                            <div className="d-flex align-items-center gap-2 bg-white border rounded-2 px-3 py-2">
+                                <IconifyIcon icon="ri:government-line" className="text-info fs-5" />
+                                <div>
+                                    <div className="fw-bold text-info small">{form.departureGovernorate} → {form.arrivalGovernorate}</div>
+                                    <div className="small text-muted">Gouvernorats</div>
+                                </div>
+                            </div>
                         )}
-                        <Col md={12}>
-                            <Form.Check
-                                type="checkbox"
-                                id="verif-docs"
-                                label="Vérification Documents (Assurance/Visite)"
-                                className="small"
-                                checked={form.verificationDocuments}
-                                onChange={e => setForm({ ...form, verificationDocuments: e.target.checked })}
-                            />
-                        </Col>
-                        <Col md={12}>
-                            <Form.Check
-                                type="checkbox"
-                                id="carte-autoroute"
-                                label="Carte Autoroute remise"
-                                className="small"
-                                checked={form.carteAutorouteRemise}
-                                onChange={e => setForm({ ...form, carteAutorouteRemise: e.target.checked })}
-                            />
-                        </Col>
-                    </Row>
-                </div>
+                    </div>
+                )}
+                {distError && <Alert variant="warning" className="mt-2 py-2 small mb-0">{distError}</Alert>}
             </div>
 
-            <AiPanel ai={ai} setAi={setAi} dateDepart={form.dateDepart} />
+            {/* ── Mission basics ───────────────────────────────────── */}
+            <div className="border rounded-2 p-3 mb-3">
+                <h6 className="mb-3 text-dark d-flex align-items-center gap-2">
+                    <IconifyIcon icon="ri:file-text-line" /> Détails de la Mission
+                </h6>
+                <Row className="g-3">
+                    <Col md={6}>
+                        <Form.Group>
+                            <Form.Label className="small fw-bold">Date de départ <span className="text-danger">*</span></Form.Label>
+                            <Form.Control size="sm" type="datetime-local"
+                                value={form.dateDepart} min={nowLocal()}
+                                onChange={e => setForm((f: WizardForm) => ({ ...f, dateDepart: e.target.value }))}
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                        <Form.Group>
+                            <Form.Label className="small fw-bold">Date de retour prévue</Form.Label>
+                            <Form.Control size="sm" type="datetime-local"
+                                value={form.dateRetour}
+                                onChange={e => setForm((f: WizardForm) => ({ ...f, dateRetour: e.target.value }))}
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={12}>
+                        <Form.Group>
+                            <Form.Label className="small fw-bold">Objet de la mission <span className="text-danger">*</span></Form.Label>
+                            <Form.Control size="sm" as="textarea" rows={2}
+                                value={form.objetMission}
+                                onChange={e => setForm((f: WizardForm) => ({ ...f, objetMission: e.target.value }))}
+                                placeholder="Description succincte de l'objectif…"
+                            />
+                        </Form.Group>
+                    </Col>
+                </Row>
+            </div>
 
-            <div className="d-flex justify-content-end mt-4">
-                <Button variant="primary" size="sm" onClick={handleNext} className="px-3">
-                    Suivant <IconifyIcon icon="ri:add-line" className="ms-1" />
+            <div className="d-flex justify-content-end mt-3">
+                <Button variant="primary" size="sm" onClick={handleNext} className="px-4">
+                    Suivant <IconifyIcon icon="ri:arrow-right-line" className="ms-1" />
                 </Button>
             </div>
         </div>
     )
 }
 
-// -------------------------------------------------------------------------------------
-// STEP 2 : Véhicule & Chauffeur
-// -------------------------------------------------------------------------------------
+// ── STEP 2 — Ressources & Paramètres ─────────────────────────────────────────
 const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clearError }: any) => {
     const [vehicles, setVehicles] = useState<any[]>([])
     const [drivers, setDrivers] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        if (isActive) {
-            loadResources()
-        }
+        if (isActive) { loadResources() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isActive])
 
     const loadResources = async () => {
@@ -377,20 +303,22 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                     employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' })
                 ])
                 return {
-                    vehicles: Array.isArray(vRes.data) ? vRes.data : [],
-                    drivers: Array.isArray(dRes) ? dRes : []
+                    vehicles: toArray(vRes.data),
+                    drivers: toArray(dRes),
                 }
             })
-
             if (res) {
                 setVehicles(res.vehicles.map((v: any) => ({
                     value: v.idVehicule,
-                    label: `${v.immatriculation} - ${v.marque} ${v.modele} (${v.kilometrage} km)`,
-                    kilometrage: v.kilometrage
+                    label: `${v.immatriculation} — ${v.marque} ${v.modele} [${v.typeVehicule ?? '?'}] (${v.kilometrage} km)`,
+                    kilometrage: v.kilometrage ?? 0,
+                    typeVehicule: v.typeVehicule ?? '',
+                    typeCarburant: v.typeCarburant ?? '',
+                    consommation: v.consommationMoyenne ?? 0,
                 })))
                 setDrivers(res.drivers.map((d: any) => ({
                     value: d.idEmployee,
-                    label: `${d.prenom} ${d.name} (${d.numeroMatricule})`
+                    label: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''} (${d.numeroMatricule ?? ''})`.trim(),
                 })))
             }
         } catch {
@@ -400,56 +328,183 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
         }
     }
 
+    const handleVehicleChange = (opt: any) => {
+        setForm((f: WizardForm) => ({
+            ...f,
+            vehiculeId: opt?.value ?? 0,
+            kilometrageDepart: opt?.kilometrage ?? 0,
+            vehiculeType: opt?.typeVehicule ?? '',
+            vehiculeCarburant: opt?.typeCarburant ?? '',
+            vehiculeConsommation: opt?.consommation ?? 0,
+        }))
+    }
+
     const handleNext = () => {
         if (!form.vehiculeId || !form.employeeId) {
-            Swal.fire('Erreur', 'Veuillez sélectionner un véhicule et un chauffeur.', 'error')
-            return
+            Swal.fire('Erreur', 'Veuillez sélectionner un véhicule et un chauffeur.', 'error'); return
+        }
+        if (form.bonCarburantAccorde && !form.numeroBonCarburant?.trim()) {
+            Swal.fire('Erreur', 'Veuillez saisir le numéro du bon de carburant.', 'error'); return
         }
         nextStep()
     }
 
+    const trafficOptions = [
+        { value: 'Light', label: 'Fluide' },
+        { value: 'Normal', label: 'Normal' },
+        { value: 'Heavy', label: 'Dense' },
+    ]
+    const weatherOptions = [
+        { value: 'Sunny', label: 'Ensoleillé' },
+        { value: 'Rainy', label: 'Pluvieux' },
+        { value: 'Foggy', label: 'Brouillard' },
+    ]
+
     return (
         <div className={isActive ? 'd-block' : 'd-none'}>
-            <h5 className="mb-4">Etape 2 : Véhicule & Chauffeur</h5>
+            <div className="d-flex align-items-center justify-content-between mb-4">
+                <h5 className="mb-0">
+                    <IconifyIcon icon="ri:car-line" className="me-2 text-primary" />
+                    Étape 2 — Ressources & Paramètres
+                </h5>
+                <Badge bg="primary" className="opacity-75">2 / 3</Badge>
+            </div>
+
             {loading ? (
-                <div className="text-center py-4"><Spinner animation="border" size="sm" /></div>
+                <div className="text-center py-5"><Spinner animation="border" /></div>
             ) : (
                 <>
-                    <Row>
-                        <Col md={12}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Sélectionner un véhicule <span className="text-danger">*</span></Form.Label>
+                    {/* ── Vehicle & Driver ─────────────────────── */}
+                    <div className="border rounded-2 p-3 mb-3">
+                        <h6 className="mb-3 text-dark d-flex align-items-center gap-2">
+                            <IconifyIcon icon="ri:car-washing-line" /> Véhicule & Chauffeur
+                        </h6>
+                        <Row className="g-3">
+                            <Col md={12}>
+                                <Form.Label className="small fw-bold">Véhicule <span className="text-danger">*</span></Form.Label>
                                 <Select
                                     options={vehicles}
-                                    value={vehicles.find(v => v.value === form.vehiculeId)}
-                                    onChange={(nv: any) => setForm({
-                                        ...form,
-                                        vehiculeId: nv?.value,
-                                        kilometrageDepart: nv?.kilometrage || 0
-                                    })}
-                                    placeholder="Choisir un véhicule disponible..."
+                                    value={vehicles.find(v => v.value === form.vehiculeId) ?? null}
+                                    onChange={handleVehicleChange}
+                                    placeholder="Choisir un véhicule disponible…"
+                                    noOptionsMessage={() => 'Aucun véhicule disponible'}
                                 />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col md={12}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Sélectionner un chauffeur <span className="text-danger">*</span></Form.Label>
+                                {form.vehiculeType && (
+                                    <div className="mt-1 d-flex gap-2">
+                                        <Badge bg="secondary" className="fw-normal">{form.vehiculeType}</Badge>
+                                        <Badge bg="info" className="fw-normal text-dark">{form.vehiculeCarburant}</Badge>
+                                        {form.vehiculeConsommation > 0 && (
+                                            <Badge bg="light" className="fw-normal text-dark border">{form.vehiculeConsommation} L/100km</Badge>
+                                        )}
+                                    </div>
+                                )}
+                            </Col>
+                            <Col md={12}>
+                                <Form.Label className="small fw-bold">Chauffeur <span className="text-danger">*</span></Form.Label>
                                 <Select
                                     options={drivers}
-                                    value={drivers.find(d => d.value === form.employeeId)}
-                                    onChange={(nv: any) => setForm({ ...form, employeeId: nv?.value })}
-                                    placeholder="Choisir un chauffeur disponible..."
+                                    value={drivers.find(d => d.value === form.employeeId) ?? null}
+                                    onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, employeeId: o?.value ?? 0 }))}
+                                    placeholder="Choisir un chauffeur disponible…"
+                                    noOptionsMessage={() => 'Aucun chauffeur disponible'}
                                 />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <div className="d-flex justify-content-between mt-2">
-                        <Button variant="outline-secondary" onClick={previousStep}>
+                            </Col>
+                        </Row>
+                    </div>
+
+                    {/* ── Trip params for AI ───────────────────── */}
+                    <div className="border rounded-2 p-3 mb-3">
+                        <h6 className="mb-3 text-dark d-flex align-items-center gap-2">
+                            <IconifyIcon icon="ri:settings-3-line" /> Paramètres du trajet
+                            <span className="badge bg-light text-secondary fw-normal small">utilisés par l&apos;IA</span>
+                        </h6>
+                        <Row className="g-3">
+                            <Col md={4}>
+                                <Form.Group>
+                                    <Form.Label className="small fw-bold">Poids fret (kg)</Form.Label>
+                                    <Form.Control size="sm" type="number" min={0} step={10}
+                                        value={form.cargoWeight}
+                                        onChange={e => setForm((f: WizardForm) => ({ ...f, cargoWeight: +e.target.value }))}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group>
+                                    <Form.Label className="small fw-bold">Passagers</Form.Label>
+                                    <Form.Control size="sm" type="number" min={1} max={50}
+                                        value={form.passengerCount}
+                                        onChange={e => setForm((f: WizardForm) => ({ ...f, passengerCount: +e.target.value }))}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group>
+                                    <Form.Label className="small fw-bold">Bagages (kg)</Form.Label>
+                                    <Form.Control size="sm" type="number" min={0} step={5}
+                                        value={form.luggageWeight}
+                                        onChange={e => setForm((f: WizardForm) => ({ ...f, luggageWeight: +e.target.value }))}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Label className="small fw-bold">Condition de trafic</Form.Label>
+                                <Select
+                                    options={trafficOptions}
+                                    value={trafficOptions.find(o => o.value === form.trafficCondition)}
+                                    onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, trafficCondition: o?.value ?? 'Normal' }))}
+                                />
+                            </Col>
+                            <Col md={6}>
+                                <Form.Label className="small fw-bold">Conditions météo</Form.Label>
+                                <Select
+                                    options={weatherOptions}
+                                    value={weatherOptions.find(o => o.value === form.weatherCondition)}
+                                    onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, weatherCondition: o?.value ?? 'Sunny' }))}
+                                />
+                            </Col>
+                        </Row>
+                    </div>
+
+                    {/* ── Checklist ────────────────────────────── */}
+                    <div className="border rounded-2 p-3 mb-3">
+                        <h6 className="mb-3 text-dark d-flex align-items-center gap-2">
+                            <IconifyIcon icon="ri:list-check-2" /> Checklist Logistique
+                        </h6>
+                        <Row className="g-2">
+                            <Col md={6}>
+                                <Form.Check type="checkbox" id="bon-carb" label="Bon de Carburant Accordé" className="small"
+                                    checked={form.bonCarburantAccorde}
+                                    onChange={e => setForm((f: WizardForm) => ({ ...f, bonCarburantAccorde: e.target.checked }))}
+                                />
+                            </Col>
+                            {form.bonCarburantAccorde && (
+                                <Col md={6}>
+                                    <Form.Control size="sm" placeholder="N° du Bon"
+                                        value={form.numeroBonCarburant}
+                                        onChange={e => setForm((f: WizardForm) => ({ ...f, numeroBonCarburant: e.target.value }))}
+                                    />
+                                </Col>
+                            )}
+                            <Col md={6}>
+                                <Form.Check type="checkbox" id="verif-docs" label="Vérification Documents (Assurance/Visite)" className="small"
+                                    checked={form.verificationDocuments}
+                                    onChange={e => setForm((f: WizardForm) => ({ ...f, verificationDocuments: e.target.checked }))}
+                                />
+                            </Col>
+                            <Col md={6}>
+                                <Form.Check type="checkbox" id="autoroute" label="Carte Autoroute remise" className="small"
+                                    checked={form.carteAutorouteRemise}
+                                    onChange={e => setForm((f: WizardForm) => ({ ...f, carteAutorouteRemise: e.target.checked }))}
+                                />
+                            </Col>
+                        </Row>
+                    </div>
+
+                    <div className="d-flex justify-content-between mt-3">
+                        <Button variant="outline-secondary" size="sm" onClick={previousStep}>
                             <IconifyIcon icon="ri:arrow-left-line" className="me-1" /> Précédent
                         </Button>
-                        <Button variant="primary" onClick={handleNext}>
+                        <Button variant="primary" size="sm" onClick={handleNext} className="px-4">
                             Suivant <IconifyIcon icon="ri:arrow-right-line" className="ms-1" />
                         </Button>
                     </div>
@@ -459,96 +514,233 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
     )
 }
 
-// -------------------------------------------------------------------------------------
-// STEP 3 : Confirmation
-// -------------------------------------------------------------------------------------
-const Step3 = ({ previousStep, isActive, form, onFinish, isSaving, ai }: any) => {
+// ── STEP 3 — Estimation IA & Confirmation ────────────────────────────────────
+const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: any) => {
+    const [isPredicting, setIsPredicting] = useState(false)
+    const [prediction, setPrediction] = useState<PredictionData | null>(null)
+    const [predError, setPredError] = useState('')
+
+    useEffect(() => {
+        if (!isActive) return
+        if (!form.villeDepart || !form.villeArrivee || form.distanceEstimee <= 0) return
+
+        setIsPredicting(true)
+        setPredError('')
+
+        fetch(`${AI_API}/predict`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                departure: form.villeDepart,
+                arrival: form.villeArrivee,
+                date_depart: form.dateDepart,
+                vehicle_type_gmao: form.vehiculeType || undefined,
+                fuel_type_gmao: form.vehiculeCarburant || undefined,
+                fuel_consumption_per_100km: form.vehiculeConsommation > 0 ? form.vehiculeConsommation : undefined,
+                has_autoroute: form.carteAutorouteRemise,
+                cargo_weight: form.cargoWeight,
+                passenger_count: form.passengerCount,
+                luggage_weight: form.luggageWeight,
+                traffic_condition: form.trafficCondition,
+                weather_condition: form.weatherCondition,
+            }),
+        })
+            .then(r => {
+                if (!r.ok) throw new Error('Erreur IA')
+                return r.json()
+            })
+            .then((d: PredictionData) => {
+                setPrediction(d)
+                if (!form.useManualCost) {
+                    setForm((f: WizardForm) => ({ ...f, coutEstime: d.predicted_cost_tnd }))
+                }
+            })
+            .catch(() => setPredError('Service IA indisponible — saisissez le coût manuellement.'))
+            .finally(() => setIsPredicting(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isActive])
+
+    const finalCout = form.useManualCost
+        ? parseFloat(form.manualCoutInput) || 0
+        : form.coutEstime
+
     return (
         <div className={isActive ? 'd-block' : 'd-none'}>
-            <h5 className="mb-4">Etape 3 : Récapitulatif & Confirmation</h5>
-
-            <AiPanel ai={ai} setAi={() => {}} dateDepart={form.dateDepart} compact />
-
-            <div className="bg-light p-3 rounded mb-3">
-                <p className="mb-1"><strong>Destination :</strong> {form.destination}</p>
-                <p className="mb-1"><strong>Objet :</strong> {form.objetMission}</p>
-                <p className="mb-1"><strong>Départ :</strong> {new Date(form.dateDepart).toLocaleString()}</p>
-                <p className="mb-1"><strong>Kilométrage départ :</strong> {form.kilometrageDepart} km</p>
+            <div className="d-flex align-items-center justify-content-between mb-4">
+                <h5 className="mb-0">
+                    <IconifyIcon icon="ri:robot-line" className="me-2 text-primary" />
+                    Étape 3 — Estimation IA & Confirmation
+                </h5>
+                <Badge bg="primary" className="opacity-75">3 / 3</Badge>
             </div>
-            <div className="d-flex justify-content-between mt-4">
-                <Button variant="outline-secondary" onClick={previousStep} disabled={isSaving}>
+
+            {/* ── AI Prediction ────────────────────────────────── */}
+            {isPredicting && (
+                <div className="text-center py-4 border rounded-2 mb-3">
+                    <Spinner animation="border" className="text-primary mb-2" />
+                    <div className="small text-muted">Calcul du coût de trajet par l&apos;IA…</div>
+                </div>
+            )}
+
+            {predError && (
+                <Alert variant="warning" className="mb-3 py-2 small">
+                    <IconifyIcon icon="ri:information-line" className="me-1" />
+                    {predError}
+                </Alert>
+            )}
+
+            {!isPredicting && prediction && (
+                <div className="border border-primary border-opacity-25 rounded-2 p-3 mb-3 bg-primary bg-opacity-10">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6 className="mb-0 text-primary d-flex align-items-center gap-2">
+                            <IconifyIcon icon="ri:robot-line" /> Estimation du coût par l&apos;IA
+                        </h6>
+                        <Badge bg="primary" className="fs-6 px-3 py-2">
+                            {prediction.predicted_cost_tnd.toFixed(2)} DT
+                        </Badge>
+                    </div>
+                    <Table size="sm" borderless className="mb-0 small">
+                        <tbody>
+                            <tr>
+                                <td className="text-muted ps-0">Distance</td>
+                                <td className="text-end fw-semibold">{prediction.distance_km.toFixed(0)} km</td>
+                            </tr>
+                            <tr>
+                                <td className="text-muted ps-0">Durée estimée</td>
+                                <td className="text-end fw-semibold">{prediction.travel_hours.toFixed(1)} h</td>
+                            </tr>
+                            <tr>
+                                <td className="text-muted ps-0">Carburant</td>
+                                <td className="text-end fw-semibold">{prediction.fuel_cost_tnd.toFixed(2)} DT</td>
+                            </tr>
+                            <tr>
+                                <td className="text-muted ps-0">Main-d&apos;œuvre</td>
+                                <td className="text-end fw-semibold">{prediction.labor_cost_tnd.toFixed(2)} DT</td>
+                            </tr>
+                            {prediction.toll_cost_tnd > 0 && (
+                                <tr>
+                                    <td className="text-muted ps-0">Péage autoroute</td>
+                                    <td className="text-end fw-semibold">{prediction.toll_cost_tnd.toFixed(2)} DT</td>
+                                </tr>
+                            )}
+                            <tr>
+                                <td className="text-muted ps-0">Indemnité chauffeur</td>
+                                <td className="text-end fw-semibold">{prediction.driver_allowance_tnd.toFixed(2)} DT</td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                </div>
+            )}
+
+            {/* ── Accept AI price or enter manually ───────────── */}
+            <div className="border rounded-2 p-3 mb-3">
+                <h6 className="mb-3">Coût estimé de la mission</h6>
+                <div className="d-flex gap-3 mb-3">
+                    <Form.Check type="radio" id="use-ai" label="Utiliser le prix IA"
+                        checked={!form.useManualCost}
+                        onChange={() => {
+                            const cost = prediction?.predicted_cost_tnd ?? 0
+                            setForm((f: WizardForm) => ({ ...f, useManualCost: false, coutEstime: cost }))
+                        }}
+                        disabled={!prediction}
+                    />
+                    <Form.Check type="radio" id="use-manual" label="Saisir manuellement"
+                        checked={form.useManualCost}
+                        onChange={() => setForm((f: WizardForm) => ({ ...f, useManualCost: true }))}
+                    />
+                </div>
+                {form.useManualCost ? (
+                    <div className="d-flex align-items-center gap-2">
+                        <Form.Control size="sm" type="number" min={0} step={0.5} style={{ maxWidth: 160 }}
+                            placeholder="Ex: 85.00"
+                            value={form.manualCoutInput}
+                            onChange={e => setForm((f: WizardForm) => ({ ...f, manualCoutInput: e.target.value, coutEstime: parseFloat(e.target.value) || 0 }))}
+                        />
+                        <span className="text-muted small">DT</span>
+                    </div>
+                ) : (
+                    <div className="fs-5 fw-bold text-primary">
+                        {(prediction?.predicted_cost_tnd ?? 0).toFixed(2)} DT
+                    </div>
+                )}
+            </div>
+
+            {/* ── Recap ────────────────────────────────────────── */}
+            <div className="bg-light border rounded-2 p-3 mb-3">
+                <h6 className="mb-2">Récapitulatif</h6>
+                <Table size="sm" borderless className="mb-0 small">
+                    <tbody>
+                        <tr><td className="text-muted">Trajet</td><td><strong>{form.villeDepart}</strong> → <strong>{form.villeArrivee}</strong></td></tr>
+                        <tr><td className="text-muted">Distance</td><td>{form.distanceEstimee.toFixed(0)} km</td></tr>
+                        <tr><td className="text-muted">Départ</td><td>{form.dateDepart ? new Date(form.dateDepart).toLocaleString('fr-FR') : '—'}</td></tr>
+                        <tr><td className="text-muted">Objet</td><td>{form.objetMission}</td></tr>
+                        <tr><td className="text-muted">Coût estimé</td><td className="fw-bold text-success">{finalCout.toFixed(2)} DT</td></tr>
+                    </tbody>
+                </Table>
+            </div>
+
+            <div className="d-flex justify-content-between mt-3">
+                <Button variant="outline-secondary" size="sm" onClick={previousStep} disabled={isSaving}>
                     <IconifyIcon icon="ri:arrow-left-line" className="me-1" /> Précédent
                 </Button>
-                <Button variant="success" onClick={onFinish} disabled={isSaving}>
-                    {isSaving ? <Spinner animation="border" size="sm" /> : <>Créer la Mission <IconifyIcon icon="ri:check-line" className="ms-1" /></>}
+                <Button variant="success" size="sm" onClick={onFinish} disabled={isSaving} className="px-4">
+                    {isSaving
+                        ? <><Spinner animation="border" size="sm" className="me-1" /> Création…</>
+                        : <><IconifyIcon icon="ri:check-line" className="me-1" /> Créer la Mission</>
+                    }
                 </Button>
             </div>
         </div>
     )
 }
 
-// -------------------------------------------------------------------------------------
-// Root modal
-// -------------------------------------------------------------------------------------
-const emptyForm = (): any => ({
-    destination: '',
-    dateDepart: nowLocal(),
-    dateRetour: '',
-    objetMission: '',
-    vehiculeId: 0,
-    employeeId: 0,
-    kilometrageDepart: 0,
-    bonCarburantAccorde: false,
-    numeroBonCarburant: '',
-    verificationDocuments: false,
-    carteAutorouteRemise: false,
-})
-
+// ── Root modal ────────────────────────────────────────────────────────────────
 const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProps) => {
-    const [form, setForm] = useState<CreateMissionDto>(emptyForm())
+    const [form, setForm] = useState<WizardForm>(emptyForm())
     const [isSaving, setIsSaving] = useState(false)
+    const [cities, setCities] = useState<string[]>([])
     const { error, execute, clearError } = useApiError()
 
-    const [ai, setAi] = useState<AiPredictionState>({
-        villeDepart: '',
-        villeArrivee: '',
-        predictedCost: null,
-        distanceKm: null,
-        isPredicting: false,
-        cities: [],
-    })
-
-    // Fetch city list once from FastAPI; silently degrades if service is offline
+    // Load cities once from FastAPI
     useEffect(() => {
         fetch(`${AI_API}/cities`)
             .then(r => r.json())
-            .then(d => setAi(s => ({ ...s, cities: d.cities ?? [] })))
+            .then(d => setCities(d.cities ?? []))
             .catch(() => {})
     }, [])
 
-    const resetAll = useCallback(() => {
-        setForm(emptyForm())
-        setAi(s => ({
-            ...s,
-            villeDepart: '',
-            villeArrivee: '',
-            predictedCost: null,
-            distanceKm: null,
-            isPredicting: false,
-        }))
-    }, [])
+    const resetAll = useCallback(() => setForm(emptyForm()), [])
 
     const handleFinish = async () => {
         setIsSaving(true)
         clearError()
+
+        const finalCout = form.useManualCost ? parseFloat(form.manualCoutInput) || 0 : form.coutEstime
+
         await execute(async () => {
-            await missionService.create(form)
+            await missionService.create({
+                dateDepart: form.dateDepart,
+                dateRetour: form.dateRetour || undefined,
+                destination: form.villeArrivee || 'N/A',
+                kilometrageDepart: form.kilometrageDepart,
+                objetMission: form.objetMission,
+                vehiculeId: form.vehiculeId,
+                employeeId: form.employeeId,
+                bonCarburantAccorde: form.bonCarburantAccorde,
+                numeroBonCarburant: form.numeroBonCarburant || undefined,
+                verificationDocuments: form.verificationDocuments,
+                carteAutorouteRemise: form.carteAutorouteRemise,
+                villeDepart: form.villeDepart,
+                villeArrivee: form.villeArrivee,
+                distanceEstimee: form.distanceEstimee,
+                coutEstime: finalCout,
+            })
             await Swal.fire('Succès', 'La mission a été créée avec succès.', 'success')
             reloadList()
             onHide()
             resetAll()
-            return true
         })
+
         setIsSaving(false)
     }
 
@@ -562,22 +754,13 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
             </Modal.Header>
             <Modal.Body className="p-4">
                 {error && (
-                    <AlerteErreur
-                        status={error.status}
-                        message={error.message}
-                        onDismiss={clearError}
-                        className="mb-4"
-                    />
+                    <AlerteErreur status={error.status} message={error.message}
+                        onDismiss={clearError} className="mb-3" />
                 )}
                 <StepWizard>
-                    <Step1 form={form} setForm={setForm} ai={ai} setAi={setAi} />
-                    <Step2
-                        form={form}
-                        setForm={setForm}
-                        execute={execute}
-                        clearError={clearError}
-                    />
-                    <Step3 form={form} onFinish={handleFinish} isSaving={isSaving} ai={ai} />
+                    <Step1 form={form} setForm={setForm} cities={cities} />
+                    <Step2 form={form} setForm={setForm} execute={execute} clearError={clearError} />
+                    <Step3 form={form} setForm={setForm} onFinish={handleFinish} isSaving={isSaving} />
                 </StepWizard>
             </Modal.Body>
         </Modal>

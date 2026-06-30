@@ -87,6 +87,12 @@ public class MissionService : IMissionService
         mission.VerificationDocuments = dto.VerificationDocuments;
         mission.CarteAutorouteRemise = dto.CarteAutorouteRemise;
 
+        // AI estimation fields
+        mission.VilleDepart = dto.VilleDepart;
+        mission.VilleArrivee = dto.VilleArrivee;
+        mission.DistanceEstimee = dto.DistanceEstimee;
+        mission.CoutEstime = dto.CoutEstime;
+
         var savedMission = await _missionRepository.AddAsync(mission);
 
         // 6. Set employee.Statut = StatutEmployee.EN_MISSION
