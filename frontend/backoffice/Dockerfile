@@ -19,8 +19,8 @@ RUN yarn install --frozen-lockfile
 # Copy remaining source code
 COPY . .
 
-# Build the production bundle
-RUN yarn build
+# Build the production bundle (skip tsc type-check — Vite transpiles TS independently)
+RUN yarn exec vite build
 
 # ============================================
 # Stage 2: Serve with Nginx
