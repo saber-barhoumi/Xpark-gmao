@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Badge, Button, Col, Form, Modal, Row, Spinner } from 'react-bootstrap'
 import StepWizard from 'react-step-wizard'
 import Select from 'react-select'
@@ -11,7 +11,7 @@ import { CreateMissionDto } from '@/types/mission'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
 
-
+const AI_API = process.env.NEXT_PUBLIC_AI_API_URL ?? 'http://localhost:8000'
 
 interface MissionWizardModalProps {
     show: boolean
@@ -19,19 +19,170 @@ interface MissionWizardModalProps {
     reloadList: () => void
 }
 
-// -------------------------------------------------------------------------------------
-// STEP 1 : Détails de la Mission
-// -------------------------------------------------------------------------------------
-// Returns current local datetime as YYYY-MM-DDTHH:mm (NOT UTC — datetime-local is always local)
 const nowLocal = () => {
     const d = new Date()
     const pad = (n: number) => String(n).padStart(2, '0')
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
+// -------------------------------------------------------------------------------------
+// AI Prediction state type
+// -------------------------------------------------------------------------------------
+interface AiPredictionState {
+    villeDepart: string
+    villeArrivee: string
+    predictedCost: number | null
+    distanceKm: number | null
+    isPredicting: boolean
+    cities: string[]
+}
+
+// -------------------------------------------------------------------------------------
+// AI Prediction card (shown in Step 1 interactively + Step 3 read-only)
+// -------------------------------------------------------------------------------------
+interface AiPanelProps {
+    ai: AiPredictionState
+    setAi: React.Dispatch<React.SetStateAction<AiPredictionState>>
+    dateDepart: string
+    compact?: boolean
+}
+
+const AiPanel = ({ ai, setAi, dateDepart, compact = false }: AiPanelProps) => {
+    const cityOptions = ai.cities.map(c => ({ value: c, label: c }))
+
+    if (compact) {
+        if (!ai.predictedCost) return null
+        return (
+            <div className="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-2 p-3 mb-3">
+                <div className="d-flex align-items-center justify-content-between">
+                    <span className="small fw-bold text-primary d-flex align-items-center gap-2">
+                        <IconifyIcon icon="ri:robot-line" />
+                        Estimation IA du coût de trajet
+                    </span>
+                    <Badge bg="primary" className="fs-6 px-3 py-2">
+                        {ai.predictedCost.toFixed(2)} DT
+                    </Badge>
+                </div>
+                <p className="mb-0 mt-1 small text-muted">
+                    {ai.villeDepart} → {ai.villeArrivee} · {ai.distanceKm} km
+                </p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="mt-3 border border-dashed rounded-2 p-3 bg-light">
+            <h6 className="d-flex align-items-center mb-3 text-primary">
+                <IconifyIcon icon="ri:robot-line" className="me-2" />
+                Estimation IA du coût (optionnel)
+                {ai.cities.length === 0 && (
+                    <span className="ms-2 badge bg-secondary fw-normal small">Service IA non disponible</span>
+                )}
+            </h6>
+            <Row className="g-2">
+                <Col md={6}>
+                    <Form.Label className="small fw-semibold mb-1">Ville de départ</Form.Label>
+                    <Select
+                        options={cityOptions}
+                        value={ai.villeDepart ? { value: ai.villeDepart, label: ai.villeDepart } : null}
+                        onChange={(opt: any) =>
+                            setAi(s => ({ ...s, villeDepart: opt?.value ?? '', predictedCost: null, distanceKm: null }))
+                        }
+                        placeholder="Choisir..."
+                        isDisabled={ai.cities.length === 0}
+                        isClearable
+                    />
+                </Col>
+                <Col md={6}>
+                    <Form.Label className="small fw-semibold mb-1">Ville d&apos;arrivée</Form.Label>
+                    <Select
+                        options={cityOptions}
+                        value={ai.villeArrivee ? { value: ai.villeArrivee, label: ai.villeArrivee } : null}
+                        onChange={(opt: any) =>
+                            setAi(s => ({ ...s, villeArrivee: opt?.value ?? '', predictedCost: null, distanceKm: null }))
+                        }
+                        placeholder="Choisir..."
+                        isDisabled={ai.cities.length === 0}
+                        isClearable
+                    />
+                </Col>
+            </Row>
+
+            {ai.isPredicting && (
+                <div className="mt-2 d-flex align-items-center gap-2 text-muted small">
+                    <Spinner animation="border" size="sm" /> Calcul en cours...
+                </div>
+            )}
+
+            {!ai.isPredicting && ai.predictedCost !== null && (
+                <div className="mt-2 d-flex align-items-center gap-3 flex-wrap">
+                    <span className="small text-muted d-flex align-items-center gap-1">
+                        <IconifyIcon icon="ri:route-line" /> {ai.distanceKm} km
+                    </span>
+                    <span className="d-flex align-items-center gap-2">
+                        <IconifyIcon icon="ri:money-dollar-circle-line" className="text-success" />
+                        <strong className="text-success fs-6">{ai.predictedCost.toFixed(2)} DT</strong>
+                        <span className="small text-muted">coût estimé par l&apos;IA</span>
+                    </span>
+                </div>
+            )}
+
+            {!ai.isPredicting && ai.villeDepart && ai.villeArrivee && !dateDepart && ai.predictedCost === null && (
+                <p className="small text-warning mt-2 mb-0">
+                    <IconifyIcon icon="ri:information-line" className="me-1" />
+                    Sélectionnez une date de départ pour calculer l&apos;estimation.
+                </p>
+            )}
+        </div>
+    )
+}
+
+// -------------------------------------------------------------------------------------
+// STEP 1 : Détails de la Mission
+// -------------------------------------------------------------------------------------
+const Step1 = ({ nextStep, isActive, form, setForm, ai, setAi }: any) => {
+    // Trigger AI prediction whenever departure city, arrival city, or date changes
+    useEffect(() => {
+        if (!ai.villeDepart || !ai.villeArrivee || !form.dateDepart) {
+            setAi((s: AiPredictionState) => ({ ...s, predictedCost: null, distanceKm: null, isPredicting: false }))
+            return
+        }
+
+        setAi((s: AiPredictionState) => ({ ...s, isPredicting: true }))
+
+        const timer = setTimeout(async () => {
+            try {
+                const res = await fetch(`${AI_API}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        departure: ai.villeDepart,
+                        arrival: ai.villeArrivee,
+                        date_depart: form.dateDepart,
+                        has_autoroute: form.carteAutorouteRemise,
+                    }),
+                })
+                if (res.ok) {
+                    const data = await res.json()
+                    setAi((s: AiPredictionState) => ({
+                        ...s,
+                        isPredicting: false,
+                        predictedCost: data.predicted_cost_tnd,
+                        distanceKm: data.distance_km,
+                    }))
+                } else {
+                    setAi((s: AiPredictionState) => ({ ...s, isPredicting: false, predictedCost: null, distanceKm: null }))
+                }
+            } catch {
+                setAi((s: AiPredictionState) => ({ ...s, isPredicting: false, predictedCost: null, distanceKm: null }))
+            }
+        }, 600)
+
+        return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ai.villeDepart, ai.villeArrivee, form.dateDepart, form.carteAutorouteRemise])
+
     const handleNext = () => {
-        // ── Required fields ──────────────────────────────────────────────
         if (!form.destination?.trim()) {
             Swal.fire('Erreur', 'La destination est obligatoire.', 'error'); return
         }
@@ -48,7 +199,6 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
             Swal.fire('Erreur', "L'objet de la mission doit contenir au moins 5 caractères.", 'error'); return
         }
 
-        // ── Date / time validation ───────────────────────────────────────
         const selectedDt = new Date(form.dateDepart)
         if (isNaN(selectedDt.getTime())) {
             Swal.fire('Date invalide', 'La date de départ est invalide.', 'error'); return
@@ -63,7 +213,6 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
             }
         }
 
-        // ── Bon carburant ────────────────────────────────────────────────
         if (form.bonCarburantAccorde && !form.numeroBonCarburant?.trim()) {
             Swal.fire('Erreur', 'Veuillez saisir le numéro du bon de carburant.', 'error'); return
         }
@@ -193,6 +342,8 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
                 </div>
             </div>
 
+            <AiPanel ai={ai} setAi={setAi} dateDepart={form.dateDepart} />
+
             <div className="d-flex justify-content-end mt-4">
                 <Button variant="primary" size="sm" onClick={handleNext} className="px-3">
                     Suivant <IconifyIcon icon="ri:add-line" className="ms-1" />
@@ -243,7 +394,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                 })))
             }
         } catch {
-            // execute() already shows Swal error; catch prevents uncaught promise rejection
+            // execute() already shows Swal error
         } finally {
             setLoading(false)
         }
@@ -311,10 +462,13 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
 // -------------------------------------------------------------------------------------
 // STEP 3 : Confirmation
 // -------------------------------------------------------------------------------------
-const Step3 = ({ previousStep, isActive, form, onFinish, isSaving }: any) => {
+const Step3 = ({ previousStep, isActive, form, onFinish, isSaving, ai }: any) => {
     return (
         <div className={isActive ? 'd-block' : 'd-none'}>
             <h5 className="mb-4">Etape 3 : Récapitulatif & Confirmation</h5>
+
+            <AiPanel ai={ai} setAi={() => {}} dateDepart={form.dateDepart} compact />
+
             <div className="bg-light p-3 rounded mb-3">
                 <p className="mb-1"><strong>Destination :</strong> {form.destination}</p>
                 <p className="mb-1"><strong>Objet :</strong> {form.objetMission}</p>
@@ -333,46 +487,66 @@ const Step3 = ({ previousStep, isActive, form, onFinish, isSaving }: any) => {
     )
 }
 
-const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProps) => {
-    const [form, setForm] = useState<CreateMissionDto>({
-        destination: '',
-        dateDepart: nowLocal(),
-        dateRetour: '',
-        objetMission: '',
-        vehiculeId: 0,
-        employeeId: 0,
-        kilometrageDepart: 0,
-        bonCarburantAccorde: false,
-        numeroBonCarburant: '',
-        verificationDocuments: false,
-        carteAutorouteRemise: false
-    } as any)
+// -------------------------------------------------------------------------------------
+// Root modal
+// -------------------------------------------------------------------------------------
+const emptyForm = (): any => ({
+    destination: '',
+    dateDepart: nowLocal(),
+    dateRetour: '',
+    objetMission: '',
+    vehiculeId: 0,
+    employeeId: 0,
+    kilometrageDepart: 0,
+    bonCarburantAccorde: false,
+    numeroBonCarburant: '',
+    verificationDocuments: false,
+    carteAutorouteRemise: false,
+})
 
+const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProps) => {
+    const [form, setForm] = useState<CreateMissionDto>(emptyForm())
     const [isSaving, setIsSaving] = useState(false)
     const { error, execute, clearError } = useApiError()
+
+    const [ai, setAi] = useState<AiPredictionState>({
+        villeDepart: '',
+        villeArrivee: '',
+        predictedCost: null,
+        distanceKm: null,
+        isPredicting: false,
+        cities: [],
+    })
+
+    // Fetch city list once from FastAPI; silently degrades if service is offline
+    useEffect(() => {
+        fetch(`${AI_API}/cities`)
+            .then(r => r.json())
+            .then(d => setAi(s => ({ ...s, cities: d.cities ?? [] })))
+            .catch(() => {})
+    }, [])
+
+    const resetAll = useCallback(() => {
+        setForm(emptyForm())
+        setAi(s => ({
+            ...s,
+            villeDepart: '',
+            villeArrivee: '',
+            predictedCost: null,
+            distanceKm: null,
+            isPredicting: false,
+        }))
+    }, [])
 
     const handleFinish = async () => {
         setIsSaving(true)
         clearError()
-        const success = await execute(async () => {
+        await execute(async () => {
             await missionService.create(form)
             await Swal.fire('Succès', 'La mission a été créée avec succès.', 'success')
             reloadList()
             onHide()
-            // Reset form
-            setForm({
-                destination: '',
-                dateDepart: nowLocal(),
-                dateRetour: '',
-                objetMission: '',
-                vehiculeId: 0,
-                employeeId: 0,
-                kilometrageDepart: 0,
-                bonCarburantAccorde: false,
-                numeroBonCarburant: '',
-                verificationDocuments: false,
-                carteAutorouteRemise: false
-            } as any)
+            resetAll()
             return true
         })
         setIsSaving(false)
@@ -396,14 +570,14 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                     />
                 )}
                 <StepWizard>
-                    <Step1 form={form} setForm={setForm} />
+                    <Step1 form={form} setForm={setForm} ai={ai} setAi={setAi} />
                     <Step2
                         form={form}
                         setForm={setForm}
                         execute={execute}
                         clearError={clearError}
                     />
-                    <Step3 form={form} onFinish={handleFinish} isSaving={isSaving} />
+                    <Step3 form={form} onFinish={handleFinish} isSaving={isSaving} ai={ai} />
                 </StepWizard>
             </Modal.Body>
         </Modal>
