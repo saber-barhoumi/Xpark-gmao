@@ -82,7 +82,8 @@ interface WizardForm {
     objetMission: string
     // Step 2 — Resources
     vehiculeId: number
-    vehiculeType: string
+    vehiculeGmaoType: string     // raw GMAO enum: BERLINE, CAMION, UTILITAIRE…
+    vehiculeAiType: string       // refined AI type: LIGHT_VEHICLE, VAN, FOURGON, HEAVY_TRUCK
     vehiculeCarburant: string
     vehiculeConsommation: number
     employeeId: number
@@ -108,7 +109,7 @@ const emptyForm = (): WizardForm => ({
     villeDepart: '', villeArrivee: '', distanceEstimee: 0, travelHours: 0,
     departureGovernorate: '', arrivalGovernorate: '',
     dateDepart: nowLocal(), dateRetour: '', objetMission: '',
-    vehiculeId: 0, vehiculeType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
+    vehiculeId: 0, vehiculeGmaoType: '', vehiculeAiType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
     employeeId: 0, kilometrageDepart: 0,
     cargoWeight: 0, passengerCount: 1, luggageWeight: 0,
     trafficCondition: 'Normal', weatherCondition: 'Sunny',
@@ -367,8 +368,10 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
             ...f,
             vehiculeId: opt?.value ?? 0,
             kilometrageDepart: opt?.kilometrage ?? 0,
-            vehiculeType: opt?.aiVehiculeType ?? opt?.typeVehicule ?? '',
+            vehiculeGmaoType: opt?.typeVehicule ?? '',
+            vehiculeAiType: opt?.aiVehiculeType ?? '',
             vehiculeCarburant: opt?.typeCarburant ?? '',
+            // Prefer consommationAI (calibrated for AI) → consommationMoyenne → 0
             vehiculeConsommation: opt?.consommationAI > 0 ? opt.consommationAI : (opt?.consommation ?? 0),
         }))
     }
@@ -423,12 +426,17 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                                     placeholder="Choisir un véhicule disponible…"
                                     noOptionsMessage={() => 'Aucun véhicule disponible'}
                                 />
-                                {form.vehiculeType && (
+                                {(form.vehiculeGmaoType || form.vehiculeAiType) && (
                                     <div className="mt-1 d-flex gap-2 flex-wrap">
-                                        <Badge bg="primary" className="fw-normal">
-                                            <IconifyIcon icon="ri:robot-line" className="me-1" style={{ fontSize: 10 }} />
-                                            {form.vehiculeType}
-                                        </Badge>
+                                        {form.vehiculeAiType && (
+                                            <Badge bg="primary" className="fw-normal">
+                                                <IconifyIcon icon="ri:robot-line" className="me-1" style={{ fontSize: 10 }} />
+                                                {form.vehiculeAiType}
+                                            </Badge>
+                                        )}
+                                        {!form.vehiculeAiType && form.vehiculeGmaoType && (
+                                            <Badge bg="secondary" className="fw-normal">{form.vehiculeGmaoType}</Badge>
+                                        )}
                                         <Badge bg="info" className="fw-normal text-dark">{form.vehiculeCarburant}</Badge>
                                         {form.vehiculeConsommation > 0 && (
                                             <Badge bg="light" className="fw-normal text-dark border">{form.vehiculeConsommation} L/100km</Badge>
@@ -571,7 +579,10 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
                 departure: form.villeDepart,
                 arrival: form.villeArrivee,
                 date_depart: form.dateDepart,
-                vehicle_type_gmao: form.vehiculeType || undefined,
+                // If vehicle has a refined AI type, send it via vehicle_type so the server uses it directly.
+                // Otherwise fall back to the raw GMAO type via vehicle_type_gmao for server-side mapping.
+                vehicle_type: form.vehiculeAiType || undefined,
+                vehicle_type_gmao: form.vehiculeAiType ? undefined : (form.vehiculeGmaoType || undefined),
                 fuel_type_gmao: form.vehiculeCarburant || undefined,
                 fuel_consumption_per_100km: form.vehiculeConsommation > 0 ? form.vehiculeConsommation : undefined,
                 has_autoroute: form.carteAutorouteRemise,

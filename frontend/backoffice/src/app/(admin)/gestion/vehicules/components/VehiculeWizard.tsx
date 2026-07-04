@@ -142,13 +142,16 @@ const Step1 = ({ nextStep, goToStep, isActive, form, setForm, isEdit, ocrFields,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.typeVehicule, form.chargeUtileKg, form.modele, aiTypeOverridden])
 
-    // Auto-fill consommationAI when aiVehiculeType changes (unless user touched it)
+    // Auto-fill consommationAI when aiVehiculeType or consommationMoyenne changes (unless user touched it)
     useEffect(() => {
         if (!form.aiVehiculeType || consAiTouched) return
-        const def = AI_DEFAULTS[form.aiVehiculeType]
-        if (def) setForm((f: any) => ({ ...f, consommationAI: def.consommationAI }))
+        // Real vehicle consumption beats the generic AI type default
+        const cons = form.consommationMoyenne > 3
+            ? form.consommationMoyenne
+            : (AI_DEFAULTS[form.aiVehiculeType]?.consommationAI ?? 0)
+        setForm((f: any) => ({ ...f, consommationAI: cons }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [form.aiVehiculeType, consAiTouched])
+    }, [form.aiVehiculeType, form.consommationMoyenne, consAiTouched])
 
     const handleNext = async () => {
         if (!form.immatriculation || !form.marque || !form.modele) {
