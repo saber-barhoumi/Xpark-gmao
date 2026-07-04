@@ -14,6 +14,13 @@ import type { ExtractedOCRData } from '@/services/groqOCRService'
 
 
 
+const AI_VEHICLE_TYPES = [
+    { value: 'LIGHT_VEHICLE', label: 'Véhicule Léger — Berline, SUV, Moto',   fuel: 'Essence', cons: 8.0,  charge: 800   },
+    { value: 'VAN',           label: 'Fourgonnette — Vito, Trafic, HiAce',     fuel: 'Diesel',  cons: 11.5, charge: 2000  },
+    { value: 'FOURGON',       label: 'Grand Fourgon — Sprinter, Master, Daily',fuel: 'Diesel',  cons: 14.5, charge: 3500  },
+    { value: 'HEAVY_TRUCK',   label: 'Camion Lourd — Actros, MAN, Volvo FH',  fuel: 'Diesel',  cons: 26.0, charge: 12000 },
+]
+
 const TYPES_VEHICULE = [
     { value: 'BERLINE', label: 'BERLINE' },
     { value: 'UTILITAIRE', label: 'UTILITAIRE' },
@@ -227,6 +234,79 @@ const Step1 = ({ nextStep, goToStep, isActive, form, setForm, isEdit, ocrFields,
                     </Form.Group>
                 </Col>
             </Row>
+
+            {/* ── AI Classification ───────────────────────── */}
+            <hr className="my-3" />
+            <h6 className="mb-3 d-flex align-items-center gap-2">
+                <IconifyIcon icon="ri:robot-line" className="text-primary" />
+                Paramètres Modèle IA — Calcul de Prix Trajet
+                <Badge bg="info" className="fw-normal" style={{ fontSize: 10 }}>optionnel mais recommandé</Badge>
+            </h6>
+            <Row>
+                <Col md={12}>
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small fw-bold">Type IA <span className="text-muted fw-normal">(classification pour la prédiction de coût)</span></Form.Label>
+                        <Select
+                            isClearable
+                            options={AI_VEHICLE_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                            value={form.aiVehiculeType
+                                ? { value: form.aiVehiculeType, label: AI_VEHICLE_TYPES.find(t => t.value === form.aiVehiculeType)?.label ?? form.aiVehiculeType }
+                                : null
+                            }
+                            onChange={(nv: any) => {
+                                const preset = AI_VEHICLE_TYPES.find(t => t.value === nv?.value)
+                                setForm({
+                                    ...form,
+                                    aiVehiculeType: nv?.value ?? '',
+                                    chargeUtileKg:  preset?.charge ?? 0,
+                                    consommationAI: preset?.cons   ?? 0,
+                                })
+                            }}
+                            placeholder="Sélectionner le type IA…"
+                        />
+                    </Form.Group>
+                </Col>
+            </Row>
+            {form.aiVehiculeType && (() => {
+                const preset = AI_VEHICLE_TYPES.find(t => t.value === form.aiVehiculeType)
+                return (
+                    <>
+                        <Row>
+                            <Col md={4}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-bold">Carburant IA</Form.Label>
+                                    <div className="form-control bg-light text-muted">{preset?.fuel}</div>
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-bold">Consommation IA (L/100km)</Form.Label>
+                                    <Form.Control type="number" step="0.1" min={1}
+                                        value={form.consommationAI ?? preset?.cons}
+                                        onChange={e => setForm({ ...form, consommationAI: parseFloat(e.target.value) })}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-bold">Charge utile max (kg)</Form.Label>
+                                    <Form.Control type="number" min={0}
+                                        value={form.chargeUtileKg ?? preset?.charge}
+                                        onChange={e => setForm({ ...form, chargeUtileKg: parseInt(e.target.value) })}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <div className="alert alert-info py-2 small mb-3">
+                            <IconifyIcon icon="ri:information-line" className="me-1" />
+                            Ce véhicule sera prédit avec le profil <strong>{form.aiVehiculeType}</strong> :
+                            carburant <strong>{preset?.fuel}</strong>,
+                            consommation <strong>{form.consommationAI ?? preset?.cons} L/100km</strong>,
+                            charge max <strong>{(form.chargeUtileKg ?? preset?.charge)?.toLocaleString('fr-FR')} kg</strong>.
+                        </div>
+                    </>
+                )
+            })()}
 
             <div className="d-flex justify-content-end mt-2">
                 <Button variant="primary" onClick={handleNext}>
@@ -571,25 +651,17 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
     const [ocrFields, setOcrFields] = useState<Set<string>>(new Set())
     const [ocrLoading, setOcrLoading] = useState(false)
 
-    // Form state initial
-    const [form, setForm] = useState<any>({
-        immatriculation: '',
-        marque: '',
-        modele: '',
-        numeroChassis: '',
-        anneeConstruction: new Date().getFullYear(),
-        typeCarburant: 'DIESEL',
-        typeVehicule: 'UTILITAIRE',
-        kilometrage: 0,
-        couleur: '',
-        nombrePlaces: 5,
-        consommationMoyenne: 8,
-        valeurAcquisition: 0,
-        puissanceFiscale: 5,
-        dateAcquisition: new Date().toISOString().split('T')[0],
-        dateDerniereRevision: '',
-        dateProchaineRevision: ''
+    const emptyForm = () => ({
+        immatriculation: '', marque: '', modele: '', numeroChassis: '',
+        anneeConstruction: new Date().getFullYear(), typeCarburant: 'DIESEL',
+        typeVehicule: 'UTILITAIRE', kilometrage: 0, couleur: '',
+        nombrePlaces: 5, consommationMoyenne: 8, valeurAcquisition: 0,
+        puissanceFiscale: 5, dateAcquisition: new Date().toISOString().split('T')[0],
+        dateDerniereRevision: '', dateProchaineRevision: '',
+        aiVehiculeType: '', chargeUtileKg: 0, consommationAI: 0,
     })
+
+    const [form, setForm] = useState<any>(emptyForm())
 
     // ── Auto-fill from OCR ──────────────────────────
     const fillFromOCR = useCallback((data: ExtractedOCRData) => {
@@ -656,15 +728,7 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
                     dateProchaineRevision: vehiculeToEdit.dateProchaineRevision ? new Date(vehiculeToEdit.dateProchaineRevision).toISOString().split('T')[0] : ''
                 })
             } else {
-                // Reset
-                setForm({
-                    immatriculation: '', marque: '', modele: '', numeroChassis: '',
-                    anneeConstruction: new Date().getFullYear(), typeCarburant: 'DIESEL',
-                    typeVehicule: 'UTILITAIRE', kilometrage: 0, couleur: '',
-                    nombrePlaces: 5, consommationMoyenne: 8, valeurAcquisition: 0,
-                    puissanceFiscale: 5, dateAcquisition: new Date().toISOString().split('T')[0],
-                    dateDerniereRevision: '', dateProchaineRevision: ''
-                })
+                setForm(emptyForm())
             }
         }
     }, [show, vehiculeToEdit])
@@ -682,7 +746,12 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
 
             if (idVehiculeCreated) {
                 // Update
-                await api.put(`/vehicules/${idVehiculeCreated}`, payload)
+                await api.put(`/vehicules/${idVehiculeCreated}`, {
+                    ...payload,
+                    aiVehiculeType: form.aiVehiculeType || null,
+                    chargeUtileKg: form.chargeUtileKg || 0,
+                    consommationAI: form.consommationAI || 0,
+                })
                 reloadList()
                 return true
             } else {
@@ -692,6 +761,9 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
                     statut: 'ACTIF',
                     actif: true,
                     dateCreation: new Date().toISOString(),
+                    aiVehiculeType: form.aiVehiculeType || null,
+                    chargeUtileKg: form.chargeUtileKg || 0,
+                    consommationAI: form.consommationAI || 0,
                 })
 
                 setIdVehiculeCreated(res.data.idVehicule)

@@ -10,12 +10,22 @@ export interface Vehicule {
     kilometrage: number
     statut: string
     actif: boolean
+    // AI trip cost model parameters
+    aiVehiculeType?: 'LIGHT_VEHICLE' | 'VAN' | 'FOURGON' | 'HEAVY_TRUCK' | null
+    chargeUtileKg?: number
+    consommationAI?: number
+}
+
+export const AI_VEHICLE_DEFAULTS: Record<string, { label: string; fuelLabel: string; cons: number; charge: number }> = {
+    LIGHT_VEHICLE: { label: 'Véhicule Léger (Berline, SUV)',    fuelLabel: 'Essence', cons: 8.0,  charge: 800   },
+    VAN:           { label: 'Fourgonnette (Vito, Trafic)',       fuelLabel: 'Diesel',  cons: 11.5, charge: 2000  },
+    FOURGON:       { label: 'Grand Fourgon (Sprinter, Master)',  fuelLabel: 'Diesel',  cons: 14.5, charge: 3500  },
+    HEAVY_TRUCK:   { label: 'Camion Lourd (Actros, MAN TGX)',   fuelLabel: 'Diesel',  cons: 26.0, charge: 12000 },
 }
 
 export const vehiculeService = {
     getAll: async (): Promise<Vehicule[]> => {
         const response = await api.get('/vehicules?pageSize=1000')
-        // Backend returns PaginatedResponseDto { data: Vehicule[], totalCount: number, ... }
         return response.data.data || []
     },
     getDisponibles: async (): Promise<Vehicule[]> => {

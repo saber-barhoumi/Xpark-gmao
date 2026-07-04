@@ -27,6 +27,11 @@ public class Vehicule
     public bool           Actif                       { get; set; } = true;
     public DateTime       DateCreation                { get; set; } = DateTime.UtcNow;
 
+    // AI trip cost model parameters
+    public string?  AiVehiculeType  { get; set; }   // LIGHT_VEHICLE | VAN | FOURGON | HEAVY_TRUCK
+    public double   ChargeUtileKg   { get; set; }
+    public double   ConsommationAI  { get; set; }
+
     public ICollection<Assurance>             Assurances  { get; set; } = [];
     public ICollection<DocumentAdministratif> Documents   { get; set; } = [];
     public ICollection<Carburant>             Carburants  { get; set; } = [];

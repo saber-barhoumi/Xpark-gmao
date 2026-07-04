@@ -82,7 +82,8 @@ public class VehiculeService(FleetDbContext context, IMapper mapper, ILogger<Veh
             ConsommationMoyenne = dto.ConsommationMoyenne, DateAcquisition = dto.DateAcquisition,
             ValeurAcquisition = dto.ValeurAcquisition, PuissanceFiscale = dto.PuissanceFiscale,
             DateProchaineRevision = dto.DateProchaineRevision,
-            Statut = StatutVehicule.DISPONIBLE, Actif = true, DateCreation = DateTime.UtcNow
+            Statut = StatutVehicule.DISPONIBLE, Actif = true, DateCreation = DateTime.UtcNow,
+            AiVehiculeType = dto.AiVehiculeType, ChargeUtileKg = dto.ChargeUtileKg, ConsommationAI = dto.ConsommationAI
         };
 
         context.Vehicules.Add(vehicule);
@@ -103,6 +104,9 @@ public class VehiculeService(FleetDbContext context, IMapper mapper, ILogger<Veh
         if (dto.ConsommationMoyenne  != null) vehicule.ConsommationMoyenne  = dto.ConsommationMoyenne.Value;
         if (dto.PuissanceFiscale     != null) vehicule.PuissanceFiscale     = dto.PuissanceFiscale.Value;
         if (dto.DateProchaineRevision != null) vehicule.DateProchaineRevision = dto.DateProchaineRevision;
+        if (dto.AiVehiculeType  != null) vehicule.AiVehiculeType  = dto.AiVehiculeType;
+        if (dto.ChargeUtileKg   != null) vehicule.ChargeUtileKg   = dto.ChargeUtileKg.Value;
+        if (dto.ConsommationAI  != null) vehicule.ConsommationAI  = dto.ConsommationAI.Value;
 
         await context.SaveChangesAsync();
         return mapper.Map<VehiculeDto>(vehicule);

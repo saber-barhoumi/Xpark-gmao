@@ -38,6 +38,9 @@ interface Vehicule {
     dateProchaineRevision?: string
     actif: boolean
     dateCreation: string
+    aiVehiculeType?: string | null
+    chargeUtileKg?: number
+    consommationAI?: number
 }
 
 
@@ -176,6 +179,7 @@ export default function VehiculesPage() {
                                     <th>Immatriculation</th>
                                     <th>Marque / Modèle</th>
                                     <th>Type / Carburant</th>
+                                    <th>Type IA</th>
                                     <th>Année</th>
                                     <th>Kilométrage</th>
                                     <th>Puissance</th>
@@ -196,6 +200,16 @@ export default function VehiculesPage() {
                                         <td>
                                             <Badge bg="light" text="dark" className="d-block mb-1">{v.typeVehicule}</Badge>
                                             <span className="text-muted small">{v.typeCarburant}</span>
+                                        </td>
+                                        <td>
+                                            {v.aiVehiculeType ? (
+                                                <Badge bg="primary" className="fw-normal" style={{ fontSize: 10 }}>
+                                                    <IconifyIcon icon="ri:robot-line" className="me-1" style={{ fontSize: 10 }} />
+                                                    {v.aiVehiculeType}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-muted small fst-italic">—</span>
+                                            )}
                                         </td>
                                         <td>{v.anneeConstruction}</td>
                                         <td>{v.kilometrage?.toLocaleString('fr-FR')} km</td>

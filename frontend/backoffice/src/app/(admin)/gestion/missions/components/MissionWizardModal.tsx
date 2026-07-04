@@ -347,6 +347,8 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                     typeVehicule: v.typeVehicule ?? '',
                     typeCarburant: v.typeCarburant ?? '',
                     consommation: v.consommationMoyenne ?? 0,
+                    aiVehiculeType: v.aiVehiculeType ?? null,
+                    consommationAI: v.consommationAI ?? 0,
                 })))
                 setDrivers(res.drivers.map((d: any) => ({
                     value: d.idEmployee,
@@ -365,9 +367,9 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
             ...f,
             vehiculeId: opt?.value ?? 0,
             kilometrageDepart: opt?.kilometrage ?? 0,
-            vehiculeType: opt?.typeVehicule ?? '',
+            vehiculeType: opt?.aiVehiculeType ?? opt?.typeVehicule ?? '',
             vehiculeCarburant: opt?.typeCarburant ?? '',
-            vehiculeConsommation: opt?.consommation ?? 0,
+            vehiculeConsommation: opt?.consommationAI > 0 ? opt.consommationAI : (opt?.consommation ?? 0),
         }))
     }
 
@@ -422,8 +424,11 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                                     noOptionsMessage={() => 'Aucun véhicule disponible'}
                                 />
                                 {form.vehiculeType && (
-                                    <div className="mt-1 d-flex gap-2">
-                                        <Badge bg="secondary" className="fw-normal">{form.vehiculeType}</Badge>
+                                    <div className="mt-1 d-flex gap-2 flex-wrap">
+                                        <Badge bg="primary" className="fw-normal">
+                                            <IconifyIcon icon="ri:robot-line" className="me-1" style={{ fontSize: 10 }} />
+                                            {form.vehiculeType}
+                                        </Badge>
                                         <Badge bg="info" className="fw-normal text-dark">{form.vehiculeCarburant}</Badge>
                                         {form.vehiculeConsommation > 0 && (
                                             <Badge bg="light" className="fw-normal text-dark border">{form.vehiculeConsommation} L/100km</Badge>
