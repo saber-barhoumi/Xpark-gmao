@@ -82,8 +82,7 @@ interface WizardForm {
     objetMission: string
     // Step 2 — Resources
     vehiculeId: number
-    vehiculeGmaoType: string     // raw GMAO enum: BERLINE, CAMION, UTILITAIRE…
-    vehiculeAiType: string       // refined AI type: LIGHT_VEHICLE, VAN, FOURGON, HEAVY_TRUCK
+    vehiculeGmaoType: string    // raw GMAO enum: BERLINE, CAMION, UTILITAIRE…
     vehiculeCarburant: string
     vehiculeConsommation: number
     employeeId: number
@@ -99,22 +98,23 @@ interface WizardForm {
     numeroBonCarburant: string
     verificationDocuments: boolean
     carteAutorouteRemise: boolean
-    // Step 3 — Cost
+    // Step 3 — Cost + AI snapshot
     coutEstime: number
     useManualCost: boolean
     manualCoutInput: string
+    aiVehiculeTypeUsed: string
 }
 
 const emptyForm = (): WizardForm => ({
     villeDepart: '', villeArrivee: '', distanceEstimee: 0, travelHours: 0,
     departureGovernorate: '', arrivalGovernorate: '',
     dateDepart: nowLocal(), dateRetour: '', objetMission: '',
-    vehiculeId: 0, vehiculeGmaoType: '', vehiculeAiType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
+    vehiculeId: 0, vehiculeGmaoType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
     employeeId: 0, kilometrageDepart: 0,
     cargoWeight: 0, passengerCount: 1, luggageWeight: 0,
     trafficCondition: 'Normal', weatherCondition: 'Sunny',
     bonCarburantAccorde: false, numeroBonCarburant: '', verificationDocuments: false, carteAutorouteRemise: false,
-    coutEstime: 0, useManualCost: false, manualCoutInput: '',
+    coutEstime: 0, useManualCost: false, manualCoutInput: '', aiVehiculeTypeUsed: '',
 })
 
 // ── AI prediction data from the /predict endpoint ────────────────────────────
@@ -348,8 +348,6 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                     typeVehicule: v.typeVehicule ?? '',
                     typeCarburant: v.typeCarburant ?? '',
                     consommation: v.consommationMoyenne ?? 0,
-                    aiVehiculeType: v.aiVehiculeType ?? null,
-                    consommationAI: v.consommationAI ?? 0,
                 })))
                 setDrivers(res.drivers.map((d: any) => ({
                     value: d.idEmployee,
@@ -369,10 +367,8 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
             vehiculeId: opt?.value ?? 0,
             kilometrageDepart: opt?.kilometrage ?? 0,
             vehiculeGmaoType: opt?.typeVehicule ?? '',
-            vehiculeAiType: opt?.aiVehiculeType ?? '',
             vehiculeCarburant: opt?.typeCarburant ?? '',
-            // Prefer consommationAI (calibrated for AI) → consommationMoyenne → 0
-            vehiculeConsommation: opt?.consommationAI > 0 ? opt.consommationAI : (opt?.consommation ?? 0),
+            vehiculeConsommation: opt?.consommation ?? 0,
         }))
     }
 
@@ -426,17 +422,9 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                                     placeholder="Choisir un véhicule disponible…"
                                     noOptionsMessage={() => 'Aucun véhicule disponible'}
                                 />
-                                {(form.vehiculeGmaoType || form.vehiculeAiType) && (
+                                {form.vehiculeGmaoType && (
                                     <div className="mt-1 d-flex gap-2 flex-wrap">
-                                        {form.vehiculeAiType && (
-                                            <Badge bg="primary" className="fw-normal">
-                                                <IconifyIcon icon="ri:robot-line" className="me-1" style={{ fontSize: 10 }} />
-                                                {form.vehiculeAiType}
-                                            </Badge>
-                                        )}
-                                        {!form.vehiculeAiType && form.vehiculeGmaoType && (
-                                            <Badge bg="secondary" className="fw-normal">{form.vehiculeGmaoType}</Badge>
-                                        )}
+                                        <Badge bg="secondary" className="fw-normal">{form.vehiculeGmaoType}</Badge>
                                         <Badge bg="info" className="fw-normal text-dark">{form.vehiculeCarburant}</Badge>
                                         {form.vehiculeConsommation > 0 && (
                                             <Badge bg="light" className="fw-normal text-dark border">{form.vehiculeConsommation} L/100km</Badge>
@@ -579,10 +567,7 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
                 departure: form.villeDepart,
                 arrival: form.villeArrivee,
                 date_depart: form.dateDepart,
-                // If vehicle has a refined AI type, send it via vehicle_type so the server uses it directly.
-                // Otherwise fall back to the raw GMAO type via vehicle_type_gmao for server-side mapping.
-                vehicle_type: form.vehiculeAiType || undefined,
-                vehicle_type_gmao: form.vehiculeAiType ? undefined : (form.vehiculeGmaoType || undefined),
+                vehicle_type_gmao: form.vehiculeGmaoType || undefined,
                 fuel_type_gmao: form.vehiculeCarburant || undefined,
                 fuel_consumption_per_100km: form.vehiculeConsommation > 0 ? form.vehiculeConsommation : undefined,
                 has_autoroute: form.carteAutorouteRemise,
@@ -599,9 +584,11 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
             })
             .then((d: PredictionData) => {
                 setPrediction(d)
-                if (!form.useManualCost) {
-                    setForm((f: WizardForm) => ({ ...f, coutEstime: d.predicted_cost_tnd }))
-                }
+                setForm((f: WizardForm) => ({
+                    ...f,
+                    aiVehiculeTypeUsed: d.vehicle_type_used,
+                    ...(f.useManualCost ? {} : { coutEstime: d.predicted_cost_tnd }),
+                }))
             })
             .catch(() => setPredError('Service IA indisponible — saisissez le coût manuellement.'))
             .finally(() => setIsPredicting(false))
@@ -773,6 +760,7 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                 villeArrivee: form.villeArrivee,
                 distanceEstimee: form.distanceEstimee,
                 coutEstime: finalCout,
+                aiVehiculeTypeUsed: form.aiVehiculeTypeUsed || undefined,
             })
             await Swal.fire('Succès', 'La mission a été créée avec succès.', 'success')
             reloadList()

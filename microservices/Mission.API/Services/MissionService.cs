@@ -54,6 +54,11 @@ public class MissionService(
             NumeroBonCarburant    = dto.NumeroBonCarburant,
             VerificationDocuments = dto.VerificationDocuments,
             CarteAutorouteRemise  = dto.CarteAutorouteRemise,
+            VilleDepart           = dto.VilleDepart,
+            VilleArrivee          = dto.VilleArrivee,
+            DistanceKm            = dto.DistanceEstimee,
+            CoutEstimeAI          = dto.CoutEstime,
+            AiVehiculeTypeUsed    = dto.AiVehiculeTypeUsed,
             DateCreation          = DateTime.UtcNow
         };
 

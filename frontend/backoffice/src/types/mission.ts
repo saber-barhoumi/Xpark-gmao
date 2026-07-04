@@ -34,16 +34,15 @@ export interface CreateMissionDto {
     objetMission: string;
     vehiculeId: number;
     employeeId: number;
-    // Logistics Checklist
     bonCarburantAccorde: boolean;
     numeroBonCarburant?: string;
     verificationDocuments: boolean;
     carteAutorouteRemise: boolean;
-    // AI estimation
     villeDepart?: string;
     villeArrivee?: string;
     distanceEstimee?: number;
     coutEstime?: number;
+    aiVehiculeTypeUsed?: string;
 }
 
 export interface CloseMissionDto {

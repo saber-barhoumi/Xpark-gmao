@@ -21,4 +21,9 @@ public class MissionResponseDto
     public long      EmployeeId            { get; set; }
     public long      VehiculeId            { get; set; }
     public DateTime  DateCreation          { get; set; }
+    public string?   VilleDepart          { get; set; }
+    public string?   VilleArrivee         { get; set; }
+    public double    DistanceKm           { get; set; }
+    public double    CoutEstimeAI         { get; set; }
+    public string?   AiVehiculeTypeUsed   { get; set; }
 }

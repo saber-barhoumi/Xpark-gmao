@@ -8,7 +8,7 @@ public record CreateVehiculeDto(
     double Kilometrage, string? Couleur, int NombrePlaces, double ConsommationMoyenne,
     DateTime DateAcquisition, double ValeurAcquisition, int PuissanceFiscale,
     DateTime? DateProchaineRevision,
-    string? AiVehiculeType = null, double ChargeUtileKg = 0, double ConsommationAI = 0
+    double ChargeUtileKg = 0
 );
 
 public record UpdateVehiculeDto(
@@ -16,7 +16,7 @@ public record UpdateVehiculeDto(
     StatutVehicule? Statut, string? Couleur,
     double? ConsommationMoyenne, int? PuissanceFiscale,
     DateTime? DateProchaineRevision,
-    string? AiVehiculeType = null, double? ChargeUtileKg = null, double? ConsommationAI = null
+    double? ChargeUtileKg = null
 );
 
 public record VehiculeDto(
@@ -28,5 +28,5 @@ public record VehiculeDto(
     DateTime DateAcquisition, int PuissanceFiscale,
     DateTime? DateProchaineRevision, DateTime? DateDerniereRevision,
     string? Photo, bool Actif,
-    string? AiVehiculeType, double ChargeUtileKg, double ConsommationAI
+    double ChargeUtileKg
 );

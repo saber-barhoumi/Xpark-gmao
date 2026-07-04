@@ -19,4 +19,11 @@ public class Mission
     public string? NumeroBonCarburant    { get; set; }
     public bool    VerificationDocuments { get; set; }
     public bool    CarteAutorouteRemise  { get; set; }
+
+    // Route + AI prediction snapshot (stored at creation time)
+    public string? VilleDepart          { get; set; }
+    public string? VilleArrivee         { get; set; }
+    public double  DistanceKm           { get; set; }
+    public double  CoutEstimeAI         { get; set; }
+    public string? AiVehiculeTypeUsed   { get; set; }
 }
