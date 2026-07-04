@@ -288,6 +288,18 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── AI Trip Price Predictor (FastAPI + XGBoost) ─────────────────
+  ai-predictor:
+    build:
+      context: ./CalculateurPrixTrajetIA
+      dockerfile: Dockerfile
+    container_name: xpark-ai-predictor
+    ports:
+      - "8000:8000"
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
   # ── Backoffice Admin Frontend ───────────────────────────────────
   backoffice:
     build:
@@ -295,6 +307,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=/api
+        - VITE_AI_API_URL=http://localhost:8000
     container_name: xpark-backoffice
     ports:
       - "3000:80"

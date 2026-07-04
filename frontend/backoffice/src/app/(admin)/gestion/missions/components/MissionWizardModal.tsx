@@ -11,7 +11,7 @@ import missionService from '@/services/missionService'
 import employeeService from '@/services/employeeService'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
-import { CITY_GROUPS, DISTANCE_LOOKUP } from '@/data/distanceMatrix'
+import { CITY_GROUPS } from '@/data/distanceMatrix'
 
 const AI_API = import.meta.env.VITE_AI_API_URL ?? 'http://localhost:8000'
 
@@ -132,25 +132,31 @@ interface PredictionData {
 // ── STEP 1 — Route & Mission Details ─────────────────────────────────────────
 const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
     const [distError, setDistError] = useState('')
+    const [distLoading, setDistLoading] = useState(false)
 
-    // Local instant distance lookup — no API call needed
     useEffect(() => {
         if (!form.villeDepart || !form.villeArrivee) { setDistError(''); return }
-        if (form.villeDepart === form.villeArrivee) { setDistError("Départ et arrivée doivent être différents."); return }
-        const info = DISTANCE_LOOKUP[`${form.villeDepart}|${form.villeArrivee}`]
-        if (info) {
-            setDistError('')
-            setForm((f: WizardForm) => ({
-                ...f,
-                distanceEstimee: info.km,
-                travelHours: parseFloat((info.km / 80).toFixed(2)),
-                departureGovernorate: info.depGov,
-                arrivalGovernorate: info.arrGov,
-            }))
-        } else {
-            setDistError('Distance non disponible pour cette paire de villes.')
-            setForm((f: WizardForm) => ({ ...f, distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))
+        if (form.villeDepart === form.villeArrivee) {
+            setDistError("Départ et arrivée doivent être différents."); return
         }
+        setDistLoading(true)
+        setDistError('')
+        fetch(`${AI_API}/distance?departure=${encodeURIComponent(form.villeDepart)}&arrival=${encodeURIComponent(form.villeArrivee)}`)
+            .then(r => { if (!r.ok) throw new Error('not found'); return r.json() })
+            .then((d: any) => {
+                setForm((f: WizardForm) => ({
+                    ...f,
+                    distanceEstimee: d.distance_km,
+                    travelHours: d.travel_hours,
+                    departureGovernorate: d.departure_governorate,
+                    arrivalGovernorate: d.arrival_governorate,
+                }))
+            })
+            .catch(() => {
+                setDistError('Distance non disponible pour cette paire de villes.')
+                setForm((f: WizardForm) => ({ ...f, distanceEstimee: 0, travelHours: 0, departureGovernorate: '', arrivalGovernorate: '' }))
+            })
+            .finally(() => setDistLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.villeDepart, form.villeArrivee])
 
@@ -158,6 +164,7 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
         if (!form.villeDepart) { Swal.fire('Erreur', 'La ville de départ est obligatoire.', 'error'); return }
         if (!form.villeArrivee) { Swal.fire('Erreur', 'La ville d\'arrivée est obligatoire.', 'error'); return }
         if (form.villeDepart === form.villeArrivee) { Swal.fire('Erreur', 'Départ et arrivée doivent être différents.', 'error'); return }
+        if (distLoading) { Swal.fire('Patientez', 'Calcul de la distance en cours…', 'info'); return }
         if (form.distanceEstimee <= 0) { Swal.fire('Erreur', 'Impossible de calculer la distance. Vérifiez les villes.', 'warning'); return }
         if (!form.dateDepart) { Swal.fire('Erreur', 'La date de départ est obligatoire.', 'error'); return }
         if (!form.objetMission?.trim()) { Swal.fire('Erreur', "L'objet de la mission est obligatoire.", 'error'); return }
@@ -225,7 +232,13 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
                     </Col>
                 </Row>
 
-                {form.distanceEstimee > 0 && (
+                {distLoading && (
+                    <div className="mt-3 d-flex align-items-center gap-2 text-muted small">
+                        <Spinner animation="border" size="sm" /> Calcul de la distance…
+                    </div>
+                )}
+
+                {!distLoading && form.distanceEstimee > 0 && (
                     <div className="mt-3 d-flex flex-wrap gap-3">
                         <div className="d-flex align-items-center gap-2 bg-white border rounded-2 px-3 py-2">
                             <IconifyIcon icon="ri:road-map-line" className="text-primary fs-5" />
