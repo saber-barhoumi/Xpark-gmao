@@ -2,8 +2,8 @@
 // _theme-default.scss
 //
 
-// Google Font Family
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+// System font stack — no CDN required
+
 
 :root {
     --#{$prefix}logo-lg-height: 22px;
