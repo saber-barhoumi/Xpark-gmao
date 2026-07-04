@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { Button, Col, Form, Modal, Row, Spinner, Table, Badge, Card } from 'react-bootstrap'
 import StepWizard from 'react-step-wizard'
 import Select from 'react-select'
@@ -15,11 +15,49 @@ import type { ExtractedOCRData } from '@/services/groqOCRService'
 
 
 const AI_VEHICLE_TYPES = [
-    { value: 'LIGHT_VEHICLE', label: 'Véhicule Léger — Berline, SUV, Moto',   fuel: 'Essence', cons: 8.0,  charge: 800   },
-    { value: 'VAN',           label: 'Fourgonnette — Vito, Trafic, HiAce',     fuel: 'Diesel',  cons: 11.5, charge: 2000  },
-    { value: 'FOURGON',       label: 'Grand Fourgon — Sprinter, Master, Daily',fuel: 'Diesel',  cons: 14.5, charge: 3500  },
-    { value: 'HEAVY_TRUCK',   label: 'Camion Lourd — Actros, MAN, Volvo FH',  fuel: 'Diesel',  cons: 26.0, charge: 12000 },
+    { value: 'LIGHT_VEHICLE', label: 'Véhicule Léger — Berline, SUV, Moto',   fuel: 'Petrol', cons: 8.0,  charge: 800   },
+    { value: 'VAN',           label: 'Fourgonnette — Vito, Trafic, HiAce',    fuel: 'Diesel', cons: 10.0, charge: 1000  },
+    { value: 'FOURGON',       label: 'Grand Fourgon — Sprinter, Master, Daily',fuel: 'Diesel', cons: 13.0, charge: 2500  },
+    { value: 'HEAVY_TRUCK',   label: 'Camion Lourd — Actros, MAN, Volvo FH', fuel: 'Diesel', cons: 32.0, charge: 10000 },
 ]
+
+const CARBURANT_TO_AI_FUEL: Record<string, string> = {
+    ESSENCE: 'Petrol', DIESEL: 'Diesel', ELECTRIQUE: 'Electric', HYBRIDE: 'Hybrid', GPL: 'GPL',
+}
+
+const AI_DEFAULTS: Record<string, { consommationAI: number; chargeUtileKgDefault: number }> = {
+    LIGHT_VEHICLE: { consommationAI: 8,  chargeUtileKgDefault: 800   },
+    VAN:           { consommationAI: 10, chargeUtileKgDefault: 1000  },
+    FOURGON:       { consommationAI: 13, chargeUtileKgDefault: 2500  },
+    HEAVY_TRUCK:   { consommationAI: 32, chargeUtileKgDefault: 10000 },
+}
+
+function computeAIVehicleType(typeVehicule: string, chargeUtileKg: number, modele: string): { type: string; source: string } {
+    const lower = modele.toLowerCase()
+    const fourgonKw = ['sprinter', 'master', 'daily', 'transit l', 'jumper', 'boxer', 'crafter', 'ducato']
+    const vanKw     = ['partner', 'kangoo', 'berlingo', 'express', 'doblo', 'combo', 'vivaro', 'trafic', 'caddy']
+    switch (typeVehicule) {
+        case 'BERLINE': case 'SUV':
+            return { type: 'LIGHT_VEHICLE', source: `typeVehicule (${typeVehicule})` }
+        case 'MOTO':
+            return { type: 'LIGHT_VEHICLE', source: 'typeVehicule (Moto)' }
+        case 'MINIBUS':
+            return { type: 'HEAVY_TRUCK', source: 'typeVehicule (Minibus)' }
+        case 'UTILITAIRE': {
+            const base = chargeUtileKg > 1500 ? 'FOURGON' : 'VAN'
+            const src  = `Utilitaire + charge ${chargeUtileKg <= 1500 ? '≤' : '>'} 1 500 kg`
+            if (fourgonKw.some(kw => lower.includes(kw))) return { type: 'FOURGON', source: `${src} · modèle "${modele}"` }
+            if (vanKw.some(kw => lower.includes(kw)))     return { type: 'VAN',     source: `${src} · modèle "${modele}"` }
+            return { type: base, source: src }
+        }
+        case 'CAMION':
+            return chargeUtileKg > 7500
+                ? { type: 'HEAVY_TRUCK', source: 'typeVehicule (Camion) + charge > 7 500 kg' }
+                : { type: 'FOURGON',     source: 'typeVehicule (Camion) + charge ≤ 7 500 kg' }
+        default:
+            return { type: 'LIGHT_VEHICLE', source: 'défaut' }
+    }
+}
 
 const TYPES_VEHICULE = [
     { value: 'BERLINE', label: 'BERLINE' },
@@ -89,11 +127,41 @@ const ocrInputStyle = (isOcr: boolean) =>
         ? { borderColor: 'rgba(25,135,84,.5)', background: 'rgba(25,135,84,.04)' }
         : {}
 
-const Step1 = ({ nextStep, goToStep, isActive, form, setForm, isEdit, ocrFields, setOcrFields, ocrLoading, setOcrLoading, fillFromOCR }: any) => {
-    const handleNext = () => {
+const Step1 = ({ nextStep, goToStep, isActive, form, setForm, isEdit, ocrFields, setOcrFields, ocrLoading, setOcrLoading, fillFromOCR,
+    aiTypeOverridden, setAiTypeOverridden, aiTypeSuggested, setAiTypeSuggested, aiTypeSource, setAiTypeSource, consAiTouched, setConsAiTouched }: any) => {
+
+    // Auto-compute AI vehicle type whenever key fields change
+    useEffect(() => {
+        if (!form.typeVehicule) return
+        const { type, source } = computeAIVehicleType(form.typeVehicule, form.chargeUtileKg ?? 0, form.modele ?? '')
+        setAiTypeSuggested(type)
+        setAiTypeSource(source)
+        if (!aiTypeOverridden) {
+            setForm((f: any) => ({ ...f, aiVehiculeType: type }))
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.typeVehicule, form.chargeUtileKg, form.modele, aiTypeOverridden])
+
+    // Auto-fill consommationAI when aiVehiculeType changes (unless user touched it)
+    useEffect(() => {
+        if (!form.aiVehiculeType || consAiTouched) return
+        const def = AI_DEFAULTS[form.aiVehiculeType]
+        if (def) setForm((f: any) => ({ ...f, consommationAI: def.consommationAI }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.aiVehiculeType, consAiTouched])
+
+    const handleNext = async () => {
         if (!form.immatriculation || !form.marque || !form.modele) {
             Swal.fire('Erreur', 'L\'immatriculation, la marque et le modèle sont obligatoires.', 'error')
             return
+        }
+        if (aiTypeOverridden && form.aiVehiculeType && aiTypeSuggested && form.aiVehiculeType !== aiTypeSuggested) {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Type IA modifié manuellement',
+                html: `Suggestion automatique : <strong>${aiTypeSuggested}</strong><br/>Profil sélectionné : <strong>${form.aiVehiculeType}</strong><br/><br/>Cela affectera les prédictions de coût pour ce véhicule.`,
+                confirmButtonText: 'Continuer quand même',
+            })
         }
         nextStep()
     }
@@ -242,10 +310,13 @@ const Step1 = ({ nextStep, goToStep, isActive, form, setForm, isEdit, ocrFields,
                 Paramètres Modèle IA — Calcul de Prix Trajet
                 <Badge bg="info" className="fw-normal" style={{ fontSize: 10 }}>optionnel mais recommandé</Badge>
             </h6>
+
             <Row>
                 <Col md={12}>
-                    <Form.Group className="mb-3">
-                        <Form.Label className="small fw-bold">Type IA <span className="text-muted fw-normal">(classification pour la prédiction de coût)</span></Form.Label>
+                    <Form.Group className="mb-1">
+                        <Form.Label className="small fw-bold">
+                            Type IA <span className="text-muted fw-normal">(classification pour la prédiction de coût)</span>
+                        </Form.Label>
                         <Select
                             isClearable
                             options={AI_VEHICLE_TYPES.map(t => ({ value: t.value, label: t.label }))}
@@ -254,59 +325,84 @@ const Step1 = ({ nextStep, goToStep, isActive, form, setForm, isEdit, ocrFields,
                                 : null
                             }
                             onChange={(nv: any) => {
-                                const preset = AI_VEHICLE_TYPES.find(t => t.value === nv?.value)
-                                setForm({
-                                    ...form,
-                                    aiVehiculeType: nv?.value ?? '',
-                                    chargeUtileKg:  preset?.charge ?? 0,
-                                    consommationAI: preset?.cons   ?? 0,
-                                })
+                                setAiTypeOverridden(true)
+                                setForm((f: any) => ({ ...f, aiVehiculeType: nv?.value ?? '' }))
                             }}
                             placeholder="Sélectionner le type IA…"
                         />
                     </Form.Group>
+                    <div className="d-flex align-items-center gap-2 mt-1 mb-1">
+                        {!aiTypeOverridden ? (
+                            <Badge bg="success" className="fw-normal">Automatique ✓</Badge>
+                        ) : (
+                            <>
+                                <Badge bg="warning" text="dark" className="fw-normal">⚠ Modifié manuellement</Badge>
+                                <Button variant="link" size="sm" className="p-0 text-decoration-underline"
+                                    onClick={() => { setAiTypeOverridden(false); setForm((f: any) => ({ ...f, aiVehiculeType: aiTypeSuggested })) }}>
+                                    Réinitialiser
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                    {aiTypeSource && (
+                        <p className="text-muted small mb-3">Source : {aiTypeSource}</p>
+                    )}
                 </Col>
             </Row>
-            {form.aiVehiculeType && (() => {
-                const preset = AI_VEHICLE_TYPES.find(t => t.value === form.aiVehiculeType)
-                return (
-                    <>
-                        <Row>
-                            <Col md={4}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Carburant IA</Form.Label>
-                                    <div className="form-control bg-light text-muted">{preset?.fuel}</div>
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Consommation IA (L/100km)</Form.Label>
-                                    <Form.Control type="number" step="0.1" min={1}
-                                        value={form.consommationAI ?? preset?.cons}
-                                        onChange={e => setForm({ ...form, consommationAI: parseFloat(e.target.value) })}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Charge utile max (kg)</Form.Label>
-                                    <Form.Control type="number" min={0}
-                                        value={form.chargeUtileKg ?? preset?.charge}
-                                        onChange={e => setForm({ ...form, chargeUtileKg: parseInt(e.target.value) })}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <div className="alert alert-info py-2 small mb-3">
-                            <IconifyIcon icon="ri:information-line" className="me-1" />
-                            Ce véhicule sera prédit avec le profil <strong>{form.aiVehiculeType}</strong> :
-                            carburant <strong>{preset?.fuel}</strong>,
-                            consommation <strong>{form.consommationAI ?? preset?.cons} L/100km</strong>,
-                            charge max <strong>{(form.chargeUtileKg ?? preset?.charge)?.toLocaleString('fr-FR')} kg</strong>.
+
+            {form.aiVehiculeType && (
+                <Card className="border-info mb-3 shadow-none">
+                    <Card.Body className="py-2 px-3">
+                        <div className="small fw-semibold text-info mb-2 d-flex align-items-center gap-1">
+                            <IconifyIcon icon="ri:robot-line" /> Profil IA résolu
                         </div>
-                    </>
-                )
-            })()}
+                        <div className="row g-1 small">
+                            <div className="col-md-3 text-muted">Carburant IA</div>
+                            <div className="col-md-9">
+                                <Badge bg="light" text="dark" className="border fw-normal">
+                                    {CARBURANT_TO_AI_FUEL[form.typeCarburant] ?? '—'}
+                                </Badge>
+                                <span className="text-success ms-2 small">← synchronisé auto</span>
+                            </div>
+                            <div className="col-md-3 text-muted align-self-center">Consommation</div>
+                            <div className="col-md-9">
+                                <div className="d-flex align-items-center gap-2">
+                                    <Form.Control type="number" size="sm" step="0.5" min={1} style={{ width: 80 }}
+                                        value={form.consommationAI ?? ''}
+                                        onChange={e => { setConsAiTouched(true); setForm((f: any) => ({ ...f, consommationAI: parseFloat(e.target.value) })) }}
+                                    />
+                                    <span className="text-muted">L/100km</span>
+                                    {consAiTouched && (
+                                        <Button variant="link" size="sm" className="p-0" style={{ fontSize: 11 }}
+                                            onClick={() => { setConsAiTouched(false); setForm((f: any) => ({ ...f, consommationAI: AI_DEFAULTS[form.aiVehiculeType]?.consommationAI ?? 0 })) }}>
+                                            Valeur par défaut
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="col-md-3 text-muted align-self-center">Charge utile</div>
+                            <div className="col-md-9">
+                                <div className="d-flex align-items-center gap-2">
+                                    <Form.Control type="number" size="sm" min={0} style={{ width: 100 }}
+                                        value={form.chargeUtileKg ?? ''}
+                                        onChange={e => setForm((f: any) => ({ ...f, chargeUtileKg: parseInt(e.target.value) || 0 }))}
+                                    />
+                                    <span className="text-muted">kg</span>
+                                </div>
+                            </div>
+                            {aiTypeOverridden && aiTypeSuggested && (
+                                <>
+                                    <div className="col-12"><hr className="my-1" /></div>
+                                    <div className="col-md-3 text-muted">Suggestion auto</div>
+                                    <div className="col-md-9 fst-italic">{aiTypeSuggested}</div>
+                                    <div className="col-md-3 text-muted">Raison</div>
+                                    <div className="col-md-9 text-muted fst-italic">{aiTypeSource}</div>
+                                </>
+                            )}
+                        </div>
+                    </Card.Body>
+                </Card>
+            )}
 
             <div className="d-flex justify-content-end mt-2">
                 <Button variant="primary" onClick={handleNext}>
@@ -651,6 +747,12 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
     const [ocrFields, setOcrFields] = useState<Set<string>>(new Set())
     const [ocrLoading, setOcrLoading] = useState(false)
 
+    // ── AI classification override tracking ────────────────
+    const [aiTypeOverridden, setAiTypeOverridden] = useState(false)
+    const [aiTypeSuggested, setAiTypeSuggested]   = useState('')
+    const [aiTypeSource, setAiTypeSource]         = useState('')
+    const [consAiTouched, setConsAiTouched]       = useState(false)
+
     const emptyForm = () => ({
         immatriculation: '', marque: '', modele: '', numeroChassis: '',
         anneeConstruction: new Date().getFullYear(), typeCarburant: 'DIESEL',
@@ -717,6 +819,12 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
             setIdVehiculeCreated(vehiculeToEdit?.idVehicule || null)
             setOcrFields(new Set())
             setOcrLoading(false)
+            // When editing a vehicle that already has aiVehiculeType saved, treat it as a
+            // manually-set override so the auto-compute doesn't silently overwrite it.
+            setAiTypeOverridden(!!vehiculeToEdit?.aiVehiculeType)
+            setAiTypeSuggested('')
+            setAiTypeSource('')
+            setConsAiTouched(!!vehiculeToEdit?.consommationAI)
             if (wizardRef.current) {
                 try { wizardRef.current.goToStep(1) } catch { }
             }
@@ -817,7 +925,13 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
                     instance={(wizard: any) => { wizardRef.current = wizard }}
                     onStepChange={(stats) => setActiveStep(stats.activeStep)}
                 >
-                    <Step1 form={form} setForm={setForm} isEdit={!!vehiculeToEdit} ocrFields={ocrFields} setOcrFields={setOcrFields} ocrLoading={ocrLoading} setOcrLoading={setOcrLoading} fillFromOCR={fillFromOCR} />
+                    <Step1 form={form} setForm={setForm} isEdit={!!vehiculeToEdit}
+                        ocrFields={ocrFields} setOcrFields={setOcrFields} ocrLoading={ocrLoading} setOcrLoading={setOcrLoading} fillFromOCR={fillFromOCR}
+                        aiTypeOverridden={aiTypeOverridden} setAiTypeOverridden={setAiTypeOverridden}
+                        aiTypeSuggested={aiTypeSuggested} setAiTypeSuggested={setAiTypeSuggested}
+                        aiTypeSource={aiTypeSource} setAiTypeSource={setAiTypeSource}
+                        consAiTouched={consAiTouched} setConsAiTouched={setConsAiTouched}
+                    />
                     <Step2 form={form} setForm={setForm} saveVehicule={saveVehiculeMethod} isSavingVehicule={isSaving} />
                     <Step3 idVehicule={idVehiculeCreated} onFinished={handleHide} />
                 </StepWizard>
