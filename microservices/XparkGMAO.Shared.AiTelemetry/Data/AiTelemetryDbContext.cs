@@ -19,7 +19,7 @@ public class AiTelemetryDbContext(DbContextOptions<AiTelemetryDbContext> options
             e.Property(x => x.Destination).HasMaxLength(255).IsRequired();
             e.Property(x => x.Season).HasMaxLength(10).IsRequired();
             e.Property(x => x.VehicleType).HasMaxLength(30).IsRequired();
-            e.Property(x => x.DataSourceVersion).HasMaxLength(10).HasDefaultValue("v1");
+            e.Property(x => x.DataSourceVersion).HasMaxLength(30).HasDefaultValue("v1");
 
             // Precision for double columns (PostgreSQL defaults to float8 — explicit for clarity)
             e.Property(x => x.DistanceKm).HasColumnType("float8");

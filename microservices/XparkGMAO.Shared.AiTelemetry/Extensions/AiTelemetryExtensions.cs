@@ -55,6 +55,31 @@ public static class AiTelemetryExtensions
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AiTelemetryDbContext>();
-        db.Database.EnsureCreated();
+        db.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS ""AiTripTrainingData"" (
+                ""Id""                      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                ""MissionId""               BIGINT NOT NULL,
+                ""Destination""             VARCHAR(255) NOT NULL DEFAULT '',
+                ""DateDepart""              TIMESTAMP WITH TIME ZONE NOT NULL,
+                ""DistanceKm""              FLOAT8 NOT NULL DEFAULT 0,
+                ""DayOfWeekIso""            INT NOT NULL DEFAULT 0,
+                ""HourOfDay""               INT NOT NULL DEFAULT 0,
+                ""Season""                  VARCHAR(10) NOT NULL DEFAULT '',
+                ""HasAutoroute""            BOOLEAN NOT NULL DEFAULT FALSE,
+                ""EstimatedTollCostDt""     FLOAT8 NOT NULL DEFAULT 0,
+                ""VehiculeId""              BIGINT NOT NULL DEFAULT 0,
+                ""VehicleType""             VARCHAR(30) NOT NULL DEFAULT '',
+                ""FuelConsumptionPer100Km"" FLOAT8 NOT NULL DEFAULT 0,
+                ""EmployeeId""              BIGINT NOT NULL DEFAULT 0,
+                ""DriverTripAllowanceDt""   FLOAT8 NOT NULL DEFAULT 0,
+                ""ActualCoutTotal""         FLOAT8 NOT NULL DEFAULT 0,
+                ""LoggedAt""                TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                ""DataSourceVersion""       VARCHAR(30) NOT NULL DEFAULT 'v1'
+            );
+            CREATE INDEX IF NOT EXISTS ""IX_AiTripTrainingData_MissionId"" ON ""AiTripTrainingData"" (""MissionId"");
+            CREATE INDEX IF NOT EXISTS ""IX_AiTripTrainingData_LoggedAt""  ON ""AiTripTrainingData"" (""LoggedAt"");
+            CREATE INDEX IF NOT EXISTS ""IX_AiTripTrainingData_Season""    ON ""AiTripTrainingData"" (""Season"");
+            ALTER TABLE ""AiTripTrainingData"" ALTER COLUMN ""DataSourceVersion"" TYPE VARCHAR(30);
+        ");
     }
 }
