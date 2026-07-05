@@ -297,6 +297,7 @@ def predict(req: PredictRequest):
         "toll_cost_tnd": round(toll_cost, 2),
         "driver_allowance_tnd": driver_allowance,
         "maintenance_cost_tnd": round(maintenance_cost, 2),
+        "cargo_surcharge_tnd": round(cargo_surcharge, 2),
         "vehicle_type_used": vehicle_type,
         "fuel_type_used": fuel_type,
         "departure_governorate": info["DepartureGovernorate"],

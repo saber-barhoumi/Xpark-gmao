@@ -127,6 +127,7 @@ interface PredictionData {
     toll_cost_tnd: number
     driver_allowance_tnd: number
     maintenance_cost_tnd: number
+    cargo_surcharge_tnd: number
     vehicle_type_used: string
     fuel_type_used: string
 }
@@ -667,6 +668,12 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
                                 <tr>
                                     <td className="text-muted ps-0">Entretien / Amortissement</td>
                                     <td className="text-end fw-semibold">{prediction.maintenance_cost_tnd.toFixed(2)} DT</td>
+                                </tr>
+                            )}
+                            {(prediction.cargo_surcharge_tnd ?? 0) > 0 && (
+                                <tr>
+                                    <td className="text-muted ps-0">Frais de manutention cargo</td>
+                                    <td className="text-end fw-semibold">{prediction.cargo_surcharge_tnd.toFixed(2)} DT</td>
                                 </tr>
                             )}
                         </tbody>
