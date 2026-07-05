@@ -21,7 +21,20 @@ logger = logging.getLogger("ai-predictor")
 BASE = Path(__file__).parent
 
 pipeline = joblib.load(BASE / "model_xgboost.pkl")
-logger.info("XGBoost pipeline loaded successfully")
+logger.info("XGBoost pipeline loaded from pickle")
+
+# Re-save the booster in the current XGBoost native format (UBJ) to eliminate
+# the serialization mismatch warning. This makes predictions consistent
+# regardless of which XGBoost version originally saved the .pkl.
+_ubj_path = BASE / "model_xgboost_v2.ubj"
+if not _ubj_path.exists():
+    _raw_booster = pipeline.named_steps["xgb"].get_booster()
+    _raw_booster.save_model(str(_ubj_path))
+    logger.info("Booster re-saved to native UBJ format: %s", _ubj_path.name)
+
+_native_booster = xgb.Booster()
+_native_booster.load_model(str(_ubj_path))
+logger.info("Native booster loaded from UBJ — predictions will be consistent")
 
 with open(BASE / "distance_matrix.json", encoding="utf-8") as f:
     _dm = json.load(f)
@@ -66,8 +79,13 @@ DEFAULT_FUEL_CONSUMPTION: dict[str, float] = {
     "LIGHT_VEHICLE": 7.5,
     "VAN":           11.0,
     "FOURGON":       13.0,
-    "HEAVY_TRUCK":   25.0,
+    "HEAVY_TRUCK":   32.0,
 }
+
+# Per-km autoroute toll rate (DT/km) — matches training data distribution.
+# Flat rate would be out-of-distribution for short trips (e.g. 3.1 km × 0.055 = 0.17 DT,
+# not 19.1 DT flat), causing model to return garbage predictions.
+TOLL_RATE_PER_KM = 0.055
 
 # Vehicle maintenance + amortization cost per km (TND) — standard Tunisian fleet rates
 MAINTENANCE_PER_KM: dict[str, float] = {
@@ -191,13 +209,15 @@ def predict(req: PredictRequest):
     travel_hours = dist / speed
     fuel_cons = req.fuel_consumption_per_100km or DEFAULT_FUEL_CONSUMPTION.get(vehicle_type, 7.5)
     fuel_price = FUEL_PRICE.get(fuel_type, 1.85)
-    toll_cost = 19.1 if req.has_autoroute else 0.0
     driver_allowance = 40.0
     driver_hourly_rate = 8.5
 
+    toll_cost = round(dist * TOLL_RATE_PER_KM, 2) if req.has_autoroute else 0.0
     fuel_cost = dist * fuel_cons / 100.0 * fuel_price
     labor_cost = travel_hours * driver_hourly_rate
     maintenance_cost = dist * MAINTENANCE_PER_KM.get(vehicle_type, 0.18)
+    # Cargo surcharge: flat loading/unloading fee (6 DT/ton) + small per-km wear (0.003 DT/ton-km)
+    cargo_surcharge = (req.cargo_weight / 1000.0) * (6.0 + dist * 0.003)
     is_long_trip = 1 if dist > 200 else 0
     is_high_traffic = 1 if req.traffic_condition == "Heavy" else 0
     day_iso = dt.isoweekday()
@@ -207,7 +227,7 @@ def predict(req: PredictRequest):
     season_ord = SEASON_ORD[dt.month]
     cargo_per_km = req.cargo_weight / dist if dist > 0 else 0.0
 
-    formula_cost = round(fuel_cost + labor_cost + toll_cost + driver_allowance + maintenance_cost, 2)
+    formula_cost = round(fuel_cost + labor_cost + toll_cost + driver_allowance + maintenance_cost + cargo_surcharge, 2)
 
     row = {
         "DistanceKm": [dist],
@@ -241,13 +261,13 @@ def predict(req: PredictRequest):
     df = pd.DataFrame(row)
 
     try:
-        # Bypass sklearn Pipeline.predict() to avoid __sklearn_tags__ compat issue
-        # between sklearn 1.6 and older XGBoost serialization format.
+        # Use the native UBJ booster (re-saved at startup in current XGBoost format).
+        # This avoids the serialization mismatch that caused wrong predictions
+        # when loading the .pkl with a newer XGBoost version.
         X = pipeline.named_steps["preprocessor"].transform(df)
-        booster = pipeline.named_steps["xgb"].get_booster()
-        ai_predicted = float(booster.predict(xgb.DMatrix(X))[0])
-        logger.info("XGBoost prediction: %.2f DT | formula: %.2f DT (fuel=%.2f labor=%.2f maint=%.2f toll=%.2f allow=%.2f) | dist=%.1f km vehicle=%s fuel=%s",
-                    ai_predicted, formula_cost, fuel_cost, labor_cost, maintenance_cost, toll_cost, driver_allowance, dist, vehicle_type, fuel_type)
+        ai_predicted = float(_native_booster.predict(xgb.DMatrix(X))[0])
+        logger.info("XGBoost prediction: %.2f DT | formula: %.2f DT (fuel=%.2f labor=%.2f maint=%.2f toll=%.2f allow=%.2f cargo=%.2f) | dist=%.1f km vehicle=%s fuel=%s",
+                    ai_predicted, formula_cost, fuel_cost, labor_cost, maintenance_cost, toll_cost, driver_allowance, cargo_surcharge, dist, vehicle_type, fuel_type)
 
         # Fallback to formula if model returns implausible value.
         # Minimum floor = fuel_cost + driver_allowance (bare physical minimum).
