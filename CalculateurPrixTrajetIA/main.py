@@ -3,15 +3,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import joblib
-import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 BASE = Path(__file__).parent
-
-pipeline = joblib.load(BASE / "model_xgboost.pkl")
 
 with open(BASE / "distance_matrix.json", encoding="utf-8") as f:
     _dm = json.load(f)
@@ -65,13 +61,6 @@ DEFAULT_FUEL_CONSUMPTION: dict[str, float] = {
 
 FUEL_PRICE: dict[str, float] = {"Diesel": 1.85, "Petrol": 1.99}
 
-SEASON_ORD: dict[int, int] = {
-    1: 1, 2: 1, 12: 1,
-    3: 2, 4: 2, 5: 2,
-    6: 3, 7: 3, 8: 3,
-    9: 4, 10: 4, 11: 4,
-}
-
 app = FastAPI(title="XparkGMAO — AI Trip Price Predictor", version="2.0")
 
 app.add_middleware(
@@ -118,7 +107,7 @@ def _resolve_fuel_type(req: PredictRequest) -> str:
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "cities": len(CITIES), "model": "XGBoost v2"}
+    return {"status": "healthy", "cities": len(CITIES), "model": "deterministic-v1"}
 
 
 @app.get("/cities")
@@ -177,51 +166,10 @@ def predict(req: PredictRequest):
 
     fuel_cost = dist * fuel_cons / 100.0 * fuel_price
     labor_cost = travel_hours * driver_hourly_rate
-    is_long_trip = 1 if dist > 200 else 0
-    is_high_traffic = 1 if req.traffic_condition == "Heavy" else 0
-    day_iso = dt.isoweekday()
-    is_weekend = 1 if day_iso in (6, 7) else 0
-    hour = dt.hour
-    is_peak_hour = 1 if hour in (7, 8, 9, 16, 17, 18) else 0
-    season_ord = SEASON_ORD[dt.month]
-    cargo_per_km = req.cargo_weight / dist if dist > 0 else 0.0
-
-    row = {
-        "DistanceKm": [dist],
-        "TravelDurationHours": [travel_hours],
-        "Speed_kmh": [speed],
-        "CargoWeight": [req.cargo_weight],
-        "PassengerCount": [req.passenger_count],
-        "LuggageWeight": [req.luggage_weight],
-        "FuelConsumptionPer100Km": [fuel_cons],
-        "FuelPricePerLiter": [fuel_price],
-        "HasAutoroute": [int(req.has_autoroute)],
-        "EstimatedTollCostDt": [toll_cost],
-        "DriverTripAllowanceDt": [driver_allowance],
-        "DriverHourlyRate": [driver_hourly_rate],
-        "FuelCostEstimate": [fuel_cost],
-        "LaborCostEstimate": [labor_cost],
-        "IsLongTrip": [is_long_trip],
-        "IsHighTraffic": [is_high_traffic],
-        "IsWeekend": [is_weekend],
-        "IsPeakHour": [is_peak_hour],
-        "SeasonOrd": [season_ord],
-        "CargoPerKm": [cargo_per_km],
-        "DayOfWeekIso": [day_iso],
-        "HourOfDay": [hour],
-        "VehicleType": [vehicle_type],
-        "FuelType": [fuel_type],
-        "TrafficCondition": [req.traffic_condition],
-        "WeatherCondition": [req.weather_condition],
-        "DepartureGovernorate": [info["DepartureGovernorate"]],
-        "ArrivalGovernorate": [info["ArrivalGovernorate"]],
-    }
-
-    df = pd.DataFrame(row)
-    predicted = float(pipeline.predict(df)[0])
+    predicted = round(fuel_cost + labor_cost + toll_cost + driver_allowance, 2)
 
     return {
-        "predicted_cost_tnd": round(predicted, 2),
+        "predicted_cost_tnd": predicted,
         "distance_km": dist,
         "travel_hours": round(travel_hours, 2),
         "fuel_cost_tnd": round(fuel_cost, 2),
