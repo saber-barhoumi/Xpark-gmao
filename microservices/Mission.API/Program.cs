@@ -74,6 +74,17 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// ── Ensure new Missions columns exist (idempotent) ───────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<MissionDbContext>();
+    db.Database.ExecuteSqlRaw(@"
+        ALTER TABLE ""Missions"" ADD COLUMN IF NOT EXISTS ""VehiculeImmatriculation"" VARCHAR(50);
+        ALTER TABLE ""Missions"" ADD COLUMN IF NOT EXISTS ""ChauffeurNom""            VARCHAR(150);
+    ");
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── AI Telemetry startup sequence ────────────────────────────────────────────
 // Step 1: Create AiTripTrainingData table if it does not exist yet (always runs)
 app.Services.EnsureAiTelemetryTable();

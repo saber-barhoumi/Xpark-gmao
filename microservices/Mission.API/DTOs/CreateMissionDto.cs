@@ -13,9 +13,11 @@ public class CreateMissionDto
     public string?   NumeroBonCarburant    { get; set; }
     public bool      VerificationDocuments { get; set; }
     public bool      CarteAutorouteRemise  { get; set; }
-    public string?   VilleDepart          { get; set; }
-    public string?   VilleArrivee         { get; set; }
-    public double    DistanceEstimee      { get; set; }
-    public double    CoutEstime           { get; set; }
-    public string?   AiVehiculeTypeUsed   { get; set; }
+    public string?   VehiculeImmatriculation { get; set; }
+    public string?   ChauffeurNom            { get; set; }
+    public string?   VilleDepart             { get; set; }
+    public string?   VilleArrivee            { get; set; }
+    public double    DistanceEstimee         { get; set; }
+    public double    CoutEstime              { get; set; }
+    public string?   AiVehiculeTypeUsed      { get; set; }
 }

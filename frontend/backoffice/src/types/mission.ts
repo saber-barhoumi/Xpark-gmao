@@ -33,7 +33,9 @@ export interface CreateMissionDto {
     kilometrageDepart: number;
     objetMission: string;
     vehiculeId: number;
+    vehiculeImmatriculation?: string;
     employeeId: number;
+    chauffeurNom?: string;
     bonCarburantAccorde: boolean;
     numeroBonCarburant?: string;
     verificationDocuments: boolean;

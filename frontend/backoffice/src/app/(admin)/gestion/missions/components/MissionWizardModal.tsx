@@ -82,10 +82,12 @@ interface WizardForm {
     objetMission: string
     // Step 2 — Resources
     vehiculeId: number
+    vehiculeImmatriculation: string
     vehiculeGmaoType: string    // raw GMAO enum: BERLINE, CAMION, UTILITAIRE…
     vehiculeCarburant: string
     vehiculeConsommation: number
     employeeId: number
+    chauffeurNom: string
     kilometrageDepart: number
     // Step 2 — Trip params for AI
     cargoWeight: number
@@ -109,8 +111,8 @@ const emptyForm = (): WizardForm => ({
     villeDepart: '', villeArrivee: '', distanceEstimee: 0, travelHours: 0,
     departureGovernorate: '', arrivalGovernorate: '',
     dateDepart: nowLocal(), dateRetour: '', objetMission: '',
-    vehiculeId: 0, vehiculeGmaoType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
-    employeeId: 0, kilometrageDepart: 0,
+    vehiculeId: 0, vehiculeImmatriculation: '', vehiculeGmaoType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
+    employeeId: 0, chauffeurNom: '', kilometrageDepart: 0,
     cargoWeight: 0, passengerCount: 1, luggageWeight: 0,
     trafficCondition: 'Normal', weatherCondition: 'Sunny',
     bonCarburantAccorde: false, numeroBonCarburant: '', verificationDocuments: false, carteAutorouteRemise: false,
@@ -346,6 +348,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                 setVehicles(res.vehicles.map((v: any) => ({
                     value: v.idVehicule,
                     label: `${v.immatriculation} — ${v.marque} ${v.modele} [${v.typeVehicule ?? '?'}] (${v.kilometrage} km)`,
+                    immatriculation: v.immatriculation ?? '',
                     kilometrage: v.kilometrage ?? 0,
                     typeVehicule: v.typeVehicule ?? '',
                     typeCarburant: v.typeCarburant ?? '',
@@ -353,6 +356,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                 })))
                 setDrivers(res.drivers.map((d: any) => ({
                     value: d.idEmployee,
+                    nom: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''}`.trim(),
                     label: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''} (${d.numeroMatricule ?? ''})`.trim(),
                 })))
             }
@@ -367,6 +371,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
         setForm((f: WizardForm) => ({
             ...f,
             vehiculeId: opt?.value ?? 0,
+            vehiculeImmatriculation: opt?.immatriculation ?? '',
             kilometrageDepart: opt?.kilometrage ?? 0,
             vehiculeGmaoType: opt?.typeVehicule ?? '',
             vehiculeCarburant: opt?.typeCarburant ?? '',
@@ -439,7 +444,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                                 <Select
                                     options={drivers}
                                     value={drivers.find(d => d.value === form.employeeId) ?? null}
-                                    onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, employeeId: o?.value ?? 0 }))}
+                                    onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, employeeId: o?.value ?? 0, chauffeurNom: o?.nom ?? '' }))}
                                     placeholder="Choisir un chauffeur disponible…"
                                     noOptionsMessage={() => 'Aucun chauffeur disponible'}
                                 />
@@ -765,7 +770,9 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                 kilometrageDepart: form.kilometrageDepart,
                 objetMission: form.objetMission,
                 vehiculeId: form.vehiculeId,
+                vehiculeImmatriculation: form.vehiculeImmatriculation || undefined,
                 employeeId: form.employeeId,
+                chauffeurNom: form.chauffeurNom || undefined,
                 bonCarburantAccorde: form.bonCarburantAccorde,
                 numeroBonCarburant: form.numeroBonCarburant || undefined,
                 verificationDocuments: form.verificationDocuments,
