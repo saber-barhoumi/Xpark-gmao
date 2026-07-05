@@ -249,9 +249,13 @@ def predict(req: PredictRequest):
         logger.info("XGBoost prediction: %.2f DT | formula: %.2f DT (fuel=%.2f labor=%.2f maint=%.2f toll=%.2f allow=%.2f) | dist=%.1f km vehicle=%s fuel=%s",
                     ai_predicted, formula_cost, fuel_cost, labor_cost, maintenance_cost, toll_cost, driver_allowance, dist, vehicle_type, fuel_type)
 
-        # Fallback to formula if model returns an implausible value
-        if ai_predicted <= 0 or ai_predicted > 50_000:
-            logger.warning("XGBoost returned implausible value (%.2f) — using formula fallback", ai_predicted)
+        # Fallback to formula if model returns implausible value.
+        # Minimum floor = fuel_cost + driver_allowance (bare physical minimum).
+        min_plausible = fuel_cost + driver_allowance
+        if ai_predicted < min_plausible or ai_predicted > 50_000:
+            logger.warning(
+                "XGBoost returned implausible value (%.2f, min=%.2f) — using formula fallback",
+                ai_predicted, min_plausible)
             predicted = formula_cost
             model_used = "formula-fallback"
         else:
