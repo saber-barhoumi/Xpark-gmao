@@ -20,6 +20,16 @@ export const MENU_ITEMS: MenuItemType[] = [
     url: '/analytics',
   },
   {
+    key: 'iboa',
+    label: 'Assistant IBOA',
+    icon: 'ri:radar-line',
+    badge: {
+      text: 'IA',
+      variant: 'danger',
+    },
+    url: '/monitoring/iboa',
+  },
+  {
     key: 'chat',
     label: 'Chat',
     icon: 'tabler:message',

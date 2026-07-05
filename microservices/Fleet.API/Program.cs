@@ -25,6 +25,9 @@ builder.Services.AddDbContext<FleetDbContext>(opt =>
 builder.Services.AddAutoMapper(typeof(FleetProfile));
 
 // Services
+// IBOA — bus d'evenements metier (exchange xpark.ai, consomme par IntelligentBusinessOwnerAssistant)
+builder.Services.AddSingleton<Fleet.API.Messaging.IXparkEventBus, Fleet.API.Messaging.XparkEventBus>();
+
 builder.Services.AddScoped<IVehiculeService,  VehiculeService>();
 builder.Services.AddScoped<IAssuranceService, AssuranceService>();
 builder.Services.AddScoped<IDocumentService,  DocumentService>();

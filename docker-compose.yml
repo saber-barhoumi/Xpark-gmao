@@ -321,6 +321,41 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── Intelligent Business Owner Assistant (IBOA) ─────────────────
+  # Monitoring temps réel : consomme xpark.# sur l'exchange xpark.ai,
+  # score la criticité, alerte WhatsApp/Email, rapports PDF/Excel.
+  # Sans TWILIO_*/SMTP_* les envois sont simulés (journalisés).
+  iboa:
+    build:
+      context: ./IntelligentBusinessOwnerAssistant
+      dockerfile: Dockerfile
+    container_name: xpark-iboa
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=xpark
+      - RABBITMQ_PASS=xpark_secret
+      - DATABASE_URL=host=postgres port=5432 dbname=xpark_gmao user=xpark_user password=xpark_password_2026
+      # Envoi réel WhatsApp (optionnel) :
+      # - TWILIO_ACCOUNT_SID=ACxxxxxxxx
+      # - TWILIO_AUTH_TOKEN=xxxxxxxx
+      # - TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+      # Envoi réel Email (optionnel) :
+      # - SMTP_HOST=smtp.gmail.com
+      # - SMTP_PORT=587
+      # - SMTP_USER=xxxx@gmail.com
+      # - SMTP_PASS=app-password
+      # - SMTP_FROM=iboa@xpark.tn
+    ports:
+      - "5008:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
   # ── Backoffice Admin Frontend ───────────────────────────────────
   backoffice:
     build:
@@ -330,6 +365,7 @@ services:
         - VITE_API_URL=/api
         - VITE_AI_API_URL=http://localhost:8000
         - VITE_OPTIMIZER_API_URL=http://localhost:8001
+        - VITE_IBOA_API_URL=http://localhost:5008
     container_name: xpark-backoffice
     ports:
       - "3000:80"

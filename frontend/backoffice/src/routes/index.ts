@@ -43,6 +43,7 @@ const Projects         = lazy(() => import('@/app/(admin)/apps/Projects/page'))
 const Vehicules        = lazy(() => import('@/app/(admin)/gestion/vehicules/page'))
 const Missions         = lazy(() => import('@/app/(admin)/gestion/missions/page'))
 const Optimisateur     = lazy(() => import('@/app/(admin)/gestion/optimisateur/page'))
+const IboaAssistant    = lazy(() => import('@/app/(admin)/monitoring/iboa/page'))
 const Equipements      = lazy(() => import('@/app/(admin)/gestion/equipements/page'))
 const EquipementDetail = lazy(() => import('@/app/(admin)/gestion/equipements/[id]/page'))
 const Sources          = lazy(() => import('@/app/(admin)/operations/sources/page'))
@@ -212,6 +213,7 @@ export const APP_ROUTES: AppRoute[] = [
   { name: 'vehicules',        path: '/gestion/vehicules',          element: createElement(Vehicules) },
   { name: 'missions',         path: '/gestion/missions',           element: createElement(Missions) },
   { name: 'optimisateur',     path: '/gestion/optimisateur',       element: createElement(Optimisateur), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
+  { name: 'iboa',             path: '/monitoring/iboa',            element: createElement(IboaAssistant), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
   { name: 'equipements',      path: '/gestion/equipements',        element: createElement(Equipements) },
   { name: 'equipement-detail',path: '/gestion/equipements/:id',    element: createElement(EquipementDetail) },
   { name: 'sources',          path: '/operations/sources',         element: createElement(Sources) },

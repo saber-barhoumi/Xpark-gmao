@@ -1,7 +1,9 @@
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Mission.API.DTOs;
 using Mission.API.Entities;
+using Mission.API.Messaging;
 using Mission.API.Repositories;
 using XparkGMAO.Shared.AiTelemetry.Services;
 using MissionEntity = Mission.API.Entities.Mission;
@@ -12,8 +14,32 @@ public class MissionService(
     IMissionRepository   missionRepo,
     IMapper              mapper,
     IAiDataCollector     aiCollector,
+    IOptimizerEventBus   eventBus,
     ILogger<MissionService> logger) : IMissionService
 {
+    /// <summary>Business event for IBOA monitoring — best effort, never blocks the mission flow.</summary>
+    private async Task PublishBusinessEventAsync(string routingKey, string severity, object eventData)
+    {
+        try
+        {
+            var evt = new
+            {
+                eventId       = $"evt-{Guid.NewGuid():N}",
+                timestamp     = DateTime.UtcNow,
+                eventType     = routingKey,
+                severity,
+                sourceService = "MissionService",
+                eventData,
+                context       = new { },
+                metadata      = new { tags = new[] { "mission" } },
+            };
+            await eventBus.PublishAsync(routingKey, JsonSerializer.Serialize(evt));
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("[IBOA] Publication événement {Rk} échouée: {Message}", routingKey, ex.Message);
+        }
+    }
     public async Task<IEnumerable<MissionResponseDto>> GetAllAsync()
     {
         var all = await missionRepo.GetAllAsync();
@@ -110,6 +136,18 @@ public class MissionService(
                 missionId);
         }
 
+        // ── IBOA monitoring event (FICHE §2.2 xpark.mission.task-completed) ──
+        await PublishBusinessEventAsync("xpark.mission.task-completed", "LOW", new
+        {
+            missionId               = mission.IdMission,
+            destination             = mission.Destination,
+            distance,
+            coutTotal               = mission.CoutTotal,
+            vehiculeId              = mission.VehiculeId,
+            vehiculeImmatriculation = mission.VehiculeImmatriculation,
+            chauffeurNom            = mission.ChauffeurNom,
+        });
+
         return mapper.Map<MissionResponseDto>(mission);
     }
 
@@ -146,6 +184,17 @@ public class MissionService(
 
         mission.Statut = StatutMission.ANNULEE;
         await missionRepo.UpdateAsync(mission);
+
+        // ── IBOA monitoring event (FICHE §2.2 xpark.mission.task-cancelled) ──
+        await PublishBusinessEventAsync("xpark.mission.task-cancelled", "MEDIUM", new
+        {
+            missionId               = mission.IdMission,
+            destination             = mission.Destination,
+            coutEstime              = mission.CoutEstimeAI,
+            vehiculeImmatriculation = mission.VehiculeImmatriculation,
+            chauffeurNom            = mission.ChauffeurNom,
+        });
+
         return true;
     }
 

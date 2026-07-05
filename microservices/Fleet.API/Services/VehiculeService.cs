@@ -2,13 +2,24 @@ using AutoMapper;
 using Fleet.API.Data;
 using Fleet.API.DTOs;
 using Fleet.API.Entities;
+using Fleet.API.Messaging;
 using Microsoft.EntityFrameworkCore;
 using XparkGMAO.Shared.Enums;
 
 namespace Fleet.API.Services;
 
-public class VehiculeService(FleetDbContext context, IMapper mapper, ILogger<VehiculeService> logger) : IVehiculeService
+public class VehiculeService(FleetDbContext context, IMapper mapper,
+    IXparkEventBus eventBus, ILogger<VehiculeService> logger) : IVehiculeService
 {
+    /// <summary>IBOA monitoring event — best effort, never blocks the fleet flow.</summary>
+    private async Task PublishFleetEventAsync(string routingKey, string severity, object eventData)
+    {
+        try { await eventBus.PublishAsync(routingKey, severity, eventData); }
+        catch (Exception ex)
+        {
+            logger.LogWarning("[IBOA] Publication événement {Rk} échouée: {Message}", routingKey, ex.Message);
+        }
+    }
     public async Task<object> GetAllAsync(int page, int pageSize)
     {
         var query = context.Vehicules.Where(v => v.Actif);
@@ -88,6 +99,17 @@ public class VehiculeService(FleetDbContext context, IMapper mapper, ILogger<Veh
 
         context.Vehicules.Add(vehicule);
         await context.SaveChangesAsync();
+
+        // ── IBOA monitoring event (FICHE §2.2 xpark.fleet.vehicle-added) ──
+        await PublishFleetEventAsync("xpark.fleet.vehicle-added", "LOW", new
+        {
+            vehicleId = vehicule.IdVehicule,
+            immatriculation = vehicule.Immatriculation,
+            marque = vehicule.Marque,
+            modele = vehicule.Modele,
+            typeVehicule = vehicule.TypeVehicule.ToString(),
+        });
+
         return mapper.Map<VehiculeDto>(vehicule);
     }
 
@@ -95,6 +117,8 @@ public class VehiculeService(FleetDbContext context, IMapper mapper, ILogger<Veh
     {
         var vehicule = await context.Vehicules.FirstOrDefaultAsync(v => v.IdVehicule == id && v.Actif);
         if (vehicule == null) return null;
+
+        var previousStatut = vehicule.Statut;
 
         if (dto.Marque               != null) vehicule.Marque               = dto.Marque;
         if (dto.Modele               != null) vehicule.Modele               = dto.Modele;
@@ -107,6 +131,29 @@ public class VehiculeService(FleetDbContext context, IMapper mapper, ILogger<Veh
         if (dto.ChargeUtileKg   != null) vehicule.ChargeUtileKg   = dto.ChargeUtileKg.Value;
 
         await context.SaveChangesAsync();
+
+        // ── IBOA monitoring events on status transitions (FICHE §2.2) ──
+        if (dto.Statut != null && dto.Statut.Value != previousStatut)
+        {
+            var vehicleData = new
+            {
+                vehicleId = vehicule.IdVehicule,
+                immatriculation = vehicule.Immatriculation,
+                marque = vehicule.Marque,
+                modele = vehicule.Modele,
+                typeVehicule = vehicule.TypeVehicule.ToString(),
+                kilometrage = vehicule.Kilometrage,
+                ancienStatut = previousStatut.ToString(),
+                nouveauStatut = vehicule.Statut.ToString(),
+            };
+
+            if (vehicule.Statut is StatutVehicule.HORS_SERVICE or StatutVehicule.BESOIN_MAINTENANCE)
+                await PublishFleetEventAsync("xpark.fleet.vehicle-breakdown",
+                    vehicule.Statut == StatutVehicule.HORS_SERVICE ? "CRITICAL" : "HIGH", vehicleData);
+            else if (vehicule.Statut == StatutVehicule.EN_MAINTENANCE)
+                await PublishFleetEventAsync("xpark.fleet.maintenance-due", "MEDIUM", vehicleData);
+        }
+
         return mapper.Map<VehiculeDto>(vehicule);
     }
 

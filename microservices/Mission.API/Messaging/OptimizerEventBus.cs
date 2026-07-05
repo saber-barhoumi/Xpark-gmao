@@ -6,6 +6,10 @@ namespace Mission.API.Messaging;
 public interface IOptimizerEventBus
 {
     Task PublishOptimizationRequestedAsync(string payloadJson, CancellationToken ct = default);
+
+    /// <summary>Publishes any business event on the shared xpark.ai topic exchange
+    /// (consumed by IntelligentBusinessOwnerAssistant — routing keys xpark.*).</summary>
+    Task PublishAsync(string routingKey, string payloadJson, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -51,7 +55,10 @@ public class OptimizerEventBus(IConfiguration config, ILogger<OptimizerEventBus>
         finally { _lock.Release(); }
     }
 
-    public async Task PublishOptimizationRequestedAsync(string payloadJson, CancellationToken ct = default)
+    public Task PublishOptimizationRequestedAsync(string payloadJson, CancellationToken ct = default)
+        => PublishAsync(RkRequest, payloadJson, ct);
+
+    public async Task PublishAsync(string routingKey, string payloadJson, CancellationToken ct = default)
     {
         var channel = await GetChannelAsync(ct);
         var props = new BasicProperties
@@ -59,11 +66,11 @@ public class OptimizerEventBus(IConfiguration config, ILogger<OptimizerEventBus>
             ContentType  = "application/json",
             DeliveryMode = DeliveryModes.Persistent,
         };
-        await channel.BasicPublishAsync(Exchange, RkRequest, mandatory: false, props,
+        await channel.BasicPublishAsync(Exchange, routingKey, mandatory: false, props,
             Encoding.UTF8.GetBytes(payloadJson), ct);
 
         logger.LogInformation("[OptimizerEventBus] Published event '{Rk}' ({Size} bytes)",
-            RkRequest, payloadJson.Length);
+            routingKey, payloadJson.Length);
     }
 
     public async ValueTask DisposeAsync()
