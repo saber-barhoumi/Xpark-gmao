@@ -104,22 +104,29 @@ Entrée (rassemblée par le backoffice depuis Mission.API / Fleet.API / IAM.API)
 ```
 Sortie : plan complet conforme §4 de la fiche (assignments, unassignedMissions, metrics, warnings).
 
-## 7. Intégration bout-en-bout
+## 7. Intégration bout-en-bout (event-driven RabbitMQ, §2.3)
 
 ```
-Backoffice « Missions »
+Backoffice « Missions » / page « Optimisateur IA »
  ├─ Wizard « Nouvelle Mission » + switch « Affectation automatique par l'IA »
  │      → POST /api/missions sans vehiculeId/employeeId → statut EN_ATTENTE
  │
- ├─ Bouton « Optimiser le planning » (OptimizerPlanningModal)
- │      1. GET /api/missions            → missions EN_ATTENTE non affectées + historique 7j
- │      2. GET /api/vehicules/disponibles (Fleet.API)
- │      3. GET /api/employees?post=CHAUFFEUR&statut=DISPONIBLE (IAM.API)
- │      4. POST http://localhost:8001/optimize   ← CE SERVICE
- │      5. Affiche plan (score, confiance, raisons, warnings)
+ ├─ « Optimiser le planning » (OptimizerPanel)
+ │      1. GET /api/vehicules/disponibles (Fleet.API)
+ │      2. GET /api/employees?post=CHAUFFEUR&statut=DISPONIBLE (IAM.API)
+ │      3. POST /api/missions/optimize { vehicles, drivers }
+ │           → Mission.API ajoute ses missions EN_ATTENTE + historique 7j
+ │           → PUBLISH xpark.missions.ready-for-optimization  (exchange xpark.ai)
+ │      4. CE SERVICE consomme, optimise (0,1–3 s),
+ │           → PUBLISH xpark.optimization.plan-generated
+ │      5. Mission.API stocke le plan ; frontend polle
+ │           GET /api/missions/optimize/{batchId} (202 → 200)
  │      6. « Appliquer le plan » → PUT /api/missions/{id}/assign par affectation
  │             → Mission.API : EN_ATTENTE → EN_COURS + véhicule/chauffeur enregistrés
 ```
+
+L'endpoint HTTP `POST /optimize` reste disponible (Swagger, tests directs) —
+les deux modes utilisent exactement le même moteur.
 
 Changements Mission.API associés :
 - `Missions.EmployeeId` / `Missions.VehiculeId` désormais **nullables** (SQL idempotent au démarrage)
@@ -145,18 +152,16 @@ python test_optimizer.py
 
 | Fichier | Rôle (module fiche §7.2) |
 |---|---|
-| `main.py` | API FastAPI (`/health`, `/optimize`) + graceful degradation (§9.3) |
+| `main.py` | API FastAPI (`/health`, `/optimize`) + démarrage consumer RabbitMQ |
+| `rabbitmq_consumer.py` | EventPublisher/Consumer §7.2 — topics §2.3, reconnexion infinie |
 | `models.py` | Modèles Pydantic entrée/sortie (DataValidator) |
 | `constraints.py` | ConstraintChecker — contraintes dures §5.1 |
 | `scoring.py` | ScoringModule — fonction objectif §5.3 + coûts carburant |
 | `optimizer.py` | OptimizationEngine (3 phases) + ExplanabilityGenerator |
 | `test_optimizer.py` | Test de non-régression du moteur |
 
-## 10. Limites v1 / évolutions prévues par la fiche
+## 10. Limites / évolutions prévues par la fiche
 
-- **RabbitMQ event-driven** (§2.3) : la v1 est synchrone HTTP (même pattern que le prédicteur
-  de prix) ; le passage aux topics `xpark.missions.ready-for-optimization` /
-  `xpark.optimization.plan-generated` est prévu quand les autres services publieront ces événements.
 - **Proximité géographique** (§5.2 batching) : nécessite la localisation temps réel des
   véhicules (GPS) — non disponible dans la base actuelle.
 - **Google Maps Distance Matrix** (§8.2) : la distance vient de la matrice statique du

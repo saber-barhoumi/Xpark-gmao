@@ -74,6 +74,16 @@ export const MENU_ITEMS: MenuItemType[] = [
         parentKey: 'gestion-flotte',
       },
       {
+        key: 'optimisateur',
+        label: 'Optimisateur IA',
+        url: '/gestion/optimisateur',
+        parentKey: 'gestion-flotte',
+        badge: {
+          text: 'IA',
+          variant: 'success',
+        },
+      },
+      {
         key: 'equipements',
         label: 'Équipements',
         url: '/gestion/equipements',

@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Mission.API.Data;
 using Mission.API.Mapping;
+using Mission.API.Messaging;
 using Mission.API.Middleware;
 using Mission.API.Repositories;
 using Mission.API.Services;
@@ -31,6 +32,13 @@ builder.Services.AddAutoMapper(typeof(MissionProfile));
 builder.Services.AddScoped<IMissionRepository, MissionRepository>();
 builder.Services.AddScoped<IMissionService, MissionService>();
 builder.Services.AddScoped<IHistoricalMigrationService, HistoricalMigrationService>();
+
+// OptimisateurFlotteIA — event-driven flow (RabbitMQ, FICHE §2.3):
+// publish xpark.missions.ready-for-optimization / consume xpark.optimization.plan-generated
+builder.Services.AddSingleton<OptimizationPlanStore>();
+builder.Services.AddSingleton<IOptimizerEventBus, OptimizerEventBus>();
+builder.Services.AddScoped<IOptimizationService, OptimizationService>();
+builder.Services.AddHostedService<OptimizerPlanConsumer>();
 
 // AI Telemetry — data collector for ML trip-price training dataset
 builder.Services.AddAiTelemetry(

@@ -9,7 +9,9 @@ namespace Mission.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class MissionsController(IMissionService missionService) : ControllerBase
+public class MissionsController(
+    IMissionService missionService,
+    IOptimizationService optimizationService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? statut)
@@ -49,6 +51,36 @@ public class MissionsController(IMissionService missionService) : ControllerBase
             return Ok(mission);
         }
         catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    /// <summary>
+    /// Triggers an OptimisateurFlotteIA run over RabbitMQ (FICHE §2.3):
+    /// publishes xpark.missions.ready-for-optimization and returns the batchId
+    /// the frontend polls via GET /api/missions/optimize/{batchId}.
+    /// </summary>
+    [HttpPost("optimize")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> RequestOptimization([FromBody] OptimizeRequestDto dto)
+    {
+        try
+        {
+            var batchId = await optimizationService.RequestOptimizationAsync(dto);
+            return Accepted(new { batchId, status = "PENDING" });
+        }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        catch (Exception ex)
+        {
+            return StatusCode(503, new { message = $"Bus d'événements indisponible: {ex.Message}" });
+        }
+    }
+
+    /// <summary>Returns the generated plan once received on xpark.optimization.plan-generated.</summary>
+    [HttpGet("optimize/{batchId}")]
+    public IActionResult GetOptimizationPlan(string batchId)
+    {
+        var plan = optimizationService.GetPlan(batchId);
+        if (plan == null) return Accepted(new { batchId, status = "PENDING" });
+        return Content(plan, "application/json");
     }
 
     /// <summary>Applies an OptimisateurFlotteIA assignment to a mission EN_ATTENTE.</summary>

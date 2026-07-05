@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from models import OptimizeRequest, OptimizeResponse
 from optimizer import optimize
+from rabbitmq_consumer import start_consumer_thread
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,7 +22,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("fleet-optimizer")
 
-app = FastAPI(title="XparkGMAO — OptimisateurFlotteIA", version="1.0")
+app = FastAPI(title="XparkGMAO — OptimisateurFlotteIA", version="1.1")
+
+
+@app.on_event("startup")
+def startup():
+    # Event-driven mode (FICHE §2.3) — consumes xpark.missions.ready-for-optimization
+    # and publishes xpark.optimization.plan-generated. The HTTP POST /optimize
+    # endpoint stays available for Swagger testing and direct calls.
+    start_consumer_thread()
+    logger.info("RabbitMQ consumer thread started (event-driven mode)")
 
 app.add_middleware(
     CORSMiddleware,

@@ -301,13 +301,22 @@ services:
     restart: unless-stopped
 
   # ── AI Fleet Optimizer (FastAPI — Greedy + GA + Local Search) ───
+  # Event-driven: consumes xpark.missions.ready-for-optimization,
+  # publishes xpark.optimization.plan-generated (exchange topic `xpark.ai`)
   ai-optimizer:
     build:
       context: ./OptimisateurFlotteIA
       dockerfile: Dockerfile
     container_name: xpark-ai-optimizer
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=xpark
+      - RABBITMQ_PASS=xpark_secret
     ports:
       - "8001:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - xpark-network
     restart: unless-stopped
