@@ -51,6 +51,20 @@ public class MissionsController(IMissionService missionService) : ControllerBase
         catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
     }
 
+    /// <summary>Applies an OptimisateurFlotteIA assignment to a mission EN_ATTENTE.</summary>
+    [HttpPut("{id:long}/assign")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> Assign(long id, [FromBody] AssignMissionDto dto)
+    {
+        try
+        {
+            var mission = await missionService.AssignMissionAsync(id, dto);
+            return Ok(mission);
+        }
+        catch (KeyNotFoundException ex)      { return NotFound(new { message = ex.Message }); }
+        catch (Exception ex)                 { return BadRequest(new { message = ex.Message }); }
+    }
+
     [HttpPut("{id:long}/cancel")]
     [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> Cancel(long id)

@@ -132,8 +132,8 @@ public sealed class HistoricalMigrationService(
         CancellationToken ct)
     {
         // Fire both external calls concurrently — they are independent
-        var vehicleTask   = fleetClient.GetVehicleInfoAsync(mission.VehiculeId, ct);
-        var allowanceTask = financeClient.GetDriverAllowanceAsync(mission.EmployeeId, ct);
+        var vehicleTask   = fleetClient.GetVehicleInfoAsync(mission.VehiculeId ?? 0, ct);
+        var allowanceTask = financeClient.GetDriverAllowanceAsync(mission.EmployeeId ?? 0, ct);
         await Task.WhenAll(vehicleTask, allowanceTask);
 
         var vehicle   = vehicleTask.Result;
@@ -159,10 +159,10 @@ public sealed class HistoricalMigrationService(
             Season                  = season,
             HasAutoroute            = mission.CarteAutorouteRemise,
             EstimatedTollCostDt     = tollCostDt,
-            VehiculeId              = mission.VehiculeId,
+            VehiculeId              = mission.VehiculeId ?? 0,
             VehicleType             = vehicle.VehicleType,
             FuelConsumptionPer100Km = vehicle.FuelConsumptionPer100Km,
-            EmployeeId              = mission.EmployeeId,
+            EmployeeId              = mission.EmployeeId ?? 0,
             DriverTripAllowanceDt   = allowance.TripAllowanceDt,
             ActualCoutTotal         = mission.CoutTotal,
             LoggedAt                = DateTime.UtcNow,

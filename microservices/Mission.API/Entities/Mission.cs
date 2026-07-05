@@ -11,8 +11,10 @@ public class Mission
     public StatutMission Statut                { get; set; } = StatutMission.EN_ATTENTE;
     public string        ObjetMission          { get; set; } = string.Empty;
     public double        CoutTotal             { get; set; }
-    public long          EmployeeId            { get; set; }
-    public long          VehiculeId            { get; set; }
+    // Nullable: a mission can be created EN_ATTENTE without assignment —
+    // OptimisateurFlotteIA fills these via PUT /missions/{id}/assign
+    public long?         EmployeeId            { get; set; }
+    public long?         VehiculeId            { get; set; }
     public DateTime      DateCreation          { get; set; } = DateTime.UtcNow;
 
     public bool    BonCarburantAccorde   { get; set; }

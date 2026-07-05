@@ -81,6 +81,9 @@ using (var scope = app.Services.CreateScope())
     db.Database.ExecuteSqlRaw(@"
         ALTER TABLE ""Missions"" ADD COLUMN IF NOT EXISTS ""VehiculeImmatriculation"" VARCHAR(50);
         ALTER TABLE ""Missions"" ADD COLUMN IF NOT EXISTS ""ChauffeurNom""            VARCHAR(150);
+        -- OptimisateurFlotteIA: missions can exist EN_ATTENTE without assignment
+        ALTER TABLE ""Missions"" ALTER COLUMN ""EmployeeId"" DROP NOT NULL;
+        ALTER TABLE ""Missions"" ALTER COLUMN ""VehiculeId"" DROP NOT NULL;
     ");
 }
 // ─────────────────────────────────────────────────────────────────────────────

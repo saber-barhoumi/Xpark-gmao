@@ -1,5 +1,5 @@
 import api from '@/lib/axiosConfig';
-import { Mission, CreateMissionDto, CloseMissionDto, StatutMission } from '../types/mission';
+import { Mission, CreateMissionDto, CloseMissionDto, AssignMissionDto, StatutMission } from '../types/mission';
 
 export const missionService = {
     getAll: async (statut?: StatutMission): Promise<Mission[]> => {
@@ -14,6 +14,12 @@ export const missionService = {
 
     create: async (data: CreateMissionDto): Promise<Mission> => {
         const response = await api.post('/missions', data);
+        return response.data;
+    },
+
+    /** Applique une affectation générée par OptimisateurFlotteIA (mission EN_ATTENTE → EN_COURS) */
+    assign: async (id: number, data: AssignMissionDto): Promise<Mission> => {
+        const response = await api.put(`/missions/${id}/assign`, data);
         return response.data;
     },
 

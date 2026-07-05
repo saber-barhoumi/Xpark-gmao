@@ -7,8 +7,10 @@ public class CreateMissionDto
     public string    Destination           { get; set; } = string.Empty;
     public double    KilometrageDepart     { get; set; }
     public string    ObjetMission          { get; set; } = string.Empty;
-    public long      VehiculeId            { get; set; }
-    public long      EmployeeId            { get; set; }
+    // Nullable: without vehicle+driver the mission is created EN_ATTENTE,
+    // waiting for OptimisateurFlotteIA to assign resources
+    public long?     VehiculeId            { get; set; }
+    public long?     EmployeeId            { get; set; }
     public bool      BonCarburantAccorde   { get; set; }
     public string?   NumeroBonCarburant    { get; set; }
     public bool      VerificationDocuments { get; set; }

@@ -16,6 +16,9 @@ export interface Mission {
     objetMission: string;
     coutTotal: number;
     distance: number;
+    // Null when the mission is EN_ATTENTE waiting for OptimisateurFlotteIA
+    employeeId?: number | null;
+    vehiculeId?: number | null;
     vehiculeImmatriculation?: string;
     chauffeurNom?: string;
     dateCreation: string;
@@ -24,6 +27,12 @@ export interface Mission {
     numeroBonCarburant?: string;
     verificationDocuments: boolean;
     carteAutorouteRemise: boolean;
+    // Route + AI snapshot (stored at creation)
+    villeDepart?: string;
+    villeArrivee?: string;
+    distanceKm?: number;
+    coutEstimeAI?: number;
+    aiVehiculeTypeUsed?: string;
 }
 
 export interface CreateMissionDto {
@@ -32,9 +41,10 @@ export interface CreateMissionDto {
     destination: string;
     kilometrageDepart: number;
     objetMission: string;
-    vehiculeId: number;
+    // Omit vehicle+driver to create the mission EN_ATTENTE (auto-assignment by OptimisateurFlotteIA)
+    vehiculeId?: number;
     vehiculeImmatriculation?: string;
-    employeeId: number;
+    employeeId?: number;
     chauffeurNom?: string;
     bonCarburantAccorde: boolean;
     numeroBonCarburant?: string;
@@ -49,4 +59,14 @@ export interface CreateMissionDto {
 
 export interface CloseMissionDto {
     kilometrageRetour: number;
+}
+
+/** One assignment produced by OptimisateurFlotteIA, applied to a mission EN_ATTENTE */
+export interface AssignMissionDto {
+    vehiculeId: number;
+    employeeId: number;
+    vehiculeImmatriculation?: string;
+    chauffeurNom?: string;
+    kilometrageDepart?: number;
+    coutEstime?: number;
 }

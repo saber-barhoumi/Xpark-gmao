@@ -37,6 +37,10 @@ public class MissionService(
 
     public async Task<MissionResponseDto> CreateMissionAsync(CreateMissionDto dto)
     {
+        // Without vehicle+driver the mission stays EN_ATTENTE — it will be
+        // assigned later by OptimisateurFlotteIA (PUT /missions/{id}/assign)
+        bool isAssigned = dto.VehiculeId is > 0 && dto.EmployeeId is > 0;
+
         var mission = new MissionEntity
         {
             DateDepart            = DateTime.SpecifyKind(dto.DateDepart, DateTimeKind.Utc),
@@ -46,9 +50,9 @@ public class MissionService(
             Destination           = dto.Destination,
             KilometrageDepart     = dto.KilometrageDepart,
             ObjetMission          = dto.ObjetMission,
-            VehiculeId            = dto.VehiculeId,
-            EmployeeId            = dto.EmployeeId,
-            Statut                = StatutMission.EN_COURS,
+            VehiculeId            = isAssigned ? dto.VehiculeId : null,
+            EmployeeId            = isAssigned ? dto.EmployeeId : null,
+            Statut                = isAssigned ? StatutMission.EN_COURS : StatutMission.EN_ATTENTE,
             KilometrageRetour     = 0,
             BonCarburantAccorde   = dto.BonCarburantAccorde,
             NumeroBonCarburant    = dto.NumeroBonCarburant,
@@ -89,8 +93,8 @@ public class MissionService(
         {
             await aiCollector.LogMissionDataAsync(
                 missionId:            mission.IdMission,
-                vehiculeId:           mission.VehiculeId,
-                employeeId:           mission.EmployeeId,
+                vehiculeId:           mission.VehiculeId ?? 0,
+                employeeId:           mission.EmployeeId ?? 0,
                 kilometrageDepart:    mission.KilometrageDepart,
                 kilometrageRetour:    kilometrageRetour,
                 coutTotal:            mission.CoutTotal,
@@ -105,6 +109,32 @@ public class MissionService(
                 "[AiTelemetry] Logging failed for MissionId={MissionId}. Mission closure is unaffected.",
                 missionId);
         }
+
+        return mapper.Map<MissionResponseDto>(mission);
+    }
+
+    public async Task<MissionResponseDto> AssignMissionAsync(long missionId, AssignMissionDto dto)
+    {
+        var mission = await missionRepo.GetWithDetailsAsync(missionId)
+            ?? throw new KeyNotFoundException("Mission introuvable");
+
+        if (mission.Statut != StatutMission.EN_ATTENTE)
+            throw new InvalidOperationException(
+                $"Seules les missions EN_ATTENTE peuvent être affectées (statut actuel: {mission.Statut})");
+
+        mission.VehiculeId              = dto.VehiculeId;
+        mission.EmployeeId              = dto.EmployeeId;
+        mission.VehiculeImmatriculation = dto.VehiculeImmatriculation ?? mission.VehiculeImmatriculation;
+        mission.ChauffeurNom            = dto.ChauffeurNom            ?? mission.ChauffeurNom;
+        if (dto.KilometrageDepart is > 0) mission.KilometrageDepart = dto.KilometrageDepart.Value;
+        if (dto.CoutEstime        is > 0) mission.CoutEstimeAI      = dto.CoutEstime.Value;
+        mission.Statut = StatutMission.EN_COURS;
+
+        await missionRepo.UpdateAsync(mission);
+
+        logger.LogInformation(
+            "[Optimisateur] Mission {MissionId} affectée — Vehicule={VehiculeId} ({Immat}), Chauffeur={EmployeeId} ({Nom})",
+            missionId, dto.VehiculeId, dto.VehiculeImmatriculation, dto.EmployeeId, dto.ChauffeurNom);
 
         return mapper.Map<MissionResponseDto>(mission);
     }

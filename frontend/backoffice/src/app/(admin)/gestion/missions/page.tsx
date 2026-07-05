@@ -7,6 +7,7 @@ import { Mission, StatutMission } from '@/types/mission'
 import Swal from 'sweetalert2'
 import MissionWizardModal from './components/MissionWizardModal'
 import CloseMissionModal from './components/CloseMissionModal'
+import OptimizerPlanningModal from './components/OptimizerPlanningModal'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const STATUT_COLORS: Record<string, string> = {
@@ -28,6 +29,7 @@ export default function MissionsPage() {
 
     // Modals
     const [showWizard, setShowWizard] = useState(false)
+    const [showOptimizer, setShowOptimizer] = useState(false)
     const [showCloseModal, setShowCloseModal] = useState(false)
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
 
@@ -105,12 +107,18 @@ export default function MissionsPage() {
                     </h4>
                     <p className="text-muted mb-0">{missions.length} mission(s) affichée(s)</p>
                 </Col>
-                <Col xs="auto">
+                <Col xs="auto" className="d-flex gap-2">
                     {canWrite && (
-                        <Button variant="primary" onClick={() => setShowWizard(true)}>
-                            <IconifyIcon icon="ri:add-line" className="me-1" />
-                            Nouvelle Mission
-                        </Button>
+                        <>
+                            <Button variant="dark" onClick={() => setShowOptimizer(true)}>
+                                <IconifyIcon icon="ri:brain-line" className="me-1" />
+                                Optimiser le planning
+                            </Button>
+                            <Button variant="primary" onClick={() => setShowWizard(true)}>
+                                <IconifyIcon icon="ri:add-line" className="me-1" />
+                                Nouvelle Mission
+                            </Button>
+                        </>
                     )}
                 </Col>
             </Row>
@@ -248,6 +256,14 @@ export default function MissionsPage() {
                 <MissionWizardModal
                     show={showWizard}
                     onHide={() => setShowWizard(false)}
+                    reloadList={loadMissions}
+                />
+            </ErrorBoundary>
+
+            <ErrorBoundary>
+                <OptimizerPlanningModal
+                    show={showOptimizer}
+                    onHide={() => setShowOptimizer(false)}
                     reloadList={loadMissions}
                 />
             </ErrorBoundary>

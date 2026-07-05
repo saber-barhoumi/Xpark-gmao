@@ -18,8 +18,8 @@ public class MissionResponseDto
     public string?   NumeroBonCarburant    { get; set; }
     public bool      VerificationDocuments { get; set; }
     public bool      CarteAutorouteRemise  { get; set; }
-    public long      EmployeeId            { get; set; }
-    public long      VehiculeId            { get; set; }
+    public long?     EmployeeId            { get; set; }
+    public long?     VehiculeId            { get; set; }
     public DateTime  DateCreation          { get; set; }
     public string?   VilleDepart          { get; set; }
     public string?   VilleArrivee         { get; set; }

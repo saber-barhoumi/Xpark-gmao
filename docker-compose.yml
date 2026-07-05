@@ -300,6 +300,18 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── AI Fleet Optimizer (FastAPI — Greedy + GA + Local Search) ───
+  ai-optimizer:
+    build:
+      context: ./OptimisateurFlotteIA
+      dockerfile: Dockerfile
+    container_name: xpark-ai-optimizer
+    ports:
+      - "8001:8000"
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
   # ── Backoffice Admin Frontend ───────────────────────────────────
   backoffice:
     build:
@@ -308,6 +320,7 @@ services:
       args:
         - VITE_API_URL=/api
         - VITE_AI_API_URL=http://localhost:8000
+        - VITE_OPTIMIZER_API_URL=http://localhost:8001
     container_name: xpark-backoffice
     ports:
       - "3000:80"

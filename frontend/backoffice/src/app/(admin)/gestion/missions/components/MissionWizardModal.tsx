@@ -81,6 +81,7 @@ interface WizardForm {
     dateRetour: string
     objetMission: string
     // Step 2 — Resources
+    autoAssign: boolean         // true = laisser OptimisateurFlotteIA affecter véhicule + chauffeur
     vehiculeId: number
     vehiculeImmatriculation: string
     vehiculeGmaoType: string    // raw GMAO enum: BERLINE, CAMION, UTILITAIRE…
@@ -111,6 +112,7 @@ const emptyForm = (): WizardForm => ({
     villeDepart: '', villeArrivee: '', distanceEstimee: 0, travelHours: 0,
     departureGovernorate: '', arrivalGovernorate: '',
     dateDepart: nowLocal(), dateRetour: '', objetMission: '',
+    autoAssign: false,
     vehiculeId: 0, vehiculeImmatriculation: '', vehiculeGmaoType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
     employeeId: 0, chauffeurNom: '', kilometrageDepart: 0,
     cargoWeight: 0, passengerCount: 1, luggageWeight: 0,
@@ -380,8 +382,8 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
     }
 
     const handleNext = () => {
-        if (!form.vehiculeId || !form.employeeId) {
-            Swal.fire('Erreur', 'Veuillez sélectionner un véhicule et un chauffeur.', 'error'); return
+        if (!form.autoAssign && (!form.vehiculeId || !form.employeeId)) {
+            Swal.fire('Erreur', 'Veuillez sélectionner un véhicule et un chauffeur, ou activer l\'affectation automatique.', 'error'); return
         }
         if (form.bonCarburantAccorde && !form.numeroBonCarburant?.trim()) {
             Swal.fire('Erreur', 'Veuillez saisir le numéro du bon de carburant.', 'error'); return
@@ -419,6 +421,31 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                         <h6 className="mb-3 text-dark d-flex align-items-center gap-2">
                             <IconifyIcon icon="ri:car-washing-line" /> Véhicule & Chauffeur
                         </h6>
+
+                        {/* ── Auto-assignment by OptimisateurFlotteIA ── */}
+                        <Form.Check
+                            type="switch" id="auto-assign" className="mb-3"
+                            label={
+                                <span className="small">
+                                    <IconifyIcon icon="ri:brain-line" className="me-1 text-dark" />
+                                    <strong>Affectation automatique par l&apos;IA</strong>
+                                    <span className="text-muted"> — la mission sera créée EN ATTENTE puis
+                                        affectée via «&nbsp;Optimiser le planning&nbsp;» (OptimisateurFlotteIA)</span>
+                                </span>
+                            }
+                            checked={form.autoAssign}
+                            onChange={e => setForm((f: WizardForm) => ({
+                                ...f,
+                                autoAssign: e.target.checked,
+                                ...(e.target.checked ? {
+                                    vehiculeId: 0, vehiculeImmatriculation: '', vehiculeGmaoType: '',
+                                    vehiculeCarburant: '', vehiculeConsommation: 0, kilometrageDepart: 0,
+                                    employeeId: 0, chauffeurNom: '',
+                                } : {}),
+                            }))}
+                        />
+
+                        {!form.autoAssign && (
                         <Row className="g-3">
                             <Col md={12}>
                                 <Form.Label className="small fw-bold">Véhicule <span className="text-danger">*</span></Form.Label>
@@ -450,6 +477,7 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                                 />
                             </Col>
                         </Row>
+                        )}
                     </div>
 
                     {/* ── Trip params for AI ───────────────────── */}
@@ -769,10 +797,12 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                 destination: form.villeArrivee || 'N/A',
                 kilometrageDepart: form.kilometrageDepart,
                 objetMission: form.objetMission,
-                vehiculeId: form.vehiculeId,
-                vehiculeImmatriculation: form.vehiculeImmatriculation || undefined,
-                employeeId: form.employeeId,
-                chauffeurNom: form.chauffeurNom || undefined,
+                // autoAssign → pas de véhicule/chauffeur : mission créée EN_ATTENTE
+                // pour l'OptimisateurFlotteIA (bouton « Optimiser le planning »)
+                vehiculeId: form.autoAssign ? undefined : form.vehiculeId,
+                vehiculeImmatriculation: form.autoAssign ? undefined : (form.vehiculeImmatriculation || undefined),
+                employeeId: form.autoAssign ? undefined : form.employeeId,
+                chauffeurNom: form.autoAssign ? undefined : (form.chauffeurNom || undefined),
                 bonCarburantAccorde: form.bonCarburantAccorde,
                 numeroBonCarburant: form.numeroBonCarburant || undefined,
                 verificationDocuments: form.verificationDocuments,
