@@ -15,6 +15,8 @@ public class Mission
     // OptimisateurFlotteIA fills these via PUT /missions/{id}/assign
     public long?         EmployeeId            { get; set; }
     public long?         VehiculeId            { get; set; }
+    // Client (frontoffice) à l'origine de la demande — colonne existante en base
+    public long?         ClientIdUtilisateur   { get; set; }
     public DateTime      DateCreation          { get; set; } = DateTime.UtcNow;
 
     public bool    BonCarburantAccorde   { get; set; }

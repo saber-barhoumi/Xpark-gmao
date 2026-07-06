@@ -119,6 +119,12 @@ export default function Menu() {
                     <Link href="/account">Mon Compte</Link>
                 </li>
                 <li>
+                    <Link href="/account/reserver">Réserver un véhicule</Link>
+                </li>
+                <li>
+                    <Link href="/account/missions">Mes Missions</Link>
+                </li>
+                <li>
                     <Link href="/account/security">Sécurité (MFA)</Link>
                 </li>
                 <li>

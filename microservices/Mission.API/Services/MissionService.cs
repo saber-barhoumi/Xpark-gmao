@@ -151,6 +151,61 @@ public class MissionService(
         return mapper.Map<MissionResponseDto>(mission);
     }
 
+    // ── Portail client (frontoffice) ──────────────────────────────────────────
+
+    public async Task<MissionResponseDto> CreateClientRequestAsync(long clientUserId, ClientMissionRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.VilleDepart) || string.IsNullOrWhiteSpace(dto.VilleArrivee))
+            throw new ArgumentException("Villes de depart et d'arrivee obligatoires.");
+        if (dto.DateDepart < DateTime.UtcNow.AddMinutes(-5))
+            throw new ArgumentException("La date de depart ne peut pas etre dans le passe.");
+
+        var mission = new MissionEntity
+        {
+            DateDepart          = DateTime.SpecifyKind(dto.DateDepart, DateTimeKind.Utc),
+            Destination         = dto.VilleArrivee,
+            ObjetMission        = string.IsNullOrWhiteSpace(dto.ObjetMission)
+                                      ? $"Reservation client — {dto.VilleDepart} vers {dto.VilleArrivee}"
+                                      : dto.ObjetMission,
+            VilleDepart         = dto.VilleDepart,
+            VilleArrivee        = dto.VilleArrivee,
+            DistanceKm          = dto.DistanceKm,
+            CoutEstimeAI        = dto.CoutEstime,
+            AiVehiculeTypeUsed  = dto.AiVehiculeTypeUsed,
+            ClientIdUtilisateur = clientUserId,
+            Statut              = StatutMission.EN_ATTENTE,   // affectation via OptimisateurFlotteIA
+            KilometrageDepart   = 0,
+            KilometrageRetour   = 0,
+            DateCreation        = DateTime.UtcNow,
+        };
+
+        var saved = await missionRepo.AddAsync(mission);
+
+        // IBOA — un nouveau client vient de reserver (evenement metier)
+        await PublishBusinessEventAsync("xpark.mission.client-request", "LOW", new
+        {
+            missionId    = saved.IdMission,
+            clientId     = clientUserId,
+            villeDepart  = dto.VilleDepart,
+            villeArrivee = dto.VilleArrivee,
+            coutEstime   = dto.CoutEstime,
+            dateDepart   = dto.DateDepart,
+        });
+
+        logger.LogInformation("[Portail] Demande client {ClientId}: mission {MissionId} EN_ATTENTE ({Dep} vers {Arr})",
+            clientUserId, saved.IdMission, dto.VilleDepart, dto.VilleArrivee);
+
+        return mapper.Map<MissionResponseDto>(saved);
+    }
+
+    public async Task<IEnumerable<MissionResponseDto>> GetByClientAsync(long clientUserId)
+    {
+        var all = await missionRepo.GetAllAsync();
+        return all.Where(m => m.ClientIdUtilisateur == clientUserId)
+                  .OrderByDescending(m => m.DateDepart)
+                  .Select(m => mapper.Map<MissionResponseDto>(m));
+    }
+
     public async Task<MissionResponseDto> AssignMissionAsync(long missionId, AssignMissionDto dto)
     {
         var mission = await missionRepo.GetWithDetailsAsync(missionId)

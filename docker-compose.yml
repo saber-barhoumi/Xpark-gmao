@@ -394,6 +394,8 @@ services:
       args:
         # IAM.API direct (auth + MFA espace client)
         - NEXT_PUBLIC_API_URL=http://localhost:5001/api
+        # CalculateurPrixTrajetIA (villes, distances, estimation prix)
+        - NEXT_PUBLIC_AI_API_URL=http://localhost:8000
     container_name: xpark-frontoffice
     ports:
       - "3001:3000"

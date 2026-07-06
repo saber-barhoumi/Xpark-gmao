@@ -13,7 +13,10 @@ public class MissionsController(
     IMissionService missionService,
     IOptimizationService optimizationService) : ControllerBase
 {
+    private long CurrentUserId => long.Parse(User.FindFirst("userId")!.Value);
+
     [HttpGet]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,CHAUFFEUR,TECHNICIEN")]  // staff — les clients passent par /my
     public async Task<IActionResult> GetAll([FromQuery] string? statut)
     {
         if (!string.IsNullOrEmpty(statut) && Enum.TryParse<StatutMission>(statut, true, out var s))
@@ -21,7 +24,28 @@ public class MissionsController(
         return Ok(await missionService.GetAllAsync());
     }
 
+    // ── Portail client (frontoffice) ──────────────────────────────────────────
+
+    /// <summary>Missions du client connecté (portail frontoffice).</summary>
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyMissions()
+        => Ok(await missionService.GetByClientAsync(CurrentUserId));
+
+    /// <summary>Demande de réservation client → mission EN_ATTENTE, affectée
+    /// ensuite par l'admin ou OptimisateurFlotteIA.</summary>
+    [HttpPost("client-request")]
+    public async Task<IActionResult> CreateClientRequest([FromBody] ClientMissionRequestDto dto)
+    {
+        try
+        {
+            var mission = await missionService.CreateClientRequestAsync(CurrentUserId, dto);
+            return CreatedAtAction(nameof(GetById), new { id = mission.IdMission }, mission);
+        }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,CHAUFFEUR,TECHNICIEN")]
     public async Task<IActionResult> GetById(long id)
     {
         var mission = await missionService.GetByIdAsync(id);

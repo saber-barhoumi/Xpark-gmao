@@ -14,6 +14,8 @@ COPY . .
 # URL de l'API IAM (auth + MFA) — NEXT_PUBLIC_* est fige au build
 ARG NEXT_PUBLIC_API_URL=http://localhost:5001/api
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG NEXT_PUBLIC_AI_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_AI_API_URL=${NEXT_PUBLIC_AI_API_URL}
 
 RUN npm run build
 

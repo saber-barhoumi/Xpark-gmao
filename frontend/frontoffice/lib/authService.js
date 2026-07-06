@@ -88,6 +88,10 @@ async function request(method, path, body = null, { auth = false, retry = true }
     return data
 }
 
+/** Fetch authentifié réutilisable par les autres services (missions, factures…). */
+export const apiFetch = (method, path, body = null) =>
+    request(method, path, body, { auth: true })
+
 async function tryRefresh() {
     const refreshToken = typeof window !== "undefined" ? localStorage.getItem(REFRESH_KEY) : null
     if (!refreshToken) return false

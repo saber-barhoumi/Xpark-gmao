@@ -11,6 +11,8 @@ public interface IMissionService
     Task<MissionResponseDto>              CreateMissionAsync(CreateMissionDto dto);
     Task<MissionResponseDto>              CloseMissionAsync(long missionId, double kilometrageRetour);
     Task<MissionResponseDto>              AssignMissionAsync(long missionId, AssignMissionDto dto);
+    Task<MissionResponseDto>              CreateClientRequestAsync(long clientUserId, ClientMissionRequestDto dto);
+    Task<IEnumerable<MissionResponseDto>> GetByClientAsync(long clientUserId);
     Task<bool>                            CancelMissionAsync(long id);
     Task<bool>                            DeleteAsync(long id);
 }
