@@ -61,6 +61,15 @@ services:
       - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
+      # ── Envoi d'emails REEL (confirmation, reset, OTP MFA) ──────────
+      # Decommenter et remplir avec un "App Password" Gmail
+      # (myaccount.google.com/apppasswords — necessite la validation en 2 etapes)
+      # puis: docker compose up -d iam-api && docker restart xpark-nginx
+      # - Email__Host=smtp.gmail.com
+      # - Email__Port=587
+      # - Email__Username=sabersalemaicha@gmail.com
+      # - Email__Password=xxxx xxxx xxxx xxxx
+      # - Email__From=XPARK GMAO <sabersalemaicha@gmail.com>
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
       - RabbitMQ__Password=xpark_secret
