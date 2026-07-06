@@ -45,6 +45,7 @@ const Missions         = lazy(() => import('@/app/(admin)/gestion/missions/page'
 const Optimisateur     = lazy(() => import('@/app/(admin)/gestion/optimisateur/page'))
 const IboaAssistant    = lazy(() => import('@/app/(admin)/monitoring/iboa/page'))
 const SecurityPage     = lazy(() => import('@/app/(admin)/security/page'))
+const UsersAccounts    = lazy(() => import('@/app/(admin)/users/page'))
 const Equipements      = lazy(() => import('@/app/(admin)/gestion/equipements/page'))
 const EquipementDetail = lazy(() => import('@/app/(admin)/gestion/equipements/[id]/page'))
 const Sources          = lazy(() => import('@/app/(admin)/operations/sources/page'))
@@ -229,6 +230,7 @@ export const APP_ROUTES: AppRoute[] = [
   // HR / Users
   { name: 'employees',    path: '/hr/employees',        element: createElement(Employees),  allowedRoles: ['ADMIN', 'RH'] },
   { name: 'pending-users',path: '/users/pending',       element: createElement(PendingUsers), allowedRoles: ['ADMIN'] },
+  { name: 'users-accounts',path: '/users',              element: createElement(UsersAccounts), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
   { name: 'contacts',     path: '/users/contacts',      element: createElement(Contacts) },
   { name: 'profile',      path: '/users/profile',       element: createElement(Profile) },
   { name: 'profile-edit', path: '/users/profile/edit',  element: createElement(ProfileEdit) },

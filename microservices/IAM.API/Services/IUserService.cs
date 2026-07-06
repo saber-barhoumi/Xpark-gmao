@@ -12,5 +12,6 @@ public interface IUserService
     Task                       RejectUserAsync(long adminId, RejectUserDto dto);
     Task                       ChangeRoleAsync(long adminId, ChangeRoleDto dto);
     Task                       SuspendUserAsync(long adminId, long userId);
+    Task                       DeleteUserAsync(long adminId, long userId);
     Task                       ActivateUserAsync(long adminId, long userId);
 }

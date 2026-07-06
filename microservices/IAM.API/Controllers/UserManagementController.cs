@@ -9,7 +9,7 @@ using XparkGMAO.Shared.Enums;
 
 namespace IAM.API.Controllers;
 
-[Authorize(Roles = "ADMIN,ADMINISTRATEUR")]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
 [ApiController]
 [Route("api/user-management")]
 public class UserManagementController(IUserService userService, IamDbContext db) : ControllerBase
@@ -87,6 +87,24 @@ public class UserManagementController(IUserService userService, IamDbContext db)
     {
         await userService.ChangeRoleAsync(AdminId, dto);
         return Ok(ApiResponse<string>.Ok("Rôle modifié."));
+    }
+
+    /// <summary>Met à jour les informations de base d'un compte (nom, prénom, téléphone).</summary>
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ApiResponse<UserProfileDto>>> UpdateUser(
+        long id, [FromBody] UpdateProfileDto dto)
+    {
+        var updated = await userService.UpdateProfileAsync(id, dto);
+        return Ok(ApiResponse<UserProfileDto>.Ok(updated, "Compte mis à jour."));
+    }
+
+    /// <summary>Supprime définitivement un compte (impossible sur soi-même ;
+    /// 409 si le compte est lié à des données métier — le suspendre à la place).</summary>
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<ApiResponse<string>>> DeleteUser(long id)
+    {
+        await userService.DeleteUserAsync(AdminId, id);
+        return Ok(ApiResponse<string>.Ok("Compte supprimé définitivement."));
     }
 
     [HttpPost("{id}/suspend")]

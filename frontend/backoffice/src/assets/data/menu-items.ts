@@ -57,6 +57,12 @@ export const MENU_ITEMS: MenuItemType[] = [
     icon: 'tabler:user-square-rounded',
     children: [
       {
+        key: 'users-accounts',
+        label: 'Tous les comptes',
+        url: '/users',
+        parentKey: 'users',
+      },
+      {
         key: 'pending-users',
         label: 'Admissions',
         url: '/users/pending',

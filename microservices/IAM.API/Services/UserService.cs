@@ -99,6 +99,31 @@ public class UserService(IamDbContext db, IPublishEndpoint bus) : IUserService
         await bus.Publish(new UserStatusChangedEvent(userId, StatutUtilisateur.SUSPENDU.ToString()));
     }
 
+    public async Task DeleteUserAsync(long adminId, long userId)
+    {
+        if (adminId == userId)
+            throw new InvalidOperationException("Vous ne pouvez pas supprimer votre propre compte.");
+
+        var user = await db.Utilisateurs.FindAsync(userId)
+            ?? throw new KeyNotFoundException("Utilisateur introuvable.");
+
+        try
+        {
+            db.Utilisateurs.Remove(user);
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // FK: le compte est reference par des donnees metier (missions,
+            // reservations, messages...). On ne casse pas l'historique.
+            throw new InvalidOperationException(
+                "Ce compte est lie a des donnees existantes (missions, reservations...). " +
+                "Suspendez-le plutot que de le supprimer.");
+        }
+
+        await bus.Publish(new UserStatusChangedEvent(userId, "DELETED"));
+    }
+
     public async Task ActivateUserAsync(long adminId, long userId)
     {
         var user = await db.Utilisateurs.FindAsync(userId)
