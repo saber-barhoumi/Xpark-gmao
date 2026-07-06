@@ -382,6 +382,9 @@ services:
     build:
       context: ./frontend/frontoffice
       dockerfile: Dockerfile
+      args:
+        # IAM.API direct (auth + MFA espace client)
+        - NEXT_PUBLIC_API_URL=http://localhost:5001/api
     container_name: xpark-frontoffice
     ports:
       - "3001:3000"

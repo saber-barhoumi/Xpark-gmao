@@ -106,6 +106,23 @@ export default function Menu() {
             <li>
                 <Link href="/contact">Contact</Link>
             </li>
+            <li className="dropdown">
+                <Link href="/account">Espace Client</Link>
+                <ul>
+                <li>
+                    <Link href="/auth/login">Connexion</Link>
+                </li>
+                <li>
+                    <Link href="/auth/register">Inscription</Link>
+                </li>
+                <li>
+                    <Link href="/account">Mon Compte</Link>
+                </li>
+                <li>
+                    <Link href="/account/security">Sécurité (MFA)</Link>
+                </li>
+                </ul>
+            </li>
         </ul>
         </>
     )

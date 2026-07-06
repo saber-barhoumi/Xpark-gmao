@@ -3,6 +3,7 @@
 > Implémente la `FICHE_TECHNIQUE_AUTHENTICATION_SECURITY` dans **IAM.API** (port 5001),
 > le service qui possède déjà l'authentification : MFA multi-méthodes, jetons JWT +
 > refresh avec rotation, historique de connexions et journal d'audit sécurité.
+> Déployé sur les **deux frontends** : backoffice (admin) ET frontoffice (espace client).
 
 ---
 
@@ -103,13 +104,33 @@ l'étape de vérification apparaît.
 | `Controllers/AuthController.cs` | 8 nouveaux endpoints (voir ci-dessous) |
 | `test_e2e_mfa.py` | E2E complet rejouable |
 
-### Frontend — `frontend/backoffice/src/`
+### Frontend backoffice (admin) — `frontend/backoffice/src/`
 | Fichier | Rôle |
 |---|---|
 | `app/(admin)/security/page.tsx` | Page Sécurité (MFA + historique) |
 | `app/(other)/auth/login/page.tsx` | Étape 2 MFA au login |
 | `services/authService.ts` | verifyMfa, setup/confirm/disable, historique |
 | `lib/axiosConfig.ts` | Renouvellement silencieux du JWT sur 401 |
+
+### Frontend frontoffice (espace client) — `frontend/frontoffice/`
+> Next.js 14, thème « onpoint » conservé (Layout, sections `contact-two`,
+> boutons `thm-btn`). Même IAM.API (`NEXT_PUBLIC_API_URL`, défaut :5001),
+> mêmes endpoints, session séparée (`xpark_client_*`).
+
+| Fichier | Rôle |
+|---|---|
+| `lib/authService.js` | Client fetch IAM.API : login/MFA/register/reset + refresh silencieux sur 401 |
+| `components/auth/CodeInput.js` | Saisie 6 chiffres partagée (auto-validation) |
+| `app/auth/login/page.js` | Connexion + **étape MFA** (sélecteur méthode, renvoi email) |
+| `app/auth/register/page.js` | Inscription client (rôle CLIENT, auto-activé après confirmation) |
+| `app/auth/confirm-email/page.js` | Confirmation email (token + renvoi) |
+| `app/auth/recover-password/page.js` · `reset-password/page.js` | Récupération mot de passe |
+| `app/account/page.js` | Espace client : profil + état MFA + déconnexion |
+| `app/account/security/page.js` | **Sécurité client** : setup QR Authenticator, Email OTP, historique connexions |
+| `components/layout/Menu.js` | Menu « Espace Client » (Connexion / Inscription / Mon Compte / Sécurité) |
+
+Accès : http://localhost:3001 → menu « Espace Client ». Les pages `/account*`
+sont protégées côté client (redirection vers `/auth/login` sans session valide).
 
 ### Endpoints ajoutés (`/api/auth/…`)
 ```
