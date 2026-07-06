@@ -121,6 +121,9 @@ export default function Menu() {
                 <li>
                     <Link href="/account/security">Sécurité (MFA)</Link>
                 </li>
+                <li>
+                    <Link href="/auth/logout">Déconnexion</Link>
+                </li>
                 </ul>
             </li>
         </ul>

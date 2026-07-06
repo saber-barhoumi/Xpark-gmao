@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Layout from "@/components/layout/Layout"
+import AuthShell from "@/components/auth/AuthShell"
 import authService from "@/lib/authService"
 
-/** Demande de réinitialisation de mot de passe (token envoyé par email). */
+/** Mot de passe oublié — envoie un token de réinitialisation par email (valide 1 h). */
 export default function RecoverPasswordPage() {
     const [email, setEmail] = useState("")
     const [loading, setLoading] = useState(false)
@@ -25,54 +25,50 @@ export default function RecoverPasswordPage() {
     }
 
     return (
-        <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="MOT DE PASSE OUBLIÉ">
-            <section className="contact-two">
-                <div className="container">
-                    <div className="row justify-content-center">
-                        <div className="col-xl-6 col-lg-8">
-                            <div className="section-title text-center">
-                                <div className="section-title__tagline-box">
-                                    <span className="section-title__tagline">Espace Client XPARK</span>
-                                </div>
-                                <h2 className="section-title__title">Mot de passe oublié</h2>
-                            </div>
-
-                            {sent ? (
-                                <div className="text-center">
-                                    <div style={{ padding: 15, marginBottom: 20, background: "#e7f5ec", color: "#146c43", borderRadius: 8 }}>
-                                        Si un compte existe avec cet email, un lien de réinitialisation
-                                        vient de lui être envoyé (valide 1 heure).
-                                    </div>
-                                    <Link href="/auth/reset-password" className="thm-btn">
-                                        J&apos;ai reçu mon code<span />
-                                    </Link>
-                                </div>
-                            ) : (
-                                <form className="contact-two__form" onSubmit={handleSubmit}>
-                                    <div className="row">
-                                        <div className="col-xl-12">
-                                            <div className="contact-two__input-box">
-                                                <input type="email" placeholder="Adresse email de votre compte"
-                                                    value={email} onChange={(e) => setEmail(e.target.value)} required />
-                                            </div>
-                                        </div>
-                                        <div className="col-xl-12">
-                                            <div className="contact-two__btn-box">
-                                                <button type="submit" className="thm-btn contact-two__btn" disabled={loading}>
-                                                    {loading ? "Envoi…" : "Envoyer le lien"}<span />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p className="text-center" style={{ marginTop: 20 }}>
-                                        <Link href="/auth/login">← Retour à la connexion</Link>
-                                    </p>
-                                </form>
-                            )}
-                        </div>
+        <AuthShell title="Mot de passe oublié">
+            {sent ? (
+                <div className="text-center">
+                    <div style={{ padding: 15, marginBottom: 20, background: "#e7f5ec", color: "#146c43", borderRadius: 8 }}>
+                        Si un compte existe avec cet email, un lien de réinitialisation
+                        vient de lui être envoyé (valide 1 heure).
+                    </div>
+                    <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                        <Link href={`/auth/reset-password?email=${encodeURIComponent(email.trim())}`}
+                            className="thm-btn" style={{ padding: "10px 22px" }}>
+                            J&apos;ai reçu mon code<span />
+                        </Link>
+                        <Link href="/auth/login" className="thm-btn"
+                            style={{ padding: "10px 22px", background: "#6b7280" }}>
+                            Retour connexion<span />
+                        </Link>
                     </div>
                 </div>
-            </section>
-        </Layout>
+            ) : (
+                <form className="contact-two__form" onSubmit={handleSubmit}>
+                    <p className="text-center" style={{ color: "#6b7280", marginBottom: 20 }}>
+                        Entrez l&apos;adresse email de votre compte — nous vous enverrons
+                        un token de réinitialisation.
+                    </p>
+                    <div className="row">
+                        <div className="col-xl-12">
+                            <div className="contact-two__input-box">
+                                <input type="email" placeholder="Adresse email de votre compte"
+                                    value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+                            </div>
+                        </div>
+                        <div className="col-xl-12">
+                            <div className="contact-two__btn-box">
+                                <button type="submit" className="thm-btn contact-two__btn" disabled={loading}>
+                                    {loading ? "Envoi…" : "Envoyer le lien"}<span />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <p className="text-center" style={{ marginTop: 20 }}>
+                        <Link href="/auth/login">← Retour à la connexion</Link>
+                    </p>
+                </form>
+            )}
+        </AuthShell>
     )
 }

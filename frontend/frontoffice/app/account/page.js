@@ -21,10 +21,7 @@ export default function AccountPage() {
         authService.getMfaSettings().then(setMfa).catch(() => {})
     }, [router])
 
-    const handleLogout = async () => {
-        await authService.logout()
-        router.push("/auth/login")
-    }
+    const handleLogout = () => router.push("/auth/logout")
 
     if (!user) return null
 

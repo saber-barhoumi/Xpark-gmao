@@ -117,17 +117,23 @@ l'étape de vérification apparaît.
 > boutons `thm-btn`). Même IAM.API (`NEXT_PUBLIC_API_URL`, défaut :5001),
 > mêmes endpoints, session séparée (`xpark_client_*`).
 
+> Les pages `/auth/*` sont **plein écran, sans header ni footer du site**
+> (composant `AuthShell` : logo cliquable, carte centrée, thème conservé).
+
 | Fichier | Rôle |
 |---|---|
 | `lib/authService.js` | Client fetch IAM.API : login/MFA/register/reset + refresh silencieux sur 401 |
+| `components/auth/AuthShell.js` | Coquille plein écran des pages auth (logo, carte, sans header/footer) |
 | `components/auth/CodeInput.js` | Saisie 6 chiffres partagée (auto-validation) |
 | `app/auth/login/page.js` | Connexion + **étape MFA** (sélecteur méthode, renvoi email) |
+| `app/auth/logout/page.js` | Déconnexion (révocation refresh token + redirection) |
 | `app/auth/register/page.js` | Inscription client (rôle CLIENT, auto-activé après confirmation) |
 | `app/auth/confirm-email/page.js` | Confirmation email (token + renvoi) |
-| `app/auth/recover-password/page.js` · `reset-password/page.js` | Récupération mot de passe |
+| `app/auth/recover-password/page.js` | Mot de passe oublié (envoi du token, réponse neutre) |
+| `app/auth/reset-password/page.js` | Nouveau mot de passe (token + validation) |
 | `app/account/page.js` | Espace client : profil + état MFA + déconnexion |
 | `app/account/security/page.js` | **Sécurité client** : setup QR Authenticator, Email OTP, historique connexions |
-| `components/layout/Menu.js` | Menu « Espace Client » (Connexion / Inscription / Mon Compte / Sécurité) |
+| `components/layout/Menu.js` | Menu « Espace Client » (Connexion / Inscription / Mon Compte / Sécurité / Déconnexion) |
 
 Accès : http://localhost:3001 → menu « Espace Client ». Les pages `/account*`
 sont protégées côté client (redirection vers `/auth/login` sans session valide).

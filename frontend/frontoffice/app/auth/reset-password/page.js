@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Layout from "@/components/layout/Layout"
+import Link from "next/link"
+import AuthShell from "@/components/auth/AuthShell"
 import authService from "@/lib/authService"
 
 function ResetPasswordInner() {
@@ -23,6 +24,10 @@ function ResetPasswordInner() {
             setError("Les mots de passe ne correspondent pas.")
             return
         }
+        if (password.length < 8) {
+            setError("Le mot de passe doit contenir au moins 8 caractères.")
+            return
+        }
         setLoading(true)
         try {
             await authService.resetPassword(email.trim(), token.trim(), password, confirm)
@@ -35,67 +40,56 @@ function ResetPasswordInner() {
     }
 
     return (
-        <section className="contact-two">
-            <div className="container">
-                <div className="row justify-content-center">
-                    <div className="col-xl-6 col-lg-8">
-                        <div className="section-title text-center">
-                            <div className="section-title__tagline-box">
-                                <span className="section-title__tagline">Espace Client XPARK</span>
-                            </div>
-                            <h2 className="section-title__title">Nouveau mot de passe</h2>
+        <AuthShell title="Nouveau mot de passe">
+            {error && <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>{error}</div>}
+
+            <form className="contact-two__form" onSubmit={handleSubmit}>
+                <div className="row">
+                    <div className="col-xl-12">
+                        <div className="contact-two__input-box">
+                            <input type="email" placeholder="Adresse email" value={email}
+                                onChange={(e) => setEmail(e.target.value)} required />
                         </div>
-
-                        {error && <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>{error}</div>}
-
-                        <form className="contact-two__form" onSubmit={handleSubmit}>
-                            <div className="row">
-                                <div className="col-xl-12">
-                                    <div className="contact-two__input-box">
-                                        <input type="email" placeholder="Adresse email" value={email}
-                                            onChange={(e) => setEmail(e.target.value)} required />
-                                    </div>
-                                </div>
-                                <div className="col-xl-12">
-                                    <div className="contact-two__input-box">
-                                        <input type="text" placeholder="Token (reçu par email)" value={token}
-                                            onChange={(e) => setToken(e.target.value)} required />
-                                    </div>
-                                </div>
-                                <div className="col-xl-6 col-lg-6">
-                                    <div className="contact-two__input-box">
-                                        <input type="password" placeholder="Nouveau mot de passe" value={password}
-                                            onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
-                                    </div>
-                                </div>
-                                <div className="col-xl-6 col-lg-6">
-                                    <div className="contact-two__input-box">
-                                        <input type="password" placeholder="Confirmer" value={confirm}
-                                            onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" />
-                                    </div>
-                                </div>
-                                <div className="col-xl-12">
-                                    <div className="contact-two__btn-box">
-                                        <button type="submit" className="thm-btn contact-two__btn" disabled={loading}>
-                                            {loading ? "Réinitialisation…" : "Réinitialiser"}<span />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+                    </div>
+                    <div className="col-xl-12">
+                        <div className="contact-two__input-box">
+                            <input type="text" placeholder="Token (reçu par email)" value={token}
+                                onChange={(e) => setToken(e.target.value)} required />
+                        </div>
+                    </div>
+                    <div className="col-xl-12">
+                        <div className="contact-two__input-box">
+                            <input type="password" placeholder="Nouveau mot de passe (8 caractères min)" value={password}
+                                onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
+                        </div>
+                    </div>
+                    <div className="col-xl-12">
+                        <div className="contact-two__input-box">
+                            <input type="password" placeholder="Confirmer le nouveau mot de passe" value={confirm}
+                                onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" />
+                        </div>
+                    </div>
+                    <div className="col-xl-12">
+                        <div className="contact-two__btn-box">
+                            <button type="submit" className="thm-btn contact-two__btn" disabled={loading}>
+                                {loading ? "Réinitialisation…" : "Réinitialiser"}<span />
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
+                    <Link href="/auth/recover-password">← Demander un nouveau token</Link>
+                    <Link href="/auth/login">Connexion</Link>
+                </div>
+            </form>
+        </AuthShell>
     )
 }
 
 export default function ResetPasswordPage() {
     return (
-        <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="RÉINITIALISATION">
-            <Suspense fallback={<div className="container" style={{ padding: 60 }}>Chargement…</div>}>
-                <ResetPasswordInner />
-            </Suspense>
-        </Layout>
+        <Suspense fallback={<div style={{ padding: 60, textAlign: "center" }}>Chargement…</div>}>
+            <ResetPasswordInner />
+        </Suspense>
     )
 }
