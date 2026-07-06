@@ -15,12 +15,14 @@ export default function RegisterPage() {
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const [emailTaken, setEmailTaken] = useState(false)
 
     const set = (key) => (e) => setForm({ ...form, [key]: e.target.value })
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError("")
+        setEmailTaken(false)
         if (form.password !== form.confirmPassword) {
             setError("Les mots de passe ne correspondent pas.")
             return
@@ -34,7 +36,13 @@ export default function RegisterPage() {
             await authService.register(form)
             router.push(`/auth/confirm-email?email=${encodeURIComponent(form.email.trim())}&sent=1`)
         } catch (err) {
-            setError(err.message || "Erreur lors de l'inscription.")
+            // 409 = email déjà utilisé → guider vers connexion / mot de passe oublié
+            if (err.status === 409) {
+                setEmailTaken(true)
+                setError(err.message || "Cette adresse email est déjà utilisée.")
+            } else {
+                setError(err.message || "Erreur lors de l'inscription.")
+            }
         } finally {
             setLoading(false)
         }
@@ -45,6 +53,12 @@ export default function RegisterPage() {
             {error && (
                 <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>
                     {error}
+                    {emailTaken && (
+                        <div style={{ marginTop: 10, display: "flex", gap: 15, justifyContent: "center" }}>
+                            <Link href="/auth/login" style={{ fontWeight: 600 }}>Se connecter</Link>
+                            <Link href="/auth/recover-password" style={{ fontWeight: 600 }}>Mot de passe oublié ?</Link>
+                        </div>
+                    )}
                 </div>
             )}
 

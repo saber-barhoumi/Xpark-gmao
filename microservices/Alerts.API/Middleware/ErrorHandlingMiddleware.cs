@@ -28,7 +28,9 @@ public class ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandling
 
         // Never expose raw internal details (stack traces, EF model errors) to the client.
         // Only KeyNotFoundException and ArgumentException carry user-meaningful messages.
-        var clientMessage = status == HttpStatusCode.InternalServerError || status == HttpStatusCode.Conflict
+        // 409 Conflict = regle metier volontaire (ex: "Email deja utilise.") --
+        // le message est destine a l'utilisateur. Seul le 500 est masque.
+        var clientMessage = status == HttpStatusCode.InternalServerError
             ? "Une erreur interne est survenue."
             : message;
 
