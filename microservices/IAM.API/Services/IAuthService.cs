@@ -14,4 +14,6 @@ public interface IAuthService
     Task                  SetPinAsync(long userId, SetPinDto dto);
     Task<AuthResponseDto> LoginPinAsync(LoginPinDto dto);
     Task<AuthResponseDto> UnlockSessionAsync(long userId, UnlockSessionDto dto);
+    Task<AuthResponseDto> VerifyMfaAsync(MfaVerifyRequestDto dto, string ipAddress, string? userAgent);
+    Task                  ResendMfaEmailOtpAsync(string mfaToken);
 }

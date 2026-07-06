@@ -22,6 +22,15 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
+  // ─── MFA (vérification en deux étapes) ───
+  const [step, setStep] = useState<'credentials' | 'mfa'>('credentials')
+  const [mfaToken, setMfaToken] = useState('')
+  const [mfaMethods, setMfaMethods] = useState<string[]>([])
+  const [mfaMethod, setMfaMethod] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaError, setMfaError] = useState('')
+  const [resendCountdown, setResendCountdown] = useState(0)
+
   // Afficher message de succès si venant de confirmation
   useEffect(() => {
     if (confirmed === 'true') {
@@ -35,6 +44,16 @@ const LoginPage = () => {
     const response = await execute(() => authService.login(credentials))
 
     if (response) {
+      // ─── Étape 2 requise : vérification MFA (FICHE Authentication & Security) ───
+      if (response.requiresMfa && response.mfaToken) {
+        setMfaToken(response.mfaToken)
+        setMfaMethods(response.mfaMethods ?? [])
+        setMfaMethod(response.mfaMethods?.[0] ?? 'AUTHENTICATOR')
+        setStep('mfa')
+        setLoading(false)
+        return
+      }
+
       // Save token and user info
       localStorage.setItem('xpark_token', response.token)
       localStorage.setItem('xpark_user', JSON.stringify({
@@ -42,10 +61,52 @@ const LoginPage = () => {
         id: response.idUtilisateur,
         role: response.role
       }))
-      
+
       window.location.href = '/'
     }
     setLoading(false)
+  }
+
+  // ─── Vérification du code MFA (TOTP ou email) ───
+  const handleMfaVerify = async (code: string = mfaCode) => {
+    if (code.length !== 6) return
+    setLoading(true)
+    setMfaError('')
+    try {
+      const response = await authService.verifyMfa(mfaToken, mfaMethod, code)
+      localStorage.setItem('xpark_user', JSON.stringify({
+        email: response.email,
+        id: response.idUtilisateur,
+        role: response.role
+      }))
+      window.location.href = '/'
+    } catch (err: any) {
+      setMfaError(err.response?.data?.message || 'Code de vérification invalide.')
+      setMfaCode('')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMfaCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+    setMfaCode(value)
+    if (value.length === 6) handleMfaVerify(value)   // auto-submit à 6 chiffres
+  }
+
+  const handleResendEmail = async () => {
+    try {
+      await authService.resendMfaEmail(mfaToken)
+      setResendCountdown(60)
+      const timer = setInterval(() => {
+        setResendCountdown(prev => {
+          if (prev <= 1) { clearInterval(timer); return 0 }
+          return prev - 1
+        })
+      }, 1000)
+    } catch {
+      setMfaError('Erreur lors du renvoi du code.')
+    }
   }
 
   return (
@@ -59,6 +120,85 @@ const LoginPage = () => {
               <img src={logo} alt="logo light" width={130} height={26} className="logo-light" style={{ objectFit: 'contain' }} />
             </a>
             <p className="fw-semibold mb-4 text-center text-muted fs-15">XPARK GMAO - Portail Administration</p>
+            {step === 'mfa' ? (
+              <Card className="overflow-hidden text-center p-xxl-4 p-3 mb-0">
+                <h4 className="fw-semibold mb-1 fs-18">
+                  <i className="ri-shield-keyhole-line me-1 text-primary"></i>
+                  Vérification en deux étapes
+                </h4>
+                <p className="text-muted fs-14 mb-3">
+                  Compte : <strong>{email}</strong>
+                </p>
+
+                {mfaMethods.length > 1 && (
+                  <div className="d-flex gap-2 justify-content-center mb-3">
+                    {mfaMethods.map(m => (
+                      <button
+                        key={m} type="button"
+                        className={`btn btn-sm ${mfaMethod === m ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => {
+                          setMfaMethod(m); setMfaCode(''); setMfaError('')
+                          // Envoi automatique du code quand on choisit la méthode Email
+                          if (m === 'EMAIL' && mfaMethods[0] !== 'EMAIL' && resendCountdown === 0) handleResendEmail()
+                        }}
+                      >
+                        {m === 'AUTHENTICATOR' ? <><i className="ri-smartphone-line me-1"></i>Authenticator</>
+                          : <><i className="ri-mail-line me-1"></i>Email</>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-muted fs-13 mb-2">
+                  {mfaMethod === 'AUTHENTICATOR'
+                    ? 'Entrez le code à 6 chiffres de votre application Authenticator (Google/Microsoft).'
+                    : 'Un code à 6 chiffres vous a été envoyé par email (valide 10 minutes).'}
+                </p>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className="form-control text-center fs-3 fw-bold mb-2"
+                  style={{ letterSpacing: '0.5em' }}
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={handleMfaCodeChange}
+                  placeholder="000000"
+                  disabled={loading}
+                  autoFocus
+                />
+
+                {mfaError && <p className="text-danger fs-13 mb-2">{mfaError}</p>}
+
+                <div className="d-grid gap-2 mb-2">
+                  <button
+                    className="btn btn-primary fw-semibold"
+                    onClick={() => handleMfaVerify()}
+                    disabled={mfaCode.length !== 6 || loading}
+                  >
+                    {loading
+                      ? <><span className="spinner-border spinner-border-sm me-2"></span>Vérification…</>
+                      : 'Vérifier'}
+                  </button>
+                </div>
+
+                {mfaMethod === 'EMAIL' && (
+                  resendCountdown > 0
+                    ? <p className="text-muted fs-13 mb-2">Renvoyer le code dans {resendCountdown}s</p>
+                    : <button type="button" className="btn btn-link fs-13 p-0 mb-2" onClick={handleResendEmail}>
+                        Renvoyer le code par email
+                      </button>
+                )}
+
+                <button
+                  type="button"
+                  className="btn btn-link fs-13 text-muted p-0"
+                  onClick={() => { setStep('credentials'); setMfaCode(''); setMfaError('') }}
+                >
+                  ← Retour à la connexion
+                </button>
+              </Card>
+            ) : (
             <Card className="overflow-hidden text-center p-xxl-4 p-3 mb-0">
               <h4 className="fw-semibold mb-3 fs-18">Connexion à votre compte</h4>
 
@@ -163,6 +303,7 @@ const LoginPage = () => {
                 <a href="/auth/register" className="fw-semibold text-danger ms-1">S'inscrire !</a>
               </p>
             </Card>
+            )}
             <p className="mt-4 text-center mb-0">
               © XPARK GMAO - <span className="fw-bold text-uppercase fs-12">Tous droits réservés</span>
             </p>

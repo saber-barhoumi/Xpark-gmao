@@ -12,6 +12,7 @@ public class AuthService(
     IamDbContext     db,
     IJwtService      jwt,
     IEmailService    email,
+    IMfaService      mfa,
     IPublishEndpoint bus,
     IConfiguration   config) : IAuthService
 {
@@ -31,6 +32,8 @@ public class AuthService(
                 if (user.FailedLoginAttempts >= 5)
                     user.AccountLockedUntil = DateTime.UtcNow.AddMinutes(15);
                 await db.SaveChangesAsync();
+                await mfa.RecordLoginAsync(user.IdUtilisateur, "PASSWORD", null, ipAddress, null,
+                    success: false, failureReason: "Mot de passe incorrect");
             }
             throw new UnauthorizedAccessException("Email ou mot de passe incorrect.");
         }
@@ -55,13 +58,83 @@ public class AuthService(
 
         user.FailedLoginAttempts = 0;
         user.AccountLockedUntil  = null;
+        await db.SaveChangesAsync();
+
+        // ── MFA challenge (FICHE — login étape 2) ─────────────────────────────
+        // Mot de passe OK, mais si l'utilisateur a activé un 2e facteur on ne
+        // délivre PAS encore les jetons : on renvoie un jeton "pending" (5 min)
+        // que /auth/mfa/verify échangera contre le vrai JWT.
+        var mfaMethods = await mfa.GetEnabledMethodsAsync(user.IdUtilisateur);
+        if (mfaMethods.Count > 0)
+        {
+            if (mfaMethods[0] == "EMAIL")
+                await mfa.SendEmailOtpAsync(user);   // envoi automatique du code
+
+            await mfa.AuditAsync(user.IdUtilisateur, "MFA_CHALLENGE",
+                $"Mot de passe validé — 2e facteur requis ({string.Join(",", mfaMethods)})", ipAddress);
+
+            return new AuthResponseDto("", "", user.Email, user.Role.ToString(), user.Statut.ToString(),
+                user.Nom, user.Prenom, user.IdUtilisateur, DateTime.UtcNow,
+                RequiresMfa: true,
+                MfaMethods:  mfaMethods,
+                MfaToken:    jwt.GenerateMfaPendingToken(user),
+                Message:     "Vérification en deux étapes requise.");
+        }
+
         user.LastLoginAt         = DateTime.UtcNow;
         user.LastLoginIp         = ipAddress;
         user.RefreshToken        = jwt.GenerateRefreshToken();
         user.RefreshTokenExpiry  = DateTime.UtcNow.AddDays(_refreshDays);
         await db.SaveChangesAsync();
 
+        await mfa.RecordLoginAsync(user.IdUtilisateur, "PASSWORD", null, ipAddress, null, success: true);
         return BuildAuthResponse(user);
+    }
+
+    // ── MFA verify : échange (jeton pending + code) ↔ vrais jetons ───────────
+    public async Task<AuthResponseDto> VerifyMfaAsync(MfaVerifyRequestDto dto, string ipAddress, string? userAgent)
+    {
+        var userId = jwt.ValidateMfaPendingToken(dto.MfaToken)
+            ?? throw new UnauthorizedAccessException("Session MFA expirée. Reconnectez-vous.");
+
+        var user = await db.Utilisateurs.FindAsync(userId)
+            ?? throw new UnauthorizedAccessException("Utilisateur introuvable.");
+
+        var method = dto.Method.ToUpperInvariant();
+        bool valid = method switch
+        {
+            "AUTHENTICATOR" => await mfa.VerifyAuthenticatorCodeAsync(userId, dto.Code),
+            "EMAIL"         => await mfa.VerifyEmailOtpAsync(userId, dto.Code),
+            _               => false,
+        };
+
+        if (!valid)
+        {
+            await mfa.RecordLoginAsync(userId, "PASSWORD", method, ipAddress, userAgent,
+                success: false, failureReason: $"Code {method} invalide");
+            await mfa.AuditAsync(userId, "MFA_FAILED", $"Code {method} invalide", ipAddress);
+            throw new UnauthorizedAccessException("Code de vérification invalide.");
+        }
+
+        user.LastLoginAt        = DateTime.UtcNow;
+        user.LastLoginIp        = ipAddress;
+        user.RefreshToken       = jwt.GenerateRefreshToken();
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshDays);
+        await db.SaveChangesAsync();
+
+        await mfa.RecordLoginAsync(userId, "PASSWORD", method, ipAddress, userAgent, success: true);
+        await mfa.AuditAsync(userId, "MFA_VERIFIED", $"Connexion complétée via {method}", ipAddress);
+
+        return BuildAuthResponse(user);
+    }
+
+    public async Task ResendMfaEmailOtpAsync(string mfaToken)
+    {
+        var userId = jwt.ValidateMfaPendingToken(mfaToken)
+            ?? throw new UnauthorizedAccessException("Session MFA expirée. Reconnectez-vous.");
+        var user = await db.Utilisateurs.FindAsync(userId)
+            ?? throw new UnauthorizedAccessException("Utilisateur introuvable.");
+        await mfa.SendEmailOtpAsync(user);
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto)

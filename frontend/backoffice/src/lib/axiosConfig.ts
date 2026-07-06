@@ -59,13 +59,45 @@ api.interceptors.response.use(
 
     // --- CAS CRITIQUE : 401 Session Expirée ---
     if (status === 401) {
-      // Sauvegarder l'URL actuelle pour y revenir après le login
+      // 1. Tentative de renouvellement silencieux via le refresh token (FICHE §3)
+      //    — une seule tentative par requête (flag _retriedRefresh) pour éviter les boucles.
+      const refreshToken = localStorage.getItem('xpark_refresh_token');
+      const isAuthCall = (config?.url ?? '').includes('/auth/');
+      if (refreshToken && !isAuthCall && !config._retriedRefresh) {
+        return axios
+          .post(`${API_URL}/auth/refresh-token/`, { refreshToken })
+          .then((res) => {
+            const auth = res.data?.data ?? res.data;
+            if (auth?.token) {
+              localStorage.setItem('xpark_token', auth.token);
+              if (auth.refreshToken) localStorage.setItem('xpark_refresh_token', auth.refreshToken);
+              // Rejouer la requête d'origine avec le nouveau token
+              config._retriedRefresh = true;
+              config.headers.Authorization = `Bearer ${auth.token}`;
+              return api(config);
+            }
+            throw error;
+          })
+          .catch(() => {
+            localStorage.removeItem('xpark_token');
+            localStorage.removeItem('xpark_refresh_token');
+            localStorage.removeItem('xpark_user');
+            if (!window.location.pathname.includes('/auth/login')) {
+              sessionStorage.setItem('redirectUrl', window.location.pathname);
+              window.location.href = '/auth/login';
+            }
+            return Promise.reject(error);
+          });
+      }
+
+      // 2. Pas de refresh possible → déconnexion classique
       const currentPath = window.location.pathname;
       if (!currentPath.includes('/auth/login')) {
         sessionStorage.setItem('redirectUrl', currentPath);
       }
 
       localStorage.removeItem('xpark_token');
+      localStorage.removeItem('xpark_refresh_token');
       localStorage.removeItem('xpark_user');
 
       // NE rediriger que si nous ne sommes pas déjà sur la page de login

@@ -24,11 +24,18 @@ public class EmailService(IConfiguration config) : IEmailService
                <p>Votre token: <strong>{token}</strong></p>
                <p>Ce token expire dans 1h.</p>");
 
+    public Task<bool> SendMfaOtpAsync(string toEmail, string otp) =>
+        SendAsync(toEmail, "Code de vérification MFA - XparkGMAO",
+            $@"<h2>Code de vérification XPARK</h2>
+               <p>Votre code de connexion est: <strong style=""font-size:22px;letter-spacing:4px"">{otp}</strong></p>
+               <p>Valide pendant 10 minutes.</p>
+               <p>Ne partagez ce code avec personne !</p>");
+
     public Task SendWelcomeAsync(string toEmail, string nom) =>
         SendAsync(toEmail, "Bienvenue sur XparkGMAO",
             $"<h2>Bienvenue {nom}!</h2><p>Votre compte a été approuvé.</p>");
 
-    private async Task SendAsync(string toEmail, string subject, string htmlBody)
+    private async Task<bool> SendAsync(string toEmail, string subject, string htmlBody)
     {
         try
         {
@@ -43,11 +50,13 @@ public class EmailService(IConfiguration config) : IEmailService
             await smtp.AuthenticateAsync(_username, _password);
             await smtp.SendAsync(msg);
             await smtp.DisconnectAsync(true);
+            return true;
         }
         catch (Exception ex)
         {
             // Log and continue – email failure should not crash the app
             Console.WriteLine($"[EmailService] Failed to send email: {ex.Message}");
+            return false;
         }
     }
 }

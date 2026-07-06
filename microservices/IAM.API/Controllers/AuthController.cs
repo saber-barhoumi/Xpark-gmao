@@ -14,8 +14,74 @@ public class AuthController(
     IAuthService  authService,
     IUserService  userService,
     IEmailService emailService,
+    IMfaService   mfaService,
     IamDbContext  db) : ControllerBase
 {
+    private string ClientIp   => HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    private string? UserAgent => Request.Headers.UserAgent.FirstOrDefault();
+    private long   CurrentUserId => long.Parse(User.FindFirst("userId")!.Value);
+
+    // ── MFA — vérification lors du login (FICHE §6, étape 2) ─────────────────
+
+    /// <summary>Échange (jeton MFA pending + code TOTP/email) contre les vrais jetons JWT.</summary>
+    [HttpPost("mfa/verify")]
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> VerifyMfa([FromBody] MfaVerifyRequestDto dto)
+    {
+        var result = await authService.VerifyMfaAsync(dto, ClientIp, UserAgent);
+        return Ok(ApiResponse<AuthResponseDto>.Ok(result));
+    }
+
+    /// <summary>Renvoie un code OTP par email pendant le challenge MFA.</summary>
+    [HttpPost("mfa/email/resend")]
+    public async Task<ActionResult<ApiResponse<string>>> ResendMfaEmail([FromBody] MfaResendEmailDto dto)
+    {
+        await authService.ResendMfaEmailOtpAsync(dto.MfaToken);
+        return Ok(ApiResponse<string>.Ok("Code renvoyé par email."));
+    }
+
+    // ── MFA — paramètres de sécurité (utilisateur connecté) ──────────────────
+
+    [Authorize]
+    [HttpGet("mfa/settings")]
+    public async Task<ActionResult<ApiResponse<MfaSettingsDto>>> GetMfaSettings()
+        => Ok(ApiResponse<MfaSettingsDto>.Ok(await mfaService.GetSettingsAsync(CurrentUserId)));
+
+    /// <summary>Démarre la configuration Authenticator : renvoie secret + QR code.</summary>
+    [Authorize]
+    [HttpPost("mfa/authenticator/setup")]
+    public async Task<ActionResult<ApiResponse<AuthenticatorSetupDto>>> SetupAuthenticator()
+    {
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "user@xpark.tn";
+        var setup = await mfaService.BeginAuthenticatorSetupAsync(CurrentUserId, email, ClientIp);
+        return Ok(ApiResponse<AuthenticatorSetupDto>.Ok(setup));
+    }
+
+    /// <summary>Confirme le setup avec un premier code TOTP valide → active le MFA.</summary>
+    [Authorize]
+    [HttpPost("mfa/authenticator/confirm")]
+    public async Task<ActionResult<ApiResponse<MfaSettingsDto>>> ConfirmAuthenticator([FromBody] AuthenticatorConfirmDto dto)
+        => Ok(ApiResponse<MfaSettingsDto>.Ok(
+            await mfaService.ConfirmAuthenticatorAsync(CurrentUserId, dto.Code, ClientIp)));
+
+    [Authorize]
+    [HttpPost("mfa/authenticator/disable")]
+    public async Task<ActionResult<ApiResponse<MfaSettingsDto>>> DisableAuthenticator()
+        => Ok(ApiResponse<MfaSettingsDto>.Ok(
+            await mfaService.DisableAuthenticatorAsync(CurrentUserId, ClientIp)));
+
+    [Authorize]
+    [HttpPost("mfa/email/toggle")]
+    public async Task<ActionResult<ApiResponse<MfaSettingsDto>>> ToggleEmailOtp()
+        => Ok(ApiResponse<MfaSettingsDto>.Ok(
+            await mfaService.ToggleEmailOtpAsync(CurrentUserId, ClientIp)));
+
+    /// <summary>Historique des connexions de l'utilisateur (FICHE §5 LoginHistory).</summary>
+    [Authorize]
+    [HttpGet("security/login-history")]
+    public async Task<ActionResult<ApiResponse<List<LoginHistoryDto>>>> GetLoginHistory([FromQuery] int limit = 20)
+        => Ok(ApiResponse<List<LoginHistoryDto>>.Ok(
+            await mfaService.GetLoginHistoryAsync(CurrentUserId, Math.Min(limit, 100))));
+
     // ── Auth core ─────────────────────────────────────────────────────────────
 
     [HttpPost("login")]

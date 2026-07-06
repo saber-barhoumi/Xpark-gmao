@@ -51,6 +51,33 @@ export interface AuthResponse {
     requiresAdminApproval?: boolean;
     isReRegistration?: boolean;
     message?: string;
+    // ─── MFA challenge (étape 2 du login) ───
+    requiresMfa?: boolean;
+    mfaMethods?: string[];
+    mfaToken?: string;
+}
+
+export interface MfaSettings {
+    authenticatorEnabled: boolean;
+    emailOtpEnabled: boolean;
+    defaultMethod: string;
+    mfaRequired: boolean;
+}
+
+export interface AuthenticatorSetup {
+    secret: string;
+    otpAuthUri: string;
+    qrCodeDataUri: string;
+}
+
+export interface LoginHistoryEntry {
+    loggedInAt: string;
+    loginMethod: string;
+    mfaMethod?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    isSuccessful: boolean;
+    failureReason?: string;
 }
 
 export interface ResetPasswordRequest {
@@ -111,11 +138,63 @@ export const authService = {
             const response = await authApi.post<any>('/auth/login', data);
             // Unwrap ApiResponse<T> envelope: { success, data: AuthResponse, ... }
             const authData: AuthResponse = response.data?.data ?? response.data;
-            authService.saveSession(authData);
+            // Ne pas créer de session tant que le 2e facteur n'est pas vérifié
+            if (authData.token && !authData.requiresMfa) {
+                authService.saveSession(authData);
+            }
             return authData;
         } catch (error: any) {
             throw error;
         }
+    },
+
+    // ─── MFA (vérification en deux étapes) ──────────────────────────────────
+
+    /** Étape 2 du login : échange (jeton MFA + code) contre les vrais jetons */
+    verifyMfa: async (mfaToken: string, method: string, code: string): Promise<AuthResponse> => {
+        const response = await authApi.post<any>('/auth/mfa/verify', { mfaToken, method, code });
+        const authData: AuthResponse = response.data?.data ?? response.data;
+        authService.saveSession(authData);
+        return authData;
+    },
+
+    /** Renvoyer le code OTP email pendant le challenge MFA */
+    resendMfaEmail: async (mfaToken: string): Promise<void> => {
+        await authApi.post('/auth/mfa/email/resend', { mfaToken });
+    },
+
+    /** Paramètres MFA de l'utilisateur connecté */
+    getMfaSettings: async (): Promise<MfaSettings> => {
+        const response = await authApi.get<any>('/auth/mfa/settings');
+        return response.data?.data ?? response.data;
+    },
+
+    /** Démarre le setup Authenticator (secret + QR code) */
+    setupAuthenticator: async (): Promise<AuthenticatorSetup> => {
+        const response = await authApi.post<any>('/auth/mfa/authenticator/setup');
+        return response.data?.data ?? response.data;
+    },
+
+    /** Confirme le setup avec le premier code TOTP → active le MFA */
+    confirmAuthenticator: async (code: string): Promise<MfaSettings> => {
+        const response = await authApi.post<any>('/auth/mfa/authenticator/confirm', { code });
+        return response.data?.data ?? response.data;
+    },
+
+    disableAuthenticator: async (): Promise<MfaSettings> => {
+        const response = await authApi.post<any>('/auth/mfa/authenticator/disable');
+        return response.data?.data ?? response.data;
+    },
+
+    toggleEmailOtp: async (): Promise<MfaSettings> => {
+        const response = await authApi.post<any>('/auth/mfa/email/toggle');
+        return response.data?.data ?? response.data;
+    },
+
+    /** Historique des connexions (FICHE LoginHistory) */
+    getLoginHistory: async (limit = 20): Promise<LoginHistoryEntry[]> => {
+        const response = await authApi.get<any>(`/auth/security/login-history?limit=${limit}`);
+        return response.data?.data ?? response.data;
     },
 
     /** Inscription d'un nouvel utilisateur */
@@ -210,6 +289,7 @@ export const authService = {
     // ─── HELPERS ────────────────────────────────────────────────────────────
     saveSession: (data: AuthResponse): void => {
         localStorage.setItem('xpark_token', data.token);
+        if (data.refreshToken) localStorage.setItem('xpark_refresh_token', data.refreshToken);
 
         // CRITIQUE : Ne jamais faire confiance au rôle renvoyé en clair s'il diffère du token
         const secureRole = getRoleFromToken(data.token) || data.role;
@@ -220,6 +300,7 @@ export const authService = {
 
     clearSession: (): void => {
         localStorage.removeItem('xpark_token');
+        localStorage.removeItem('xpark_refresh_token');
         localStorage.removeItem('xpark_user');
     },
 

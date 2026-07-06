@@ -10,6 +10,12 @@ public class IamDbContext(DbContextOptions<IamDbContext> options) : DbContext(op
     public DbSet<Client>      Clients      => Set<Client>();
     public DbSet<Employee>    Employees    => Set<Employee>();
 
+    // ── MFA & sécurité (tables créées au démarrage — SQL idempotent) ──
+    public DbSet<UserMfaSettings>   MfaSettings   => Set<UserMfaSettings>();
+    public DbSet<EmailOtp>          EmailOtps     => Set<EmailOtp>();
+    public DbSet<LoginHistoryEntry> LoginHistory  => Set<LoginHistoryEntry>();
+    public DbSet<AuthAuditLog>      AuthAuditLogs => Set<AuthAuditLog>();
+
     protected override void OnModelCreating(ModelBuilder mb)
     {
         mb.Entity<Utilisateur>(e =>
@@ -49,6 +55,34 @@ public class IamDbContext(DbContextOptions<IamDbContext> options) : DbContext(op
             e.Property(em => em.CategoriePermis).HasConversion<string>();
             e.Property(em => em.Specialty).HasConversion<string>();
             e.Property(em => em.Level).HasConversion<string>();
+        });
+
+        mb.Entity<UserMfaSettings>(e =>
+        {
+            e.ToTable("UserMfaSettings");
+            e.HasKey(s => s.Id);
+            e.HasIndex(s => s.UserId).IsUnique();
+        });
+
+        mb.Entity<EmailOtp>(e =>
+        {
+            e.ToTable("EmailOtps");
+            e.HasKey(o => o.Id);
+            e.HasIndex(o => new { o.UserId, o.CreatedAt });
+        });
+
+        mb.Entity<LoginHistoryEntry>(e =>
+        {
+            e.ToTable("LoginHistory");
+            e.HasKey(h => h.Id);
+            e.HasIndex(h => new { h.UserId, h.LoggedInAt });
+        });
+
+        mb.Entity<AuthAuditLog>(e =>
+        {
+            e.ToTable("AuthAuditLogs");
+            e.HasKey(a => a.Id);
+            e.HasIndex(a => new { a.UserId, a.CreatedAt });
         });
 
         base.OnModelCreating(mb);

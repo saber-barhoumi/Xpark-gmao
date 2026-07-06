@@ -30,6 +30,16 @@ export const MENU_ITEMS: MenuItemType[] = [
     url: '/monitoring/iboa',
   },
   {
+    key: 'security',
+    label: 'Sécurité (MFA)',
+    icon: 'ri:shield-keyhole-line',
+    badge: {
+      text: 'New',
+      variant: 'warning',
+    },
+    url: '/security',
+  },
+  {
     key: 'chat',
     label: 'Chat',
     icon: 'tabler:message',
