@@ -107,6 +107,24 @@ public class UserManagementController(IUserService userService, IamDbContext db)
         return Ok(ApiResponse<string>.Ok("Compte supprimé définitivement."));
     }
 
+    /// <summary>Confirme manuellement l'email d'un compte (utile quand le SMTP
+    /// n'a pas pu délivrer le code de confirmation).</summary>
+    [HttpPost("{id}/confirm-email")]
+    public async Task<ActionResult<ApiResponse<string>>> ConfirmEmailManually(long id)
+    {
+        var user = await db.Utilisateurs.FindAsync(id);
+        if (user is null) return NotFound(ApiResponse<string>.Fail("Utilisateur introuvable."));
+
+        user.EmailConfirmed               = true;
+        user.EmailConfirmationToken       = null;
+        user.EmailConfirmationTokenExpiry = null;
+        if (user.Role == Role.CLIENT && user.Statut == StatutUtilisateur.EN_ATTENTE)
+            user.Statut = StatutUtilisateur.ACTIF;
+        await db.SaveChangesAsync();
+
+        return Ok(ApiResponse<string>.Ok("Email confirmé manuellement."));
+    }
+
     [HttpPost("{id}/suspend")]
     public async Task<ActionResult<ApiResponse<string>>> Suspend(long id)
     {

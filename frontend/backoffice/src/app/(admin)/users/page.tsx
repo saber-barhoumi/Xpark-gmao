@@ -99,6 +99,23 @@ export default function UsersPage() {
         }
     }
 
+    const confirmEmail = async (u: AccountUser) => {
+        const confirm = await Swal.fire({
+            title: "Confirmer l'email manuellement ?",
+            text: `${u.email} — utile si le code de confirmation n'a pas été reçu (SMTP indisponible).`,
+            icon: 'question', showCancelButton: true,
+            confirmButtonText: 'Confirmer', cancelButtonText: 'Annuler',
+        })
+        if (!confirm.isConfirmed) return
+        try {
+            await userService.confirmEmailManually(u.idUtilisateur)
+            await load()
+            Swal.fire('Confirmé', `L'email de ${u.prenom} ${u.nom} est confirmé — le compte peut se connecter.`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Action impossible.', 'error')
+        }
+    }
+
     const deleteUser = async (u: AccountUser) => {
         const confirm = await Swal.fire({
             title: 'Supprimer définitivement ?',
@@ -202,6 +219,13 @@ export default function UsersPage() {
                                                     onClick={() => openEdit(u)}>
                                                     <IconifyIcon icon="ri:pencil-line" />
                                                 </Button>
+                                                {!u.emailConfirmed && (
+                                                    <Button variant="outline-info" size="sm"
+                                                        title="Confirmer l'email manuellement (code non reçu)"
+                                                        onClick={() => confirmEmail(u)}>
+                                                        <IconifyIcon icon="ri:mail-check-line" />
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant={u.statut === 'ACTIF' ? 'outline-warning' : 'outline-success'}
                                                     size="sm"

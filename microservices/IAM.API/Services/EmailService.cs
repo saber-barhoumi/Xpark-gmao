@@ -12,13 +12,13 @@ public class EmailService(IConfiguration config) : IEmailService
     private readonly string _password = config["Email:Password"]!;
     private readonly string _from     = config["Email:From"]!;
 
-    public Task SendEmailConfirmationAsync(string toEmail, string token) =>
+    public Task<bool> SendEmailConfirmationAsync(string toEmail, string token) =>
         SendAsync(toEmail, "Confirmez votre email - XparkGMAO",
             $@"<h2>Bienvenue sur XparkGMAO</h2>
                <p>Votre code de confirmation: <strong>{token}</strong></p>
                <p>Ce code expire dans 24h.</p>");
 
-    public Task SendPasswordResetAsync(string toEmail, string token) =>
+    public Task<bool> SendPasswordResetAsync(string toEmail, string token) =>
         SendAsync(toEmail, "Réinitialisation de mot de passe - XparkGMAO",
             $@"<h2>Réinitialisation de mot de passe</h2>
                <p>Votre token: <strong>{token}</strong></p>

@@ -14,7 +14,8 @@ public class AuthService(
     IEmailService    email,
     IMfaService      mfa,
     IPublishEndpoint bus,
-    IConfiguration   config) : IAuthService
+    IConfiguration   config,
+    ILogger<AuthService> logger) : IAuthService
 {
     private readonly int _refreshDays = int.Parse(config["Jwt:RefreshTokenExpiryDays"] ?? "7");
 
@@ -161,7 +162,12 @@ public class AuthService(
         db.Utilisateurs.Add(user);
         await db.SaveChangesAsync();
 
-        await email.SendEmailConfirmationAsync(user.Email, user.EmailConfirmationToken!);
+        var confirmationDelivered = await email.SendEmailConfirmationAsync(user.Email, user.EmailConfirmationToken!);
+        // Mode DEV : sans SMTP fonctionnel, le token est visible dans les logs
+        // du conteneur (docker logs xpark-iam-api) pour debloquer l'inscription.
+        if (!confirmationDelivered)
+            logger.LogWarning("[DEV] Token de confirmation pour {Email}: {Token}",
+                user.Email, user.EmailConfirmationToken);
         await bus.Publish(new UserRegisteredEvent(user.IdUtilisateur, user.Email, user.Nom, user.Prenom, user.Role.ToString()));
 
         return new AuthResponseDto("", "", user.Email, user.Role.ToString(), user.Statut.ToString(),
@@ -225,7 +231,10 @@ public class AuthService(
         user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
         await db.SaveChangesAsync();
 
-        await email.SendPasswordResetAsync(user.Email, user.PasswordResetToken!);
+        var resetDelivered = await email.SendPasswordResetAsync(user.Email, user.PasswordResetToken!);
+        if (!resetDelivered)
+            logger.LogWarning("[DEV] Token de reset password pour {Email}: {Token}",
+                user.Email, user.PasswordResetToken);
     }
 
     public async Task ResetPasswordAsync(ResetPasswordDto dto)

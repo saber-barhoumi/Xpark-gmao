@@ -50,6 +50,11 @@ export const userService = {
         await api.delete(`/user-management/${userId}`);
     },
 
+    /** Confirme manuellement l'email (quand le SMTP n'a pas délivré le code) */
+    confirmEmailManually: async (userId: number): Promise<void> => {
+        await api.post(`/user-management/${userId}/confirm-email`);
+    },
+
     suspendUser: async (userId: number): Promise<void> => {
         await api.post(`/user-management/${userId}/suspend`);
     },

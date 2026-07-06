@@ -224,7 +224,9 @@ public class AuthController(
         var token = Guid.NewGuid().ToString("N");
         user.EmailConfirmationToken = token;
         await db.SaveChangesAsync();
-        await emailService.SendEmailConfirmationAsync(user.Email, token);
+        var delivered = await emailService.SendEmailConfirmationAsync(user.Email, token);
+        if (!delivered)
+            Console.WriteLine($"[DEV] Token de confirmation pour {user.Email}: {token}");
         return Ok(ApiResponse<string>.Ok("Email de confirmation envoyé."));
     }
 
