@@ -396,6 +396,8 @@ services:
         - NEXT_PUBLIC_API_URL=http://localhost:5001/api
         # CalculateurPrixTrajetIA (villes, distances, estimation prix)
         - NEXT_PUBLIC_AI_API_URL=http://localhost:8000
+        # Mission.API direct (reservations + suivi missions client)
+        - NEXT_PUBLIC_MISSION_API_URL=http://localhost:5003/api
     container_name: xpark-frontoffice
     ports:
       - "3001:3000"

@@ -10,13 +10,15 @@
 import { apiFetch } from "./authService"
 
 const AI_API = process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"
+// Les missions vivent sur Mission.API (:5003), pas sur IAM.API (:5001)
+const MISSION_API = process.env.NEXT_PUBLIC_MISSION_API_URL || "http://localhost:5003/api"
 
 export const missionService = {
     /** Missions du client connecté */
-    getMyMissions: () => apiFetch("GET", "/missions/my"),
+    getMyMissions: () => apiFetch("GET", `${MISSION_API}/missions/my`),
 
     /** Demande de réservation → mission EN_ATTENTE */
-    createRequest: (data) => apiFetch("POST", "/missions/client-request", data),
+    createRequest: (data) => apiFetch("POST", `${MISSION_API}/missions/client-request`, data),
 }
 
 // ── IA prix de trajet (service public, sans auth) ───────────────────────────

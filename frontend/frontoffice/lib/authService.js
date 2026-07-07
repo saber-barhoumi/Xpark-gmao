@@ -63,7 +63,9 @@ async function request(method, path, body = null, { auth = false, retry = true }
         if (token) headers.Authorization = `Bearer ${token}`
     }
 
-    const res = await fetch(`${API_URL}${path}`, {
+    // Chemin relatif → IAM.API ; URL absolue → autre microservice (Mission.API…)
+    const url = path.startsWith("http") ? path : `${API_URL}${path}`
+    const res = await fetch(url, {
         method,
         headers,
         body: body !== null ? JSON.stringify(body) : undefined,
