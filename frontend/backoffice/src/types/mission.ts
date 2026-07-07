@@ -21,6 +21,9 @@ export interface Mission {
     vehiculeId?: number | null;
     vehiculeImmatriculation?: string;
     chauffeurNom?: string;
+    // Client (frontoffice) à l'origine de la réservation
+    clientIdUtilisateur?: number | null;
+    clientNom?: string | null;
     dateCreation: string;
     // Logistics Checklist
     bonCarburantAccorde: boolean;

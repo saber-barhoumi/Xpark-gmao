@@ -19,6 +19,9 @@ export const missionService = {
 
     /** Demande de réservation → mission EN_ATTENTE */
     createRequest: (data) => apiFetch("POST", `${MISSION_API}/missions/client-request`, data),
+
+    /** Le client annule SA réservation tant qu'elle est EN_ATTENTE */
+    cancelMyMission: (id) => apiFetch("PUT", `${MISSION_API}/missions/my/${id}/cancel`),
 }
 
 // ── IA prix de trajet (service public, sans auth) ───────────────────────────

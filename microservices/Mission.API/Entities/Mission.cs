@@ -17,6 +17,7 @@ public class Mission
     public long?         VehiculeId            { get; set; }
     // Client (frontoffice) à l'origine de la demande — colonne existante en base
     public long?         ClientIdUtilisateur   { get; set; }
+    public string?       ClientNom             { get; set; }   // dénormalisé (affichage backoffice)
     public DateTime      DateCreation          { get; set; } = DateTime.UtcNow;
 
     public bool    BonCarburantAccorde   { get; set; }

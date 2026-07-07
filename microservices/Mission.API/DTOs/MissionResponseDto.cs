@@ -21,6 +21,7 @@ public class MissionResponseDto
     public long?     EmployeeId            { get; set; }
     public long?     VehiculeId            { get; set; }
     public long?     ClientIdUtilisateur   { get; set; }
+    public string?   ClientNom             { get; set; }
     public DateTime  DateCreation          { get; set; }
     public string?   VilleDepart          { get; set; }
     public string?   VilleArrivee         { get; set; }

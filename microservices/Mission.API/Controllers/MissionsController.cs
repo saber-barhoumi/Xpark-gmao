@@ -14,6 +14,8 @@ public class MissionsController(
     IOptimizationService optimizationService) : ControllerBase
 {
     private long CurrentUserId => long.Parse(User.FindFirst("userId")!.Value);
+    private string? CurrentUserName =>
+        $"{User.FindFirst("prenom")?.Value} {User.FindFirst("nom")?.Value}".Trim() is { Length: > 0 } n ? n : null;
 
     [HttpGet]
     [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,CHAUFFEUR,TECHNICIEN")]  // staff — les clients passent par /my
@@ -38,10 +40,19 @@ public class MissionsController(
     {
         try
         {
-            var mission = await missionService.CreateClientRequestAsync(CurrentUserId, dto);
+            var mission = await missionService.CreateClientRequestAsync(CurrentUserId, CurrentUserName, dto);
             return CreatedAtAction(nameof(GetById), new { id = mission.IdMission }, mission);
         }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    /// <summary>Le client annule SA réservation, tant qu'elle est EN_ATTENTE.</summary>
+    [HttpPut("my/{id:long}/cancel")]
+    public async Task<IActionResult> CancelMyMission(long id)
+    {
+        var result = await missionService.CancelMyMissionAsync(CurrentUserId, id);
+        if (!result) return BadRequest(new { message = "Réservation introuvable ou déjà affectée (annulation impossible)." });
+        return Ok(new { message = "Réservation annulée." });
     }
 
     [HttpGet("{id:long}")]

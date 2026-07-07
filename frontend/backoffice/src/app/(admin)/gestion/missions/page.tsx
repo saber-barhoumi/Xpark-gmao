@@ -8,6 +8,7 @@ import Swal from 'sweetalert2'
 import MissionWizardModal from './components/MissionWizardModal'
 import CloseMissionModal from './components/CloseMissionModal'
 import OptimizerPlanningModal from './components/OptimizerPlanningModal'
+import AssignMissionModal from './components/AssignMissionModal'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const STATUT_COLORS: Record<string, string> = {
@@ -31,6 +32,7 @@ export default function MissionsPage() {
     const [showWizard, setShowWizard] = useState(false)
     const [showOptimizer, setShowOptimizer] = useState(false)
     const [showCloseModal, setShowCloseModal] = useState(false)
+    const [showAssignModal, setShowAssignModal] = useState(false)
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
 
     const loadMissions = useCallback(async () => {
@@ -71,6 +73,11 @@ export default function MissionsPage() {
     const openCloseModal = (m: Mission) => {
         setSelectedMission(m)
         setShowCloseModal(true)
+    }
+
+    const openAssignModal = (m: Mission) => {
+        setSelectedMission(m)
+        setShowAssignModal(true)
     }
 
     const handleDelete = async (id: number) => {
@@ -157,8 +164,9 @@ export default function MissionsPage() {
                         <table className="table table-hover table-centered mb-0 align-middle">
                             <thead className="table-light">
                                 <tr>
-                                    <th>Dates</th>
-                                    <th>Destination & Objet</th>
+                                    <th>Départ</th>
+                                    <th>Trajet & Objet</th>
+                                    <th>Demandé par</th>
                                     <th>Véhicule & Chauffeur</th>
                                     <th>Dist. / Coût</th>
                                     <th>Statut</th>
@@ -178,10 +186,26 @@ export default function MissionsPage() {
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="fw-bold text-dark">{m.destination}</div>
-                                            <small className="text-muted text-truncate d-inline-block" style={{ maxWidth: '200px' }}>
+                                            <div className="fw-bold text-dark">
+                                                {m.villeDepart
+                                                    ? <>{m.villeDepart} <IconifyIcon icon="ri-arrow-right-line" className="text-muted" /> {m.villeArrivee || m.destination}</>
+                                                    : m.destination}
+                                            </div>
+                                            <small className="text-muted text-truncate d-inline-block" style={{ maxWidth: '220px' }}>
                                                 {m.objetMission}
                                             </small>
+                                        </td>
+                                        <td>
+                                            {m.clientIdUtilisateur ? (
+                                                <Badge bg="info" className="fw-normal">
+                                                    <IconifyIcon icon="ri-user-line" className="me-1" />
+                                                    {m.clientNom || `Client #${m.clientIdUtilisateur}`}
+                                                </Badge>
+                                            ) : (
+                                                <span className="small text-muted">
+                                                    <IconifyIcon icon="ri-shield-user-line" className="me-1" />Back-office
+                                                </span>
+                                            )}
                                         </td>
                                         <td>
                                             <div className="d-flex align-items-center mb-1">
@@ -199,8 +223,18 @@ export default function MissionsPage() {
                                                     <div className="fw-bold text-success">{m.distance} km</div>
                                                     <div className="text-muted small">{m.coutTotal?.toFixed(2)} TND</div>
                                                 </>
+                                            ) : (m.distanceKm ?? 0) > 0 || (m.coutEstimeAI ?? 0) > 0 ? (
+                                                <>
+                                                    {(m.distanceKm ?? 0) > 0 && <div className="fw-semibold small">{m.distanceKm?.toFixed(0)} km</div>}
+                                                    {(m.coutEstimeAI ?? 0) > 0 && (
+                                                        <div className="text-muted small">
+                                                            ~{m.coutEstimeAI?.toFixed(2)} TND
+                                                            {m.statut === StatutMission.EN_ATTENTE && <span className="text-info"> (estimé)</span>}
+                                                        </div>
+                                                    )}
+                                                </>
                                             ) : (
-                                                <span className="text-muted small fst-italic">En cours...</span>
+                                                <span className="text-muted small fst-italic">—</span>
                                             )}
                                         </td>
                                         <td>
@@ -227,12 +261,20 @@ export default function MissionsPage() {
                                                     </>
                                                 )}
                                                 {m.statut === StatutMission.EN_ATTENTE && canWrite && (
-                                                    <Button
-                                                        variant="outline-danger" size="sm"
-                                                        onClick={() => handleCancel(m.idMission)} title="Annuler"
-                                                    >
-                                                        <IconifyIcon icon="ri:close-line" />
-                                                    </Button>
+                                                    <>
+                                                        <Button
+                                                            variant="primary" size="sm"
+                                                            onClick={() => openAssignModal(m)} title="Affecter un véhicule et un chauffeur"
+                                                        >
+                                                            <IconifyIcon icon="ri:user-add-line" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline-danger" size="sm"
+                                                            onClick={() => handleCancel(m.idMission)} title="Annuler"
+                                                        >
+                                                            <IconifyIcon icon="ri:close-line" />
+                                                        </Button>
+                                                    </>
                                                 )}
                                                 {(m.statut === StatutMission.TERMINEE || m.statut === StatutMission.ANNULEE) && canWrite && (
                                                     <Button
@@ -272,6 +314,15 @@ export default function MissionsPage() {
                 <CloseMissionModal
                     show={showCloseModal}
                     onHide={() => setShowCloseModal(false)}
+                    mission={selectedMission}
+                    reloadList={loadMissions}
+                />
+            </ErrorBoundary>
+
+            <ErrorBoundary>
+                <AssignMissionModal
+                    show={showAssignModal}
+                    onHide={() => setShowAssignModal(false)}
                     mission={selectedMission}
                     reloadList={loadMissions}
                 />

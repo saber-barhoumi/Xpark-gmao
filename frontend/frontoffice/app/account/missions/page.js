@@ -21,14 +21,30 @@ function MissionsInner() {
     const [missions, setMissions] = useState([])
     const [filter, setFilter] = useState("TOUTES")
     const [loading, setLoading] = useState(true)
-    const [info] = useState(params.get("created") === "1"
+    const [info, setInfo] = useState(params.get("created") === "1"
         ? "✅ Réservation créée ! Elle est en attente d'affectation d'un véhicule et d'un chauffeur." : "")
+    const [cancelling, setCancelling] = useState(0)
 
     const load = useCallback(async () => {
         try { setMissions(await missionService.getMyMissions()) }
         catch { /* session expirée gérée par apiFetch */ }
         finally { setLoading(false) }
     }, [])
+
+    const handleCancel = async (id) => {
+        if (!window.confirm("Annuler cette réservation ? Cette action est définitive.")) return
+        setCancelling(id)
+        try {
+            await missionService.cancelMyMission(id)
+            setInfo("✅ Réservation annulée.")
+            await load()
+        } catch (err) {
+            setInfo("")
+            window.alert(err.message || "Annulation impossible (la mission a peut-être déjà été affectée).")
+        } finally {
+            setCancelling(0)
+        }
+    }
 
     useEffect(() => {
         if (!isAuthenticated()) { router.push("/auth/login"); return }
@@ -93,10 +109,18 @@ function MissionsInner() {
                                         </p>
 
                                         {m.statut === "EN_ATTENTE" && (
-                                            <p style={{ fontSize: 13, color: "#b45309", marginBottom: 0 }}>
-                                                🤖 L&apos;OptimisateurFlotteIA choisira le véhicule le plus adapté et un chauffeur disponible.
-                                                {m.coutEstimeAI > 0 && <> Prix estimé : <strong>{m.coutEstimeAI.toFixed(2)} TND</strong></>}
-                                            </p>
+                                            <>
+                                                <p style={{ fontSize: 13, color: "#b45309", marginBottom: 12 }}>
+                                                    🤖 L&apos;OptimisateurFlotteIA choisira le véhicule le plus adapté et un chauffeur disponible.
+                                                    {m.coutEstimeAI > 0 && <> Prix estimé : <strong>{m.coutEstimeAI.toFixed(2)} TND</strong></>}
+                                                </p>
+                                                <button type="button" onClick={() => handleCancel(m.idMission)}
+                                                    disabled={cancelling === m.idMission}
+                                                    style={{ background: "#fff", border: "1px solid #dc3545", color: "#dc3545",
+                                                        padding: "6px 16px", borderRadius: 8, fontSize: 13, cursor: "pointer" }}>
+                                                    {cancelling === m.idMission ? "Annulation…" : "✕ Annuler ma réservation"}
+                                                </button>
+                                            </>
                                         )}
                                         {m.statut === "EN_COURS" && (
                                             <p style={{ fontSize: 14, marginBottom: 0 }}>

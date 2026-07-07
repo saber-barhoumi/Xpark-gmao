@@ -153,7 +153,7 @@ public class MissionService(
 
     // ── Portail client (frontoffice) ──────────────────────────────────────────
 
-    public async Task<MissionResponseDto> CreateClientRequestAsync(long clientUserId, ClientMissionRequestDto dto)
+    public async Task<MissionResponseDto> CreateClientRequestAsync(long clientUserId, string? clientNom, ClientMissionRequestDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.VilleDepart) || string.IsNullOrWhiteSpace(dto.VilleArrivee))
             throw new ArgumentException("Villes de depart et d'arrivee obligatoires.");
@@ -173,6 +173,7 @@ public class MissionService(
             CoutEstimeAI        = dto.CoutEstime,
             AiVehiculeTypeUsed  = dto.AiVehiculeTypeUsed,
             ClientIdUtilisateur = clientUserId,
+            ClientNom           = clientNom,
             Statut              = StatutMission.EN_ATTENTE,   // affectation via OptimisateurFlotteIA
             KilometrageDepart   = 0,
             KilometrageRetour   = 0,
@@ -196,6 +197,29 @@ public class MissionService(
             clientUserId, saved.IdMission, dto.VilleDepart, dto.VilleArrivee);
 
         return mapper.Map<MissionResponseDto>(saved);
+    }
+
+    public async Task<bool> CancelMyMissionAsync(long clientUserId, long missionId)
+    {
+        var mission = await missionRepo.GetWithDetailsAsync(missionId);
+        // Un client ne peut annuler que SA mission, et seulement tant qu'elle
+        // est EN_ATTENTE (avant affectation vehicule/chauffeur).
+        if (mission is null
+            || mission.ClientIdUtilisateur != clientUserId
+            || mission.Statut != StatutMission.EN_ATTENTE)
+            return false;
+
+        mission.Statut = StatutMission.ANNULEE;
+        await missionRepo.UpdateAsync(mission);
+
+        await PublishBusinessEventAsync("xpark.mission.task-cancelled", "LOW", new
+        {
+            missionId    = mission.IdMission,
+            destination  = mission.Destination,
+            clientId     = clientUserId,
+            cancelledBy  = "CLIENT",
+        });
+        return true;
     }
 
     public async Task<IEnumerable<MissionResponseDto>> GetByClientAsync(long clientUserId)

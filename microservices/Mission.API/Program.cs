@@ -92,6 +92,7 @@ using (var scope = app.Services.CreateScope())
         -- OptimisateurFlotteIA: missions can exist EN_ATTENTE without assignment
         ALTER TABLE ""Missions"" ALTER COLUMN ""EmployeeId"" DROP NOT NULL;
         ALTER TABLE ""Missions"" ALTER COLUMN ""VehiculeId"" DROP NOT NULL;
+        ALTER TABLE ""Missions"" ADD COLUMN IF NOT EXISTS ""ClientNom"" VARCHAR(150);
     ");
 }
 // ─────────────────────────────────────────────────────────────────────────────
