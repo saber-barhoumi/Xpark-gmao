@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Layout from "@/components/layout/Layout"
 import CodeInput from "@/components/auth/CodeInput"
-import authService, { isAuthenticated } from "@/lib/authService"
+import authService from "@/lib/authService"
+import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
 
 /**
  * Sécurité du compte client — SYSTÈME D'AUTHENTIFICATION & SÉCURITÉ XPARK.
@@ -37,13 +37,7 @@ export default function SecurityPage() {
         }
     }, [])
 
-    useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push("/auth/login")
-            return
-        }
-        refresh()
-    }, [router, refresh])
+    useEffect(() => { refresh() }, [refresh])
 
     // ── Authenticator ────────────────────────────────────────────────────────
 
@@ -94,26 +88,22 @@ export default function SecurityPage() {
 
     if (!settings) {
         return (
-            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="SÉCURITÉ DU COMPTE">
-                <div className="container text-center" style={{ padding: 80 }}>Chargement…</div>
-            </Layout>
+            <ClientPortalLayout title="🔐 Sécurité du compte">
+                <p style={{ padding: 60, textAlign: "center", color: "var(--pmuted)" }}>Chargement…</p>
+            </ClientPortalLayout>
         )
     }
 
-    const cardStyle = { background: "#f8f9fa", borderRadius: 12, padding: 25, height: "100%" }
+    const cardStyle = { background: "var(--pcard)", border: "1px solid var(--pborder)", borderRadius: 12, padding: 25, height: "100%" }
     const badgeOn = { background: "#e7f5ec", color: "#146c43", padding: "4px 12px", borderRadius: 20, fontSize: 13, fontWeight: 600 }
     const badgeOff = { background: "#eee", color: "#6b7280", padding: "4px 12px", borderRadius: 20, fontSize: 13, fontWeight: 600 }
 
     return (
-        <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="SÉCURITÉ DU COMPTE">
-            <section className="contact-two">
-                <div className="container">
-                    <div className="section-title text-center">
-                        <div className="section-title__tagline-box">
-                            <span className="section-title__tagline">Espace Client XPARK</span>
-                        </div>
-                        <h2 className="section-title__title">🔐 Sécurité du compte</h2>
-                        <p style={{ marginTop: 10 }}>
+        <ClientPortalLayout title="🔐 Sécurité du compte">
+            <div>
+                <div>
+                    <div style={{ marginBottom: 20 }}>
+                        <p style={{ marginTop: 0 }}>
                             {settings.mfaRequired
                                 ? <span style={badgeOn}>Vérification en deux étapes ACTIVÉE</span>
                                 : <span style={{ ...badgeOff, background: "#fff3cd", color: "#b45309" }}>MFA non activé — nous le recommandons</span>}
@@ -245,12 +235,12 @@ export default function SecurityPage() {
                                 </table>
                             </div>
                             <p style={{ marginTop: 25, textAlign: "center" }}>
-                                <Link href="/account">← Retour à mon compte</Link>
+                                <Link href="/account" style={{ color: "#0d6efd" }}>← Retour au tableau de bord</Link>
                             </p>
                         </div>
                     </div>
                 </div>
-            </section>
-        </Layout>
+            </div>
+        </ClientPortalLayout>
     )
 }

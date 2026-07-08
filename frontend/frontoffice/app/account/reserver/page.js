@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Layout from "@/components/layout/Layout"
-import { isAuthenticated } from "@/lib/authService"
 import missionService, { aiService } from "@/lib/missionService"
+import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
 
 const VEHICLE_TYPES = [
     { value: "BERLINE", label: "🚗 Berline (léger)" },
@@ -14,7 +13,7 @@ const VEHICLE_TYPES = [
     { value: "CAMION", label: "🚚 Camion" },
 ]
 
-const cardStyle = { background: "#f8f9fa", borderRadius: 12, padding: 25 }
+const cardStyle = { background: "var(--pcard)", border: "1px solid var(--pborder)", borderRadius: 12, padding: 25 }
 
 /**
  * Réserver un véhicule — wizard 3 étapes (fiche FRONTOFFICE §4.4) :
@@ -36,9 +35,8 @@ export default function ReserverPage() {
     const [prediction, setPrediction] = useState(null) // { predicted_cost_tnd, ... }
 
     useEffect(() => {
-        if (!isAuthenticated()) { router.push("/auth/login"); return }
         aiService.getCities().then(setCities).catch(() => {})
-    }, [router])
+    }, [])
 
     // Distance automatique dès que les 2 villes sont choisies
     useEffect(() => {
@@ -101,26 +99,22 @@ export default function ReserverPage() {
     }
 
     return (
-        <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="RÉSERVER UN VÉHICULE">
-            <section className="contact-two">
-                <div className="container">
-                    <div className="row justify-content-center">
-                        <div className="col-xl-8 col-lg-10">
-                            <div className="section-title text-center">
-                                <div className="section-title__tagline-box">
-                                    <span className="section-title__tagline">Espace Client XPARK</span>
-                                </div>
-                                <h2 className="section-title__title">Réserver un véhicule</h2>
+        <ClientPortalLayout title="🚗 Réserver un véhicule">
+            <div style={{ maxWidth: 800, margin: "0 auto" }}>
+                <div style={{ maxWidth: 800 }}>
+                    <div style={{ maxWidth: 800 }}>
+                        <div>
+                            <div style={{ textAlign: "center", marginBottom: 20 }}>
                                 {/* Progress 1/3 → 3/3 */}
-                                <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 15 }}>
+                                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                                     {[1, 2, 3].map(n => (
                                         <span key={n} style={{
                                             width: 90, height: 6, borderRadius: 3,
-                                            background: step >= n ? "#0d6efd" : "#dee2e6",
+                                            background: step >= n ? "#C11425" : "var(--pborder)",
                                         }} />
                                     ))}
                                 </div>
-                                <p style={{ marginTop: 8, color: "#6b7280", fontSize: 14 }}>
+                                <p style={{ marginTop: 8, color: "var(--pmuted)", fontSize: 14 }}>
                                     Étape {step}/3 — {step === 1 ? "Trajet & date" : step === 2 ? "Véhicule & paramètres" : "Estimation & confirmation"}
                                 </p>
                             </div>
@@ -269,14 +263,14 @@ export default function ReserverPage() {
                                         </button>
                                     </div>
                                     <p className="text-center" style={{ marginTop: 15 }}>
-                                        <Link href="/account">← Retour à mon compte</Link>
+                                        <Link href="/account" style={{ color: "#0d6efd" }}>← Retour au tableau de bord</Link>
                                     </p>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-            </section>
-        </Layout>
+            </div>
+        </ClientPortalLayout>
     )
 }
