@@ -4,6 +4,7 @@ import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import AuthShell from "@/components/auth/AuthShell"
+import AuthNotice, { friendlyAuthMessage } from "@/components/auth/AuthNotice"
 import CodeInput from "@/components/auth/CodeInput"
 import authService from "@/lib/authService"
 
@@ -58,7 +59,7 @@ function LoginInner() {
             }
             router.push("/account")
         } catch (err) {
-            setError(err.message || "Email ou mot de passe incorrect.")
+            setError(friendlyAuthMessage(err.message) || "Email ou mot de passe incorrect.")
         } finally {
             setLoading(false)
         }
@@ -72,7 +73,7 @@ function LoginInner() {
             await authService.verifyMfa(mfaToken, mfaMethod, code)
             router.push("/account")
         } catch (err) {
-            setError(err.message || "Code de vérification invalide.")
+            setError(friendlyAuthMessage(err.message) || "Code de vérification invalide.")
             setMfaCode("")
         } finally {
             setLoading(false)
@@ -105,16 +106,8 @@ function LoginInner() {
 
     return (
         <AuthShell title={step === "mfa" ? "Vérification en deux étapes" : "Connexion à votre compte"}>
-            {error && (
-                <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>
-                    {error}
-                </div>
-            )}
-            {info && (
-                <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#e7f5ec", color: "#146c43", borderRadius: 8 }}>
-                    {info}
-                </div>
-            )}
+            {error && <AuthNotice variant="error">{error}</AuthNotice>}
+            {info && <AuthNotice variant="success">{info}</AuthNotice>}
 
             {step === "mfa" ? (
                 <div className="contact-two__form" style={{ textAlign: "center" }}>

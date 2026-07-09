@@ -4,6 +4,7 @@ import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import AuthShell from "@/components/auth/AuthShell"
+import AuthNotice, { friendlyAuthMessage } from "@/components/auth/AuthNotice"
 import authService from "@/lib/authService"
 
 function ResetPasswordInner() {
@@ -33,7 +34,7 @@ function ResetPasswordInner() {
             await authService.resetPassword(email.trim(), token.trim(), password, confirm)
             router.push("/auth/login?confirmed=1")
         } catch (err) {
-            setError(err.message || "Token invalide ou expiré.")
+            setError(friendlyAuthMessage(err.message))
         } finally {
             setLoading(false)
         }
@@ -41,7 +42,13 @@ function ResetPasswordInner() {
 
     return (
         <AuthShell title="Nouveau mot de passe">
-            {error && <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>{error}</div>}
+            {error && (
+                <AuthNotice variant="error" action={
+                    <Link href="/auth/recover-password" style={{ fontWeight: 700, color: "inherit" }}>
+                        Demander un nouveau lien
+                    </Link>
+                }>{error}</AuthNotice>
+            )}
 
             <form className="contact-two__form" onSubmit={handleSubmit}>
                 <div className="row">

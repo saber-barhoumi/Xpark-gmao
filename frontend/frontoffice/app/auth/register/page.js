@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import AuthShell from "@/components/auth/AuthShell"
+import AuthNotice, { friendlyAuthMessage } from "@/components/auth/AuthNotice"
 import authService from "@/lib/authService"
 
 /** Inscription client (rôle CLIENT — activé automatiquement après confirmation email). */
@@ -39,9 +40,9 @@ export default function RegisterPage() {
             // 409 = email déjà utilisé → guider vers connexion / mot de passe oublié
             if (err.status === 409) {
                 setEmailTaken(true)
-                setError(err.message || "Cette adresse email est déjà utilisée.")
+                setError(friendlyAuthMessage(err.message) || "Un compte existe déjà avec cette adresse email.")
             } else {
-                setError(err.message || "Erreur lors de l'inscription.")
+                setError(friendlyAuthMessage(err.message))
             }
         } finally {
             setLoading(false)
@@ -51,15 +52,12 @@ export default function RegisterPage() {
     return (
         <AuthShell title="Créer votre compte" wide>
             {error && (
-                <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>
-                    {error}
-                    {emailTaken && (
-                        <div style={{ marginTop: 10, display: "flex", gap: 15, justifyContent: "center" }}>
-                            <Link href="/auth/login" style={{ fontWeight: 600 }}>Se connecter</Link>
-                            <Link href="/auth/recover-password" style={{ fontWeight: 600 }}>Mot de passe oublié ?</Link>
-                        </div>
-                    )}
-                </div>
+                <AuthNotice variant={emailTaken ? "info" : "error"} action={emailTaken && (
+                    <div style={{ display: "flex", gap: 15 }}>
+                        <Link href="/auth/login" style={{ fontWeight: 700, color: "inherit" }}>Se connecter</Link>
+                        <Link href="/auth/recover-password" style={{ fontWeight: 700, color: "inherit" }}>Mot de passe oublié ?</Link>
+                    </div>
+                )}>{error}</AuthNotice>
             )}
 
             <form className="contact-two__form" onSubmit={handleSubmit}>

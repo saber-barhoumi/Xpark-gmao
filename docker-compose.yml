@@ -62,14 +62,14 @@ services:
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       # ── Envoi d'emails REEL (confirmation, reset, OTP MFA) ──────────
-      # Decommenter et remplir avec un "App Password" Gmail
-      # (myaccount.google.com/apppasswords — necessite la validation en 2 etapes)
-      # puis: docker compose up -d iam-api && docker restart xpark-nginx
-      # - Email__Host=smtp.gmail.com
-      # - Email__Port=587
-      # - Email__Username=sabersalemaicha@gmail.com
-      # - Email__Password=xxxx xxxx xxxx xxxx
-      # - Email__From=XPARK GMAO <sabersalemaicha@gmail.com>
+      # Valeurs chargees depuis le fichier .env (non committe). Voir .env.example.
+      # Sans .env, les variables sont vides -> l'email ne part pas mais le code
+      # est journalise en mode DEV (docker logs xpark-iam-api).
+      - Email__Host=${EMAIL_HOST:-smtp.gmail.com}
+      - Email__Port=${EMAIL_PORT:-587}
+      - Email__Username=${EMAIL_USERNAME:-}
+      - Email__Password=${EMAIL_PASSWORD:-}
+      - Email__From=${EMAIL_FROM:-XPARK GMAO <noreply@xpark.tn>}
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
       - RabbitMQ__Password=xpark_secret

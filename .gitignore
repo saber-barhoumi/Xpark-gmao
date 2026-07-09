@@ -1,0 +1,8 @@
+# ── Secrets / variables d'environnement ──────────────────────────────────────
+# Ne JAMAIS committer les vrais identifiants (SMTP, clés API…).
+# Copier .env.example → .env et remplir localement.
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example

@@ -4,6 +4,7 @@ import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import AuthShell from "@/components/auth/AuthShell"
+import AuthNotice, { friendlyAuthMessage } from "@/components/auth/AuthNotice"
 import authService from "@/lib/authService"
 
 function ConfirmEmailInner() {
@@ -27,7 +28,7 @@ function ConfirmEmailInner() {
             await authService.confirmEmail(email.trim(), token.trim())
             router.push("/auth/login?confirmed=1")
         } catch (err) {
-            setError(err.message || "Code de confirmation invalide ou expiré.")
+            setError(friendlyAuthMessage(err.message))
         } finally {
             setLoading(false)
         }
@@ -37,16 +38,22 @@ function ConfirmEmailInner() {
         setError("")
         try {
             await authService.resendConfirmation(email.trim())
-            setInfo("Un nouveau code de confirmation a été envoyé.")
+            setInfo("Un nouveau code vous a été envoyé par email. Pensez à vérifier vos spams.")
         } catch (err) {
-            setError(err.message || "Erreur lors du renvoi.")
+            setError(friendlyAuthMessage(err.message))
         }
     }
 
     return (
         <AuthShell title="Confirmer votre email">
-            {info && <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#e7f5ec", color: "#146c43", borderRadius: 8 }}>{info}</div>}
-            {error && <div className="text-center" style={{ padding: 12, marginBottom: 20, background: "#fde8e8", color: "#b02a37", borderRadius: 8 }}>{error}</div>}
+            {info && <AuthNotice variant="success">{info}</AuthNotice>}
+            {error && (
+                <AuthNotice variant="error" action={
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleResend() }} style={{ fontWeight: 700, color: "inherit" }}>
+                        📩 Renvoyer un nouveau code
+                    </a>
+                }>{error}</AuthNotice>
+            )}
 
             <form className="contact-two__form" onSubmit={handleSubmit}>
                 <div className="row">
