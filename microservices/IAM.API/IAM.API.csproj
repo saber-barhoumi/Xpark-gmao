@@ -23,4 +23,10 @@
   <ItemGroup>
     <ProjectReference Include="..\XparkGMAO.Shared\XparkGMAO.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Template email HTML + logo embarqué — copiés dans le publish output -->
+    <Content Include="EmailTemplates\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
