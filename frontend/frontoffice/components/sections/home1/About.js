@@ -12,15 +12,15 @@ export default function About() {
                     <div className="about-one__left">
                         <div className="section-title text-left">
                         <div className="section-title__tagline-box">
-                            <span className="section-title__tagline">About Us</span>
+                            <span className="section-title__tagline">À propos de XPARK</span>
                         </div>
                         <h2 className="section-title__title">
-                            Seamless logistics for your <br /> business needs
+                            Le transport de marchandises <br /> au service des professionnels
                         </h2>
                         </div>
                         <p className="about-one__text">
-                        Construction is an essential industry that involves building
-                        adesigning the a structures such as buildings roads, bridges
+                        XPARK est une entreprise spécialisée dans le transport de marchandises
+                        grâce à une flotte de véhicules adaptée aux besoins des professionnels.
                         </p>
                         <div className="about-one__list-box">
                         <div className="about-one__shape-1">
@@ -32,7 +32,7 @@ export default function About() {
                                 <span className="icon-conveyor-1" />
                             </div>
                             <h3>
-                                Delivering successthe <br /> through logistics
+                                Transport local <br /> et régional
                             </h3>
                             </li>
                             <li>
@@ -40,8 +40,8 @@ export default function About() {
                                 <span className="icon-clock" />
                             </div>
                             <h3>
-                                Logistics expertise for your
-                                <br /> competitive{" "}
+                                Respect des délais
+                                <br /> de livraison{" "}
                             </h3>
                             </li>
                             <li>
@@ -49,15 +49,15 @@ export default function About() {
                                 <span className="icon-fragile" />
                             </div>
                             <h3>
-                                Streamliningm supply chain
-                                <br /> processes
+                                Marchandises transportées
+                                <br /> en toute sécurité
                             </h3>
                             </li>
                         </ul>
                         </div>
                         <div className="about-one__btn-box">
                         <Link href="/about" className="thm-btn about-one__btn">
-                            Read more
+                            En savoir plus
                             <span />
                         </Link>
                         </div>
@@ -87,7 +87,7 @@ export default function About() {
                                 <span>k</span>
                                 <span className="about-one__trust-plus">+</span>
                             </div>
-                            <p className="about-one__trust-text">Trusted Customer</p>
+                            <p className="about-one__trust-text">Clients satisfaits</p>
                             </div>
                         </div>
                         </div>

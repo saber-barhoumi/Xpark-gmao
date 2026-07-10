@@ -51,20 +51,18 @@ export default function Banner() {
                               alt=""
                             />
                           </div>
-                          <p className="main-slider__sub-title">Best shipping</p>
+                          <p className="main-slider__sub-title">Transport &amp; Logistique</p>
                         </div>
                         <h2 className="main-slider__title">
-                          Reliable <span>Responsive</span> <br /> Driven Logistics
+                          Votre partenaire <span>de confiance</span> <br /> pour le transport de marchandises
                         </h2>
                         <p className="main-slider__text">
-                          We have been operating for over a decade, providing top-notch
-                          services to <br /> our clients and building a strong track record in
-                          the industry.
+                          XPARK vous accompagne avec une flotte de véhicules performante pour transporter <br /> vos marchandises en toute sécurité et dans les meilleurs délais.
                         </p>
                         <div className="main-slider__btn-and-call-box">
                           <div className="main-slider__btn-box">
-                            <Link href="/about" className="thm-btn main-slider__btn">
-                              Read more
+                            <Link href="/account/reserver" className="thm-btn main-slider__btn">
+                              Demander un devis
                               <span />
                             </Link>
                           </div>
@@ -73,9 +71,9 @@ export default function Banner() {
                               <span className="icon-phone" />
                             </div>
                             <div className="main-slider__call-number">
-                              <p>Need help?</p>
+                              <p>Nous contacter</p>
                               <h5>
-                                <Link href="tel:307555-0133">(307) 555-0133</Link>
+                                <Link href="tel:+21670000000">+216 70 000 000</Link>
                               </h5>
                             </div>
                           </div>
@@ -106,20 +104,18 @@ export default function Banner() {
                               alt=""
                             />
                           </div>
-                          <p className="main-slider__sub-title">Best shipping</p>
+                          <p className="main-slider__sub-title">Transport &amp; Logistique</p>
                         </div>
                         <h2 className="main-slider__title">
-                          Reliable <span>Responsive</span> <br /> Driven Logistics
+                          Votre partenaire <span>de confiance</span> <br /> pour le transport de marchandises
                         </h2>
                         <p className="main-slider__text">
-                          We have been operating for over a decade, providing top-notch
-                          services to <br /> our clients and building a strong track record in
-                          the industry.
+                          XPARK vous accompagne avec une flotte de véhicules performante pour transporter <br /> vos marchandises en toute sécurité et dans les meilleurs délais.
                         </p>
                         <div className="main-slider__btn-and-call-box">
                           <div className="main-slider__btn-box">
-                            <Link href="/about" className="thm-btn main-slider__btn">
-                              Read more
+                            <Link href="/account/reserver" className="thm-btn main-slider__btn">
+                              Demander un devis
                               <span />
                             </Link>
                           </div>
@@ -128,9 +124,9 @@ export default function Banner() {
                               <span className="icon-phone" />
                             </div>
                             <div className="main-slider__call-number">
-                              <p>Need help?</p>
+                              <p>Nous contacter</p>
                               <h5>
-                                <Link href="tel:307555-0133">(307) 555-0133</Link>
+                                <Link href="tel:+21670000000">+216 70 000 000</Link>
                               </h5>
                             </div>
                           </div>
@@ -161,20 +157,18 @@ export default function Banner() {
                               alt=""
                             />
                           </div>
-                          <p className="main-slider__sub-title">Best shipping</p>
+                          <p className="main-slider__sub-title">Transport &amp; Logistique</p>
                         </div>
                         <h2 className="main-slider__title">
-                          Reliable <span>Responsive</span> <br /> Driven Logistics
+                          Votre partenaire <span>de confiance</span> <br /> pour le transport de marchandises
                         </h2>
                         <p className="main-slider__text">
-                          We have been operating for over a decade, providing top-notch
-                          services to <br /> our clients and building a strong track record in
-                          the industry.
+                          XPARK vous accompagne avec une flotte de véhicules performante pour transporter <br /> vos marchandises en toute sécurité et dans les meilleurs délais.
                         </p>
                         <div className="main-slider__btn-and-call-box">
                           <div className="main-slider__btn-box">
-                            <Link href="/about" className="thm-btn main-slider__btn">
-                              Read more
+                            <Link href="/account/reserver" className="thm-btn main-slider__btn">
+                              Demander un devis
                               <span />
                             </Link>
                           </div>
@@ -183,9 +177,9 @@ export default function Banner() {
                               <span className="icon-phone" />
                             </div>
                             <div className="main-slider__call-number">
-                              <p>Need help?</p>
+                              <p>Nous contacter</p>
                               <h5>
-                                <Link href="tel:307555-0133">(307) 555-0133</Link>
+                                <Link href="tel:+21670000000">+216 70 000 000</Link>
                               </h5>
                             </div>
                           </div>
@@ -216,20 +210,18 @@ export default function Banner() {
                               alt=""
                             />
                           </div>
-                          <p className="main-slider__sub-title">Best shipping</p>
+                          <p className="main-slider__sub-title">Transport &amp; Logistique</p>
                         </div>
                         <h2 className="main-slider__title">
-                          Reliable <span>Responsive</span> <br /> Driven Logistics
+                          Votre partenaire <span>de confiance</span> <br /> pour le transport de marchandises
                         </h2>
                         <p className="main-slider__text">
-                          We have been operating for over a decade, providing top-notch
-                          services to <br /> our clients and building a strong track record in
-                          the industry.
+                          XPARK vous accompagne avec une flotte de véhicules performante pour transporter <br /> vos marchandises en toute sécurité et dans les meilleurs délais.
                         </p>
                         <div className="main-slider__btn-and-call-box">
                           <div className="main-slider__btn-box">
-                            <Link href="/about" className="thm-btn main-slider__btn">
-                              Read more
+                            <Link href="/account/reserver" className="thm-btn main-slider__btn">
+                              Demander un devis
                               <span />
                             </Link>
                           </div>
@@ -238,9 +230,9 @@ export default function Banner() {
                               <span className="icon-phone" />
                             </div>
                             <div className="main-slider__call-number">
-                              <p>Need help?</p>
+                              <p>Nous contacter</p>
                               <h5>
-                                <Link href="tel:307555-0133">(307) 555-0133</Link>
+                                <Link href="tel:+21670000000">+216 70 000 000</Link>
                               </h5>
                             </div>
                           </div>

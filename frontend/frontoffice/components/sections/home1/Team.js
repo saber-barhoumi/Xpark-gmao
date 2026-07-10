@@ -9,11 +9,11 @@ export default function Team() {
                 <div className="team-one__top">
                     <div className="section-title text-left">
                     <div className="section-title__tagline-box">
-                        <span className="section-title__tagline">Our Team</span>
+                        <span className="section-title__tagline">Notre équipe</span>
                     </div>
                     <h2 className="section-title__title">
-                        Simplifying your logistics of <br />
-                        the challenges
+                        Une équipe professionnelle <br />
+                        à votre service
                     </h2>
                     </div>
                     <div className="team-one__nav">

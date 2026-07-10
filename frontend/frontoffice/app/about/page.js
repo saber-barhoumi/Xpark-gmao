@@ -11,7 +11,7 @@ export default function Home() {
 
     return (
         <>
-            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="About US">
+            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="À PROPOS">
                 <div>
 
              
@@ -23,15 +23,19 @@ export default function Home() {
                             <div className="about-one__left">
                                 <div className="section-title text-left">
                                 <div className="section-title__tagline-box">
-                                    <span className="section-title__tagline">About Us</span>
+                                    <span className="section-title__tagline">À propos de XPARK</span>
                                 </div>
                                 <h2 className="section-title__title">
-                                    Seamless logistics for your <br /> business needs
+                                    Une entreprise spécialisée dans <br /> le transport et la logistique
                                 </h2>
                                 </div>
                                 <p className="about-one__text">
-                                Construction is an essential industry that involves building
-                                adesigning the a structures such as buildings roads, bridges
+                                XPARK est une entreprise spécialisée dans le transport et la logistique.
+                                Grâce à une flotte de véhicules et une organisation professionnelle,
+                                nous proposons des solutions adaptées aux entreprises souhaitant
+                                transporter leurs marchandises efficacement. Notre mission : fournir
+                                des services de transport fiables, sécurisés et adaptés aux besoins
+                                de chaque client.
                                 </p>
                                 <div className="about-one__list-box">
                                 <div className="about-one__shape-1">
@@ -43,7 +47,7 @@ export default function Home() {
                                         <span className="icon-conveyor-1" />
                                     </div>
                                     <h3>
-                                        Delivering successthe <br /> through logistics
+                                        Fiabilité <br /> et sécurité
                                     </h3>
                                     </li>
                                     <li>
@@ -51,8 +55,8 @@ export default function Home() {
                                         <span className="icon-clock" />
                                     </div>
                                     <h3>
-                                        Logistics expertise for your
-                                        <br /> competitive{" "}
+                                        Ponctualité et respect
+                                        <br /> des délais{" "}
                                     </h3>
                                     </li>
                                     <li>
@@ -60,15 +64,15 @@ export default function Home() {
                                         <span className="icon-fragile" />
                                     </div>
                                     <h3>
-                                        Streamliningm supply chain
-                                        <br /> processes
+                                        Professionnalisme et
+                                        <br /> satisfaction client
                                     </h3>
                                     </li>
                                 </ul>
                                 </div>
                                 <div className="about-one__btn-box">
-                                <Link href="/about" className="thm-btn about-one__btn">
-                                    Read more
+                                <Link href="/account/reserver" className="thm-btn about-one__btn">
+                                    Demander un devis
                                     <span />
                                 </Link>
                                 </div>
@@ -98,7 +102,7 @@ export default function Home() {
                                         <span>k</span>
                                         <span className="about-one__trust-plus">+</span>
                                     </div>
-                                    <p className="about-one__trust-text">Trusted Customer</p>
+                                    <p className="about-one__trust-text">Clients satisfaits</p>
                                     </div>
                                 </div>
                                 </div>
@@ -140,17 +144,17 @@ export default function Home() {
                             >
                                 <div className="section-title text-left">
                                 <div className="section-title__tagline-box">
-                                    <span className="section-title__tagline">Our Features</span>
+                                    <span className="section-title__tagline">XPARK en chiffres</span>
                                 </div>
                                 <h2 className="section-title__title">
-                                    Simplifying your logistics of <br />
-                                    the challenges
+                                    Une logistique simplifiée <br />
+                                    pour votre entreprise
                                 </h2>
                                 </div>
                                 <p className="counter-one__right-text">
-                                Logistic service involves the planning, implementation, and
-                                control of the efficient and effective movement and storage of
-                                goods and materials.
+                                XPARK organise le transport de vos marchandises de bout en
+                                bout : planification des trajets, affectation des véhicules
+                                et suivi des livraisons.
                                 </p>
                                 <ul className="counter-one__count-list list-unstyled">
                                 <li>
@@ -165,7 +169,7 @@ export default function Home() {
                                         <span>+</span>
                                     </div>
                                     </div>
-                                    <p className="counter-one__count-text">Our Happy Customer</p>
+                                    <p className="counter-one__count-text">Clients satisfaits</p>
                                 </li>
                                 <li>
                                     <div className="counter-one__icon-and-count">
@@ -180,7 +184,7 @@ export default function Home() {
                                         <span className="counter-one__count-plus">+</span>
                                     </div>
                                     </div>
-                                    <p className="counter-one__count-text">Our Team Member</p>
+                                    <p className="counter-one__count-text">Missions réalisées</p>
                                 </li>
                                 <li>
                                     <div className="counter-one__icon-and-count">
@@ -195,7 +199,7 @@ export default function Home() {
                                         <span className="counter-one__count-plus">+</span>
                                     </div>
                                     </div>
-                                    <p className="counter-one__count-text">Our Clients Reviews</p>
+                                    <p className="counter-one__count-text">Kilomètres parcourus</p>
                                 </li>
                                 </ul>
                             </div>
@@ -217,7 +221,7 @@ export default function Home() {
                             </div>
                             <div className="section-title text-center">
                             <div className="section-title__tagline-box">
-                                <span className="section-title__tagline">clients testimonial</span>
+                                <span className="section-title__tagline">Témoignages clients</span>
                             </div>
                             <h2 className="section-title__title">
                                 Your supply chain partner
@@ -255,7 +259,7 @@ export default function Home() {
                             <div className="why-are-we__right">
                                 <div className="section-title text-left">
                                 <div className="section-title__tagline-box">
-                                    <span className="section-title__tagline">Why are we best</span>
+                                    <span className="section-title__tagline">Nos engagements</span>
                                 </div>
                                 <h2 className="section-title__title">
                                     Efficiency at its best with our
@@ -271,8 +275,8 @@ export default function Home() {
                                     <span className="icon-location why-are-we__location" />
                                     </div>
                                     <div className="content">
-                                    <h3>Real Time tracking</h3>
-                                    <p>Logistic service involves the ntation and control </p>
+                                    <h3>Suivi des opérations</h3>
+                                    <p>Restez informé sur l&apos;avancement de vos livraisons </p>
                                     </div>
                                 </li>
                                 <li>
@@ -283,8 +287,8 @@ export default function Home() {
                                     <span className="icon-shopping-cart why-are-we__cart" />
                                     </div>
                                     <div className="content">
-                                    <h3>On time delivary</h3>
-                                    <p>Logistic service involves the ntation and control </p>
+                                    <h3>Livraison dans les délais</h3>
+                                    <p>Restez informé sur l&apos;avancement de vos livraisons </p>
                                     </div>
                                 </li>
                                 <li>
@@ -292,8 +296,8 @@ export default function Home() {
                                     <span className="icon-call why-are-we__call" />
                                     </div>
                                     <div className="content">
-                                    <h3>24/7 online support</h3>
-                                    <p>Logistic service involves the ntation and control </p>
+                                    <h3>Assistance client réactive</h3>
+                                    <p>Restez informé sur l&apos;avancement de vos livraisons </p>
                                     </div>
                                 </li>
                                 </ul>
@@ -303,10 +307,10 @@ export default function Home() {
                                     className="why-are-we__year wow fadeInLeft"
                                     data-wow-delay="300ms"
                                 >
-                                    <h3>Since 1920</h3>
+                                    <h3>XPARK</h3>
                                     <p>
-                                    Logistic service involves the planning, implementation, and
-                                    control of the efficient and effective movement and storage
+                                    Votre partenaire de confiance pour le transport de
+                                    marchandises en Tunisie
                                     </p>
                                 </div>
                                 </div>
@@ -335,17 +339,17 @@ export default function Home() {
                                 </div>
                             </div>
                             <h3 className="cta-one__title">
-                                Need any help?
-                                <br /> contact us!
+                                Besoin d'un transport ?
+                                <br /> Contactez-nous !
                             </h3>
                             <div className="cta-one__contact-box">
                                 <div className="icon">
                                 <span className="icon-phone" />
                                 </div>
                                 <div className="content">
-                                <p>Need help?</p>
+                                <p>Notre équipe est disponible</p>
                                 <h3>
-                                    <a href="tel:3075550133">(307) 555-0133</a>
+                                    <a href="tel:+21670000000">+216 70 000 000</a>
                                 </h3>
                                 </div>
                             </div>

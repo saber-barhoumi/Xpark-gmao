@@ -33,8 +33,8 @@ export default function Faq() {
                                         <span className="section-title__tagline">FAQ</span>
                                     </div>
                                     <h2 className="section-title__title">
-                                        Do You Have Any
-                                        <br /> Question Please?
+                                        Des questions sur
+                                        <br /> nos services ?
                                     </h2>
                                 </div>
                                 <div
@@ -43,14 +43,14 @@ export default function Faq() {
                                     >
                                     <div className={isActive.key == 1 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(1)}>
                                         <div className="accrodion-title">
-                                        <h4>How can I track my shipment?</h4>
+                                        <h4>Comment suivre ma demande de transport ?</h4>
                                         </div>
                                         <div className={isActive.key == 1 ? "accrodion-content current" : "accrodion-content"}>
                                             <div className="inner">
                                             <p>
-                                            It is a long established fact that a reader will be distr
-                                            acted bioiiy the real ism dablea content of a page when
-                                            looking at its layout{" "}
+                                            Depuis votre espace client XPARK, suivez chaque demande de
+                                            transport et restez informé sur l'avancement de vos
+                                            livraisons en temps réel.{" "}
                                             </p>
                                         </div>
                                         </div>
@@ -58,14 +58,14 @@ export default function Faq() {
                                     </div>
                                     <div className={isActive.key == 2 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(2)}>
                                         <div className="accrodion-title">
-                                        <h4>What is the average delivery time?</h4>
+                                        <h4>Quels sont les délais de livraison ?</h4>
                                         </div>
                                         <div className={isActive.key == 2 ? "accrodion-content current" : "accrodion-content"}>
                                             <div className="inner">
                                                 <p>
-                                                It is a long established fact that a reader will be distr
-                                                acted bioiiy the real ism dablea content of a page when
-                                                looking at its layout{" "}
+                                                Les délais dépendent de la destination et du type de marchandise.
+                                                Chaque demande est planifiée pour garantir une livraison
+                                                dans les meilleurs délais.{" "}
                                                 </p>
                                         </div>
                                         </div>
@@ -73,14 +73,14 @@ export default function Faq() {
                                     </div>
                                     <div className={isActive.key == 3 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(3)}>
                                         <div className="accrodion-title">
-                                        <h4>Do you offer Smooth Running Supply?</h4>
+                                        <h4>Quels types de marchandises transportez-vous ?</h4>
                                         </div>
                                         <div className={isActive.key == 3 ? "accrodion-content current" : "accrodion-content"}>
                                             <div className="inner">
                                                 <p>
-                                                It is a long established fact that a reader will be distr
-                                                acted bioiiy the real ism dablea content of a page when
-                                                looking at its layout{" "}
+                                                Notre flotte est adaptée à différents types de marchandises :
+                                                produits d'entreprise, colis volumineux, fret local et
+                                                régional. Contactez-nous pour étudier votre besoin.{" "}
                                                 </p>
                                             </div>
                                         </div>
@@ -95,7 +95,7 @@ export default function Faq() {
                             data-wow-delay="300ms"
                         >
                             <h3 className="faq-one__from-title">
-                            Our One-Stop Car Repair Shop
+                            Demandez votre devis gratuit
                             </h3>
                             <form
                             className="contact-form-validated faq-one__form"
@@ -109,7 +109,7 @@ export default function Faq() {
                                     <input
                                     type="text"
                                     name="name"
-                                    placeholder="Your Name"
+                                    placeholder="Votre nom"
                                     required=""
                                     />
                                 </div>
@@ -119,7 +119,7 @@ export default function Faq() {
                                     <input
                                     type="email"
                                     name="email"
-                                    placeholder="Your Email"
+                                    placeholder="Votre email"
                                     required=""
                                     />
                                 </div>
@@ -129,7 +129,7 @@ export default function Faq() {
                                     <input
                                     type="text"
                                     name="text"
-                                    placeholder="Phone Number"
+                                    placeholder="Téléphone"
                                     required=""
                                     />
                                 </div>
@@ -137,14 +137,14 @@ export default function Faq() {
                                 <div className="col-xl-6 col-lg-6">
                                 <div className="faq-one__input-box">
                                     <div className="select-box">
-                                        <select defaultValue="Choose a Option" className="selectmenu wide">
-                                            <option>Choose a Option</option>
-                                            <option>Type Of Service 01</option>
-                                            <option>Type Of Service 02</option>
-                                            <option>Type Of Service 03</option>
-                                            <option>Type Of Service 04</option>
-                                            <option>Type Of Service 05</option>
-                                            <option>Type Of Service 06</option>
+                                        <select defaultValue="Choisir un service" className="selectmenu wide">
+                                            <option>Choisir un service</option>
+                                            <option>Transport de marchandises</option>
+                                            <option>Gestion de flotte</option>
+                                            <option>Livraison et distribution</option>
+                                            <option>Transport personnalisé</option>
+                                            <option>Transport local et régional</option>
+                                            <option>Autre demande</option>
                                         </select>
                                     </div>
                                 </div>
@@ -153,7 +153,7 @@ export default function Faq() {
                                 <div className="faq-one__input-box text-message-box">
                                     <textarea
                                     name="message"
-                                    placeholder="Message here.."
+                                    placeholder="Votre demande de transport..."
                                     defaultValue={""}
                                     />
                                 </div>
@@ -161,7 +161,7 @@ export default function Faq() {
                                 <div className=" col-xl-12">
                                 <div className="faq-one__btn-box">
                                     <button type="submit" className="thm-btn faq-one__btn">
-                                    Submit Now
+                                    Envoyer la demande
                                     <span />
                                     </button>
                                 </div>

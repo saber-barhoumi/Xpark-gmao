@@ -79,16 +79,13 @@ export default function TestimonialSlider1() {
                     <span className="icon-star last-star" />
                 </div>
                 <h3 className="testimonial-one__client-name">
-                    Nafiz Bhuiyan
+                    Ahmed Ben Salah
                 </h3>
                 <p className="testimonial-one__client-sub-title">
-                    Manegar
+                    Directeur logistique
                 </p>
                 <p className="testimonial-one__text">
-                    Logistic service involves the planning implementation an
-                    and control of the efficient and effective movement and
-                    storage of goods and materials Logistic service involves
-                    the planning implementation and control
+                    XPARK assure nos livraisons depuis plus d'un an. Les délais sont toujours respectés et l'équipe est très réactive. Un vrai partenaire de confiance pour notre activité.
                 </p>
                 </div>
             </SwiperSlide>
@@ -113,16 +110,13 @@ export default function TestimonialSlider1() {
                     <span className="icon-star last-star" />
                 </div>
                 <h3 className="testimonial-one__client-name">
-                    Robert Son
+                    Leïla Trabelsi
                 </h3>
                 <p className="testimonial-one__client-sub-title">
-                    Manegar
+                    Responsable achats
                 </p>
                 <p className="testimonial-one__text">
-                    Logistic service involves the planning implementation an
-                    and control of the efficient and effective movement and
-                    storage of goods and materials Logistic service involves
-                    the planning implementation and control
+                    Un service sérieux et professionnel. Nos marchandises arrivent toujours en parfait état et le suivi des livraisons est très appréciable au quotidien.
                 </p>
                 </div>
             </SwiperSlide>
@@ -147,16 +141,13 @@ export default function TestimonialSlider1() {
                     <span className="icon-star last-star" />
                 </div>
                 <h3 className="testimonial-one__client-name">
-                    Harbert Spin
+                    Mohamed Gharbi
                 </h3>
                 <p className="testimonial-one__client-sub-title">
-                    Manegar
+                    Gérant de société
                 </p>
                 <p className="testimonial-one__text">
-                    Logistic service involves the planning implementation an
-                    and control of the efficient and effective movement and
-                    storage of goods and materials Logistic service involves
-                    the planning implementation and control
+                    Nous faisons appel à XPARK pour nos transports réguliers entre les régions. La flotte est moderne et les chauffeurs sont très professionnels.
                 </p>
                 </div>
             </SwiperSlide>
@@ -181,16 +172,13 @@ export default function TestimonialSlider1() {
                     <span className="icon-star last-star" />
                 </div>
                 <h3 className="testimonial-one__client-name">
-                    Mainto Vula
+                    Sonia Mansour
                 </h3>
                 <p className="testimonial-one__client-sub-title">
-                    Manegar
+                    Directrice commerciale
                 </p>
                 <p className="testimonial-one__text">
-                    Logistic service involves the planning implementation an
-                    and control of the efficient and effective movement and
-                    storage of goods and materials Logistic service involves
-                    the planning implementation and control
+                    Une équipe à l'écoute qui s'adapte à nos besoins. La solution de transport personnalisé nous a permis d'optimiser nos coûts logistiques.
                 </p>
                 </div>
             </SwiperSlide>

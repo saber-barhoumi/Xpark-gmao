@@ -7,11 +7,11 @@ export default function Blog() {
                 <div className="container">
                 <div className="section-title text-center">
                     <div className="section-title__tagline-box">
-                    <span className="section-title__tagline">Latests Blog</span>
+                    <span className="section-title__tagline">Actualités</span>
                     </div>
                     <h2 className="section-title__title">
-                    Streamlining your supply
-                    <br /> chain processes
+                    Les dernières actualités
+                    <br /> de XPARK
                     </h2>
                 </div>
                 <div className="row">
@@ -26,22 +26,21 @@ export default function Blog() {
                             <img src="assets/images/blog/blog-1-1.jpg" alt="" />
                         </div>
                         <div className="blog-one__date">
-                            <p>24 March</p>
+                            <p>12 Juin</p>
                         </div>
                         </div>
                         <div className="blog-one__content">
                         <h3 className="blog-one__title">
                             <Link href="/blog-details">
-                            Your trusted logistics provider Express Logistics
+                            XPARK renforce sa flotte avec de nouveaux véhicules
                             </Link>
                         </h3>
                         <p className="blog-one__text">
-                            It is a long established fact that a reader will williljl be
-                            distracted{" "}
+                            Notre flotte s'agrandit pour mieux répondre à vos besoins de transport.{" "}
                         </p>
                         <div className="blog-one__read-more">
                             <Link href="/blog-details">
-                            Read More
+                            Lire la suite
                             <span className="icon-arrow-right" />
                             </Link>
                         </div>
@@ -57,22 +56,21 @@ export default function Blog() {
                             <img src="assets/images/blog/blog-1-2.jpg" alt="" />
                         </div>
                         <div className="blog-one__date">
-                            <p>24 March</p>
+                            <p>28 Mai</p>
                         </div>
                         </div>
                         <div className="blog-one__content">
                         <h3 className="blog-one__title">
                             <Link href="/blog-details">
-                            Logistics expertise for your the competitive advantage
+                            Le suivi des opérations au service de vos livraisons
                             </Link>
                         </h3>
                         <p className="blog-one__text">
-                            It is a long established fact that a reader will williljl be
-                            distracted{" "}
+                            Comment notre organisation garantit des livraisons fiables et dans les délais.{" "}
                         </p>
                         <div className="blog-one__read-more">
                             <Link href="/blog-details">
-                            Read More
+                            Lire la suite
                             <span className="icon-arrow-right" />
                             </Link>
                         </div>
@@ -91,22 +89,21 @@ export default function Blog() {
                             <img src="assets/images/blog/blog-1-3.jpg" alt="" />
                         </div>
                         <div className="blog-one__date">
-                            <p>24 March</p>
+                            <p>15 Mai</p>
                         </div>
                         </div>
                         <div className="blog-one__content">
                         <h3 className="blog-one__title">
                             <Link href="/blog-details">
-                            Streamlining your supply chain processes Express{" "}
+                            Optimisation des trajets : nos engagements qualité{" "}
                             </Link>
                         </h3>
                         <p className="blog-one__text">
-                            It is a long established fact that a reader will williljl be
-                            distracted{" "}
+                            Des itinéraires étudiés pour des livraisons plus rapides et plus économiques.{" "}
                         </p>
                         <div className="blog-one__read-more">
                             <Link href="/blog-details">
-                            Read More
+                            Lire la suite
                             <span className="icon-arrow-right" />
                             </Link>
                         </div>

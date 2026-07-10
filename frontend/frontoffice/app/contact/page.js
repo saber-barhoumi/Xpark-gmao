@@ -5,7 +5,7 @@ export default function Home() {
 
     return (
         <>
-            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="CONTACT US">
+            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="CONTACT">
                 <div>
 
                     {/*Contact One Start*/}
@@ -13,9 +13,9 @@ export default function Home() {
                         <div className="container">
                         <div className="section-title text-center">
                             <div className="section-title__tagline-box">
-                            <span className="section-title__tagline">Contact us</span>
+                            <span className="section-title__tagline">Contactez-nous</span>
                             </div>
-                            <h2 className="section-title__title">Get in Touch With Us</h2>
+                            <h2 className="section-title__title">Contactez XPARK</h2>
                         </div>
                         <div className="contact-one__inner">
                             <ul className="contact-one__contact-list list-unstyled">
@@ -24,12 +24,12 @@ export default function Home() {
                                 <span className="icon-call" />
                                 </div>
                                 <div className="content">
-                                <h3>Lets Talk us</h3>
+                                <h3>Appelez-nous</h3>
                                 <p>
-                                    Phone number: <a href="tel:32566800890">+32566 - 800 - 890</a>
+                                    Téléphone : <a href="tel:+21670000000">+216 70 000 000</a>
                                 </p>
                                 <p>
-                                    Fax: <a href="tel:123458963007">1234 -58963 - 007</a>
+                                    Mobile : <a href="tel:+21620000000">+216 20 000 000</a>
                                 </p>
                                 </div>
                             </li>
@@ -38,10 +38,10 @@ export default function Home() {
                                 <span className="icon-location location-icon" />
                                 </div>
                                 <div className="content">
-                                <h3>Address</h3>
+                                <h3>Adresse</h3>
                                 <p>
-                                    Dhaka 102, 8000 sent behaibior
-                                    <br /> road 45 house of street
+                                    Zone industrielle
+                                    <br /> Tunis, Tunisie
                                 </p>
                                 </div>
                             </li>
@@ -50,14 +50,14 @@ export default function Home() {
                                 <span className="icon-envolop email-icon" />
                                 </div>
                                 <div className="content">
-                                <h3>Send us email</h3>
+                                <h3>Écrivez-nous</h3>
                                 <p>
-                                    <a href="mailto:nafizislam1223@gmail.com">
-                                    nafizislam1223@gmail.com
+                                    <a href="mailto:contact@xpark.tn">
+                                    contact@xpark.tn
                                     </a>
                                 </p>
                                 <p>
-                                    <a href="mailto:demo23gmail.com">demo23gmail.com</a>
+                                    <a href="mailto:devis@xpark.tn">devis@xpark.tn</a>
                                 </p>
                                 </div>
                             </li>
@@ -76,10 +76,14 @@ export default function Home() {
                             <div className="contact-two__left">
                                 <div className="section-title text-left">
                                 <div className="section-title__tagline-box">
-                                    <span className="section-title__tagline">Contact</span>
+                                    <span className="section-title__tagline">Demande de transport</span>
                                 </div>
-                                <h2 className="section-title__title">Get Touch Here</h2>
+                                <h2 className="section-title__title">Besoin d'un service de transport ?</h2>
                                 </div>
+                                <p style={{ marginBottom: 30 }}>
+                                    Notre équipe est disponible pour étudier votre demande et vous
+                                    proposer une solution adaptée dans les meilleurs délais.
+                                </p>
                                 <form
                                 className="contact-form-validated contact-two__form"
                                 action="assets/inc/sendemail.php"
@@ -92,7 +96,17 @@ export default function Home() {
                                         <input
                                         type="text"
                                         name="name"
-                                        placeholder="Name"
+                                        placeholder="Nom"
+                                        required=""
+                                        />
+                                    </div>
+                                    </div>
+                                    <div className="col-xl-6 col-lg-6">
+                                    <div className="contact-two__input-box">
+                                        <input
+                                        type="text"
+                                        name="company"
+                                        placeholder="Société"
                                         required=""
                                         />
                                     </div>
@@ -102,7 +116,17 @@ export default function Home() {
                                         <input
                                         type="email"
                                         name="email"
-                                        placeholder="E-mail"
+                                        placeholder="Email"
+                                        required=""
+                                        />
+                                    </div>
+                                    </div>
+                                    <div className="col-xl-6 col-lg-6">
+                                    <div className="contact-two__input-box">
+                                        <input
+                                        type="tel"
+                                        name="phone"
+                                        placeholder="Téléphone"
                                         required=""
                                         />
                                     </div>
@@ -111,8 +135,8 @@ export default function Home() {
                                     <div className="contact-two__input-box">
                                         <input
                                         type="text"
-                                        name="text"
-                                        placeholder="Subject"
+                                        name="subject"
+                                        placeholder="Votre demande de transport (marchandises, trajet, date...)"
                                         required=""
                                         />
                                     </div>
@@ -121,7 +145,7 @@ export default function Home() {
                                     <div className="contact-two__input-box text-message-box">
                                         <textarea
                                         name="message"
-                                        placeholder="Message"
+                                        placeholder="Votre message"
                                         defaultValue={""}
                                         />
                                     </div>
@@ -129,7 +153,7 @@ export default function Home() {
                                     <div className=" col-xl-12">
                                     <div className="contact-two__btn-box">
                                         <button type="submit" className="thm-btn contact-two__btn">
-                                        Submit Now
+                                        Envoyer la demande
                                         <span />
                                         </button>
                                     </div>
@@ -154,7 +178,7 @@ export default function Home() {
                     {/*Google Map Start*/}
                     <section className="google-map-one google-map-two">
                         <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4562.753041141002!2d-118.80123790098536!3d34.152323469614075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80e82469c2162619%3A0xba03efb7998eef6d!2sCostco+Wholesale!5e0!3m2!1sbn!2sbd!4v1562518641290!5m2!1sbn!2sbd"
+                        src="https://maps.google.com/maps?q=Tunis%2C%20Tunisie&t=&z=11&ie=UTF8&iwloc=&output=embed"
                         className="google-map__one"
                         allowFullScreen=""
                         />
@@ -179,17 +203,17 @@ export default function Home() {
                                 </div>
                             </div>
                             <h3 className="cta-one__title">
-                                Need any help?
-                                <br /> contact us!
+                                Besoin d'un transport ?
+                                <br /> Contactez-nous !
                             </h3>
                             <div className="cta-one__contact-box">
                                 <div className="icon">
                                 <span className="icon-phone" />
                                 </div>
                                 <div className="content">
-                                <p>Need help?</p>
+                                <p>Nous contacter</p>
                                 <h3>
-                                    <a href="tel:3075550133">(307) 555-0133</a>
+                                    <a href="tel:+21670000000">+216 70 000 000</a>
                                 </h3>
                                 </div>
                             </div>

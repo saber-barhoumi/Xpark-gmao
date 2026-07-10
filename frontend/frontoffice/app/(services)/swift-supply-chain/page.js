@@ -23,7 +23,7 @@ export default function Home() {
 
     return (
         <>
-            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="Swift Supply Chain">
+            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="TRANSPORT PERSONNALISÉ">
                 <div>
                     {/*Services Details Start*/}
                     <section className="services-details">
@@ -38,13 +38,13 @@ export default function Home() {
                                             alt=""
                                             />
                                         </div>
-                                        <h3 className="services-details__client-name">Sakib al hasan</h3>
-                                        <p className="services-details__client-sub-title">Brand Abasador</p>
+                                        <h3 className="services-details__client-name">Équipe XPARK</h3>
+                                        <p className="services-details__client-sub-title">Service commercial</p>
                                         <p className="services-details__client-text">
-                                            Construction is an essential industry that the building and designing{" "}
+                                            À votre écoute pour organiser tous vos transports de marchandises.{" "}
                                         </p>
                                         <h3 className="services-details__client-number">
-                                            <Link href="tel:888123456765">(+888) 123 456 765</Link>
+                                            <Link href="tel:+21670000000">+216 70 000 000</Link>
                                         </h3>
                                         <div className="services-details__client-social">
                                             <Link href="/blog-details">
@@ -62,7 +62,7 @@ export default function Home() {
                                         </div>
                                         </div>
                                         <div className="services-details__services-box">
-                                        <h3 className="services-details__services-list-title">Our Services</h3>
+                                        <h3 className="services-details__services-list-title">Nos services</h3>
                                         <ul className="services-details__service-list list-unstyled">
                                             <li>
                                             <div className="icon">
@@ -70,7 +70,7 @@ export default function Home() {
                                             </div>
                                             <p>
                                                 <Link href="/express-freight-solutions">
-                                                Express Freight Solutions
+                                                Transport de marchandises
                                                 </Link>
                                             </p>
                                             </li>
@@ -79,7 +79,7 @@ export default function Home() {
                                                 <span className="icon-dabble-arrow" />
                                             </div>
                                             <p>
-                                                <Link href="/quick-move-logistics">Quick Move Logistics</Link>
+                                                <Link href="/quick-move-logistics">Gestion de flotte</Link>
                                             </p>
                                             </li>
                                             <li>
@@ -87,7 +87,7 @@ export default function Home() {
                                                 <span className="icon-dabble-arrow" />
                                             </div>
                                             <p>
-                                                <Link href="/speedy-dispatch">Speedy Dispatch</Link>
+                                                <Link href="/speedy-dispatch">Livraison et distribution</Link>
                                             </p>
                                             </li>
                                             <li className="active">
@@ -95,7 +95,7 @@ export default function Home() {
                                                 <span className="icon-dabble-arrow" />
                                             </div>
                                             <p>
-                                                <Link href="/swift-supply-chain">Swift Supply Chain</Link>
+                                                <Link href="/swift-supply-chain">Transport personnalisé</Link>
                                             </p>
                                             </li>
                                             <li>
@@ -103,7 +103,7 @@ export default function Home() {
                                                 <span className="icon-dabble-arrow" />
                                             </div>
                                             <p>
-                                                <Link href="/on-point-distribution">On Point Distribution</Link>
+                                                <Link href="/on-point-distribution">Transport local et régional</Link>
                                             </p>
                                             </li>
                                         </ul>
@@ -116,13 +116,13 @@ export default function Home() {
                                                 "url(assets/images/services/services-details-get-touch-bg-img.jpg)"
                                             }}
                                         ></div>
-                                        <h3 className="services-details__get-touch-title">GET TOUCH</h3>
-                                        <p className="services-details__get-touch-sub-title">For fast service</p>
+                                        <h3 className="services-details__get-touch-title">CONTACTEZ-NOUS</h3>
+                                        <p className="services-details__get-touch-sub-title">Une réponse rapide</p>
                                         <div className="services-details__get-touch-icon">
                                             <span className="icon-call" />
                                         </div>
                                         <h3 className="services-details__get-touch-number">
-                                            <Link href="tel:888123456765">(+888) 123 456 765</Link>
+                                            <Link href="tel:+21670000000">+216 70 000 000</Link>
                                         </h3>
                                         </div>
                                     </div>
@@ -130,13 +130,10 @@ export default function Home() {
                                 <div className="col-xl-8 col-lg-7">
                                     <div className="services-details__right">
                                         <h3 className="services-details__title-1">
-                                        Cultivate Success with Agriculture
+                                        Transport personnalisé
                                         </h3>
                                         <p className="services-details__text-1">
-                                        Logistics service involves the planning, implementation, and
-                                        control of the efficient and effective transportation, storage,
-                                        and distribution of goods and materials Logistics service involves
-                                        the planning
+                                        Chaque entreprise a des besoins de transport spécifiques. XPARK étudie votre demande en détail et construit avec vous une solution de transport sur mesure : type de véhicule, fréquence, itinéraires et accompagnement dédié.
                                         </p>
                                         <div className="services-details__img-1">
                                         <img
@@ -152,11 +149,10 @@ export default function Home() {
                                                 <span className="icon-airplane" />
                                                 </div>
                                                 <h3 className="services-details__service-title">
-                                                <Link href="#">Rapid Delivery Services</Link>
+                                                <Link href="#">Étude du besoin</Link>
                                                 </h3>
                                                 <p className="services-details__service-text">
-                                                Construction is an essential industry that an involves
-                                                building and designing
+                                                Une analyse précise de votre demande pour proposer la solution la plus adaptée.
                                                 </p>
                                             </div>
                                             </div>
@@ -166,23 +162,17 @@ export default function Home() {
                                                 <span className="icon-lift-truck" />
                                                 </div>
                                                 <h3 className="services-details__service-title">
-                                                <Link href="#">Quick Move Logistics</Link>
+                                                <Link href="#">Accompagnement personnalisé</Link>
                                                 </h3>
                                                 <p className="services-details__service-text">
-                                                Construction is an essential industry that an involves
-                                                building and designing
+                                                Un interlocuteur dédié vous accompagne tout au long de la prestation.
                                                 </p>
                                             </div>
                                             </div>
                                         </div>
                                         </div>
                                         <p className="services-details__text-2">
-                                        Logistics service involves the planning, implementation, and
-                                        control of the efficient and effective transportation, storage,
-                                        and distribution of goods and materials Logistics service involves
-                                        the planning Logistics servi involves the planning,
-                                        implementation, and control of the efficient and effective
-                                        transportation
+                                        De l'étude initiale à la réalisation du transport, nous planifions chaque étape avec vous. Cette approche personnalisée garantit une prestation parfaitement alignée sur vos contraintes de volume, de délais et de budget.
                                         </p>
                                         <div className="services-details__faq">
                                         <div
@@ -192,17 +182,12 @@ export default function Home() {
                                         <div className={isActive.key == 1 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(1)}>
                                             <div className="accrodion-count" />
                                             <div className="accrodion-title">
-                                                <h4>What is a ProActive Transport?</h4>
+                                                <h4>Comment se déroule l'étude de mon besoin ?</h4>
                                             </div>
                                             <div className={isActive.key == 1 ? "accrodion-content current" : "accrodion-content"}>
                                                 <div className="inner">
                                                     <p>
-                                                        It is a long established fact that a reader will be
-                                                        distracted by the readable content of a p looking at its
-                                                        a layout. The point of using Lorem Ipsum is that it has
-                                                        a more-or-less normal distribution of a letter as
-                                                        opposed to a using 'Content here, content here.It is a
-                                                        long
+                                                        Notre équipe analyse votre demande : nature des marchandises, volumes, destinations et fréquence. Nous vous proposons ensuite une solution adaptée avec un devis détaillé.
                                                     </p>
                                                 </div>
                                                 {/* /.inner */}
@@ -211,17 +196,12 @@ export default function Home() {
                                         <div className={isActive.key == 2 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(2)}>
                                             <div className="accrodion-count" />
                                             <div className="accrodion-title">
-                                                <h4>How do I set up a Swift Warehousing Solutions?</h4>
+                                                <h4>Puis-je mettre en place un transport récurrent ?</h4>
                                             </div>
                                             <div className={isActive.key == 2 ? "accrodion-content current" : "accrodion-content"}>
                                                 <div className="inner">
                                                     <p>
-                                                        It is a long established fact that a reader will be
-                                                        distracted by the readable content of a p looking at its
-                                                        a layout. The point of using Lorem Ipsum is that it has
-                                                        a more-or-less normal distribution of a letter as
-                                                        opposed to a using 'Content here, content here.It is a
-                                                        long
+                                                        Oui, nous mettons en place des prestations régulières adaptées à votre activité, avec une planification définie ensemble à l'avance.
                                                     </p>
                                                 </div>
                                                 {/* /.inner */}
@@ -230,17 +210,12 @@ export default function Home() {
                                         <div className={isActive.key == 3 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(3)}>
                                             <div className="accrodion-count" />
                                             <div className="accrodion-title">
-                                                <h4>How do I set up a Efficient Freight Solutions?</h4>
+                                                <h4>Ai-je un interlocuteur dédié ?</h4>
                                             </div>
                                             <div className={isActive.key == 3 ? "accrodion-content current" : "accrodion-content"}>
                                                 <div className="inner">
                                                 <p>
-                                                    It is a long established fact that a reader will be
-                                                    distracted by the readable content of a p looking at its
-                                                    a layout. The point of using Lorem Ipsum is that it has
-                                                    a more-or-less normal distribution of a letter as
-                                                    opposed to a using 'Content here, content here.It is a
-                                                    long
+                                                    Oui, un interlocuteur dédié suit votre dossier et reste disponible pour ajuster la prestation à l'évolution de vos besoins.
                                                 </p>
                                                 </div>
                                                 {/* /.inner */}
@@ -255,10 +230,10 @@ export default function Home() {
                                                     <span className="icon-arrow-left" />
                                                 </Link>
                                                 </div>
-                                                <p>Road Flight</p>
+                                                <p>Livraison et distribution</p>
                                             </li>
                                             <li>
-                                                <p>Air Flight</p>
+                                                <p>Transport local et régional</p>
                                                 <div className="icon">
                                                 <Link href="#">
                                                     <span className="icon-arrow-right" />
@@ -292,17 +267,16 @@ export default function Home() {
                                 </div>
                             </div>
                             <h3 className="cta-one__title">
-                                Need any help?
-                                <br /> contact us!
+                                Besoin d'un transport ?<br /> Contactez-nous !
                             </h3>
                             <div className="cta-one__contact-box">
                                 <div className="icon">
                                 <span className="icon-phone" />
                                 </div>
                                 <div className="content">
-                                <p>Need help?</p>
+                                <p>Nous contacter</p>
                                 <h3>
-                                    <Link href="tel:3075550133">(307) 555-0133</Link>
+                                    <Link href="tel:+21670000000">+216 70 000 000</Link>
                                 </h3>
                                 </div>
                             </div>

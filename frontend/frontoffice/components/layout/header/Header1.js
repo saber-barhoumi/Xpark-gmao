@@ -35,8 +35,8 @@ export default function Header1({ scroll, isMobileMenu, handleMobileMenu, isSide
                       </div>
                     </div>
                     <div className="main-menu__btn-box">
-                      <Link href="/about" className="thm-btn main-menu__btn">
-                        Read more
+                      <Link href="/account/reserver" className="thm-btn main-menu__btn">
+                        Demander un devis
                         <span />
                       </Link>
                     </div>
@@ -81,8 +81,8 @@ export default function Header1({ scroll, isMobileMenu, handleMobileMenu, isSide
                       </div>
                     </div>
                     <div className="main-menu__btn-box">
-                      <Link href="/about" className="thm-btn main-menu__btn">
-                        Read more
+                      <Link href="/account/reserver" className="thm-btn main-menu__btn">
+                        Demander un devis
                         <span />
                       </Link>
                     </div>

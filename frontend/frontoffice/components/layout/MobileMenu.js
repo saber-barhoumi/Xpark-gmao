@@ -43,83 +43,56 @@ const MobileMenu = ({ isSidebar, handleMobileMenu, handleSidebar }) => {
                     {/* /.logo-box */}
                     <div className="mobile-nav__container">
                         <ul className="main-menu__list">
-                        <li className={isActive.key == 1 ? "dropdown current" : "dropdown"}>
-                            <Link href="/" onClick={handleMobileMenu}>Home </Link>
-                            <ul style={{ display: `${isActive.key == 1 ? "block" : "none"}` }}>
-                                <li><Link href="/" onClick={handleMobileMenu}>Home One</Link></li>
-                                <li><Link href="/index-2" onClick={handleMobileMenu}>Home Two</Link></li>
-                                <li className={isActive.subMenuKey == 2 ? "dropdown current" : "dropdown"}>
-                                    <Link href="#" onClick={handleMobileMenu}>Header Styles</Link>
-                                    <ul style={{ display: `${isActive.subMenuKey == 2 ? "block" : "none"}` }}>
-                                        <li><Link href="/" onClick={handleMobileMenu}>Header One</Link></li>
-                                        <li><Link href="/index-2" onClick={handleMobileMenu}>Header Two</Link></li>
-                                    </ul>
-                                    <div className={isActive.subMenuKey == 2 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(1, 2)}><span className="fa fa-angle-right" /></div>
-                                </li>
-                            </ul>
-                            <div className={isActive.key == 1 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(1)}><span className="fa fa-angle-right" /></div>
-                        </li>
-                        <li><Link href="/about" onClick={handleMobileMenu}>About</Link></li>
-                        <li className={isActive.key == 3 ? "dropdown current" : "dropdown"}>
-                            <Link href="#" onClick={handleMobileMenu}>Pages</Link>
-                            <ul style={{ display: `${isActive.key == 3 ? "block" : "none"}` }}>
-                                <li><Link href="/team" onClick={handleMobileMenu}>Team</Link></li>
-                                <li><Link href="/team-carousel" onClick={handleMobileMenu}>Team Carousel</Link></li>
-                                <li><Link href="/team-details" onClick={handleMobileMenu}>Team Details</Link></li>
-                                <li><Link href="/testimonials" onClick={handleMobileMenu}>Testimonials</Link></li>
-                                <li><Link href="/faq" onClick={handleMobileMenu}>Faq</Link></li>
-                                <li><Link href="/404" onClick={handleMobileMenu}>404 Error</Link></li>
-                            </ul>
-                            <div className={isActive.key == 3 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(3)}>
-                                <span className="fa fa-angle-right" />
-                            </div>
-                        </li>
+                        <li><Link href="/" onClick={handleMobileMenu}>Accueil</Link></li>
+                        <li><Link href="/about" onClick={handleMobileMenu}>À propos</Link></li>
                         <li className={isActive.key == 4 ? "dropdown current" : "dropdown"}>
                             <Link href="#" onClick={handleMobileMenu}>Services</Link>
                             <ul style={{ display: `${isActive.key == 4 ? "block" : "none"}` }}>
-                                <li><Link href="/services" onClick={handleMobileMenu}>Services</Link></li>
-                                <li><Link href="/services-carousel" onClick={handleMobileMenu}>Services Carousel</Link></li>
-                                <li><Link href="/express-freight-solutions" onClick={handleMobileMenu}>Express Freight Solutions</Link></li>
-                                <li><Link href="/quick-move-logistics" onClick={handleMobileMenu}>Quick Move Logistics</Link></li>
-                                <li><Link href="/speedy-dispatch" onClick={handleMobileMenu}>Speedy Dispatch</Link></li>
-                                <li><Link href="/swift-supply-chain" onClick={handleMobileMenu}>Swift Supply Chain</Link></li>
-                                <li><Link href="/on-point-distribution" onClick={handleMobileMenu}>On Point Distribution</Link></li>
+                                <li><Link href="/services" onClick={handleMobileMenu}>Tous nos services</Link></li>
+                                <li><Link href="/express-freight-solutions" onClick={handleMobileMenu}>Transport de marchandises</Link></li>
+                                <li><Link href="/quick-move-logistics" onClick={handleMobileMenu}>Gestion de flotte</Link></li>
+                                <li><Link href="/speedy-dispatch" onClick={handleMobileMenu}>Livraison et distribution</Link></li>
+                                <li><Link href="/swift-supply-chain" onClick={handleMobileMenu}>Transport personnalisé</Link></li>
+                                <li><Link href="/on-point-distribution" onClick={handleMobileMenu}>Transport local et régional</Link></li>
                             </ul>
                             <div className={isActive.key == 4 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(4)}>
                                 <span className="fa fa-angle-right" />
                             </div>
                         </li>
-                            <li className={isActive.key == 5 ? "dropdown current" : "dropdown"}>
-                                <Link href="#" onClick={handleMobileMenu}>Projects</Link>
-                                <ul style={{ display: `${isActive.key == 5 ? "block" : "none"}` }}>
-                                    <li><Link href="/projects" onClick={handleMobileMenu}>Projects</Link></li>
-                                    <li><Link href="/project-details" onClick={handleMobileMenu}>Project Details</Link></li>
-                                </ul>
-                                <div className={isActive.key == 5 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(5)}>
-                                    <span className="fa fa-angle-right" />
-                                </div>
-                            </li>
-                            <li className={isActive.key == 6 ? "dropdown current" : "dropdown"}>
-                                <Link href="#" onClick={handleMobileMenu}>Blog</Link>
-                                <ul style={{ display: `${isActive.key == 6 ? "block" : "none"}` }}>
-                                    <li><Link href="/blog" onClick={handleMobileMenu}>Blog</Link></li>
-                                    <li><Link href="/blog-details" onClick={handleMobileMenu}>Blog Details</Link></li>
-                                </ul>
-                                <div className={isActive.key == 6 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(6)}>
-                                    <span className="fa fa-angle-right" />
-                                </div>
-                            </li>
                             <li><Link href="/contact" onClick={handleMobileMenu}>Contact</Link></li>
+                            <li className={isActive.key == 7 ? "dropdown current" : "dropdown"}>
+                                <Link href="/account" onClick={handleMobileMenu}>Espace Client</Link>
+                                <ul style={{ display: `${isActive.key == 7 ? "block" : "none"}` }}>
+                                    <li><Link href="/auth/login" onClick={handleMobileMenu}>Connexion</Link></li>
+                                    <li><Link href="/auth/register" onClick={handleMobileMenu}>Inscription</Link></li>
+                                    <li><Link href="/account" onClick={handleMobileMenu}>Mon Compte</Link></li>
+                                    <li><Link href="/account/reserver" onClick={handleMobileMenu}>Réserver un véhicule</Link></li>
+                                    <li><Link href="/account/missions" onClick={handleMobileMenu}>Mes Missions</Link></li>
+                                </ul>
+                                <div className={isActive.key == 7 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(7)}>
+                                    <span className="fa fa-angle-right" />
+                                </div>
+                            </li>
+                            <li className={isActive.key == 8 ? "dropdown current" : "dropdown"}>
+                                <Link href="#">Langue : FR</Link>
+                                <ul style={{ display: `${isActive.key == 8 ? "block" : "none"}` }}>
+                                    <li><Link href="#">Français</Link></li>
+                                    <li><Link href="#" title="Bientôt disponible">English (bientôt)</Link></li>
+                                </ul>
+                                <div className={isActive.key == 8 ? "dropdown-btn open" : "dropdown-btn"} onClick={() => handleToggle(8)}>
+                                    <span className="fa fa-angle-right" />
+                                </div>
+                            </li>
                         </ul>
                     </div>
                     <ul className="mobile-nav__contact list-unstyled">
                     <li>
                         <i className="fa fa-envelope" />
-                        <a href="mailto:needhelp@packageName__.com">needhelp@onpoint.com</a>
+                        <a href="mailto:contact@xpark.tn">contact@xpark.tn</a>
                     </li>
                     <li>
                         <i className="fa fa-phone-alt" />
-                        <a href="tel:666-888-0000">666 888 0000</a>
+                        <a href="tel:+21670000000">+216 70 000 000</a>
                     </li>
                     </ul>
                     {/* /.mobile-nav__contact */}

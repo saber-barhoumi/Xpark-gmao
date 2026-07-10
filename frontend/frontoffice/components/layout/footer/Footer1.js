@@ -26,8 +26,8 @@ export default function Footer1() {
                         </Link>
                         </div>
                         <p className="footer-widget__about-text">
-                        It is a long established fact that a reader Empowering
-                        Communities
+                        XPARK, spécialiste du transport de marchandises avec une
+                        flotte adaptée aux besoins des professionnels.
                         </p>
                         <ul className="footer-widget__about-contact list-unstyled">
                         <li>
@@ -35,8 +35,8 @@ export default function Footer1() {
                             <span className="icon-envolop email-icon" />
                             </div>
                             <p>
-                            <Link href="mailto:debra.holt@example.com">
-                                debra.holt@example.com,
+                            <Link href="mailto:contact@xpark.tn">
+                                contact@xpark.tn
                             </Link>
                             </p>
                         </li>
@@ -44,14 +44,14 @@ export default function Footer1() {
                             <div className="icon">
                             <span className="icon-location location-icon" />
                             </div>
-                            <p>3891 Ranchview Dr. Richardson</p>
+                            <p>Zone industrielle, Tunis, Tunisie</p>
                         </li>
                         <li>
                             <div className="icon">
                             <span className="icon-call phone-call" />
                             </div>
                             <p>
-                            <Link href="tel:0192584341342">0192584341342</Link>
+                            <Link href="tel:+21670000000">+216 70 000 000</Link>
                             </p>
                         </li>
                         </ul>
@@ -63,23 +63,23 @@ export default function Footer1() {
                     >
                     <div className="footer-widget__column footer-widget__company">
                         <div className="footer-widget__title-box">
-                        <h3 className="footer-widget__title">About Company</h3>
+                        <h3 className="footer-widget__title">L'entreprise</h3>
                         </div>
                         <ul className="footer-widget__company-list list-unstyled">
                         <li>
-                            <Link href="/about">About Us</Link>
+                            <Link href="/about">À propos</Link>
                         </li>
                         <li>
-                            <Link href="/faq">FAQ</Link>
+                            <Link href="/services">Nos services</Link>
                         </li>
                         <li>
-                            <Link href="/testimonials">Testimonial</Link>
+                            <Link href="/contact">Contact</Link>
                         </li>
                         <li>
-                            <Link href="/services">Service</Link>
+                            <Link href="/account">Espace client</Link>
                         </li>
                         <li>
-                            <Link href="/blog">Blog And News</Link>
+                            <Link href="/account/reserver">Demander un devis</Link>
                         </li>
                         </ul>
                     </div>
@@ -96,31 +96,31 @@ export default function Footer1() {
                         <li>
                             <Link href="/express-freight-solutions">
                             <span className="icon-angle-left" />
-                            Express Freight Solutions
+                            Transport de marchandises
+                            </Link>
+                        </li>
+                        <li>
+                            <Link href="/quick-move-logistics">
+                            <span className="icon-angle-left" />
+                            Gestion de flotte
                             </Link>
                         </li>
                         <li>
                             <Link href="/speedy-dispatch">
                             <span className="icon-angle-left" />
-                            Rapid Delivery Services
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/speedy-dispatch">
-                            <span className="icon-angle-left" />
-                            Speedy Haulage
+                            Livraison et distribution
                             </Link>
                         </li>
                         <li>
                             <Link href="/swift-supply-chain">
                             <span className="icon-angle-left" />
-                            Reliable Transporters
+                            Transport personnalisé
                             </Link>
                         </li>
                         <li>
-                            <Link href="/swift-supply-chain">
+                            <Link href="/on-point-distribution">
                             <span className="icon-angle-left" />
-                            Swift Ship Solutions
+                            Transport local et régional
                             </Link>
                         </li>
                         </ul>
@@ -132,10 +132,10 @@ export default function Footer1() {
                     >
                     <div className="footer-widget__column footer-widget__newsletter">
                         <div className="footer-widget__title-box">
-                        <h3 className="footer-widget__title">Newslatter</h3>
+                        <h3 className="footer-widget__title">Newsletter</h3>
                         </div>
                         <p className="footer-widget__newsletter-text">
-                        Financial planners help people to gain knowledge aboutw
+                        Recevez nos actualités et nos offres de transport.
                         </p>
                         <form
                         className="footer-widget__newsletter-form mc-form"
@@ -145,7 +145,7 @@ export default function Footer1() {
                         <div className="footer-widget__newsletter-form-input-box">
                             <input
                             type="email"
-                            placeholder="Your e-mail"
+                            placeholder="Votre email"
                             name="EMAIL"
                             />
                             <button
@@ -167,17 +167,17 @@ export default function Footer1() {
             <div className="container">
                 <div className="site-footer__bottom-inner">
                 <p className="site-footer__bottom-text">
-                    © Yoursitename 2024 | All Rights Reserved
+                    © XPARK 2026 | Tous droits réservés
                 </p>
                 <ul className="list-unstyled site-footer__bottom-menu">
                     <li>
-                    <Link href="/about">Trams &amp; Condition</Link>
+                    <Link href="/about">Conditions générales</Link>
                     </li>
                     <li>
-                    <Link href="/about">Privacy Policy</Link>
+                    <Link href="/about">Politique de confidentialité</Link>
                     </li>
                     <li>
-                    <Link href="/contact">Contact Us</Link>
+                    <Link href="/contact">Contact</Link>
                     </li>
                 </ul>
                 </div>

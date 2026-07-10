@@ -51,7 +51,7 @@ export default function Banner() {
                         <div className="banner-one__img-box">
                         <div className="banner-one__img">
                             <img
-                            src="assets/images/resources/banner-one-img-1.jpg"
+                            src="assets/images/resources/banner-one-img-1.jpeg"
                             alt=""
                             />
                         </div>

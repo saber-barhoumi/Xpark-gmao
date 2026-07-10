@@ -10,10 +10,10 @@ export default function SearchPopup({ isPopup, handlePopup }) {
                 <div className="search-popup__content">
                 <form action="#">
                     <label htmlFor="search" className="sr-only">
-                    search here
+                    rechercher
                     </label>
                     {/* /.sr-only */}
-                    <input type="text" id="search" placeholder="Search Here..." />
+                    <input type="text" id="search" placeholder="Rechercher..." />
                     <button type="submit" aria-label="search submit" className="thm-btn">
                     <i className="fas fa-search" />
                     </button>

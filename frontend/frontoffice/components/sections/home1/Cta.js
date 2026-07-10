@@ -20,17 +20,17 @@ export default function Cta() {
                         </div>
                     </div>
                     <h3 className="cta-one__title">
-                        Need any help?
-                        <br /> contact us!
+                        Besoin d'un transport ?
+                        <br /> Contactez-nous !
                     </h3>
                     <div className="cta-one__contact-box">
                         <div className="icon">
                         <span className="icon-phone" />
                         </div>
                         <div className="content">
-                        <p>Need help?</p>
+                        <p>Notre équipe est disponible</p>
                         <h3>
-                            <a href="tel:3075550133">(307) 555-0133</a>
+                            <a href="tel:+21670000000">+216 70 000 000</a>
                         </h3>
                         </div>
                     </div>

@@ -15,10 +15,10 @@ export default function Project() {
                         <div className="project-two__content-box">
                         <div className="section-title text-left">
                             <div className="section-title__tagline-box">
-                            <span className="section-title__tagline">latest project</span>
+                            <span className="section-title__tagline">Nos opérations</span>
                             </div>
                             <h2 className="section-title__title">
-                            Seamless logistics for your logo
+                            Le transport XPARK en images
                             </h2>
                         </div>
                         <div className="project-two__btn-box">
@@ -43,10 +43,10 @@ export default function Project() {
                         <div className="project-two__img">
                         <img src="assets/images/project/project-2-1.jpg" alt="" />
                         <div className="project-two__content">
-                            <p className="project-two__sub-title">Express Logistics</p>
+                            <p className="project-two__sub-title">Transport industriel</p>
                             <h3 className="project-two__title">
                             <Link href="/project-details">
-                                Delivering success through logistics
+                                Livraison de marchandises industrielles
                             </Link>
                             </h3>
                         </div>
@@ -63,10 +63,10 @@ export default function Project() {
                         <div className="project-two__img">
                         <img src="assets/images/project/project-2-2.jpg" alt="" />
                         <div className="project-two__content">
-                            <p className="project-two__sub-title">Express Logistics</p>
+                            <p className="project-two__sub-title">Distribution urbaine</p>
                             <h3 className="project-two__title">
                             <Link href="/project-details">
-                                Delivering success through logistics
+                                Distribution urbaine grande consommation
                             </Link>
                             </h3>
                         </div>
@@ -83,10 +83,10 @@ export default function Project() {
                         <div className="project-two__img">
                         <img src="assets/images/project/project-2-3.jpg" alt="" />
                         <div className="project-two__content">
-                            <p className="project-two__sub-title">Express Logistics</p>
+                            <p className="project-two__sub-title">Transport régional</p>
                             <h3 className="project-two__title">
                             <Link href="/project-details">
-                                Delivering success through logistics
+                                Transport régional de matériaux
                             </Link>
                             </h3>
                         </div>
@@ -103,10 +103,10 @@ export default function Project() {
                         <div className="project-two__img">
                         <img src="assets/images/project/project-2-4.jpg" alt="" />
                         <div className="project-two__content">
-                            <p className="project-two__sub-title">Express Logistics</p>
+                            <p className="project-two__sub-title">Livraison et distribution</p>
                             <h3 className="project-two__title">
                             <Link href="/project-details">
-                                Delivering success through logistics
+                                Tournées régulières multi-clients
                             </Link>
                             </h3>
                         </div>
@@ -123,10 +123,10 @@ export default function Project() {
                         <div className="project-two__img">
                         <img src="assets/images/project/project-2-5.jpg" alt="" />
                         <div className="project-two__content">
-                            <p className="project-two__sub-title">Express Logistics</p>
+                            <p className="project-two__sub-title">Transport personnalisé</p>
                             <h3 className="project-two__title">
                             <Link href="/project-details">
-                                Delivering success through logistics
+                                Acheminement d'équipements professionnels
                             </Link>
                             </h3>
                         </div>

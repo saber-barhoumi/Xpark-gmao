@@ -23,15 +23,15 @@ export default function Sidebar({ isSidebar, handleSidebar }) {
                             </Link>
                         </div>
                         <div className="content-box">
-                            <h4>About Us</h4>
+                            <h4>À propos de XPARK</h4>
                             <p>
-                            Lorem ipsum dolor sit amet, consectetur elit, sed do eiusmod
-                            tempor incididunt ut labore et magna aliqua. Ut enim ad minim
-                            veniam laboris.
+                            XPARK est une entreprise spécialisée dans le transport de
+                            marchandises grâce à une flotte de véhicules adaptée aux
+                            besoins des professionnels.
                             </p>
                         </div>
                         <div className="form-inner">
-                            <h4>Get a free quote</h4>
+                            <h4>Demandez un devis gratuit</h4>
                             <form
                             action="assets/inc/sendemail.php"
                             className="contact-form-validated"
@@ -41,7 +41,7 @@ export default function Sidebar({ isSidebar, handleSidebar }) {
                                 <input
                                 type="text"
                                 name="name"
-                                placeholder="Name"
+                                placeholder="Nom"
                                 required=""
                                 />
                             </div>
@@ -56,13 +56,13 @@ export default function Sidebar({ isSidebar, handleSidebar }) {
                             <div className="form-group">
                                 <textarea
                                 name="message"
-                                placeholder="Message..."
+                                placeholder="Votre demande de transport..."
                                 defaultValue={""}
                                 />
                             </div>
                             <div className="form-group message-btn">
                                 <button type="submit" className="thm-btn form-inner__btn">
-                                Submit Now
+                                Envoyer
                                 </button>
                             </div>
                             </form>

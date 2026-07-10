@@ -37,17 +37,17 @@ export default function Counter() {
                     >
                         <div className="section-title text-left">
                         <div className="section-title__tagline-box">
-                            <span className="section-title__tagline">Our Features</span>
+                            <span className="section-title__tagline">XPARK en chiffres</span>
                         </div>
                         <h2 className="section-title__title">
-                            Simplifying your logistics of <br />
-                            the challenges
+                            Une flotte performante au service <br />
+                            de vos marchandises
                         </h2>
                         </div>
                         <p className="counter-one__right-text">
-                        Logistic service involves the planning, implementation, and
-                        control of the efficient and effective movement and storage of
-                        goods and materials.
+                        XPARK organise et suit chaque opération de transport : planification
+                        des trajets, affectation des véhicules et des chauffeurs, et
+                        suivi des livraisons jusqu'à destination.
                         </p>
                         <ul className="counter-one__count-list list-unstyled">
                         <li>
@@ -62,7 +62,7 @@ export default function Counter() {
                                 <span>+</span>
                             </div>
                             </div>
-                            <p className="counter-one__count-text">Our Happy Customer</p>
+                            <p className="counter-one__count-text">Clients satisfaits</p>
                         </li>
                         <li>
                             <div className="counter-one__icon-and-count">
@@ -77,7 +77,7 @@ export default function Counter() {
                                 <span className="counter-one__count-plus">+</span>
                             </div>
                             </div>
-                            <p className="counter-one__count-text">Our Team Member</p>
+                            <p className="counter-one__count-text">Missions réalisées</p>
                         </li>
                         <li>
                             <div className="counter-one__icon-and-count">
@@ -92,7 +92,7 @@ export default function Counter() {
                                 <span className="counter-one__count-plus">+</span>
                             </div>
                             </div>
-                            <p className="counter-one__count-text">Our Clients Reviews</p>
+                            <p className="counter-one__count-text">Kilomètres parcourus</p>
                         </li>
                         </ul>
                     </div>

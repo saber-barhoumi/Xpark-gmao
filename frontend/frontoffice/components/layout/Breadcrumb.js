@@ -17,7 +17,7 @@ export default function Breadcrumb({ breadcrumbTitle }) {
                     <div className="thm-breadcrumb__box">
                     <ul className="thm-breadcrumb list-unstyled">
                         <li>
-                        <Link href="/">Home</Link>
+                        <Link href="/">Accueil</Link>
                         </li>
                         <li>
                         <span className="icon-angle-left" />

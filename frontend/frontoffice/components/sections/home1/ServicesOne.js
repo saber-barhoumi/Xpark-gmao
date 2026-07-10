@@ -7,11 +7,11 @@ export default function ServicesOne() {
                 <div className="container">
                 <div className="section-title text-center">
                     <div className="section-title__tagline-box">
-                    <span className="section-title__tagline">LATEST SERVICE</span>
+                    <span className="section-title__tagline">NOS SERVICES</span>
                     </div>
                     <h2 className="section-title__title">
-                    Your supply chain partner
-                    <br /> for success
+                    Des solutions de transport
+                    <br /> adaptées à votre entreprise
                     </h2>
                 </div>
                 <div className="row">
@@ -26,7 +26,7 @@ export default function ServicesOne() {
                         </div>
                         <h3 className="services-one__title">
                         <Link href="/express-freight-solutions">
-                            Fast and reliable logistics the solutions
+                            Transport de marchandises rapide et efficace
                         </Link>
                         </h3>
                         <div className="services-one__btn-box">
@@ -34,7 +34,7 @@ export default function ServicesOne() {
                             href="/express-freight-solutions"
                             className="thm-btn services-one__btn"
                         >
-                            Read more
+                            En savoir plus
                             <span />
                         </Link>
                         </div>
@@ -49,7 +49,7 @@ export default function ServicesOne() {
                         </div>
                         <h3 className="services-one__title">
                         <Link href="/quick-move-logistics">
-                            Bridges Construction is an essen industry
+                            Une flotte adaptée à vos besoins
                         </Link>
                         </h3>
                         <div className="services-one__btn-box">
@@ -57,7 +57,7 @@ export default function ServicesOne() {
                             href="/quick-move-logistics"
                             className="thm-btn services-one__btn"
                         >
-                            Read more
+                            En savoir plus
                             <span />
                         </Link>
                         </div>
@@ -75,7 +75,7 @@ export default function ServicesOne() {
                         </div>
                         <h3 className="services-one__title">
                         <Link href="/speedy-dispatch">
-                            That involves building adesig the a structures
+                            Suivi des opérations et des livraisons
                         </Link>
                         </h3>
                         <div className="services-one__btn-box">
@@ -83,7 +83,7 @@ export default function ServicesOne() {
                             href="/speedy-dispatch"
                             className="thm-btn services-one__btn"
                         >
-                            Read more
+                            En savoir plus
                             <span />
                         </Link>
                         </div>

@@ -10,21 +10,21 @@ export default function WhyChoose() {
                     <div className="why-choose-one__left">
                         <div className="section-title text-left">
                         <div className="section-title__tagline-box">
-                            <span className="section-title__tagline">Why Chose us</span>
+                            <span className="section-title__tagline">Pourquoi choisir XPARK</span>
                         </div>
                         <h2 className="section-title__title">
-                            Delivering excellence every a time Express Logistics
+                            Sécurité et fiabilité à chaque transport
                         </h2>
                         </div>
                         <p className="why-choose-one__text">
-                        Construction is an essential industry that involves building
-                        adesigning the an structures such as buildings roads, bridges
-                        Construction is an essent industry that involves building
-                        adesigning the a structures such{" "}
+                        XPARK garantit une gestion professionnelle des opérations de
+                        transport. Nos véhicules sont entretenus et suivis en permanence
+                        pour répondre aux différents besoins de transport avec sécurité,
+                        fiabilité et respect des délais.{" "}
                         </p>
                         <div className="why-choose-one__btn-box">
                         <Link href="/about" className="thm-btn why-choose-one__btn">
-                            Read more
+                            En savoir plus
                             <span />
                         </Link>
                         </div>
@@ -46,8 +46,8 @@ export default function WhyChoose() {
                             <span className="icon-airplane" />
                             </div>
                             <p>
-                            2 dAYS
-                            <br /> DELIVARY
+                            LIVRAISON
+                            <br /> DANS LES DÉLAIS
                             </p>
                         </div>
                         </div>

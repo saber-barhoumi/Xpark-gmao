@@ -72,9 +72,9 @@ export default function TeamSlider() {
                     </div>
                     <div className="team-one__content">
                     <h3 className="team-one__title">
-                        <Link href="/team-details">Brooklyn Simmons</Link>
+                        <Link href="/team-details">Karim Bouazizi</Link>
                     </h3>
-                    <p className="team-one__sub-title">Quick Cargo</p>
+                    <p className="team-one__sub-title">Responsable d'exploitation</p>
                     <div className="team-one__social">
                         <Link href="#">
                         <span className="icon-instagram" />
@@ -101,9 +101,9 @@ export default function TeamSlider() {
                     </div>
                     <div className="team-one__content">
                     <h3 className="team-one__title">
-                        <Link href="/team-details">Sakib Hasan</Link>
+                        <Link href="/team-details">Nadia Hammami</Link>
                     </h3>
-                    <p className="team-one__sub-title">Speedy Trans</p>
+                    <p className="team-one__sub-title">Coordinatrice logistique</p>
                     <div className="team-one__social">
                         <Link href="#">
                         <span className="icon-instagram" />
@@ -130,9 +130,9 @@ export default function TeamSlider() {
                     </div>
                     <div className="team-one__content">
                     <h3 className="team-one__title">
-                        <Link href="/team-details">Fahda Hossain</Link>
+                        <Link href="/team-details">Walid Jebali</Link>
                     </h3>
-                    <p className="team-one__sub-title">Efficient Transport</p>
+                    <p className="team-one__sub-title">Chef d'équipe chauffeurs</p>
                     <div className="team-one__social">
                         <Link href="#">
                         <span className="icon-instagram" />
@@ -159,9 +159,9 @@ export default function TeamSlider() {
                     </div>
                     <div className="team-one__content">
                     <h3 className="team-one__title">
-                        <Link href="/team-details">Brooklyn Simmons</Link>
+                        <Link href="/team-details">Karim Bouazizi</Link>
                     </h3>
-                    <p className="team-one__sub-title">Quick Cargo</p>
+                    <p className="team-one__sub-title">Responsable d'exploitation</p>
                     <div className="team-one__social">
                         <Link href="#">
                         <span className="icon-instagram" />
@@ -188,9 +188,9 @@ export default function TeamSlider() {
                     </div>
                     <div className="team-one__content">
                     <h3 className="team-one__title">
-                        <Link href="/team-details">Sakib Hasan</Link>
+                        <Link href="/team-details">Nadia Hammami</Link>
                     </h3>
-                    <p className="team-one__sub-title">Speedy Trans</p>
+                    <p className="team-one__sub-title">Coordinatrice logistique</p>
                     <div className="team-one__social">
                         <Link href="#">
                         <span className="icon-instagram" />
@@ -217,9 +217,9 @@ export default function TeamSlider() {
                     </div>
                     <div className="team-one__content">
                     <h3 className="team-one__title">
-                        <Link href="/team-details">Fahda Hossain</Link>
+                        <Link href="/team-details">Walid Jebali</Link>
                     </h3>
-                    <p className="team-one__sub-title">Efficient Transport</p>
+                    <p className="team-one__sub-title">Chef d'équipe chauffeurs</p>
                     <div className="team-one__social">
                         <Link href="#">
                         <span className="icon-instagram" />

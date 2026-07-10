@@ -15,11 +15,11 @@ export default function Testimonial() {
               </div>
               <div className="section-title text-center">
                 <div className="section-title__tagline-box">
-                  <span className="section-title__tagline">clients testimonial</span>
+                  <span className="section-title__tagline">Témoignages clients</span>
                 </div>
                 <h2 className="section-title__title">
-                  Your supply chain partner
-                  <br /> for success
+                  Ils nous font confiance
+                  <br /> pour leurs transports
                 </h2>
               </div>
               <div className="row">

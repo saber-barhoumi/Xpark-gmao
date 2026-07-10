@@ -7,99 +7,32 @@ export default function Menu() {
     return (
         <>
         <ul className="main-menu__list">
-            <li className="dropdown">
-                <Link href="/">Home </Link>
-                <ul>
-                <li>
-                    <Link href="/">Home One</Link>
-                </li>
-                <li>
-                    <Link href="/index-2">Home Two</Link>
-                </li>
-                <li className="dropdown">
-                    <a href="#">Header Styles</a>
-                    <ul>
-                    <li>
-                        <Link href="/">Header One</Link>
-                    </li>
-                    <li>
-                        <Link href="/index-2">Header Two</Link>
-                    </li>
-                    </ul>
-                </li>
-                </ul>
+            <li>
+                <Link href="/">Accueil</Link>
             </li>
             <li>
-                <Link href="/about">About</Link>
+                <Link href="/about">À propos</Link>
             </li>
             <li className="dropdown">
-                <Link href="#">Pages</Link>
+                <Link href="/services">Services</Link>
                 <ul>
                 <li>
-                    <Link href="/team">Team</Link>
+                    <Link href="/services">Tous nos services</Link>
                 </li>
                 <li>
-                    <Link href="/team-carousel">Team Carousel</Link>
+                    <Link href="/express-freight-solutions">Transport de marchandises</Link>
                 </li>
                 <li>
-                    <Link href="/team-details">Team Details</Link>
+                    <Link href="/quick-move-logistics">Gestion de flotte</Link>
                 </li>
                 <li>
-                    <Link href="/testimonials">Testimonials</Link>
+                    <Link href="/speedy-dispatch">Livraison et distribution</Link>
                 </li>
                 <li>
-                    <Link href="/faq">Faq</Link>
+                    <Link href="/swift-supply-chain">Transport personnalisé</Link>
                 </li>
                 <li>
-                    <Link href="/404">404 Error</Link>
-                </li>
-                </ul>
-            </li>
-            <li className="dropdown">
-                <Link href="#">Services</Link>
-                <ul>
-                <li>
-                    <Link href="/services">Services</Link>
-                </li>
-                <li>
-                    <Link href="/services-carousel">Services Carousel</Link>
-                </li>
-                <li>
-                    <Link href="/express-freight-solutions">Express Freight Solutions</Link>
-                </li>
-                <li>
-                    <Link href="/quick-move-logistics">Quick Move Logistics</Link>
-                </li>
-                <li>
-                    <Link href="/speedy-dispatch">Speedy Dispatch</Link>
-                </li>
-                <li>
-                    <Link href="/swift-supply-chain">Swift Supply Chain</Link>
-                </li>
-                <li>
-                    <Link href="/on-point-distribution">On Point Distribution</Link>
-                </li>
-                </ul>
-            </li>
-            <li className="dropdown">
-                <Link href="#">Projects</Link>
-                <ul>
-                <li>
-                    <Link href="/projects">Projects</Link>
-                </li>
-                <li>
-                    <Link href="/project-details">Project Details</Link>
-                </li>
-                </ul>
-            </li>
-            <li className="dropdown">
-                <Link href="#">Blog</Link>
-                <ul>
-                <li>
-                    <Link href="/blog">Blog</Link>
-                </li>
-                <li>
-                    <Link href="/blog-details">Blog Details</Link>
+                    <Link href="/on-point-distribution">Transport local et régional</Link>
                 </li>
                 </ul>
             </li>
@@ -129,6 +62,17 @@ export default function Menu() {
                 </li>
                 <li>
                     <Link href="/auth/logout">Déconnexion</Link>
+                </li>
+                </ul>
+            </li>
+            <li className="dropdown">
+                <a href="#">FR</a>
+                <ul>
+                <li>
+                    <a href="#">Français</a>
+                </li>
+                <li>
+                    <a href="#" title="Bientôt disponible">English (bientôt)</a>
                 </li>
                 </ul>
             </li>

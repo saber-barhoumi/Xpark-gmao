@@ -7,7 +7,7 @@ export default function Home() {
 
     return (
         <>
-            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="Services">
+            <Layout headerStyle={1} footerStyle={1} breadcrumbTitle="NOS SERVICES">
                 <div>
                     {/*Services Page Start*/}
                     <section className="services-page">
@@ -21,7 +21,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/express-freight-solutions">
-                                    Fast and reliable logistics the solutions
+                                    Transport de marchandises
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -29,7 +29,7 @@ export default function Home() {
                                     href="/express-freight-solutions"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -44,7 +44,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/quick-move-logistics">
-                                    Bridges Construction is an essen industry
+                                    Gestion de flotte
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -52,7 +52,7 @@ export default function Home() {
                                     href="/quick-move-logistics"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -67,7 +67,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/speedy-dispatch">
-                                    That involves building adesig the a structures
+                                    Livraison et distribution
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -75,7 +75,7 @@ export default function Home() {
                                     href="/speedy-dispatch"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -90,7 +90,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/swift-supply-chain">
-                                    Logistics expertise for your competitive advantage
+                                    Transport personnalisé
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -98,7 +98,7 @@ export default function Home() {
                                     href="/swift-supply-chain"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -113,7 +113,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/on-point-distribution">
-                                    Delivering success through the logistics
+                                    Transport local et régional
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -121,7 +121,7 @@ export default function Home() {
                                     href="/on-point-distribution"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -136,7 +136,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/express-freight-solutions">
-                                    Simplifying your logistics the challenges
+                                    Livraison sécurisée et respect des délais
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -144,7 +144,7 @@ export default function Home() {
                                     href="/express-freight-solutions"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -159,7 +159,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/quick-move-logistics">
-                                    Efficiency at its best, with our logistics services
+                                    Suivi des livraisons en temps réel
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -167,7 +167,7 @@ export default function Home() {
                                     href="/quick-move-logistics"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -182,7 +182,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/speedy-dispatch">
-                                    Seamless logistics for your business needs
+                                    Organisation et optimisation des trajets
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -190,7 +190,7 @@ export default function Home() {
                                     href="/speedy-dispatch"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -205,7 +205,7 @@ export default function Home() {
                                 </div>
                                 <h3 className="services-one__title">
                                 <Link href="/swift-supply-chain">
-                                    Your supply chain partner for the success
+                                    Étude du besoin et accompagnement personnalisé
                                 </Link>
                                 </h3>
                                 <div className="services-one__btn-box">
@@ -213,7 +213,7 @@ export default function Home() {
                                     href="/swift-supply-chain"
                                     className="thm-btn services-one__btn"
                                 >
-                                    Read more
+                                    En savoir plus
                                     <span />
                                 </Link>
                                 </div>
@@ -244,17 +244,17 @@ export default function Home() {
                                 </div>
                             </div>
                             <h3 className="cta-one__title">
-                                Need any help?
-                                <br /> contact us!
+                                Besoin d'un transport ?
+                                <br /> Contactez-nous !
                             </h3>
                             <div className="cta-one__contact-box">
                                 <div className="icon">
                                 <span className="icon-phone" />
                                 </div>
                                 <div className="content">
-                                <p>Need help?</p>
+                                <p>Notre équipe est disponible</p>
                                 <h3>
-                                    <Link href="tel:3075550133">(307) 555-0133</Link>
+                                    <Link href="tel:+21670000000">+216 70 000 000</Link>
                                 </h3>
                                 </div>
                             </div>
