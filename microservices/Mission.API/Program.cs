@@ -93,6 +93,23 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE ""Missions"" ALTER COLUMN ""EmployeeId"" DROP NOT NULL;
         ALTER TABLE ""Missions"" ALTER COLUMN ""VehiculeId"" DROP NOT NULL;
         ALTER TABLE ""Missions"" ADD COLUMN IF NOT EXISTS ""ClientNom"" VARCHAR(150);
+
+        -- Portail client : tickets de support (feature Support)
+        CREATE TABLE IF NOT EXISTS ""SupportTickets"" (
+            ""IdTicket""            BIGSERIAL PRIMARY KEY,
+            ""ClientIdUtilisateur"" BIGINT       NOT NULL,
+            ""ClientNom""           VARCHAR(150) NULL,
+            ""Sujet""               VARCHAR(200) NOT NULL,
+            ""Categorie""           VARCHAR(50)  NOT NULL DEFAULT 'AUTRE',
+            ""Message""             TEXT         NOT NULL,
+            ""Statut""              VARCHAR(20)  NOT NULL DEFAULT 'OUVERT',
+            ""Reponse""             TEXT         NULL,
+            ""MissionId""           BIGINT       NULL,
+            ""DateCreation""        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+            ""DateMaj""             TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS ""IX_SupportTickets_Client""
+            ON ""SupportTickets"" (""ClientIdUtilisateur"");
     ");
 }
 // ─────────────────────────────────────────────────────────────────────────────

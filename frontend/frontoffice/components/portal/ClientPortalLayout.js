@@ -17,12 +17,12 @@ const NAV = [
     { icon: "🏠", label: "Tableau de bord", href: "/account" },
     { icon: "🚚", label: "Mes missions", href: "/account/missions" },
     { icon: "➕", label: "Réserver", href: "/account/reserver" },
-    { icon: "📍", label: "Suivi en direct", href: "/account/missions", soon: true },
-    { icon: "💰", label: "Finances", href: "#", soon: true },
-    { icon: "📄", label: "Documents", href: "#", soon: true },
-    { icon: "📊", label: "Analyses", href: "#", soon: true },
-    { icon: "🤖", label: "Assistant IA", href: "#", soon: true },
-    { icon: "🎫", label: "Support", href: "#", soon: true },
+    { icon: "📍", label: "Suivi en direct", href: "/account/tracking" },
+    { icon: "💰", label: "Finances", href: "/account/finances" },
+    { icon: "📄", label: "Documents", href: "/account/documents" },
+    { icon: "📊", label: "Analyses", href: "/account/analytics" },
+    { icon: "🤖", label: "Assistant IA", href: "/account/assistant" },
+    { icon: "🎫", label: "Support", href: "/account/support" },
     { icon: "🔐", label: "Sécurité", href: "/account/security" },
 ]
 
@@ -199,8 +199,8 @@ export default function ClientPortalLayout({ title, children }) {
                     </div>
 
                     {/* AI Assistant */}
-                    <button type="button" title="Assistant IA (bientôt)" style={hdrBtn}
-                        onClick={() => alert("🤖 Assistant IA — bientôt disponible dans votre espace client.")}>🤖</button>
+                    <button type="button" title="Assistant IA" style={hdrBtn}
+                        onClick={() => router.push("/account/assistant")}>🤖</button>
 
                     {/* Langue */}
                     <div className="portal-dropdown" style={{ position: "relative" }}>

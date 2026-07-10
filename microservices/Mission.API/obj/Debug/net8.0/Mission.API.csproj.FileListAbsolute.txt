@@ -135,3 +135,15 @@ C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\Mis
 C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\Mission.API.genruntimeconfig.cache
 C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\ref\Mission.API.dll
 C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\obj\Debug\net8.0\Mission.API.sourcelink.json
+C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\bin\Debug\net8.0\Microsoft.Extensions.Http.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\bin\Debug\net8.0\XparkGMAO.Shared.AiTelemetry.dll
+C:\Users\saber\Desktop\Xpark gmao\microservices\Mission.API\bin\Debug\net8.0\XparkGMAO.Shared.AiTelemetry.pdb
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\appsettings.json
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\Mission.API.staticwebassets.endpoints.json
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\Mission.API.exe
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\Mission.API.deps.json
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\Mission.API.runtimeconfig.json
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\Mission.API.dll
+C:\Users\saber\AppData\Local\Temp\claude\C--Users-saber-Desktop-Xpark-gmao\f8ff8a5a-861e-4dd7-bd22-ca5da72aa996\scratchpad\missionbuild\Mission.API.pdb

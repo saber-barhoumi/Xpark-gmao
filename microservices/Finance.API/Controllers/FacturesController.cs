@@ -26,9 +26,20 @@ public class FacturesController(IFacturationService service, ILogger<FacturesCon
     }
 
     [HttpGet("client/{clientId:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> GetByClient(long clientId)
     {
         var factures = await service.GetByClientAsync(clientId);
+        return Ok(factures);
+    }
+
+    /// <summary>Factures du client connecté (portail frontoffice) — id lu dans le JWT.</summary>
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMy()
+    {
+        var claim = User.FindFirst("userId")?.Value;
+        if (!long.TryParse(claim, out var userId)) return Unauthorized();
+        var factures = await service.GetByClientAsync(userId);
         return Ok(factures);
     }
 
