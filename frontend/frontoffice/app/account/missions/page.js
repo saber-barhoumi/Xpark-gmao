@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import missionService from "@/lib/missionService"
 import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
+import { useConfirm, useToast } from "@/components/portal/Feedback"
 
 const STATUS = {
     EN_ATTENTE: { label: "⏳ En attente d'affectation", bg: "#fff3cd", color: "#b45309" },
@@ -16,6 +17,8 @@ const FILTERS = ["TOUTES", "EN_ATTENTE", "EN_COURS", "TERMINEE", "ANNULEE"]
 
 function MissionsInner() {
     const params = useSearchParams()
+    const [confirm, confirmDialog] = useConfirm()
+    const [toast, toastNode] = useToast()
     const [missions, setMissions] = useState([])
     const [filter, setFilter] = useState("TOUTES")
     const [loading, setLoading] = useState(true)
@@ -37,7 +40,15 @@ function MissionsInner() {
     }, [load])
 
     const handleCancel = async (id) => {
-        if (!window.confirm("Annuler cette réservation ? Cette action est définitive.")) return
+        const ok = await confirm({
+            title: "Annuler cette réservation ?",
+            message: "Cette action est définitive : la demande de transport sera annulée.",
+            confirmLabel: "Oui, annuler",
+            cancelLabel: "Non, garder",
+            danger: true,
+            icon: "🗑️",
+        })
+        if (!ok) return
         setCancelling(id)
         try {
             await missionService.cancelMyMission(id)
@@ -45,7 +56,7 @@ function MissionsInner() {
             await load()
         } catch (err) {
             setInfo("")
-            window.alert(err.message || "Annulation impossible (la mission a peut-être déjà été affectée).")
+            toast(err.message || "Annulation impossible (la mission a peut-être déjà été affectée).", "error")
         } finally { setCancelling(0) }
     }
 
@@ -55,6 +66,8 @@ function MissionsInner() {
 
     return (
         <>
+            {confirmDialog}
+            {toastNode}
             {info && <div style={{ padding: 12, marginBottom: 20, background: "#e7f5ec", color: "#146c43", borderRadius: 10 }}>{info}</div>}
 
             {/* Filtres + action */}

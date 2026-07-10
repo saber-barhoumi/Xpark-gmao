@@ -13,6 +13,7 @@ anciennement marquées « BIENTÔT » dans la sidebar.
 | 📊 Analyses | `/account/analytics` | [04-analyses.md](04-analyses.md) |
 | 🤖 Assistant IA | `/account/assistant` | [05-assistant-ia.md](05-assistant-ia.md) |
 | 🎫 Support | `/account/support` | [06-support.md](06-support.md) |
+| 💬 Dialogues & notifications | (transverse) | [07-dialogues-et-notifications.md](07-dialogues-et-notifications.md) |
 
 ## Architecture générale
 
@@ -34,7 +35,8 @@ frontend/frontoffice/
 └── components/portal/
     ├── ClientPortalLayout.js       # Shell du portail (sidebar mise à jour)
     ├── ui.js                       # Briques UI partagées (StatCard, Badge…) [nouveau]
-    └── charts.js                   # Graphiques SVG sans dépendance          [nouveau]
+    ├── charts.js                   # Graphiques SVG sans dépendance          [nouveau]
+    └── Feedback.js                 # Dialogues + toasts (fini window.alert)  [nouveau]
 ```
 
 ### Backend modifié

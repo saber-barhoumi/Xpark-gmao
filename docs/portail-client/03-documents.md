@@ -24,14 +24,17 @@
 Conformément à l'organisation du projet, la page ne contient **aucun HTML de
 document** : les templates vivent dans `lib/documentTemplates.js` :
 
-- `shell(titre, sousTitre, corps, reference)` — squelette commun : bandeau sombre
-  `#0F1B24` avec logo texte XPARK, liseré rouge `#C11425`, pied de page société,
-  bouton « Imprimer / Enregistrer en PDF » (masqué à l'impression via `@media print`) ;
+- `shell(titre, sousTitre, corps, reference)` — squelette commun : en-tête blanc avec
+  le **logo officiel XPARK** (`/assets/images/logo-dark.png`, URL absolue car la fenêtre
+  d'impression ne résout pas les chemins relatifs), filet sombre `#0F1B24` + liseré rouge
+  `#C11425`, pied de page société, bouton « Imprimer / Enregistrer en PDF » (masqué à
+  l'impression via `@media print`) ;
 - `ordreMissionHtml(mission, user)` — trajet, dates, chauffeur, véhicule, coût, signatures ;
 - `attestationHtml(mission, user)` — texte d'attestation + tableau de la prestation ;
 - `factureHtml(facture, user)` — montants HT/TVA/TTC, échéance, statut de paiement ;
 - `openDocument(html)` — ouvre une fenêtre, y écrit le HTML : le client imprime ou
-  enregistre en PDF (aucune librairie PDF nécessaire).
+  enregistre en PDF (aucune librairie PDF nécessaire). Retourne `false` si la pop-up
+  est bloquée → la page affiche un toast (voir [07-dialogues-et-notifications.md](07-dialogues-et-notifications.md)).
 
 ### Pourquoi ce choix (plutôt qu'une génération PDF serveur)
 

@@ -6,6 +6,7 @@ import Link from "next/link"
 import CodeInput from "@/components/auth/CodeInput"
 import authService from "@/lib/authService"
 import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
+import { useConfirm } from "@/components/portal/Feedback"
 
 /**
  * Sécurité du compte client — SYSTÈME D'AUTHENTIFICATION & SÉCURITÉ XPARK.
@@ -14,6 +15,7 @@ import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
  */
 export default function SecurityPage() {
     const router = useRouter()
+    const [confirm, confirmDialog] = useConfirm()
     const [settings, setSettings] = useState(null)
     const [history, setHistory] = useState([])
     const [error, setError] = useState("")
@@ -70,7 +72,15 @@ export default function SecurityPage() {
     }
 
     const disableAuthenticator = async () => {
-        if (!window.confirm("Désactiver l'Authenticator ? Votre compte sera moins protégé.")) return
+        const ok = await confirm({
+            title: "Désactiver l'Authenticator ?",
+            message: "Votre compte sera moins protégé : le code à 6 chiffres ne sera plus demandé à la connexion.",
+            confirmLabel: "Désactiver",
+            cancelLabel: "Garder activé",
+            danger: true,
+            icon: "🔓",
+        })
+        if (!ok) return
         setSettings(await authService.disableAuthenticator())
         setInfo("Authenticator désactivé.")
         refresh()
@@ -100,6 +110,7 @@ export default function SecurityPage() {
 
     return (
         <ClientPortalLayout title="🔐 Sécurité du compte">
+            {confirmDialog}
             <div>
                 <div>
                     <div style={{ marginBottom: 20 }}>

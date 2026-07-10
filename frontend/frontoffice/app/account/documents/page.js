@@ -8,6 +8,7 @@ import financeService from "@/lib/financeService"
 import { ordreMissionHtml, attestationHtml, factureHtml, openDocument } from "@/lib/documentTemplates"
 import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
 import { card, EmptyState, dateFr } from "@/components/portal/ui"
+import { useToast } from "@/components/portal/Feedback"
 
 /**
  * 📄 Documents — tous les documents du client, générés depuis ses données :
@@ -25,11 +26,18 @@ const FILTRES = [
 ]
 
 export default function DocumentsPage() {
+    const [toast, toastNode] = useToast()
     const [user, setUser] = useState(null)
     const [missions, setMissions] = useState([])
     const [factures, setFactures] = useState([])
     const [filtre, setFiltre] = useState("TOUS")
     const [loading, setLoading] = useState(true)
+
+    /** Ouvre un document ; toast si le navigateur bloque la pop-up */
+    const show = (html) => {
+        if (!openDocument(html))
+            toast("Autorisez les fenêtres pop-up pour ouvrir vos documents.", "error")
+    }
 
     useEffect(() => {
         setUser(getCurrentUser())
@@ -49,7 +57,7 @@ export default function DocumentsPage() {
                 titre: `Ordre de mission n°${m.idMission}`,
                 detail: `${m.villeDepart || "—"} → ${m.villeArrivee || m.destination}`,
                 date: m.dateDepart,
-                open: () => openDocument(ordreMissionHtml(m, user)),
+                open: () => show(ordreMissionHtml(m, user)),
             })
             if (m.statut === "TERMINEE") {
                 docs.push({
@@ -57,7 +65,7 @@ export default function DocumentsPage() {
                     titre: `Attestation de transport n°${m.idMission}`,
                     detail: `${m.villeDepart || "—"} → ${m.villeArrivee || m.destination}`,
                     date: m.dateRetour || m.dateDepart,
-                    open: () => openDocument(attestationHtml(m, user)),
+                    open: () => show(attestationHtml(m, user)),
                 })
             }
         }
@@ -67,7 +75,7 @@ export default function DocumentsPage() {
                 titre: f.numeroFacture ? `Facture ${f.numeroFacture}` : `Facture n°${f.idFacture}`,
                 detail: f.description || "Prestation de transport",
                 date: f.dateFacture || f.dateEmission,
-                open: () => openDocument(factureHtml(f, user)),
+                open: () => show(factureHtml(f, user)),
             })
         }
         return docs.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -78,6 +86,7 @@ export default function DocumentsPage() {
 
     return (
         <ClientPortalLayout title="📄 Documents">
+            {toastNode}
             {/* Filtres */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22 }}>
                 {FILTRES.map(f => (

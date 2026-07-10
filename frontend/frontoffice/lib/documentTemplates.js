@@ -11,8 +11,10 @@ const tnd = (v) => `${(v ?? 0).toFixed(2)} TND`
 const dateFr = (d) => (d ? new Date(d).toLocaleDateString("fr-FR") : "—")
 const dateTimeFr = (d) => (d ? new Date(d).toLocaleString("fr-FR") : "—")
 
-/** Squelette commun : en-tête XPARK + pied de page + zone contenu */
+/** Squelette commun : en-tête XPARK (logo officiel) + pied de page + zone contenu */
 function shell(titre, sousTitre, corps, reference) {
+    // URL absolue : la fenêtre d'impression (about:blank) ne résout pas les chemins relatifs
+    const logoUrl = `${window.location.origin}/assets/images/logo-dark.png`
     return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,12 +24,13 @@ function shell(titre, sousTitre, corps, reference) {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #1f2b38; background: #fff; }
     .page { max-width: 780px; margin: 0 auto; padding: 0 36px 40px; }
-    .head { background: #0F1B24; color: #fff; padding: 26px 36px; display: flex;
-            justify-content: space-between; align-items: center; }
-    .head .brand { font-size: 26px; font-weight: 800; letter-spacing: 2px; }
-    .head .brand small { display: block; font-size: 11px; font-weight: 400; letter-spacing: 1px;
-            color: rgba(255,255,255,.65); margin-top: 3px; }
-    .head .ref { text-align: right; font-size: 12px; color: rgba(255,255,255,.75); }
+    .head { background: #fff; padding: 24px 36px 18px; display: flex;
+            justify-content: space-between; align-items: center; border-bottom: 3px solid #0F1B24; }
+    .head .brand img { height: 46px; display: block; }
+    .head .brand small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: 1.6px;
+            color: #6b7280; margin-top: 6px; text-transform: uppercase; }
+    .head .ref { text-align: right; font-size: 12px; color: #6b7280; }
+    .head .ref strong { color: #0F1B24; }
     .accent { height: 4px; background: #C11425; }
     h1 { font-size: 21px; margin: 30px 0 4px; }
     .sub { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
@@ -51,8 +54,11 @@ function shell(titre, sousTitre, corps, reference) {
 </head>
 <body>
     <div class="head">
-        <div class="brand">XPARK<small>TRANSPORT DE MARCHANDISES</small></div>
-        <div class="ref">${reference}<br>Émis le ${new Date().toLocaleDateString("fr-FR")}</div>
+        <div class="brand">
+            <img src="${logoUrl}" alt="XPARK">
+            <small>Transport de marchandises</small>
+        </div>
+        <div class="ref"><strong>${reference}</strong><br>Émis le ${new Date().toLocaleDateString("fr-FR")}</div>
     </div>
     <div class="accent"></div>
     <div class="page">
@@ -133,11 +139,13 @@ export function factureHtml(f, user) {
         corps, f.numeroFacture || `FA-${String(f.idFacture).padStart(5, "0")}`)
 }
 
-/** Ouvre le document dans une fenêtre prête à imprimer / enregistrer en PDF */
+/** Ouvre le document dans une fenêtre prête à imprimer / enregistrer en PDF.
+ *  Retourne false si le navigateur bloque la pop-up (la page affiche alors un toast). */
 export function openDocument(html) {
     const win = window.open("", "_blank", "width=860,height=900")
-    if (!win) { alert("Autorisez les fenêtres pop-up pour télécharger vos documents.") ; return }
+    if (!win) return false
     win.document.write(html)
     win.document.close()
     win.focus()
+    return true
 }
