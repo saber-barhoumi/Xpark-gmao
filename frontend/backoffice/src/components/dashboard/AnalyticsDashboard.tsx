@@ -9,15 +9,20 @@ import authService from '@/services/authService'
 import kpiService from '@/services/kpiService'
 import { permissionsFor } from './analytics/rbac'
 import { useAnalyticsData } from './analytics/useAnalyticsData'
+import StatTile from './analytics/StatTile'
 import { exportPdf, shareReport, buildSummary, PRINT_CSS } from './analytics/reportActions'
 
 /**
  * Analyses & KPIs — données 100 % réelles + RBAC.
- * Direction (ADMIN/ADMINISTRATEUR/GESTIONNAIRE) : tout, dont la finance privée,
- * le recalcul des KPIs, l'export PDF et le partage.
+ * Direction : tout (finance privée, recalcul, export PDF, partage).
  * TECHNICIEN : opérations + flotte + maintenance (aucun montant).
  * CHAUFFEUR : opérations uniquement.
+ *
+ * Mise en page : tuiles de synthèse (sparklines) puis sections thématiques ;
+ * hauteurs homogènes par rangée (330 grands graphiques / 300 moyens / 280 larges).
  */
+
+const PALETTE = ['#405189', '#0ab39c', '#f7b84b', '#f06548', '#6f42c1', '#299cdb']
 
 const VEHICULE_STATUT_LABELS: Record<string, string> = {
   DISPONIBLE: 'Disponibles', EN_MISSION: 'En mission', EN_MAINTENANCE: 'En maintenance',
@@ -54,6 +59,7 @@ export default function AnalyticsDashboard() {
 
   const handleShare = () => shareReport(buildSummary(data.kpis, [
     `• Missions terminées : ${stats.missionsParStatut.terminees}`,
+    `• Taux de réalisation : ${stats.tauxRealisation}%`,
     `• Distance totale : ${Math.round(stats.distanceTotale).toLocaleString('fr-FR')} km`,
   ]))
 
@@ -136,6 +142,54 @@ export default function AnalyticsDashboard() {
         </Alert>
       )}
 
+      {/* ══════════ SYNTHÈSE — tuiles sparkline (6 mois) ══════════ */}
+      <Row className="g-3 mb-4">
+        {perms.operations && (
+          <Col xl={3} sm={6}>
+            <StatTile label="Missions (6 mois)" icon="ri-truck-line" color="#405189"
+              value={String(stats.missionsParMois.reduce((s, m) => s + m.value, 0))}
+              serie={stats.missionsParMois.map(m => m.value)} />
+          </Col>
+        )}
+        {perms.finance ? (
+          <>
+            <Col xl={3} sm={6}>
+              <StatTile label="Revenus (6 mois)" icon="ri-money-dollar-circle-line" color="#0ab39c"
+                value={tnd(stats.revenusTotal)}
+                serie={stats.revenusParMois.map(m => Math.round(m.value))} />
+            </Col>
+            <Col xl={3} sm={6}>
+              <StatTile label="Coûts (6 mois)" icon="ri-shopping-cart-line" color="#f06548"
+                value={tnd(stats.coutsTotal)}
+                serie={stats.coutsParMois.map(m => Math.round(m.value))} />
+            </Col>
+            <Col xl={3} sm={6}>
+              <StatTile label="Marge nette (6 mois)" icon="ri-line-chart-line" color="#f7b84b"
+                value={tnd(stats.revenusTotal - stats.coutsTotal)}
+                serie={stats.margeParMois.map(m => Math.round(m.value))} />
+            </Col>
+          </>
+        ) : perms.operations && (
+          <>
+            <Col xl={3} sm={6}>
+              <StatTile label="Taux de réalisation" icon="ri-checkbox-circle-line" color="#0ab39c"
+                value={`${stats.tauxRealisation}%`} suffix="missions terminées"
+                serie={stats.missionsParMois.map(m => m.value)} />
+            </Col>
+            <Col xl={3} sm={6}>
+              <StatTile label="Distance totale" icon="ri-road-map-line" color="#f7b84b"
+                value={`${Math.round(stats.distanceTotale).toLocaleString('fr-FR')} km`} suffix="missions terminées"
+                serie={stats.missionsParMois.map(m => m.value)} />
+            </Col>
+            <Col xl={3} sm={6}>
+              <StatTile label="En cours" icon="ri-steering-2-line" color="#299cdb"
+                value={String(stats.missionsParStatut.enCours)} suffix="missions actives"
+                serie={stats.missionsParMois.map(m => m.value)} />
+            </Col>
+          </>
+        )}
+      </Row>
+
       {/* ══════════ OPÉRATIONS — tout le staff (aucun montant) ══════════ */}
       {perms.operations && (
         <div className="mb-4">
@@ -145,11 +199,13 @@ export default function AnalyticsDashboard() {
               <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
             ))}
           </Row>
-          <Row className="g-4">
+
+          {/* Rangée 1 : répartition + carte de chaleur d'activité */}
+          <Row className="g-4 mb-4">
             <Col xl={4}>
               <ChartWidget
                 titre={`Répartition des missions (${totalMissions})`}
-                type="donut"
+                type="donut" height={330}
                 series={[
                   stats.missionsParStatut.enAttente, stats.missionsParStatut.enCours,
                   stats.missionsParStatut.terminees, stats.missionsParStatut.annulees,
@@ -166,64 +222,79 @@ export default function AnalyticsDashboard() {
             </Col>
             <Col xl={8}>
               <ChartWidget
-                titre={`Missions par mois — distance totale ${Math.round(stats.distanceTotale).toLocaleString('fr-FR')} km`}
-                type="bar"
-                series={[{ name: 'Missions', data: stats.missionsParMois.map(m => m.value) }]}
+                titre="Carte de chaleur — départs par jour de semaine (6 mois)"
+                type="heatmap" height={330}
+                series={stats.heatmapActivite}
                 options={{
                   colors: ['#405189'],
-                  plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
-                  xaxis: { categories: stats.missionsParMois.map(m => m.label) },
-                  legend: { show: false },
+                  plotOptions: { heatmap: { shadeIntensity: 0.6, radius: 3 } },
+                  tooltip: { y: { formatter: (val: number) => `${val} départ${val > 1 ? 's' : ''}` } },
+                  stroke: { width: 1 },
                 }}
               />
             </Col>
           </Row>
-        </div>
-      )}
 
-      {/* ══════════ FLOTTE — direction + technicien ══════════ */}
-      {perms.fleet && (
-        <div className="mb-4">
-          <SectionTitle icon="ri-car-line" color="success" title="Flotte & disponibilité" />
-          <Row className="g-3 mb-3">
-            {kpisDe('FLOTTE').map(kpi => (
-              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
-            ))}
+          {/* Rangée 2 : pipeline + taux de réalisation + destinations */}
+          <Row className="g-4">
+            <Col xl={4}>
+              <ChartWidget
+                titre="Pipeline des missions"
+                type="bar" height={300}
+                series={[{
+                  name: 'Missions',
+                  data: [stats.funnel.recues, stats.funnel.affectees, stats.funnel.enCours, stats.funnel.terminees],
+                }]}
+                options={{
+                  colors: ['#405189'],
+                  plotOptions: { bar: { horizontal: true, isFunnel: true, borderRadius: 0 } },
+                  dataLabels: {
+                    enabled: true,
+                    formatter: (val: number, opt: any) =>
+                      `${['Reçues', 'Affectées', 'Démarrées', 'Terminées'][opt.dataPointIndex]} : ${val}`,
+                    dropShadow: { enabled: true },
+                  },
+                  xaxis: { categories: ['Reçues', 'Affectées', 'Démarrées', 'Terminées'] },
+                  legend: { show: false },
+                }}
+              />
+            </Col>
+            <Col xl={4}>
+              <ChartWidget
+                titre="Taux de réalisation"
+                type="radialBar" height={300}
+                series={[stats.tauxRealisation]}
+                options={{
+                  colors: [stats.tauxRealisation >= 70 ? '#0ab39c' : stats.tauxRealisation >= 40 ? '#f7b84b' : '#f06548'],
+                  plotOptions: { radialBar: {
+                    startAngle: -90, endAngle: 90,
+                    hollow: { size: '62%' },
+                    track: { background: '#f1f3fa' },
+                    dataLabels: {
+                      name: { show: true, fontSize: '13px', color: '#adb5bd', offsetY: 24 },
+                      value: { fontSize: '30px', fontWeight: 700, offsetY: -14, formatter: (v: number) => `${v}%` },
+                    },
+                  } },
+                  labels: ['missions terminées'],
+                  stroke: { lineCap: 'round' },
+                }}
+              />
+            </Col>
+            <Col xl={4}>
+              <ChartWidget
+                titre="Top destinations"
+                type="treemap" height={300}
+                series={[{ data: stats.topDestinations }]}
+                options={{
+                  colors: PALETTE,
+                  plotOptions: { treemap: { distributed: true, enableShades: false } },
+                  dataLabels: { enabled: true, style: { fontSize: '13px' } },
+                  legend: { show: false },
+                  tooltip: { y: { formatter: (val: number) => `${val} mission${val > 1 ? 's' : ''}` } },
+                }}
+              />
+            </Col>
           </Row>
-          {Object.keys(stats.vehiculesParStatut).length > 0 && (
-            <Row className="g-4">
-              <Col xl={4}>
-                <ChartWidget
-                  titre={`État de la flotte (${data.vehicules.length} véhicules)`}
-                  type="donut"
-                  series={Object.values(stats.vehiculesParStatut)}
-                  options={{
-                    labels: Object.keys(stats.vehiculesParStatut).map(s => VEHICULE_STATUT_LABELS[s] ?? s),
-                    colors: ['#0ab39c', '#405189', '#f7b84b', '#f06548', '#adb5bd'],
-                    legend: { position: 'bottom' },
-                  }}
-                />
-              </Col>
-              <Col xl={8}>
-                <ChartWidget
-                  titre="Consommation moyenne par véhicule (L/100km)"
-                  type="bar"
-                  series={[{
-                    name: 'L/100km',
-                    data: data.vehicules.filter(v => (v.consommationMoyenne ?? 0) > 0).slice(0, 10)
-                      .map(v => Number((v.consommationMoyenne ?? 0).toFixed(1))),
-                  }]}
-                  options={{
-                    colors: ['#0ab39c'],
-                    plotOptions: { bar: { columnWidth: '45%', borderRadius: 4, distributed: false } },
-                    xaxis: { categories: data.vehicules.filter(v => (v.consommationMoyenne ?? 0) > 0)
-                      .slice(0, 10).map(v => v.immatriculation) },
-                    legend: { show: false },
-                  }}
-                />
-              </Col>
-            </Row>
-          )}
         </div>
       )}
 
@@ -236,11 +307,58 @@ export default function AnalyticsDashboard() {
               <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
             ))}
           </Row>
+
+          {/* Rangée 1 : corrélation activité/revenus + marge nette */}
+          <Row className="g-4 mb-4">
+            <Col xl={8}>
+              <ChartWidget
+                titre="Activité vs revenus (colonnes : missions · ligne : revenus)"
+                type="line" height={350}
+                series={[
+                  { name: 'Missions', type: 'column', data: stats.missionsParMois.map(m => m.value) },
+                  { name: 'Revenus (TND)', type: 'line', data: stats.revenusParMois.map(m => Math.round(m.value)) },
+                ]}
+                options={{
+                  colors: ['#405189', '#0ab39c'],
+                  stroke: { width: [0, 3], curve: 'smooth' },
+                  plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
+                  labels: stats.mois.map(m => m.label),
+                  yaxis: [
+                    { title: { text: 'Missions' } },
+                    { opposite: true, title: { text: 'Revenus (TND)' },
+                      labels: { formatter: (val: number) => `${Math.round(val).toLocaleString('fr-FR')}` } },
+                  ],
+                  tooltip: { shared: true },
+                }}
+              />
+            </Col>
+            <Col xl={4}>
+              <ChartWidget
+                titre="Marge nette par mois"
+                type="bar" height={350}
+                series={[{ name: 'Marge (TND)', data: stats.margeParMois.map(m => Math.round(m.value)) }]}
+                options={{
+                  plotOptions: { bar: { columnWidth: '50%', borderRadius: 4, colors: {
+                    ranges: [
+                      { from: -1e9, to: 0, color: '#f06548' },
+                      { from: 0, to: 1e9, color: '#0ab39c' },
+                    ],
+                  } } },
+                  xaxis: { categories: stats.margeParMois.map(m => m.label) },
+                  yaxis: { labels: { formatter: (val: number) => tnd(val) } },
+                  tooltip: { y: { formatter: (val: number) => tnd(val) } },
+                  legend: { show: false },
+                }}
+              />
+            </Col>
+          </Row>
+
+          {/* Rangée 2 : revenus vs coûts + top clients */}
           <Row className="g-4">
             <Col xl={8}>
               <ChartWidget
                 titre="Revenus vs coûts réels (6 derniers mois)"
-                type="area"
+                type="area" height={320}
                 series={[
                   { name: 'Revenus missions (TND)', data: stats.revenusParMois.map(m => Math.round(m.value)) },
                   { name: 'Coûts carburant + maintenance (TND)', data: stats.coutsParMois.map(m => Math.round(m.value)) },
@@ -255,19 +373,93 @@ export default function AnalyticsDashboard() {
               />
             </Col>
             <Col xl={4}>
+              {stats.topClients.length > 0 ? (
+                <ChartWidget
+                  titre="Top clients par revenus"
+                  type="bar" height={320}
+                  series={[{ name: 'Revenus', data: stats.topClients.map(c => Math.round(c.value)) }]}
+                  options={{
+                    colors: PALETTE,
+                    plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
+                    xaxis: { categories: stats.topClients.map(c => c.label) },
+                    tooltip: { y: { formatter: (val: number) => tnd(val) } },
+                    legend: { show: false },
+                    dataLabels: { enabled: false },
+                  }}
+                />
+              ) : (
+                <Card className="border-0 shadow-sm h-100">
+                  <Card.Body className="d-flex flex-column justify-content-center text-center">
+                    <p className="text-muted text-uppercase fw-bold fs-12 mb-2">Panier moyen / mission</p>
+                    <h2 className="fw-bold mb-1">{tnd(stats.panierMoyen)}</h2>
+                    <p className="text-muted mb-0 fs-13">sur {stats.missionsParStatut.terminees} missions terminées</p>
+                  </Card.Body>
+                </Card>
+              )}
+            </Col>
+          </Row>
+        </div>
+      )}
+
+      {/* ══════════ FLOTTE — direction + technicien ══════════ */}
+      {perms.fleet && (
+        <div className="mb-4">
+          <SectionTitle icon="ri-car-line" color="success" title="Flotte & disponibilité" />
+          <Row className="g-3 mb-3">
+            {kpisDe('FLOTTE').map(kpi => (
+              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
+            ))}
+          </Row>
+          <Row className="g-4">
+            <Col xl={4}>
               <ChartWidget
-                titre="Top véhicules par coût carburant"
-                type="bar"
+                titre="Disponibilité de la flotte"
+                type="radialBar" height={300}
+                series={[stats.tauxDisponibilite]}
+                options={{
+                  colors: [stats.tauxDisponibilite >= 60 ? '#0ab39c' : stats.tauxDisponibilite >= 30 ? '#f7b84b' : '#f06548'],
+                  plotOptions: { radialBar: {
+                    startAngle: -90, endAngle: 90,
+                    hollow: { size: '62%' },
+                    track: { background: '#f1f3fa' },
+                    dataLabels: {
+                      name: { show: true, fontSize: '13px', color: '#adb5bd', offsetY: 24 },
+                      value: { fontSize: '30px', fontWeight: 700, offsetY: -14, formatter: (v: number) => `${v}%` },
+                    },
+                  } },
+                  labels: ['véhicules disponibles'],
+                  stroke: { lineCap: 'round' },
+                }}
+              />
+            </Col>
+            <Col xl={4}>
+              {Object.keys(stats.vehiculesParStatut).length > 0 && (
+                <ChartWidget
+                  titre={`État de la flotte (${data.vehicules.length})`}
+                  type="donut" height={300}
+                  series={Object.values(stats.vehiculesParStatut)}
+                  options={{
+                    labels: Object.keys(stats.vehiculesParStatut).map(s => VEHICULE_STATUT_LABELS[s] ?? s),
+                    colors: ['#0ab39c', '#405189', '#f7b84b', '#f06548', '#adb5bd'],
+                    legend: { position: 'bottom' },
+                  }}
+                />
+              )}
+            </Col>
+            <Col xl={4}>
+              <ChartWidget
+                titre="Consommation par véhicule (L/100km)"
+                type="bar" height={300}
                 series={[{
-                  name: 'Coût total',
-                  data: (data.carburant?.topVehiculesParCout ?? []).slice(0, 5).map(t => Math.round(t.coutTotal)),
+                  name: 'L/100km',
+                  data: data.vehicules.filter(v => (v.consommationMoyenne ?? 0) > 0).slice(0, 8)
+                    .map(v => Number((v.consommationMoyenne ?? 0).toFixed(1))),
                 }]}
                 options={{
-                  colors: ['#405189'],
-                  plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
-                  xaxis: { categories: (data.carburant?.topVehiculesParCout ?? []).slice(0, 5).map(t => t.vehiculeImmatriculation) },
-                  yaxis: { labels: { formatter: (val: any) => `${val}` } },
-                  tooltip: { y: { formatter: (val: number) => tnd(val) } },
+                  colors: ['#0ab39c'],
+                  plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                  xaxis: { categories: data.vehicules.filter(v => (v.consommationMoyenne ?? 0) > 0)
+                    .slice(0, 8).map(v => v.immatriculation) },
                   legend: { show: false },
                 }}
               />
@@ -285,12 +477,12 @@ export default function AnalyticsDashboard() {
               <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
             ))}
           </Row>
-          {Object.keys(stats.interventionsParType).length > 0 && (
-            <Row className="g-4">
-              <Col xl={4}>
+          <Row className="g-4">
+            <Col xl={4}>
+              {Object.keys(stats.interventionsParType).length > 0 && (
                 <ChartWidget
                   titre={`Interventions par type (${data.interventions.length})`}
-                  type="donut"
+                  type="donut" height={300}
                   series={Object.values(stats.interventionsParType)}
                   options={{
                     labels: Object.keys(stats.interventionsParType).map(t => INTERVENTION_TYPE_LABELS[t] ?? t),
@@ -298,22 +490,35 @@ export default function AnalyticsDashboard() {
                     legend: { position: 'bottom' },
                   }}
                 />
-              </Col>
-              {perms.finance && (
-                <Col xl={8}>
-                  <Card className="border-0 shadow-sm h-100">
-                    <Card.Body className="d-flex flex-column justify-content-center text-center">
-                      <p className="text-muted text-uppercase fw-bold fs-12 mb-2">Coût total maintenance (privé direction)</p>
-                      <h2 className="fw-bold mb-1">{tnd(stats.coutMaintenance)}</h2>
-                      <p className="text-muted mb-0 fs-13">
-                        sur {data.interventions.length} intervention{data.interventions.length > 1 ? 's' : ''} enregistrée{data.interventions.length > 1 ? 's' : ''}
-                      </p>
-                    </Card.Body>
-                  </Card>
-                </Col>
               )}
-            </Row>
-          )}
+            </Col>
+            <Col xl={perms.finance ? 4 : 8}>
+              <ChartWidget
+                titre="Interventions par mois"
+                type="bar" height={300}
+                series={[{ name: 'Interventions', data: stats.interventionsParMois.map(m => m.value) }]}
+                options={{
+                  colors: ['#f7b84b'],
+                  plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
+                  xaxis: { categories: stats.interventionsParMois.map(m => m.label) },
+                  legend: { show: false },
+                }}
+              />
+            </Col>
+            {perms.finance && (
+              <Col xl={4}>
+                <Card className="border-0 shadow-sm h-100">
+                  <Card.Body className="d-flex flex-column justify-content-center text-center">
+                    <p className="text-muted text-uppercase fw-bold fs-12 mb-2">Coût total maintenance (privé direction)</p>
+                    <h2 className="fw-bold mb-1">{tnd(stats.coutMaintenance)}</h2>
+                    <p className="text-muted mb-0 fs-13">
+                      sur {data.interventions.length} intervention{data.interventions.length > 1 ? 's' : ''} enregistrée{data.interventions.length > 1 ? 's' : ''}
+                    </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )}
+          </Row>
         </div>
       )}
 
@@ -326,23 +531,44 @@ export default function AnalyticsDashboard() {
               <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
             ))}
           </Row>
-          {(data.carburant.evolutionMensuelle ?? []).length > 0 && (
-            <ChartWidget
-              titre={`Évolution mensuelle carburant — total ${tnd(data.carburant.coutTotal)} · ${Math.round(data.carburant.litresTotaux).toLocaleString('fr-FR')} L`}
-              type="bar"
-              series={[
-                { name: 'Coût (TND)', data: data.carburant.evolutionMensuelle.map(e => Math.round(e.coutTotal)) },
-              ]}
-              options={{
-                colors: ['#f06548'],
-                plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
-                xaxis: { categories: data.carburant.evolutionMensuelle.map(e => e.mois) },
-                yaxis: { labels: { formatter: (val: number) => tnd(val) } },
-                legend: { show: false },
-              }}
-              height={280}
-            />
-          )}
+          <Row className="g-4">
+            <Col xl={8}>
+              {(data.carburant.evolutionMensuelle ?? []).length > 0 && (
+                <ChartWidget
+                  titre={`Évolution mensuelle carburant — total ${tnd(data.carburant.coutTotal)} · ${Math.round(data.carburant.litresTotaux).toLocaleString('fr-FR')} L`}
+                  type="bar" height={300}
+                  series={[
+                    { name: 'Coût (TND)', data: data.carburant.evolutionMensuelle.map(e => Math.round(e.coutTotal)) },
+                  ]}
+                  options={{
+                    colors: ['#f06548'],
+                    plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
+                    xaxis: { categories: data.carburant.evolutionMensuelle.map(e => e.mois) },
+                    yaxis: { labels: { formatter: (val: number) => tnd(val) } },
+                    legend: { show: false },
+                  }}
+                />
+              )}
+            </Col>
+            <Col xl={4}>
+              <ChartWidget
+                titre="Top véhicules par coût carburant"
+                type="bar" height={300}
+                series={[{
+                  name: 'Coût total',
+                  data: (data.carburant.topVehiculesParCout ?? []).slice(0, 5).map(t => Math.round(t.coutTotal)),
+                }]}
+                options={{
+                  colors: PALETTE,
+                  plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
+                  xaxis: { categories: (data.carburant.topVehiculesParCout ?? []).slice(0, 5).map(t => t.vehiculeImmatriculation) },
+                  tooltip: { y: { formatter: (val: number) => tnd(val) } },
+                  legend: { show: false },
+                  dataLabels: { enabled: false },
+                }}
+              />
+            </Col>
+          </Row>
         </div>
       )}
     </div>

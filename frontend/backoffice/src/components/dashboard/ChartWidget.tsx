@@ -4,7 +4,7 @@ import { ApexOptions } from 'apexcharts';
 
 interface ChartWidgetProps {
   titre: string;
-  type: 'line' | 'bar' | 'area' | 'pie' | 'donut' | 'radialBar';
+  type: 'line' | 'bar' | 'area' | 'pie' | 'donut' | 'radialBar' | 'heatmap' | 'treemap';
   series: any[];
   options?: ApexOptions;
   height?: number;

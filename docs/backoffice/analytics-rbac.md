@@ -49,6 +49,32 @@ La page `http://localhost:3000/analytics` mélangeait KPIs réels et **données 
 | Interventions par type + coût total | `interventionService.getAll({ pageSize: 500 })` |
 | Cartes KPI par catégorie | `kpiService.getParCategorie(...)` (existant, conservé) |
 
+### 2 bis. Analyses avancées ajoutées (styles repris des pages `/charts`)
+
+| Analyse | Type de graphique (page /charts d'origine) | Ce qu'elle apporte à la direction |
+|---|---|---|
+| Tuiles de synthèse 6 mois (missions, revenus, coûts, marge) | Sparklines (`/charts/sparklines`) + variation % vs mois précédent | Lecture de tendance en 3 secondes en haut de page |
+| Carte de chaleur des départs (jour de semaine × mois) | Heatmap (`/charts/heatmap`) | Identifier les pics d'activité pour planifier flotte et chauffeurs |
+| Pipeline des missions (Reçues → Affectées → Démarrées → Terminées) | Funnel (`/charts/funnel`) | Voir où les demandes se perdent (non affectées, non démarrées) |
+| Taux de réalisation (jauge, couleur selon seuil) | RadialBar semi-circulaire (`/charts/radialBar`) | Qualité de service en un chiffre |
+| Top destinations | Treemap distribué (`/charts/treemap`) | Axes de transport dominants → optimisation des tournées |
+| Activité vs revenus (colonnes missions + ligne revenus, 2 axes) | Mixed line-column (`/charts/mixed`) | Corréler volume d'activité et chiffre d'affaires |
+| Marge nette par mois (barres vert/rouge conditionnelles) | Column + `colors.ranges` (`/charts/column`) | Mois déficitaires repérés immédiatement |
+| Top clients par revenus | Barres horizontales distribuées (`/charts/bar`) | Clients stratégiques de la société |
+| Disponibilité de la flotte (jauge) | RadialBar (`/charts/radialBar`) | Capacité opérationnelle immédiate |
+| Interventions par mois | Column (`/charts/column`) | Charge de l'atelier dans le temps |
+
+### 2 ter. Mise en page & dimensions (UI/UX)
+
+- **Tuiles sparkline** en tête : `xl=3` × 4 — synthèse avant le détail ;
+- **Rangées à hauteurs homogènes** : grands graphiques 330–350 px, moyens 300 px,
+  larges 280–320 px — plus aucun « trou » dans la grille ;
+- Rythme visuel par section : 1 rangée « vue principale » (`xl=4` + `xl=8`)
+  puis 1 rangée de 3 analyses complémentaires (`xl=4` × 3) ;
+- Les tuiles et sections s'adaptent au rôle : un chauffeur voit des tuiles
+  opérationnelles (taux de réalisation, distance, en cours) à la place des
+  tuiles financières.
+
 ### 3. Export PDF & partage (`analytics/reportActions.ts`) — direction uniquement
 
 - **Exporter PDF** : impression navigateur ciblée sur `#analytics-report`

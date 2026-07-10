@@ -130,6 +130,78 @@ export function useAnalyticsData(perms: AnalyticsPermissions) {
       interventionsParType[t] = (interventionsParType[t] || 0) + 1
     }
     const coutMaintenance = interventions.reduce((s, it) => s + (it.cout || 0), 0)
+    const interventionsParMois = mois.map(mo => ({ label: mo.label, value: 0 }))
+    for (const it of interventions) {
+      const d = new Date(it.dateIntervention)
+      const idx = mois.findIndex(mo => mo.key === `${d.getFullYear()}-${d.getMonth()}`)
+      if (idx >= 0) interventionsParMois[idx].value++
+    }
+
+    // ── Heatmap d'activité : jour de semaine × mois (quand part la flotte ?) ──
+    const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+    const ORDRE_JOURS = [1, 2, 3, 4, 5, 6, 0] // Lun → Dim
+    const heatmapActivite = ORDRE_JOURS.map(j => ({
+      name: JOURS[j],
+      data: mois.map(mo => ({ x: mo.label, y: 0 })),
+    }))
+    for (const m of missions) {
+      if (m.statut === StatutMission.ANNULEE) continue
+      const d = new Date(m.dateDepart)
+      const idx = mois.findIndex(mo => mo.key === `${d.getFullYear()}-${d.getMonth()}`)
+      if (idx < 0) continue
+      const ligne = heatmapActivite[ORDRE_JOURS.indexOf(d.getDay())]
+      if (ligne) ligne.data[idx].y++
+    }
+
+    // ── Pipeline missions (funnel) + taux de réalisation ──
+    const affectees = missions.filter(m =>
+      m.statut !== StatutMission.ANNULEE && (m.employeeId || m.statut !== StatutMission.EN_ATTENTE)).length
+    const funnel = {
+      recues: missions.length,
+      affectees,
+      enCours: missionsParStatut.enCours + missionsParStatut.terminees,
+      terminees: missionsParStatut.terminees,
+    }
+    const denomRealisation = missions.length - missionsParStatut.annulees
+    const tauxRealisation = denomRealisation > 0
+      ? Math.round((missionsParStatut.terminees / denomRealisation) * 100) : 0
+
+    // ── Top destinations (treemap) ──
+    const destCount: Record<string, number> = {}
+    for (const m of missions) {
+      if (m.statut === StatutMission.ANNULEE) continue
+      const dest = m.villeArrivee || m.destination || '?'
+      destCount[dest] = (destCount[dest] || 0) + 1
+    }
+    const topDestinations = Object.entries(destCount)
+      .map(([x, y]) => ({ x, y }))
+      .sort((a, b) => b.y - a.y).slice(0, 8)
+
+    // ── Top clients par revenus (privé direction) ──
+    const clientCA: Record<string, number> = {}
+    for (const m of missions) {
+      if (m.statut !== StatutMission.TERMINEE || !(m.coutTotal > 0)) continue
+      const nom = (m.clientNom || '').trim() || (m.clientIdUtilisateur ? `Client #${m.clientIdUtilisateur}` : 'Interne')
+      clientCA[nom] = (clientCA[nom] || 0) + m.coutTotal
+    }
+    const topClients = Object.entries(clientCA)
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value).slice(0, 5)
+
+    // ── Marge nette mensuelle (revenus - coûts) + flotte dispo ──
+    const margeParMois = mois.map((mo, i) => ({
+      label: mo.label,
+      value: revenusParMois[i].value - coutsParMois[i].value,
+    }))
+    const totalVehicules = vehicules.length
+    const tauxDisponibilite = totalVehicules > 0
+      ? Math.round(((vehiculesParStatut['DISPONIBLE'] || 0) / totalVehicules) * 100) : 0
+
+    // ── Indicateurs de gestion ──
+    const revenusTotal = revenusParMois.reduce((s, m) => s + m.value, 0)
+    const coutsTotal = coutsParMois.reduce((s, m) => s + m.value, 0)
+    const panierMoyen = missionsParStatut.terminees > 0
+      ? revenusParMois.reduce((s, m) => s + m.value, 0) / missionsParStatut.terminees : 0
 
     return {
       mois,
@@ -140,7 +212,18 @@ export function useAnalyticsData(perms: AnalyticsPermissions) {
       coutsParMois,
       vehiculesParStatut,
       interventionsParType,
+      interventionsParMois,
       coutMaintenance,
+      heatmapActivite,
+      funnel,
+      tauxRealisation,
+      topDestinations,
+      topClients,
+      margeParMois,
+      tauxDisponibilite,
+      revenusTotal,
+      coutsTotal,
+      panierMoyen,
     }
   }, [data])
 
