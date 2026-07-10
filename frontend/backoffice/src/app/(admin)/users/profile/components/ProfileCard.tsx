@@ -11,9 +11,10 @@ const getInitials = (prenom = '', nom = '') =>
 const formatEmployeeId = (id?: number) =>
   id ? `XPGM-${String(id).padStart(4, '0')}` : 'XPGM-0000'
 
-const DEFAULT_COMPETENCES = [
-  'Maintenance préventive', 'Diagnostic pannes', 'HVAC', 'Équipements lourds',
-]
+/** Badges construits depuis les vraies données du profil (aucune valeur codée en dur) */
+const buildBadges = (p: UserProfile | null): string[] =>
+  [p?.specialite, p?.departement, p?.site]
+    .filter((v): v is string => !!v && v.trim().length > 0)
 
 // ── PROFESSIONNAL UI ERROR (Card-based version of 401) ─────────────
 const UnauthorizedCard = () => (
@@ -78,7 +79,7 @@ const ProfileCard = () => {
           telephone:   '',
           site:        '',
           specialite:  '',
-          departement: 'Direction Maintenance',
+          departement: '',
           bio:         '',
           photoUrl:    null,
         })
@@ -148,7 +149,7 @@ const ProfileCard = () => {
     : 'Utilisateur'
   const initials     = getInitials(profile?.prenom, profile?.nom)
   const role         = profile?.role        || 'Utilisateur'
-  const departement  = profile?.departement || 'Direction Maintenance'
+  const departement  = profile?.departement || ''
   const email        = profile?.email       || '—'
   const employeeId   = formatEmployeeId(profile?.idUtilisateur)
 
@@ -223,9 +224,13 @@ const ProfileCard = () => {
             <p className="mb-0 text-muted fs-14 fw-medium d-flex align-items-center justify-content-center justify-content-sm-start flex-wrap gap-1">
               <IconifyIcon icon="tabler:user-star" className="fs-18 text-primary" />
               <span>{role}</span>
-              <span className="mx-2 opacity-50 d-none d-sm-inline">•</span>
-              <IconifyIcon icon="tabler:building-factory-2" className="fs-18 text-primary" />
-              <span>{departement}</span>
+              {departement && (
+                <>
+                  <span className="mx-2 opacity-50 d-none d-sm-inline">•</span>
+                  <IconifyIcon icon="tabler:building-factory-2" className="fs-18 text-primary" />
+                  <span>{departement}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -294,7 +299,7 @@ const ProfileCard = () => {
                 <div>
                   <p className="text-muted mb-1 fs-11 text-uppercase fw-bold">Localisation Site</p>
                   <span className="fs-14 text-dark fw-medium d-block">
-                    {profile?.site || 'Siège Social'}
+                    {profile?.site || 'Non renseigné'}
                   </span>
                 </div>
               </div>
@@ -307,7 +312,7 @@ const ProfileCard = () => {
                 <div>
                   <p className="text-muted mb-1 fs-11 text-uppercase fw-bold">Spécialité Technique</p>
                   <span className="fs-14 text-dark fw-medium d-block">
-                    {profile?.specialite || 'Maintenance Générale'}
+                    {profile?.specialite || 'Non renseignée'}
                   </span>
                 </div>
               </div>
@@ -315,20 +320,30 @@ const ProfileCard = () => {
           </Row>
         </div>
 
-        {/* ── Compétences Certifiées ────────────────────────────── */}
-        <div className="mb-4">
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <p className="text-muted mb-0 fs-11 fw-bold text-uppercase">Compétences Certifiées</p>
-            <IconifyIcon icon="tabler:certificate" className="text-warning fs-18" />
+        {/* ── Domaines & affectations (données réelles du profil) ── */}
+        {buildBadges(profile).length > 0 && (
+          <div className="mb-4">
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <p className="text-muted mb-0 fs-11 fw-bold text-uppercase">Domaines &amp; affectations</p>
+              <IconifyIcon icon="tabler:certificate" className="text-warning fs-18" />
+            </div>
+            <div className="d-flex flex-wrap gap-2">
+              {buildBadges(profile).map(c => (
+                <span key={c} className="badge bg-soft-info text-info border border-info border-opacity-10 rounded-pill px-3 py-1 fs-12 fw-medium">
+                  {c}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="d-flex flex-wrap gap-2">
-            {DEFAULT_COMPETENCES.map(c => (
-              <span key={c} className="badge bg-soft-info text-info border border-info border-opacity-10 rounded-pill px-3 py-1 fs-12 fw-medium">
-                {c}
-              </span>
-            ))}
+        )}
+
+        {/* ── Bio (si renseignée dans le profil) ── */}
+        {profile?.bio && (
+          <div className="mb-4">
+            <p className="text-muted mb-1 fs-11 fw-bold text-uppercase">À propos</p>
+            <p className="fs-14 mb-0">{profile.bio}</p>
           </div>
-        </div>
+        )}
 
         {/* ── Actions Principales ─────────────────────────────────── */}
         <div className="d-flex flex-column flex-sm-row gap-3 pt-2">

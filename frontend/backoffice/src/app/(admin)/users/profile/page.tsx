@@ -13,7 +13,7 @@ import PageBreadcrumb from '@/components/PageBreadcrumb'
 const ProfilePage = () => {
   return (
     <>
-      <PageBreadcrumb title='Profile' />
+      <PageBreadcrumb title='Mon profil' />
       <Row>
         <Col md={8}>
           <ProfileCard />
