@@ -8,7 +8,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import api from '@/lib/axiosConfig'
 import Swal from 'sweetalert2'
 import missionService from '@/services/missionService'
-import employeeService from '@/services/employeeService'
+import { getRessourcesDisponibles } from '@/services/disponibiliteService'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
 import { CITY_GROUPS } from '@/data/distanceMatrix'
@@ -52,18 +52,6 @@ const nowLocal = () => {
     const d = new Date()
     const p = (n: number) => String(n).padStart(2, '0')
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-// Handles plain arrays AND paginated { data:[...] } / { items:[...] } responses
-const toArray = (val: unknown): any[] => {
-    if (Array.isArray(val)) return val
-    if (val && typeof val === 'object') {
-        const v = val as Record<string, unknown>
-        for (const k of ['data', 'items', 'results', 'value']) {
-            if (Array.isArray(v[k])) return v[k] as any[]
-        }
-    }
-    return []
 }
 
 // ── Form state ───────────────────────────────────────────────────────────────
@@ -337,14 +325,10 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
         clearError()
         try {
             const res = await execute(async () => {
-                const [vRes, dRes] = await Promise.all([
-                    api.get('/vehicules/disponibles'),
-                    employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' })
-                ])
-                return {
-                    vehicles: toArray(vRes.data),
-                    drivers: toArray(dRes),
-                }
+                // Source de vérité unique : DISPONIBLE ET sans mission EN_COURS
+                // (même règle que le modal d'affectation et l'OptimisateurFlotteIA)
+                const { vehicules, chauffeurs } = await getRessourcesDisponibles()
+                return { vehicles: vehicules, drivers: chauffeurs }
             })
             if (res) {
                 setVehicles(res.vehicles.map((v: any) => ({

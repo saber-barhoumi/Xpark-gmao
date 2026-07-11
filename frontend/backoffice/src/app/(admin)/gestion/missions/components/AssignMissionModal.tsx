@@ -5,28 +5,15 @@ import { Alert, Badge, Button, Form, Modal, Spinner } from 'react-bootstrap'
 import Select from 'react-select'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import Swal from 'sweetalert2'
-import api from '@/lib/axiosConfig'
 import missionService from '@/services/missionService'
-import employeeService from '@/services/employeeService'
-import { Mission, StatutMission } from '@/types/mission'
+import { getRessourcesDisponibles } from '@/services/disponibiliteService'
+import { Mission } from '@/types/mission'
 
 interface AssignMissionModalProps {
     show: boolean
     onHide: () => void
     mission: Mission | null
     reloadList: () => void
-}
-
-// Handles plain arrays AND paginated { data:[...] } responses
-const toArray = (val: unknown): any[] => {
-    if (Array.isArray(val)) return val
-    if (val && typeof val === 'object') {
-        const v = val as Record<string, unknown>
-        for (const k of ['data', 'items', 'results', 'value']) {
-            if (Array.isArray(v[k])) return v[k] as any[]
-        }
-    }
-    return []
 }
 
 /**
@@ -50,31 +37,21 @@ const AssignMissionModal = ({ show, onHide, mission, reloadList }: AssignMission
         if (!show) return
         setVehiculeId(0); setEmployeeId(0); setError('')
         setLoading(true)
-        Promise.all([
-            api.get('/vehicules/disponibles'),
-            employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' }),
-            // Missions actives : un chauffeur/véhicule déjà EN_COURS n'est PAS disponible,
-            // quel que soit son statut statique côté RH/flotte
-            missionService.getAll(StatutMission.EN_COURS).catch(() => [] as Mission[]),
-        ])
-            .then(([vRes, dRes, actives]) => {
-                const busyVehicules = new Set(toArray(actives).map((m: any) => m.vehiculeId).filter(Boolean))
-                const busyChauffeurs = new Set(toArray(actives).map((m: any) => m.employeeId).filter(Boolean))
-                setVehicles(toArray(vRes.data)
-                    .filter((v: any) => !busyVehicules.has(v.idVehicule))
-                    .map((v: any) => ({
-                        value: v.idVehicule,
-                        label: `${v.immatriculation} — ${v.marque} ${v.modele} [${v.typeVehicule ?? '?'}] (${v.kilometrage} km)`,
-                        immatriculation: v.immatriculation ?? '',
-                        kilometrage: v.kilometrage ?? 0,
-                    })))
-                setDrivers(toArray(dRes)
-                    .filter((d: any) => !busyChauffeurs.has(d.idEmployee))
-                    .map((d: any) => ({
-                        value: d.idEmployee,
-                        label: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''} (${d.numeroMatricule ?? ''})`.trim(),
-                        nom: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''}`.trim(),
-                    })))
+        // Source de vérité unique (même règle que l'OptimisateurFlotteIA) :
+        // DISPONIBLE côté flotte/RH ET sans mission EN_COURS
+        getRessourcesDisponibles()
+            .then(({ vehicules, chauffeurs }) => {
+                setVehicles(vehicules.map((v: any) => ({
+                    value: v.idVehicule,
+                    label: `${v.immatriculation} — ${v.marque} ${v.modele} [${v.typeVehicule ?? '?'}] (${v.kilometrage} km)`,
+                    immatriculation: v.immatriculation ?? '',
+                    kilometrage: v.kilometrage ?? 0,
+                })))
+                setDrivers(chauffeurs.map((d: any) => ({
+                    value: d.idEmployee,
+                    label: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''} (${d.numeroMatricule ?? ''})`.trim(),
+                    nom: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''}`.trim(),
+                })))
             })
             .catch(() => setError('Impossible de charger les véhicules / chauffeurs disponibles.'))
             .finally(() => setLoading(false))

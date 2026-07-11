@@ -4,9 +4,8 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Alert, Badge, Button, Col, ProgressBar, Row, Spinner, Table } from 'react-bootstrap'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import Swal from 'sweetalert2'
-import api from '@/lib/axiosConfig'
 import missionService from '@/services/missionService'
-import employeeService from '@/services/employeeService'
+import { getRessourcesDisponibles } from '@/services/disponibiliteService'
 import optimizerService from '@/services/optimizerService'
 import { Mission, StatutMission } from '@/types/mission'
 import { OptimizePlan, OptimizerDriver, OptimizerVehicle } from '@/types/optimizer'
@@ -14,18 +13,6 @@ import { OptimizePlan, OptimizerDriver, OptimizerVehicle } from '@/types/optimiz
 interface OptimizerPanelProps {
     /** Appelé après application réussie du plan (recharger la liste, fermer le modal…) */
     onApplied?: () => void
-}
-
-// Handles plain arrays AND paginated { data:[...] } responses (same helper as the wizard)
-const toArray = (val: unknown): any[] => {
-    if (Array.isArray(val)) return val
-    if (val && typeof val === 'object') {
-        const v = val as Record<string, unknown>
-        for (const k of ['data', 'items', 'results', 'value']) {
-            if (Array.isArray(v[k])) return v[k] as any[]
-        }
-    }
-    return []
 }
 
 const scoreVariant = (score: number) => (score >= 80 ? 'success' : score >= 60 ? 'warning' : 'danger')
@@ -54,17 +41,20 @@ const OptimizerPanel = ({ onApplied }: OptimizerPanelProps) => {
         setError('')
         setPlan(null)
         try {
-            const [allMissions, vRes, dRes] = await Promise.all([
+            // Disponibilité = source de vérité unique (disponibiliteService) :
+            // DISPONIBLE côté flotte/RH ET sans mission EN_COURS — mêmes chiffres
+            // que le modal d'affectation, et le plan IA ne propose jamais une
+            // ressource déjà occupée.
+            const [allMissions, ressources] = await Promise.all([
                 missionService.getAll(),
-                api.get('/vehicules/disponibles'),
-                employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' }),
+                getRessourcesDisponibles(),
             ])
 
             // Missions EN_ATTENTE sans affectation = à optimiser
             setPendingMissions(allMissions.filter(m =>
                 m.statut === StatutMission.EN_ATTENTE && !m.employeeId && !m.vehiculeId))
 
-            setVehicles(toArray(vRes.data).map((v: any): OptimizerVehicle => ({
+            setVehicles(ressources.vehicules.map((v: any): OptimizerVehicle => ({
                 idVehicule: v.idVehicule,
                 immatriculation: v.immatriculation ?? '',
                 marque: v.marque ?? '',
@@ -78,7 +68,7 @@ const OptimizerPanel = ({ onApplied }: OptimizerPanelProps) => {
                 dateProchaineRevision: v.dateProchaineRevision ?? undefined,
             })))
 
-            setDrivers(toArray(dRes).map((d: any): OptimizerDriver => ({
+            setDrivers(ressources.chauffeurs.map((d: any): OptimizerDriver => ({
                 idEmployee: d.idEmployee,
                 nom: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''}`.trim(),
                 numeroMatricule: d.numeroMatricule ?? '',
