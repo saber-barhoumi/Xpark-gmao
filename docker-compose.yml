@@ -405,6 +405,56 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── Ayshaa RAG — assistante virtuelle du site vitrine ───────────
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: xpark-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  ayshaa-rag:
+    build:
+      context: ./AyshaaRAG
+      dockerfile: Dockerfile
+    container_name: xpark-ayshaa-rag
+    ports:
+      - "8010:8010"
+    environment:
+      - AYSHAA_QDRANT_URL=http://qdrant:6333
+      - AYSHAA_OLLAMA_URL=http://ollama:11434
+      - AYSHAA_LLM_ENABLED=true
+      - AYSHAA_MEMORY_DB=/data/ayshaa_memory.db
+      - AYSHAA_DATA_DIR=/data
+      - AYSHAA_ADMIN_API_KEY=${AYSHAA_ADMIN_API_KEY:-dev-only-key}
+      - AYSHAA_CORS_ORIGINS=["http://localhost:3001","http://localhost:8080"]
+    volumes:
+      - ayshaa-data:/data
+    depends_on:
+      - qdrant
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # LLM local optionnel : docker compose --profile llm up -d ollama
+  # puis : docker exec xpark-ollama ollama pull qwen2.5:3b-instruct
+  # Sans lui, Ayshaa fonctionne en mode extractif (degradation gracieuse).
+  ollama:
+    image: ollama/ollama:latest
+    container_name: xpark-ollama
+    profiles: ["llm"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
 networks:
   xpark-network:
     driver: bridge
@@ -412,3 +462,6 @@ networks:
 volumes:
   postgres-data: {}
   rabbitmq-data: {}
+  qdrant-data: {}
+  ayshaa-data: {}
+  ollama-data: {}

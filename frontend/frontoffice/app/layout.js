@@ -6,6 +6,7 @@ import "swiper/css/pagination"
 // import 'owl.carousel'
 import 'swiper/css/free-mode';
 import { jost, rajdhani } from '@/lib/font'
+import AyshaaWidget from '@/components/assistant/AyshaaWidget'
 export const metadata = {
     title: 'XPARK — Transport de marchandises',
     description: 'XPARK, entreprise spécialisée dans le transport de marchandises avec une flotte de véhicules adaptée aux besoins des professionnels.',
@@ -14,7 +15,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="fr" className={`${jost.variable} ${rajdhani.variable}`}>
-            <body>{children}</body>
+            <body>
+                {children}
+                <AyshaaWidget />
+            </body>
         </html>
     )
 }
