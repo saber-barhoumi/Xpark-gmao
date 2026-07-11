@@ -56,11 +56,24 @@ NO_ANSWER = {
           "📞 +216 70 000 000 ولا ✉️ contact@xpark.tn — ولا افتح ticket من Espace Client → Support.",
 }
 
-# Introductions du mode extractif (sans LLM génératif)
+# Introductions du mode extractif (sans LLM génératif) — variées pour un ton
+# naturel, choisies aléatoirement par le provider
 EXTRACTIVE_INTRO = {
-    "fr": "Voici ce que je peux vous dire 👇",
-    "en": "Here's what I can tell you 👇",
-    "ar": "هاو اللي نجم نقولهولك 👇",
+    "fr": [
+        "Voici ce que je peux vous dire 👇",
+        "Bonne question ! 😊 Voilà la réponse :",
+        "Avec plaisir, voilà l'essentiel :",
+    ],
+    "en": [
+        "Here's what I can tell you 👇",
+        "Good question! 😊 Here's the answer:",
+        "Sure — here's what you need to know:",
+    ],
+    "ar": [
+        "هاو اللي نجم نقولهولك 👇",
+        "سؤال مليح! 😊 هاو الجواب:",
+        "بكل سرور، هاو المهم:",
+    ],
 }
 
 

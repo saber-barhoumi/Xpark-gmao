@@ -3,13 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { chatStream, getGreeting } from "@/lib/ayshaaService"
+import AyshaaAvatar from "./AyshaaAvatar"
 
 /**
- * Ayshaa — widget de chat flottant du site vitrine XPARK (bas-gauche).
+ * Ayshaa — widget de chat flottant du site vitrine XPARK (bas-DROITE).
  *  - accueil automatique à l'arrivée sur le site (bulle + message d'accueil) ;
- *  - texte OU voix en entrée (Web Speech API), texte + voix en sortie (au choix) ;
- *  - trilingue : français / anglais / tounsi (RTL automatique pour l'arabe) ;
- *  - réponses en streaming (SSE) depuis le microservice AyshaaRAG (:8010).
+ *  - texte OU voix en entrée (Web Speech API), texte + voix en sortie ;
+ *  - la voix de la réponse suit TOUJOURS la langue détectée de la réponse
+ *    (arabe → voix arabe, anglais → voix anglaise…), sans réglage manuel ;
+ *  - avatar professionnel vectoriel (AyshaaAvatar), RTL automatique.
  * Masqué sur /account et /auth : le portail client a son propre assistant.
  */
 
@@ -20,35 +22,54 @@ const LANGS = [
 ]
 
 const UI_TEXT = {
-    fr: { placeholder: "Écrivez votre message…", listening: "Je vous écoute…", send: "Envoyer" },
-    en: { placeholder: "Type your message…", listening: "Listening…", send: "Send" },
-    ar: { placeholder: "اكتب رسالتك…", listening: "نسمع فيك…", send: "ابعث" },
+    fr: { placeholder: "Écrivez votre message…", listening: "Je vous écoute…" },
+    en: { placeholder: "Type your message…", listening: "Listening…" },
+    ar: { placeholder: "اكتب رسالتك…", listening: "نسمع فيك…" },
 }
 
-const isArabic = (t) => /[؀-ۿ]/.test(t || "")
+const isArabicText = (t) => /[؀-ۿ]/.test(t || "")
+
+/** Langue de SYNTHÈSE : le contenu du texte prime (écriture arabe → voix arabe) ;
+ *  si la réponse est en alphabet latin, on suit la langue détectée par le serveur
+ *  (texte latin ne peut pas être lu par une voix arabe → repli français). */
+function speechLangOf(text, metaLang) {
+    if (isArabicText(text)) return "ar"
+    return metaLang === "ar" ? "fr" : (metaLang || "fr")
+}
 
 export default function AyshaaWidget() {
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
-    const [teaser, setTeaser] = useState(false)          // bulle d'accueil auto
+    const [teaser, setTeaser] = useState(false)
     const [lang, setLang] = useState("fr")
-    const [messages, setMessages] = useState([])          // {from, text, suggestions?}
+    const [messages, setMessages] = useState([])
     const [input, setInput] = useState("")
     const [busy, setBusy] = useState(false)
     const [listening, setListening] = useState(false)
-    const [voiceOut, setVoiceOut] = useState(false)        // réponse vocale on/off
+    const [voiceOut, setVoiceOut] = useState(false)
     const sessionRef = useRef(null)
     const recognitionRef = useRef(null)
+    const voicesRef = useRef([])
     const bottomRef = useRef(null)
 
-    // ── Accueil automatique à l'arrivée sur le site ──────────────────────────
+    // ── Accueil automatique + chargement fiable des voix TTS ─────────────────
     useEffect(() => {
         const navLang = (navigator.language || "fr").slice(0, 2)
         setLang(["fr", "en", "ar"].includes(navLang) ? navLang : "fr")
         sessionRef.current = sessionStorage.getItem("ayshaa_session") || null
+
+        // Les voix arrivent de façon asynchrone selon les navigateurs
+        const loadVoices = () => { voicesRef.current = window.speechSynthesis?.getVoices() || [] }
+        loadVoices()
+        window.speechSynthesis?.addEventListener?.("voiceschanged", loadVoices)
+
+        let t
         if (!sessionStorage.getItem("ayshaa_greeted")) {
-            const t = setTimeout(() => setTeaser(true), 2500)
-            return () => clearTimeout(t)
+            t = setTimeout(() => setTeaser(true), 2500)
+        }
+        return () => {
+            clearTimeout(t)
+            window.speechSynthesis?.removeEventListener?.("voiceschanged", loadVoices)
         }
     }, [])
 
@@ -71,21 +92,38 @@ export default function AyshaaWidget() {
         if (messages.length === 0) loadGreeting(lang)
     }
 
+    const closeChat = () => {
+        setOpen(false)
+        window.speechSynthesis?.cancel()
+    }
+
     const changeLang = (l) => {
         setLang(l)
         if (messages.length <= 1) loadGreeting(l)
     }
 
-    // ── Synthèse vocale (réponse parlée) ─────────────────────────────────────
-    const speak = useCallback((text, msgLang) => {
+    // ── Synthèse vocale : la voix suit la langue de la RÉPONSE ───────────────
+    const speak = useCallback((text, metaLang) => {
         if (!voiceOut || typeof window === "undefined" || !window.speechSynthesis) return
         window.speechSynthesis.cancel()
-        const clean = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "").replace(/[*_#`>]/g, "")
+        const clean = text
+            .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
+            .replace(/[*_#`>«»]/g, "")
+            .replace(/\s+/g, " ").trim()
+        if (!clean) return
+
+        const target = speechLangOf(text, metaLang)          // ar / en / fr selon le CONTENU
+        const bcp47 = { ar: "ar-TN", en: "en-US", fr: "fr-FR" }[target]
         const utter = new SpeechSynthesisUtterance(clean)
-        const target = msgLang === "ar" ? "ar" : msgLang === "en" ? "en" : "fr"
-        utter.lang = LANGS.find(l => l.code === target)?.stt || "fr-FR"
-        const voice = window.speechSynthesis.getVoices().find(v => v.lang.startsWith(target))
+        utter.lang = bcp47
+
+        // Meilleure voix disponible : exacte (ar-TN) → même langue (ar-*)
+        const voices = voicesRef.current.length ? voicesRef.current
+            : (window.speechSynthesis.getVoices() || [])
+        const voice = voices.find(v => v.lang === bcp47)
+            || voices.find(v => v.lang?.toLowerCase().startsWith(target))
         if (voice) utter.voice = voice
+
         utter.rate = 1
         window.speechSynthesis.speak(utter)
     }, [voiceOut])
@@ -164,7 +202,7 @@ export default function AyshaaWidget() {
 
     return (
         <>
-            {/* ── Bouton flottant + bulle d'accueil (bas-gauche) ── */}
+            {/* ── Bouton flottant + bulle d'accueil (bas-DROITE) ── */}
             <div className="ayshaa-root">
                 {teaser && !open && (
                     <button type="button" className="ayshaa-teaser" onClick={openChat}>
@@ -175,8 +213,7 @@ export default function AyshaaWidget() {
                 )}
                 {!open && (
                     <button type="button" className="ayshaa-fab" onClick={openChat} aria-label="Ouvrir l'assistant Ayshaa">
-                        <span className="ayshaa-fab-icon">💬</span>
-                        <span className="ayshaa-fab-dot" />
+                        <AyshaaAvatar size={62} />
                     </button>
                 )}
 
@@ -184,7 +221,7 @@ export default function AyshaaWidget() {
                 {open && (
                     <div className="ayshaa-panel" role="dialog" aria-label="Assistant Ayshaa">
                         <div className="ayshaa-head">
-                            <div className="ayshaa-avatar">A</div>
+                            <AyshaaAvatar size={42} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div className="ayshaa-name">Ayshaa</div>
                                 <div className="ayshaa-status">● {lang === "en" ? "Online" : lang === "ar" ? "متصلة" : "En ligne"}</div>
@@ -197,21 +234,27 @@ export default function AyshaaWidget() {
                             </div>
                             <button type="button" title="Réponse vocale" onClick={() => setVoiceOut(v => !v)}
                                 className={`ayshaa-iconbtn ${voiceOut ? "on" : ""}`}>{voiceOut ? "🔊" : "🔇"}</button>
-                            <button type="button" onClick={() => setOpen(false)} className="ayshaa-iconbtn" aria-label="Fermer">✕</button>
+                            <button type="button" onClick={closeChat} className="ayshaa-iconbtn" aria-label="Fermer">✕</button>
                         </div>
 
                         <div className="ayshaa-body">
                             {messages.map((m, i) => (
-                                <div key={i} className={`ayshaa-msg ${m.from}`}
-                                    dir={isArabic(m.text) ? "rtl" : "ltr"}>
-                                    {m.text}{m.streaming && <span className="ayshaa-caret">▌</span>}
+                                <div key={i} className={`ayshaa-row ${m.from}`}>
+                                    {m.from === "bot" && <div className="ayshaa-msg-avatar"><AyshaaAvatar size={28} /></div>}
+                                    <div className={`ayshaa-msg ${m.from}`}
+                                        dir={isArabicText(m.text) ? "rtl" : "ltr"}>
+                                        {m.text || (m.streaming ? "" : "")}
+                                        {m.streaming && (
+                                            <span className="ayshaa-typing"><i /><i /><i /></span>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                             {lastSuggestions && !busy && (
                                 <div className="ayshaa-sugg">
                                     {lastSuggestions.map(s => (
                                         <button key={s} type="button" onClick={() => send(s)}
-                                            dir={isArabic(s) ? "rtl" : "ltr"}>{s}</button>
+                                            dir={isArabicText(s) ? "rtl" : "ltr"}>{s}</button>
                                     ))}
                                 </div>
                             )}
@@ -226,7 +269,7 @@ export default function AyshaaWidget() {
                             </button>
                             <input value={listening ? "" : input} onChange={(e) => setInput(e.target.value)}
                                 placeholder={listening ? T.listening : T.placeholder}
-                                dir={isArabic(input) || lang === "ar" ? "rtl" : "ltr"}
+                                dir={isArabicText(input) || lang === "ar" ? "rtl" : "ltr"}
                                 disabled={busy && !listening} />
                             <button type="submit" className="ayshaa-send" disabled={busy || !input.trim()}>➤</button>
                         </form>
@@ -236,36 +279,30 @@ export default function AyshaaWidget() {
             </div>
 
             <style jsx global>{`
-                .ayshaa-root { position: fixed; left: 22px; bottom: 22px; z-index: 99990;
+                .ayshaa-root { position: fixed; right: 22px; bottom: 22px; z-index: 99990;
                     font-family: 'Jost', 'Segoe UI', sans-serif; }
                 .ayshaa-fab { position: relative; width: 62px; height: 62px; border-radius: 50%;
-                    border: none; cursor: pointer; background: #C11425; color: #fff;
-                    box-shadow: 0 10px 30px rgba(193,20,37,.45); font-size: 26px;
-                    display: flex; align-items: center; justify-content: center;
-                    animation: ayshaa-pulse 2.6s infinite; }
-                .ayshaa-fab:hover { transform: scale(1.06); }
-                .ayshaa-fab-dot { position: absolute; top: 4px; right: 4px; width: 13px; height: 13px;
-                    border-radius: 50%; background: #22c55e; border: 2px solid #fff; }
+                    border: none; cursor: pointer; padding: 0; background: transparent;
+                    box-shadow: 0 10px 30px rgba(15,27,36,.45);
+                    animation: ayshaa-pulse 2.6s infinite; transition: transform .15s; }
+                .ayshaa-fab:hover { transform: scale(1.07); }
                 @keyframes ayshaa-pulse {
-                    0% { box-shadow: 0 10px 30px rgba(193,20,37,.45), 0 0 0 0 rgba(193,20,37,.35); }
-                    70% { box-shadow: 0 10px 30px rgba(193,20,37,.45), 0 0 0 16px rgba(193,20,37,0); }
-                    100% { box-shadow: 0 10px 30px rgba(193,20,37,.45), 0 0 0 0 rgba(193,20,37,0); }
+                    0% { box-shadow: 0 10px 30px rgba(15,27,36,.45), 0 0 0 0 rgba(193,20,37,.30); }
+                    70% { box-shadow: 0 10px 30px rgba(15,27,36,.45), 0 0 0 16px rgba(193,20,37,0); }
+                    100% { box-shadow: 0 10px 30px rgba(15,27,36,.45), 0 0 0 0 rgba(193,20,37,0); }
                 }
-                .ayshaa-teaser { position: absolute; left: 0; bottom: 74px; white-space: nowrap;
+                .ayshaa-teaser { position: absolute; right: 0; bottom: 74px; white-space: nowrap;
                     background: #0F1B24; color: #fff; border: none; cursor: pointer;
-                    padding: 12px 18px; border-radius: 14px 14px 14px 4px; font-size: 14px;
+                    padding: 12px 18px; border-radius: 14px 14px 4px 14px; font-size: 14px;
                     box-shadow: 0 12px 32px rgba(15,27,36,.35); animation: ayshaa-in .35s ease; }
                 @keyframes ayshaa-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
 
-                .ayshaa-panel { width: 372px; max-width: calc(100vw - 34px); height: 560px;
+                .ayshaa-panel { width: 380px; max-width: calc(100vw - 34px); height: 580px;
                     max-height: calc(100vh - 60px); background: #fff; border-radius: 18px;
                     box-shadow: 0 24px 70px rgba(15,27,36,.35); display: flex; flex-direction: column;
                     overflow: hidden; animation: ayshaa-in .3s ease; }
                 .ayshaa-head { display: flex; align-items: center; gap: 10px; padding: 13px 14px;
-                    background: #0F1B24; color: #fff; }
-                .ayshaa-avatar { width: 40px; height: 40px; border-radius: 50%; background: #C11425;
-                    display: flex; align-items: center; justify-content: center; font-weight: 800;
-                    font-size: 19px; flex-shrink: 0; }
+                    background: linear-gradient(135deg, #16283a 0%, #0F1B24 100%); color: #fff; }
                 .ayshaa-name { font-weight: 700; font-size: 15.5px; line-height: 1.1; }
                 .ayshaa-status { font-size: 11.5px; color: #4ade80; }
                 .ayshaa-langs { display: flex; gap: 4px; }
@@ -279,16 +316,25 @@ export default function AyshaaWidget() {
 
                 .ayshaa-body { flex: 1; overflow-y: auto; padding: 16px 14px; background: #f4f6f9;
                     display: flex; flex-direction: column; gap: 10px; }
-                .ayshaa-msg { max-width: 84%; padding: 10px 14px; font-size: 14px; line-height: 1.55;
+                .ayshaa-row { display: flex; align-items: flex-end; gap: 8px; }
+                .ayshaa-row.user { justify-content: flex-end; }
+                .ayshaa-msg-avatar { border-radius: 50%; overflow: hidden; flex-shrink: 0;
+                    box-shadow: 0 2px 8px rgba(15,27,36,.18); }
+                .ayshaa-msg { max-width: 82%; padding: 10px 14px; font-size: 14px; line-height: 1.55;
                     white-space: pre-line; word-break: break-word; }
-                .ayshaa-msg.bot { align-self: flex-start; background: #fff; color: #1f2b38;
+                .ayshaa-msg.bot { background: #fff; color: #1f2b38;
                     border: 1px solid #e6e9ee; border-radius: 14px 14px 14px 4px; }
-                .ayshaa-msg.user { align-self: flex-end; background: #C11425; color: #fff;
+                .ayshaa-msg.user { background: #C11425; color: #fff;
                     border-radius: 14px 14px 4px 14px; }
                 .ayshaa-msg[dir="rtl"] { text-align: right; }
-                .ayshaa-caret { animation: ayshaa-blink 1s infinite; }
-                @keyframes ayshaa-blink { 50% { opacity: 0; } }
-                .ayshaa-sugg { display: flex; flex-wrap: wrap; gap: 7px; }
+                .ayshaa-typing { display: inline-flex; gap: 4px; padding: 2px 2px 0; }
+                .ayshaa-typing i { width: 6px; height: 6px; border-radius: 50%; background: #9aa3ad;
+                    animation: ayshaa-bounce 1.2s infinite; }
+                .ayshaa-typing i:nth-child(2) { animation-delay: .15s; }
+                .ayshaa-typing i:nth-child(3) { animation-delay: .3s; }
+                @keyframes ayshaa-bounce { 0%, 60%, 100% { transform: translateY(0); }
+                    30% { transform: translateY(-5px); } }
+                .ayshaa-sugg { display: flex; flex-wrap: wrap; gap: 7px; padding-left: 36px; }
                 .ayshaa-sugg button { border: 1px solid #C11425; color: #C11425; background: #fff;
                     border-radius: 18px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; }
                 .ayshaa-sugg button:hover { background: #C11425; color: #fff; }
@@ -309,7 +355,7 @@ export default function AyshaaWidget() {
                     padding: 5px 0 8px; background: #fff; }
 
                 @media (max-width: 480px) {
-                    .ayshaa-root { left: 12px; bottom: 12px; }
+                    .ayshaa-root { right: 12px; bottom: 12px; }
                     .ayshaa-panel { height: 74vh; }
                     .ayshaa-teaser { white-space: normal; max-width: 260px; }
                 }

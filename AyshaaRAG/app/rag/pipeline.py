@@ -27,6 +27,7 @@ from app.rag.memory import SqliteStore
 from app.rag.prompts import GREETINGS, NO_ANSWER, SUGGESTIONS
 from app.rag.providers import ExtractiveProvider, OllamaProvider
 from app.rag.retriever import HybridRetriever
+from app.rag.smalltalk import detect_intent, reply_smalltalk, strip_greeting_prefix
 from app.rag.vectorstore import QdrantStore
 
 log = logging.getLogger("ayshaa.pipeline")
@@ -80,12 +81,34 @@ class AyshaaPipeline:
         lang = lang if lang in GREETINGS else "fr"
         return {"message": GREETINGS[lang], "suggestions": SUGGESTIONS[lang], "lang": lang}
 
+    def _smalltalk(self, session_id: str | None, message: str):
+        """Couche conversationnelle AVANT le RAG : bonjour/merci/ça va… reçoivent
+        une réponse naturelle d'accueil, jamais un passage de la base documentaire.
+        Retourne None si le message est une vraie question."""
+        intent = detect_intent(message)
+        if not intent:
+            return None
+        sid = session_id or self.memory.new_session()
+        lang = detect_language(message)
+        text, with_suggestions = reply_smalltalk(intent, lang)
+        self.memory.append(sid, "user", message)
+        self.memory.append(sid, "assistant", text)
+        CHAT_MESSAGES.labels(lang=lang, provider="persona").inc()
+        log_event(log, "chat_answered", lang=lang, provider="persona",
+                  intent=intent, msg_chars=len(message))
+        return {
+            "session_id": sid, "answer": text, "lang": lang, "provider": "persona",
+            "sources": [],
+            "suggestions": SUGGESTIONS.get(lang, SUGGESTIONS["fr"])[:3] if with_suggestions else [],
+        }
+
     async def _prepare(self, session_id: str | None, message: str):
         """Étapes communes chat/stream : session, langue, retrieval, provider, historique."""
         s = get_settings()
         sid = session_id or self.memory.new_session()
         lang = detect_language(message)
-        chunks = self.retriever.retrieve(message, lang)
+        # « Bonjour, ma question… » → seule la question part au retrieval
+        chunks = self.retriever.retrieve(strip_greeting_prefix(message), lang)
 
         # Confiance : preuve lexicale (BM25 a matché des termes de la question)
         # OU similarité sémantique suffisante — sinon repli honnête "je ne sais pas".
@@ -101,6 +124,8 @@ class AyshaaPipeline:
         return sid, lang, chunks, history, provider
 
     async def answer(self, session_id: str | None, message: str) -> dict:
+        if (st := self._smalltalk(session_id, message)) is not None:
+            return st
         start = time.perf_counter()
         sid, lang, chunks, history, provider = await self._prepare(session_id, message)
 
@@ -136,6 +161,12 @@ class AyshaaPipeline:
 
     async def answer_stream(self, session_id: str | None, message: str) -> AsyncIterator[dict]:
         """Événements SSE : meta (session/lang) → token* → done (sources, suggestions)."""
+        if (st := self._smalltalk(session_id, message)) is not None:
+            yield {"event": "meta", "data": {"session_id": st["session_id"], "lang": st["lang"]}}
+            yield {"event": "token", "data": {"t": st["answer"]}}
+            yield {"event": "done", "data": {"sources": [], "suggestions": st["suggestions"],
+                                             "provider": "persona"}}
+            return
         start = time.perf_counter()
         sid, lang, chunks, history, provider = await self._prepare(session_id, message)
         yield {"event": "meta", "data": {"session_id": sid, "lang": lang}}

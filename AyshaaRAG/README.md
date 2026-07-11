@@ -29,13 +29,21 @@ bouton flottant en bas à gauche de http://localhost:3001.
 | Composant | Technologie | Pourquoi |
 |---|---|---|
 | API | FastAPI (Python 3.12) | async natif (SSE), cohérent avec CalculateurPrixTrajetIA |
+| Small talk | couche d'intentions avant le RAG (`smalltalk.py`) | « bonjour / سلام / hello » reçoivent un accueil naturel, jamais un passage documentaire |
+| Détection de langue | lexique darija issu du **corpus CleanData** (23 133 commentaires réels) + noyau certifié, score pondéré | darija romanisée (« chhal el prix ») détectée de façon fiable |
 | Base vectorielle | **Qdrant** | HNSW + filtrage payload par langue, conteneur léger, snapshots |
 | Embeddings | **fastembed** (ONNX) — paraphrase-multilingual-MiniLM-L12-v2, 384 d | multilingue fr/en/ar sans PyTorch (image ~10× plus légère) |
-| Retrieval | **Hybride** : dense (Qdrant) + lexical (BM25) fusionnés par **RRF** | le lexical rattrape termes exacts + darija romanisée ; le dense rattrape les paraphrases |
-| Génération | **Ollama** (qwen2.5:3b-instruct) avec **repli extractif** | 0 donnée externe, 0 coût ; le service répond TOUJOURS (dégradation gracieuse) |
+| Retrieval | **Hybride** : dense + BM25 fusionnés par **RRF**, expansion arabizi→arabe, boost langue, sélection à seuil relatif dédoublonnée | précision du contexte : plus de passages hors sujet concaténés |
+| Génération | **Ollama** (qwen2.5:3b-instruct) avec **repli extractif** (1 chunk fort, intros variées) | 0 donnée externe, 0 coût ; le service répond TOUJOURS (dégradation gracieuse) |
 | Mémoire | SQLite, fenêtre glissante, TTL 24 h | suivi des questions de relance (« et pour Sfax ? ») |
-| Voix | Web Speech API (navigateur) | STT + TTS fr/en/ar sans serveur GPU ; Whisper documenté en évolution |
+| Voix | Web Speech API (navigateur) — la voix suit la **langue de la réponse** | STT + TTS fr/en/ar sans serveur GPU ; Whisper documenté en évolution |
 | Observabilité | logs JSON + Prometheus `/metrics` | latence, langues, providers, « je ne sais pas » |
+
+Base de connaissances : **27 documents** (9 sujets × 3 langues, ~147 chunks) —
+entreprise/services, réservation/tarifs, suivi/documents/factures,
+compte/sécurité/support, équipe interne, FAQ pratique, flotte/véhicules,
+sécurité des marchandises, paiement/TVA. Widget : bas-droite, avatar
+professionnel vectoriel (`AyshaaAvatar.js`), accueil automatique.
 
 ## Documentation complète (docs/)
 

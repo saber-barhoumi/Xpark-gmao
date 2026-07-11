@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import logging
+import random
 import re
 import time
 from typing import AsyncIterator, Protocol
@@ -103,6 +104,7 @@ class OllamaProvider:
 # ── Extractif (repli sans LLM) ───────────────────────────────────────────────
 
 _BREADCRUMB_RE = re.compile(r"^\[[^\]]*\]\n?")
+_KEYWORDS_RE = re.compile(r"\n?\[mots-clés:[^\]]*\]\s*$")
 
 
 class ExtractiveProvider:
@@ -114,13 +116,22 @@ class ExtractiveProvider:
             return NO_ANSWER.get(lang, NO_ANSWER["fr"])
         # Privilégier les chunks déjà dans la langue de l'utilisateur
         same_lang = [c for c in chunks if c.get("lang") == lang]
-        best = (same_lang or chunks)[:2]
+        pool = same_lang or chunks
+
+        # UN chunk fort ; un 2e uniquement s'il traite du MÊME sujet avec un
+        # score proche (évite les réponses « collées » sans rapport entre elles).
+        best = [pool[0]]
+        if (len(pool) > 1 and pool[1].get("topic") == pool[0].get("topic")
+                and pool[1].get("rrf_score", 0) >= 0.8 * pool[0].get("rrf_score", 1)):
+            best.append(pool[1])
+
         bodies = []
         for c in best:
-            body = _BREADCRUMB_RE.sub("", c["text"]).strip()
+            body = _BREADCRUMB_RE.sub("", c["text"])
+            body = _KEYWORDS_RE.sub("", body).strip()
             body = body.replace("**", "")   # markdown brut → texte lisible (écran + voix)
             bodies.append(body[:900])
-        intro = EXTRACTIVE_INTRO.get(lang, EXTRACTIVE_INTRO["fr"])
+        intro = random.choice(EXTRACTIVE_INTRO.get(lang, EXTRACTIVE_INTRO["fr"]))
         return f"{intro}\n\n" + "\n\n".join(bodies)
 
     async def generate(self, question, chunks, history, lang) -> str:

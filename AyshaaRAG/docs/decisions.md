@@ -91,3 +91,38 @@ langdetect/lingua sont peu fiables sur < 5 mots et ignorent l'arabizi
 (« chhal 3andkom »). Trois signaux robustes : écriture arabe, lexique darija
 romanisée + chiffres-lettres (3/7/9), mots-outils fr vs en. 20 lignes,
 testé, zéro dépendance.
+
+## ADR-11 — Couche small talk AVANT le RAG
+
+**Contexte** : « Bonjour » partait dans le retrieval et récupérait des chunks
+sans rapport (bug constaté en production). Un retriever vectoriel retourne
+TOUJOURS des voisins, même pour une salutation. **Choix** : couche
+d'intentions conversationnelles (greeting, how_are_you, thanks, goodbye,
+who_are_you, ok) interceptée avant tout retrieval — lexique multilingue +
+phrases complètes (« how are you » contient l'interrogatif *how* mais reste
+du small talk), réponses variées par tirage aléatoire dans la langue
+détectée. Les messages contenant un marqueur de vraie question (combien,
+قداش, price, horaires…) ne sont jamais interceptés ; les salutations en
+tête de message (« Bonjour, combien… ») sont retirées de la requête avant
+le retrieval. **Conséquence** : Ayshaa se comporte comme une agente
+d'accueil, et la qualité du retrieval augmente (requêtes plus propres).
+
+## ADR-12 — Corpus CleanData → lexique de détection, PAS base de connaissances
+
+**Contexte** : un corpus de 23 133 commentaires tunisiens réels (CleanData)
+est disponible. **Options** : l'indexer dans la KB ; l'ignorer ; en extraire
+un lexique. **Choix** : `scripts/build_darija_lexicon.py` en extrait 800 mots
+darija romanisés + 1 500 mots arabes fréquents (`darija_lexicon.py`, généré
+et versionné) utilisés UNIQUEMENT par la détection de langue, avec un score
+pondéré (noyau certifié ×2, corpus ×0.5 — un mot français infiltré ne peut
+pas faire basculer la détection). **Pourquoi pas la KB** : des commentaires
+YouTube comme source de réponses produiraient exactement les réponses hors
+sujet qu'on corrige ; la KB reste du contenu rédigé et vérifié.
+
+## ADR-13 — Sélection de contexte à seuil relatif
+
+Après la fusion RRF, ne garder que les chunks à ≥ 60 % du score du meilleur,
+dédoublonnés par section, avec boost ×1.15 pour la langue de l'utilisateur ;
+le mode extractif ne compose qu'UN chunk fort (un 2e seulement si même sujet
+et score proche). Corrige les réponses « collées » : deux passages sans
+rapport n'étaient concaténés que parce que final_k=4 le permettait.

@@ -1,5 +1,16 @@
 # Pipeline RAG — de la question à la réponse
 
+## 0. Couche small talk (avant tout retrieval)
+
+`smalltalk.py` intercepte les messages purement conversationnels — bonjour /
+hello / السلام عليكم / aslema, ça va, merci / يعيشك, au revoir, « qui es-tu ? » —
+et répond naturellement dans la langue détectée (réponses variées, persona
+Ayshaa). Garde-fous : messages ≤ 7 mots, aucune interception si un marqueur
+de vraie question est présent (combien, قداش, price, horaires…), phrases
+complètes prioritaires (« how are you »). Les salutations en tête de message
+(« Bonjour, combien coûte… ») sont retirées de la requête avant le retrieval
+(`strip_greeting_prefix`). Voir ADR-11.
+
 ## 1. Ingestion et chunking
 
 ```mermaid
@@ -45,6 +56,16 @@ flowchart TD
 combien ? » ≈ « quel est le prix ? ») mais rate les termes exacts (MFA,
 noms propres) et la darija romanisée (« chhal el prix ») ; BM25 fait
 l'inverse. RRF les fusionne sans calibration de scores.
+
+**Re-ranking et sélection du contexte** (ADR-13) :
+- requête darija romanisée → expansion arabizi→arabe (`expand_arabizi` :
+  « chhal el prix » enrichi de « قداش سوم ») pour matcher la KB en écriture arabe ;
+- boost ×1.15 des chunks dans la langue de l'utilisateur ;
+- seuil RELATIF : seuls les chunks à ≥ 60 % du meilleur score sont gardés,
+  dédoublonnés par (document, section) — plus jamais deux passages sans
+  rapport concaténés ;
+- `keywords:` du front-matter ajoutés au texte indexé (rappel BM25 sur les
+  mots que les utilisateurs emploient vraiment).
 
 **Contrôle de confiance** : un vecteur retourne TOUJOURS des voisins, même
 pour une question hors sujet. La règle « preuve lexicale OU similarité

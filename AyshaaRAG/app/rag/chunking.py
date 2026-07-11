@@ -91,11 +91,16 @@ def _split_long(text: str) -> list[str]:
 def chunk_document(path: Path) -> list[Chunk]:
     meta, body = parse_front_matter(path.read_text(encoding="utf-8"))
     doc_title = meta.get("title", path.stem)
+    # `keywords:` du front-matter : ajoutés au texte indexé (rappel BM25 accru
+    # sur les synonymes/orthographes que les utilisateurs emploient vraiment)
+    keywords = meta.get("keywords", "").strip()
     chunks: list[Chunk] = []
     for section_title, section_text in _split_by_headings(body):
         for i, piece in enumerate(_split_long(section_text)):
             breadcrumb = f"{doc_title}" + (f" > {section_title}" if section_title else "")
             text = f"[{breadcrumb}]\n{piece}"
+            if keywords:
+                text += f"\n[mots-clés: {keywords}]"
             uid = str(uuid.uuid5(_NS, f"{path.name}:{section_title}:{i}:{piece[:64]}"))
             chunks.append(Chunk(id=uid, text=text, metadata={
                 "source": path.name,
