@@ -8,7 +8,7 @@ import Swal from 'sweetalert2'
 import api from '@/lib/axiosConfig'
 import missionService from '@/services/missionService'
 import employeeService from '@/services/employeeService'
-import { Mission } from '@/types/mission'
+import { Mission, StatutMission } from '@/types/mission'
 
 interface AssignMissionModalProps {
     show: boolean
@@ -53,19 +53,28 @@ const AssignMissionModal = ({ show, onHide, mission, reloadList }: AssignMission
         Promise.all([
             api.get('/vehicules/disponibles'),
             employeeService.getAll({ post: 'CHAUFFEUR', statut: 'DISPONIBLE' }),
+            // Missions actives : un chauffeur/véhicule déjà EN_COURS n'est PAS disponible,
+            // quel que soit son statut statique côté RH/flotte
+            missionService.getAll(StatutMission.EN_COURS).catch(() => [] as Mission[]),
         ])
-            .then(([vRes, dRes]) => {
-                setVehicles(toArray(vRes.data).map((v: any) => ({
-                    value: v.idVehicule,
-                    label: `${v.immatriculation} — ${v.marque} ${v.modele} [${v.typeVehicule ?? '?'}] (${v.kilometrage} km)`,
-                    immatriculation: v.immatriculation ?? '',
-                    kilometrage: v.kilometrage ?? 0,
-                })))
-                setDrivers(toArray(dRes).map((d: any) => ({
-                    value: d.idEmployee,
-                    label: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''} (${d.numeroMatricule ?? ''})`.trim(),
-                    nom: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''}`.trim(),
-                })))
+            .then(([vRes, dRes, actives]) => {
+                const busyVehicules = new Set(toArray(actives).map((m: any) => m.vehiculeId).filter(Boolean))
+                const busyChauffeurs = new Set(toArray(actives).map((m: any) => m.employeeId).filter(Boolean))
+                setVehicles(toArray(vRes.data)
+                    .filter((v: any) => !busyVehicules.has(v.idVehicule))
+                    .map((v: any) => ({
+                        value: v.idVehicule,
+                        label: `${v.immatriculation} — ${v.marque} ${v.modele} [${v.typeVehicule ?? '?'}] (${v.kilometrage} km)`,
+                        immatriculation: v.immatriculation ?? '',
+                        kilometrage: v.kilometrage ?? 0,
+                    })))
+                setDrivers(toArray(dRes)
+                    .filter((d: any) => !busyChauffeurs.has(d.idEmployee))
+                    .map((d: any) => ({
+                        value: d.idEmployee,
+                        label: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''} (${d.numeroMatricule ?? ''})`.trim(),
+                        nom: `${d.prenom ?? ''} ${d.name ?? d.nom ?? ''}`.trim(),
+                    })))
             })
             .catch(() => setError('Impossible de charger les véhicules / chauffeurs disponibles.'))
             .finally(() => setLoading(false))

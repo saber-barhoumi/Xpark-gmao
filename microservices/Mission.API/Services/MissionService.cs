@@ -67,6 +67,18 @@ public class MissionService(
         // assigned later by OptimisateurFlotteIA (PUT /missions/{id}/assign)
         bool isAssigned = dto.VehiculeId is > 0 && dto.EmployeeId is > 0;
 
+        if (isAssigned)
+        {
+            // Même règle qu'à l'affectation : pas de double mission active
+            var enCours = await missionRepo.GetByStatutAsync(StatutMission.EN_COURS);
+            var conflit = enCours.FirstOrDefault(m =>
+                m.EmployeeId == dto.EmployeeId || m.VehiculeId == dto.VehiculeId);
+            if (conflit != null)
+                throw new InvalidOperationException(conflit.EmployeeId == dto.EmployeeId
+                    ? $"Ce chauffeur est déjà en mission (#{conflit.IdMission} {conflit.VilleDepart} → {conflit.VilleArrivee ?? conflit.Destination})."
+                    : $"Ce véhicule est déjà en mission (#{conflit.IdMission} {conflit.VilleDepart} → {conflit.VilleArrivee ?? conflit.Destination}).");
+        }
+
         var mission = new MissionEntity
         {
             DateDepart            = DateTime.SpecifyKind(dto.DateDepart, DateTimeKind.Utc),
@@ -238,6 +250,15 @@ public class MissionService(
         if (mission.Statut != StatutMission.EN_ATTENTE)
             throw new InvalidOperationException(
                 $"Seules les missions EN_ATTENTE peuvent être affectées (statut actuel: {mission.Statut})");
+
+        // Un chauffeur ou un véhicule ne peut pas cumuler deux missions actives
+        var enCours = await missionRepo.GetByStatutAsync(StatutMission.EN_COURS);
+        var conflit = enCours.FirstOrDefault(m =>
+            m.EmployeeId == dto.EmployeeId || m.VehiculeId == dto.VehiculeId);
+        if (conflit != null)
+            throw new InvalidOperationException(conflit.EmployeeId == dto.EmployeeId
+                ? $"Ce chauffeur est déjà en mission (#{conflit.IdMission} {conflit.VilleDepart} → {conflit.VilleArrivee ?? conflit.Destination}). Clôturez-la d'abord."
+                : $"Ce véhicule est déjà en mission (#{conflit.IdMission} {conflit.VilleDepart} → {conflit.VilleArrivee ?? conflit.Destination}). Clôturez-la d'abord.");
 
         mission.VehiculeId              = dto.VehiculeId;
         mission.EmployeeId              = dto.EmployeeId;

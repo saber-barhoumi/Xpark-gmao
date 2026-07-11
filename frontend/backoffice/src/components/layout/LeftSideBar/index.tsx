@@ -11,14 +11,27 @@ import { Button, Dropdown, DropdownHeader, DropdownItem, DropdownMenu, DropdownT
 import { useLayoutContext } from '@/context/useLayoutContext'
 import HoverMenuToggle from './components/HoverMenuToggle'
 import authService, { AuthResponse } from '@/services/authService'
+import { usePendingMissionsCount } from '@/hooks/usePendingMissionsCount'
+import type { MenuItemType } from '@/types/layout'
 // import AppMenu from './components/AppMenu'
 
 
 const AppMenu = lazy(() => import('./components/AppMenu'))
 
+/** Injecte le compteur de missions EN_ATTENTE en badge sur l'entrée « Missions » */
+const withPendingBadge = (items: MenuItemType[], pending: number): MenuItemType[] =>
+  items.map(item => ({
+    ...item,
+    ...(item.key === 'missions' && pending > 0
+      ? { badge: { text: String(pending), variant: 'danger' } }
+      : {}),
+    ...(item.children ? { children: withPendingBadge(item.children, pending) } : {}),
+  }))
+
 
 const LeftSideBar = () => {
-  const menuItems = getMenuItems()
+  const pendingMissions = usePendingMissionsCount()
+  const menuItems = withPendingBadge(getMenuItems(), pendingMissions)
 
   const { mainMenu, changeMainMenuSize } = useLayoutContext()
 
