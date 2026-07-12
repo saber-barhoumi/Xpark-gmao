@@ -11,6 +11,9 @@ public interface IAlertService
     Task<bool> MarquerLueAsync(long id);
     Task<bool> MarquerToutesLuesAsync();
     Task<bool> MarquerTraiteeAsync(long id);
+    Task<bool> SupprimerAsync(long id);
+    Task<int> SupprimerPlusieursAsync(IEnumerable<long> ids);
+    Task<int> SupprimerToutesAsync();
     Task GenerateAlertesAutomatiquesAsync();
     Task RunDailyChecksAsync();
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Badge, Button, Card, Col, Row, Spinner } from 'react-bootstrap'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
+import Swal from 'sweetalert2'
 import alerteService, { Alerte } from '@/services/alerteService'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
@@ -26,6 +27,14 @@ const TYPE_BADGE: Record<string, { bg: string; label: string; icon: string }> = 
     MISSION_EN_RETARD: { bg: 'warning', label: 'Mission en retard', icon: 'ri:time-line' },
     MISSION_SANS_EQUIPEMENTS: { bg: 'info', label: 'Mission sans éq.', icon: 'ri:luggage-cart-line' },
     SYSTEM: { bg: 'dark', label: 'Système', icon: 'ri:settings-line' },
+    // ── Types générés par les microservices (Alerts.API) ──
+    ASSURANCE_EXPIRATION: { bg: 'danger', label: 'Assurance', icon: 'ri:shield-check-line' },
+    VIGNETTE_EXPIRATION: { bg: 'warning', label: 'Vignette', icon: 'ri:price-tag-3-line' },
+    VISITE_TECHNIQUE_EXPIRATION: { bg: 'warning', label: 'Visite Technique', icon: 'ri:car-line' },
+    KILOMETRAGE_MAINTENANCE: { bg: 'primary', label: 'Révision', icon: 'ri:tools-line' },
+    FACTURE_IMPAYEE: { bg: 'danger', label: 'Facture impayée', icon: 'ri:bill-line' },
+    MISSION_SANS_AFFECTATION: { bg: 'danger', label: 'Mission sans chauffeur', icon: 'ri:user-unfollow-line' },
+    MISSION_RETARD: { bg: 'warning', label: 'Mission en retard', icon: 'ri:time-line' },
 }
 
 const STATUS_BADGE: Record<string, { bg: string; label: string }> = {
@@ -43,6 +52,8 @@ const AlertesPage = () => {
     const { error, execute, clearError } = useApiError()
     const [refreshing, setRefreshing] = useState(false)
     const [tab, setTab] = useState<Tab>('ALL')
+    const [selected, setSelected] = useState<Set<number>>(new Set())
+    const [deleting, setDeleting] = useState(false)
 
     const fetchAll = async () => {
         setLoading(true)
@@ -92,16 +103,78 @@ const AlertesPage = () => {
         }
     }
 
+    // ── Suppression (unitaire, sélection, tout) ──────────────────────────────
+    const removeOne = async (id: number) => {
+        const confirm = await Swal.fire({
+            title: 'Supprimer cette alerte ?', icon: 'warning',
+            showCancelButton: true, confirmButtonText: 'Supprimer',
+            cancelButtonText: 'Annuler', confirmButtonColor: '#dc3545',
+        })
+        if (!confirm.isConfirmed) return
+        clearError()
+        const success = await execute(async () => { await alerteService.remove(id); return true })
+        if (success) {
+            setAlertes(prev => prev.filter(a => a.idAlerte !== id))
+            setSelected(prev => { const n = new Set(prev); n.delete(id); return n })
+        }
+    }
+
+    const removeSelected = async () => {
+        const ids = [...selected]
+        const confirm = await Swal.fire({
+            title: `Supprimer ${ids.length} alerte(s) ?`, icon: 'warning',
+            showCancelButton: true, confirmButtonText: 'Supprimer la sélection',
+            cancelButtonText: 'Annuler', confirmButtonColor: '#dc3545',
+        })
+        if (!confirm.isConfirmed) return
+        setDeleting(true); clearError()
+        const success = await execute(async () => { await alerteService.removeMany(ids); return true })
+        if (success) {
+            setAlertes(prev => prev.filter(a => !selected.has(a.idAlerte)))
+            setSelected(new Set())
+        }
+        setDeleting(false)
+    }
+
+    const removeAll = async () => {
+        const confirm = await Swal.fire({
+            title: 'Tout supprimer ?',
+            text: `Les ${alertes.length} alertes seront définitivement supprimées.`,
+            icon: 'warning', showCancelButton: true,
+            confirmButtonText: 'Tout supprimer', cancelButtonText: 'Annuler',
+            confirmButtonColor: '#dc3545',
+        })
+        if (!confirm.isConfirmed) return
+        setDeleting(true); clearError()
+        const success = await execute(async () => { await alerteService.removeAll(); return true })
+        if (success) { setAlertes([]); setSelected(new Set()) }
+        setDeleting(false)
+    }
+
+    const toggleSelect = (id: number) => setSelected(prev => {
+        const n = new Set(prev)
+        if (n.has(id)) n.delete(id); else n.add(id)
+        return n
+    })
+
     const filtered = tab === 'ALL' ? alertes : alertes.filter(a => a.statut === tab)
+    const allFilteredSelected = filtered.length > 0 && filtered.every(a => selected.has(a.idAlerte))
+    const toggleSelectAll = () => setSelected(
+        allFilteredSelected ? new Set() : new Set(filtered.map(a => a.idAlerte)))
 
     const countActive = alertes.filter(a => a.statut === 'ACTIVE').length
     const countDanger = alertes.filter(a => a.priorite === 'CRITIQUE').length
     const countWarning = alertes.filter(a => a.priorite === 'HAUTE').length
 
-    const formatDate = (d: string) => new Date(d).toLocaleString('fr-FR', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    })
+    /** Le champ API est dateCreation ; garde anti « Invalid Date » */
+    const formatDate = (d?: string) => {
+        if (!d) return '—'
+        const date = new Date(d)
+        return isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        })
+    }
 
     return (
         <>
@@ -134,7 +207,31 @@ const AlertesPage = () => {
                         ))}
                     </div>
                 </Col>
-                <Col xs="auto">
+                <Col xs="auto" className="d-flex gap-2 flex-wrap">
+                    {selected.size > 0 && (
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={removeSelected}
+                            disabled={deleting}
+                            className="d-flex align-items-center gap-2"
+                        >
+                            <IconifyIcon icon="ri:delete-bin-line" />
+                            Supprimer la sélection ({selected.size})
+                        </Button>
+                    )}
+                    {alertes.length > 0 && (
+                        <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={removeAll}
+                            disabled={deleting}
+                            className="d-flex align-items-center gap-2"
+                        >
+                            <IconifyIcon icon="ri:delete-bin-6-line" />
+                            Tout supprimer
+                        </Button>
+                    )}
                     <Button
                         variant="outline-primary"
                         size="sm"
@@ -184,6 +281,15 @@ const AlertesPage = () => {
                             <table className="table table-hover table-sm align-middle mb-0">
                                 <thead className="table-light">
                                     <tr>
+                                        <th style={{ width: 34 }}>
+                                            <input
+                                                type="checkbox"
+                                                className="form-check-input"
+                                                checked={allFilteredSelected}
+                                                onChange={toggleSelectAll}
+                                                title="Tout sélectionner"
+                                            />
+                                        </th>
                                         <th>Date</th>
                                         <th>Type</th>
                                         <th>Message</th>
@@ -201,7 +307,15 @@ const AlertesPage = () => {
                                                 key={alert.idAlerte}
                                                 style={{ backgroundColor: alert.statut === 'ACTIVE' ? '#fffbea' : undefined }}
                                             >
-                                                <td className="text-nowrap small">{formatDate(alert.dateAlerte)}</td>
+                                                <td>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="form-check-input"
+                                                        checked={selected.has(alert.idAlerte)}
+                                                        onChange={() => toggleSelect(alert.idAlerte)}
+                                                    />
+                                                </td>
+                                                <td className="text-nowrap small">{formatDate(alert.dateCreation)}</td>
                                                 <td>
                                                     <Badge bg={typeInfo.bg} className="d-flex align-items-center gap-1" style={{ width: 'fit-content' }}>
                                                         <IconifyIcon icon={typeInfo.icon} className="me-1" />
@@ -227,11 +341,15 @@ const AlertesPage = () => {
                                                         </Button>
                                                     )}
                                                     {alert.statut !== 'TRAITEE' && (
-                                                        <Button size="sm" variant="outline-success" onClick={() => markAsTraitee(alert.idAlerte)}>
+                                                        <Button size="sm" variant="outline-success" className="me-1" onClick={() => markAsTraitee(alert.idAlerte)}>
                                                             <IconifyIcon icon="ri:check-double-line" className="me-1" />
                                                             Traitée
                                                         </Button>
                                                     )}
+                                                    <Button size="sm" variant="outline-danger" title="Supprimer"
+                                                        onClick={() => removeOne(alert.idAlerte)}>
+                                                        <IconifyIcon icon="ri:delete-bin-line" />
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         )

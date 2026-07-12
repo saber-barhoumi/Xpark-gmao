@@ -68,6 +68,35 @@ public class AlertesController(IAlertService service, ILogger<AlertesController>
         return Ok(new { message = "Alerte marquée comme traitée" });
     }
 
+    [HttpDelete("{id:long}")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE")]
+    public async Task<IActionResult> Supprimer(long id)
+    {
+        var result = await service.SupprimerAsync(id);
+        if (!result) return NotFound(new { message = $"Alerte {id} introuvable" });
+        return Ok(new { message = "Alerte supprimée" });
+    }
+
+    /// <summary>Suppression d'une sélection (POST : DELETE avec corps passe mal certains proxies).</summary>
+    [HttpPost("supprimer")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE")]
+    public async Task<IActionResult> SupprimerPlusieurs([FromBody] SupprimerAlertesRequest req)
+    {
+        if (req.Ids is not { Count: > 0 })
+            return BadRequest(new { message = "Aucune alerte sélectionnée." });
+        var count = await service.SupprimerPlusieursAsync(req.Ids);
+        return Ok(new { message = $"{count} alerte(s) supprimée(s)", count });
+    }
+
+    [HttpDelete("toutes")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE")]
+    public async Task<IActionResult> SupprimerToutes()
+    {
+        var count = await service.SupprimerToutesAsync();
+        logger.LogInformation("Suppression de toutes les alertes ({Count})", count);
+        return Ok(new { message = $"{count} alerte(s) supprimée(s)", count });
+    }
+
     [HttpPost("generer")]
     [Authorize(Roles = "ADMIN,GESTIONNAIRE")]
     public async Task<IActionResult> GenererAlertes()
@@ -85,3 +114,5 @@ public class AlertesController(IAlertService service, ILogger<AlertesController>
         return Ok(new { message = "Vérifications quotidiennes effectuées" });
     }
 }
+
+public record SupprimerAlertesRequest(List<long> Ids);

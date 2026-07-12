@@ -5,7 +5,9 @@ export interface Alerte {
     message: string
     typeAlerte: string
     statut: string
-    dateAlerte: string
+    /** Champ réel renvoyé par Alerts.API (le champ SQL s'appelle DateAlerte,
+     *  la propriété C# DateCreation → JSON `dateCreation`) */
+    dateCreation: string
     vehiculeId?: number
     equipementId?: number
     nomEquipement?: string
@@ -52,6 +54,23 @@ const alerteService = {
     /** Lancer manuellement les vérifications système */
     async runChecks(): Promise<void> {
         await api.post('/alertes/run-checks')
+    },
+
+    /** Supprimer une alerte */
+    async remove(id: number): Promise<void> {
+        await api.delete(`/alertes/${id}`)
+    },
+
+    /** Supprimer une sélection d'alertes */
+    async removeMany(ids: number[]): Promise<number> {
+        const res = await api.post('/alertes/supprimer', { ids })
+        return res.data?.count ?? ids.length
+    },
+
+    /** Supprimer TOUTES les alertes */
+    async removeAll(): Promise<number> {
+        const res = await api.delete('/alertes/toutes')
+        return res.data?.count ?? 0
     }
 }
 
