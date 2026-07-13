@@ -1,111 +1,221 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import missionService from "@/lib/missionService"
 import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
-import { card, Badge, EmptyState, dateTimeFr, tnd } from "@/components/portal/ui"
+import { card, EmptyState, dateTimeFr } from "@/components/portal/ui"
+import { useToast } from "@/components/portal/Feedback"
+import { resolveCity } from "@/lib/tracking/cityCoordinates"
+import { getRoute } from "@/lib/tracking/routeService"
+import { createEngine } from "@/lib/tracking/trackingEngine"
+import { DriverCard, VehicleCard, RouteCard, Timeline, StateBadge } from "@/components/tracking/TrackingPanels"
 
 /**
- * 📍 Suivi en direct — progression temps réel des missions du client.
- * Rafraîchissement automatique toutes les 30 s (statut, chauffeur, véhicule).
- * L'ETA est estimée à partir de la distance IA (vitesse moyenne 60 km/h).
+ * 📍 Suivi en direct — expérience type Uber/Bolt pour le transport de marchandises.
+ *
+ * Architecture modulaire (prête pour le GPS réel) :
+ *   cityCoordinates → géolocalise départ/arrivée
+ *   routeService    → géométrie routière (OSRM + repli)
+ *   trackingEngine  → position/état/ETA fonction du temps (à remplacer par le GPS)
+ *   ShipmentMap     → carte Leaflet, camion animé qui pivote selon le cap
+ *   TrackingPanels  → chauffeur / véhicule / itinéraire / timeline
+ * La page orchestre : rafraîchissement du texte (1 s), notifications live, sélection.
  */
 
-const REFRESH_MS = 30_000
-const AVG_SPEED_KMH = 60
+// Leaflet dépend de `window` → chargé côté client uniquement
+const ShipmentMap = dynamic(() => import("@/components/tracking/ShipmentMap"), {
+    ssr: false,
+    loading: () => (
+        <div style={{ height: "clamp(360px, 55vh, 560px)", borderRadius: 14, background: "var(--pbg)",
+            display: "flex", alignItems: "center", justifyContent: "center", color: "var(--pmuted)" }}>
+            Chargement de la carte…
+        </div>
+    ),
+})
 
-/** Étapes du cycle de vie d'une mission, pour la timeline */
-const STEPS = [
-    { key: "demande",  label: "Demande validée" },
-    { key: "affectee", label: "Chauffeur affecté" },
-    { key: "route",    label: "En route" },
-    { key: "livree",   label: "Livrée" },
-]
-
-function stepIndex(m) {
-    if (m.statut === "TERMINEE") return 3
-    if (m.statut === "EN_COURS") return 2
-    if (m.chauffeurNom || m.vehiculeImmatriculation || m.employeeId) return 1
-    return 0
-}
-
-/** % de progression du trajet pour une mission EN_COURS (temps écoulé / durée estimée) */
-function routeProgress(m) {
-    if (m.statut !== "EN_COURS") return null
-    const start = new Date(m.dateDepart).getTime()
-    const hours = (m.distanceKm || 0) > 0 ? m.distanceKm / AVG_SPEED_KMH : 2
-    const end = start + hours * 3600_000
-    const now = Date.now()
-    if (now <= start) return 0
-    if (now >= end) return 95   // jamais 100 tant que non TERMINEE
-    return Math.round(((now - start) / (end - start)) * 95)
-}
-
-function eta(m) {
-    if ((m.distanceKm || 0) <= 0) return null
-    const start = new Date(m.dateDepart).getTime()
-    return new Date(start + (m.distanceKm / AVG_SPEED_KMH) * 3600_000)
+// Messages de notification par changement d'état
+const NOTIF = {
+    DEPARTED:  { text: "🚦 Le chauffeur a démarré le trajet.", variant: "info" },
+    IN_TRANSIT:{ text: "🚚 Votre colis est en route.", variant: "info" },
+    TRAFFIC:   { text: "🚧 Ralentissement dû au trafic — léger retard possible.", variant: "error" },
+    STOP:      { text: "⏸️ Arrêt technique temporaire du chauffeur.", variant: "error" },
+    NEAR:      { text: "📍 Votre colis approche de la destination !", variant: "success" },
+    ARRIVED:   { text: "🏁 Le véhicule est arrivé à destination.", variant: "success" },
+    DELIVERED: { text: "✅ Livraison effectuée avec succès.", variant: "success" },
 }
 
 export default function TrackingPage() {
+    const [toast, toastNode] = useToast()
     const [missions, setMissions] = useState([])
     const [loading, setLoading] = useState(true)
-    const [lastUpdate, setLastUpdate] = useState(null)
+    const [selectedId, setSelectedId] = useState(null)
+    const [route, setRoute] = useState(null)
+    const [snapshot, setSnapshot] = useState(null)
+    const [dark, setDark] = useState(false)
+    const [follow, setFollow] = useState(false)
+    const [recenter, setRecenter] = useState(0)
+    const prevStateRef = useRef(null)
 
+    // ── Chargement des missions ──────────────────────────────────────────────
     const load = useCallback(() => {
         missionService.getMyMissions()
-            .then((data) => { setMissions(data); setLastUpdate(new Date()) })
+            .then((data) => {
+                setMissions(data)
+                setSelectedId((cur) => {
+                    if (cur && data.some(m => m.idMission === cur)) return cur
+                    const active = data.find(m => ["EN_ATTENTE", "EN_COURS"].includes(m.statut))
+                    return active?.idMission ?? null
+                })
+            })
             .catch(() => {})
             .finally(() => setLoading(false))
     }, [])
 
     useEffect(() => {
+        setDark(typeof window !== "undefined" && localStorage.getItem("xpark_portal_dark") === "1")
         load()
-        const timer = setInterval(load, REFRESH_MS)
-        return () => clearInterval(timer)
+        const id = setInterval(load, 60_000) // resync périodique du statut serveur
+        return () => clearInterval(id)
     }, [load])
 
     const actives = missions
         .filter(m => ["EN_ATTENTE", "EN_COURS"].includes(m.statut))
         .sort((a, b) => new Date(a.dateDepart) - new Date(b.dateDepart))
+    const selected = missions.find(m => m.idMission === selectedId) || null
     const recentes = missions
         .filter(m => ["TERMINEE", "ANNULEE"].includes(m.statut))
-        .sort((a, b) => new Date(b.dateDepart) - new Date(a.dateDepart))
-        .slice(0, 5)
+        .sort((a, b) => new Date(b.dateDepart) - new Date(a.dateDepart)).slice(0, 5)
+
+    // ── Récupération de la route pour la mission sélectionnée ────────────────
+    useEffect(() => {
+        if (!selected) { setRoute(null); return }
+        let alive = true
+        setRoute(null)
+        prevStateRef.current = null
+        const from = resolveCity(selected.villeDepart)
+        const to = resolveCity(selected.villeArrivee || selected.destination)
+        getRoute(from, to).then(r => { if (alive) setRoute(r) })
+        return () => { alive = false }
+    }, [selectedId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const engine = useMemo(
+        () => (route && selected ? createEngine({ mission: selected, route }) : null),
+        [route, selected])
+
+    // ── Tick texte (1 s) : snapshot + progression + ETA ──────────────────────
+    useEffect(() => {
+        if (!engine) { setSnapshot(null); return }
+        const upd = () => setSnapshot(engine.snapshotAt(Date.now()))
+        upd()
+        const id = setInterval(upd, 1000)
+        return () => clearInterval(id)
+    }, [engine])
+
+    // ── Notifications live sur changement d'état ─────────────────────────────
+    useEffect(() => {
+        if (!snapshot) return
+        const k = snapshot.state.key
+        const prev = prevStateRef.current
+        prevStateRef.current = k
+        if (prev && prev !== k && NOTIF[k]) toast(NOTIF[k].text, NOTIF[k].variant)
+    }, [snapshot?.state.key]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const timeline = useMemo(
+        () => (engine ? engine.buildTimeline(Date.now()) : []),
+        [engine, snapshot?.progress])
 
     return (
         <ClientPortalLayout title="📍 Suivi en direct">
-            {/* Barre d'état du suivi */}
-            <div style={{ ...card, marginBottom: 22, display: "flex", alignItems: "center",
-                gap: 12, flexWrap: "wrap", padding: "14px 22px" }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#146c43",
-                    boxShadow: "0 0 0 4px rgba(20,108,67,.15)" }} />
-                <span style={{ fontWeight: 600, fontSize: 14 }}>Suivi actif</span>
-                <span style={{ color: "var(--pmuted)", fontSize: 13 }}>
-                    Actualisation automatique toutes les 30 s
-                    {lastUpdate && ` · dernière mise à jour ${lastUpdate.toLocaleTimeString("fr-FR")}`}
-                </span>
-                <div style={{ flex: 1 }} />
-                <button type="button" onClick={load}
-                    style={{ border: "1px solid var(--pborder)", background: "var(--pbg)", color: "var(--ptext)",
-                        borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                    ⟳ Actualiser
-                </button>
-            </div>
+            {toastNode}
+
+            {/* Sélecteur de mission active */}
+            {actives.length > 1 && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                    {actives.map(m => (
+                        <button key={m.idMission} type="button" onClick={() => setSelectedId(m.idMission)}
+                            style={{ border: "1px solid var(--pborder)", borderRadius: 20, padding: "7px 14px",
+                                fontSize: 13, cursor: "pointer", fontWeight: m.idMission === selectedId ? 700 : 400,
+                                background: m.idMission === selectedId ? "#C11425" : "var(--pcard)",
+                                color: m.idMission === selectedId ? "#fff" : "var(--ptext)" }}>
+                            #{m.idMission} · {m.villeDepart || "—"} → {m.villeArrivee || m.destination}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {loading ? (
                 <div style={{ ...card, textAlign: "center", color: "var(--pmuted)" }}>Chargement du suivi…</div>
-            ) : actives.length === 0 ? (
-                <EmptyState icon="📦" title="Aucune mission en cours"
-                    text="Vos missions actives apparaîtront ici avec leur progression en temps réel."
+            ) : !selected ? (
+                <EmptyState icon="📦" title="Aucune mission à suivre"
+                    text="Vos missions en cours s'afficheront ici sur une carte, en temps réel."
                     action={<Link href="/account/reserver" className="thm-btn" style={{ padding: "11px 22px" }}>➕ Réserver un transport<span /></Link>} />
             ) : (
-                actives.map((m) => <MissionTracker key={m.idMission} m={m} />)
+                <>
+                    {/* En-tête d'état + progression */}
+                    {snapshot && (
+                        <div style={{ ...card, marginBottom: 16 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+                                <StateBadge state={snapshot.state} big />
+                                <div style={{ fontSize: 13.5, color: "var(--pmuted)" }}>
+                                    Mission #{selected.idMission} · {selected.villeDepart || "—"} → {selected.villeArrivee || selected.destination}
+                                </div>
+                                <div style={{ flex: 1 }} />
+                                <button type="button" onClick={() => setFollow(f => !f)}
+                                    style={btn(follow)}>{follow ? "🎯 Suivi activé" : "🎯 Suivre le camion"}</button>
+                                <button type="button" onClick={() => setRecenter(r => r + 1)}
+                                    style={btn(false)}>⤢ Recadrer</button>
+                            </div>
+                            <div style={{ height: 12, borderRadius: 7, background: "var(--pbg)",
+                                border: "1px solid var(--pborder)", overflow: "hidden" }}>
+                                <div style={{ width: `${snapshot.progress}%`, height: "100%", borderRadius: 7,
+                                    background: "linear-gradient(90deg,#C11425,#e04250)", transition: "width 1s linear" }} />
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6,
+                                fontSize: 12.5, color: "var(--pmuted)" }}>
+                                <span>{snapshot.traveledKm.toFixed(0)} km parcourus</span>
+                                <span style={{ fontWeight: 700, color: "var(--ptext)" }}>{Math.round(snapshot.progress)}%</span>
+                                <span>ETA {dateTimeFr(snapshot.etaDate)}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Carte + panneau latéral */}
+                    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.7fr) minmax(0,1fr)",
+                        gap: 16, marginBottom: 16 }} className="track-grid">
+                        <div style={{ ...card, padding: 8 }}>
+                            {engine
+                                ? <ShipmentMap engine={engine} dark={dark} follow={follow} recenterSignal={recenter} />
+                                : <div style={{ height: "clamp(360px,55vh,560px)", display: "flex",
+                                    alignItems: "center", justifyContent: "center", color: "var(--pmuted)" }}>
+                                    Calcul de l'itinéraire…
+                                </div>}
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                            {snapshot && <DriverCard mission={selected} snapshot={snapshot} />}
+                            {snapshot && <VehicleCard mission={selected} snapshot={snapshot} />}
+                        </div>
+                    </div>
+
+                    {/* Itinéraire + timeline */}
+                    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.4fr)",
+                        gap: 16, marginBottom: 16 }} className="track-grid">
+                        {snapshot && <RouteCard mission={selected} snapshot={snapshot} />}
+                        <Timeline items={timeline} />
+                    </div>
+
+                    {route?.source === "fallback" && (
+                        <p style={{ fontSize: 12, color: "var(--pmuted)", margin: "0 0 16px" }}>
+                            ℹ️ Itinéraire estimé (le service de calcul routier était momentanément indisponible).
+                        </p>
+                    )}
+                </>
             )}
 
+            {/* Historique récent */}
             {recentes.length > 0 && (
-                <div style={{ ...card, marginTop: 24 }}>
+                <div style={card}>
                     <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>🕐 Historique récent</h4>
                     {recentes.map(m => (
                         <div key={m.idMission} style={{ display: "flex", alignItems: "center", gap: 12,
@@ -113,104 +223,27 @@ export default function TrackingPage() {
                             <span style={{ fontWeight: 600 }}>{m.villeDepart || "—"} → {m.villeArrivee || m.destination}</span>
                             <span style={{ color: "var(--pmuted)", fontSize: 13 }}>{dateTimeFr(m.dateDepart)}</span>
                             <div style={{ flex: 1 }} />
-                            <Badge statut={m.statut} />
+                            <span style={{ fontSize: 12.5, fontWeight: 700,
+                                color: m.statut === "TERMINEE" ? "#146c43" : "#b02a37" }}>
+                                {m.statut === "TERMINEE" ? "Livrée" : "Annulée"}
+                            </span>
                         </div>
                     ))}
                 </div>
             )}
+
+            <style jsx global>{`
+                @media (max-width: 860px) {
+                    .track-grid { grid-template-columns: 1fr !important; }
+                }
+                .leaflet-container { font-family: inherit; }
+            `}</style>
         </ClientPortalLayout>
     )
 }
 
-/** Carte de suivi d'une mission active : timeline + infos chauffeur/véhicule + ETA */
-function MissionTracker({ m }) {
-    const idx = stepIndex(m)
-    const progress = routeProgress(m)
-    const arrivee = eta(m)
-
-    return (
-        <div style={{ ...card, marginBottom: 18 }}>
-            {/* En-tête mission */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
-                <span style={{ fontSize: 22 }}>🚚</span>
-                <div>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>
-                        {m.villeDepart || "—"} → {m.villeArrivee || m.destination}
-                    </div>
-                    <div style={{ color: "var(--pmuted)", fontSize: 13 }}>
-                        Mission #{m.idMission} · départ {dateTimeFr(m.dateDepart)}
-                    </div>
-                </div>
-                <div style={{ flex: 1 }} />
-                <Badge statut={m.statut} />
-            </div>
-
-            {/* Timeline d'étapes */}
-            <div style={{ display: "flex", alignItems: "flex-start", marginBottom: 18 }}>
-                {STEPS.map((s, i) => {
-                    const done = i <= idx
-                    const current = i === idx
-                    return (
-                        <div key={s.key} style={{ flex: 1, textAlign: "center", position: "relative" }}>
-                            {i > 0 && (
-                                <div style={{ position: "absolute", top: 13, right: "50%", width: "100%", height: 3,
-                                    background: i <= idx ? "#C11425" : "var(--pborder)", zIndex: 0 }} />
-                            )}
-                            <div style={{ position: "relative", zIndex: 1, width: 28, height: 28, borderRadius: "50%",
-                                margin: "0 auto 8px", display: "flex", alignItems: "center", justifyContent: "center",
-                                background: done ? "#C11425" : "var(--pbg)",
-                                border: `3px solid ${done ? "#C11425" : "var(--pborder)"}`,
-                                color: "#fff", fontSize: 13, fontWeight: 700,
-                                boxShadow: current ? "0 0 0 5px rgba(193,20,37,.15)" : "none" }}>
-                                {done ? "✓" : ""}
-                            </div>
-                            <div style={{ fontSize: 12, fontWeight: current ? 700 : 400,
-                                color: done ? "var(--ptext)" : "var(--pmuted)" }}>{s.label}</div>
-                        </div>
-                    )
-                })}
-            </div>
-
-            {/* Barre de progression du trajet (missions en route) */}
-            {progress !== null && (
-                <div style={{ marginBottom: 18 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5,
-                        color: "var(--pmuted)", marginBottom: 6 }}>
-                        <span>🚛 Progression estimée du trajet</span>
-                        <span style={{ fontWeight: 700, color: "var(--ptext)" }}>{progress}%</span>
-                    </div>
-                    <div style={{ height: 10, borderRadius: 6, background: "var(--pbg)",
-                        border: "1px solid var(--pborder)", overflow: "hidden" }}>
-                        <div style={{ width: `${progress}%`, height: "100%", borderRadius: 6,
-                            background: "linear-gradient(90deg,#C11425,#e04250)", transition: "width .6s ease" }} />
-                    </div>
-                </div>
-            )}
-
-            {/* Infos opérationnelles */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
-                <Info label="Chauffeur" value={m.chauffeurNom || "En cours d'affectation"} icon="👤" />
-                <Info label="Véhicule" value={m.vehiculeImmatriculation || "En cours d'affectation"} icon="🚛" />
-                <Info label="Distance" value={m.distanceKm ? `${m.distanceKm.toFixed(0)} km` : "—"} icon="📏" />
-                <Info label={m.statut === "EN_COURS" ? "Arrivée estimée" : "Coût estimé"}
-                    value={m.statut === "EN_COURS" && arrivee ? dateTimeFr(arrivee)
-                        : (m.coutEstimeAI ? tnd(m.coutEstimeAI) : "—")} icon={m.statut === "EN_COURS" ? "🕓" : "💰"} />
-            </div>
-
-            {m.statut === "EN_ATTENTE" && (
-                <p style={{ margin: "16px 0 0", fontSize: 13, color: "var(--pmuted)" }}>
-                    ⏳ Votre demande est validée : un chauffeur et un véhicule seront affectés par notre équipe.
-                </p>
-            )}
-        </div>
-    )
-}
-
-function Info({ label, value, icon }) {
-    return (
-        <div style={{ background: "var(--pbg)", border: "1px solid var(--pborder)", borderRadius: 10, padding: "10px 14px" }}>
-            <div style={{ fontSize: 11.5, color: "var(--pmuted)", marginBottom: 3 }}>{icon} {label}</div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>{value}</div>
-        </div>
-    )
-}
+const btn = (active) => ({
+    border: "1px solid var(--pborder)", borderRadius: 8, padding: "7px 13px", cursor: "pointer",
+    fontSize: 12.5, fontWeight: 600,
+    background: active ? "#C11425" : "var(--pbg)", color: active ? "#fff" : "var(--ptext)",
+})
