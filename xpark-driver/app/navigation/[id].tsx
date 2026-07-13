@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Alert, StyleSheet, Text, View } from "react-native"
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region } from "react-native-maps"
 import * as Location from "expo-location"
 import { useLocalSearchParams } from "expo-router"
 import { useAuth } from "@/auth/AuthContext"
@@ -8,15 +7,16 @@ import { useMissions } from "@/hooks/useMissions"
 import { resolveCity, type LatLng } from "@/tracking/cities"
 import { getRoute, haversineKm, type RouteResult } from "@/tracking/route"
 import { activeTrackedMissionId, startTracking, stopTracking } from "@/tracking/locationTask"
+import ShipmentMapView, { type MapRegion } from "@/components/ShipmentMapView"
 import { Button, Header } from "@/components/ui"
 import { colors, font, radius, spacing } from "@/theme"
 
 /**
  * Navigation — carte + position GPS temps réel + envoi au backend.
  *
- * L'affichage suit la position du téléphone (watchPositionAsync). Le bouton
- * « Démarrer la mission » lance la tâche d'arrière-plan (locationTask) qui
- * envoie chaque position à Mission.API → la carte du client se met à jour.
+ * La carte est déléguée à `ShipmentMapView` (résolu en natif sur mobile, en
+ * stub sur web — react-native-maps est natif). Le bouton « Démarrer la mission »
+ * lance la tâche d'arrière-plan qui envoie chaque position à Mission.API.
  */
 export default function NavigationScreen() {
     const { id } = useLocalSearchParams<{ id: string }>()
@@ -31,14 +31,12 @@ export default function NavigationScreen() {
     const [route, setRoute] = useState<RouteResult | null>(null)
     const [tracking, setTracking] = useState(false)
     const [busy, setBusy] = useState(false)
-    const mapRef = useRef<MapView | null>(null)
     const watchRef = useRef<Location.LocationSubscription | null>(null)
 
     const destination = useMemo<LatLng>(
         () => resolveCity(mission?.villeArrivee || mission?.destination),
         [mission])
 
-    // Position live + état de suivi
     useEffect(() => {
         let mounted = true
         ;(async () => {
@@ -64,7 +62,6 @@ export default function NavigationScreen() {
         return () => { mounted = false; watchRef.current?.remove() }
     }, [missionId])
 
-    // Itinéraire (une fois la première position connue)
     useEffect(() => {
         if (!pos) return
         getRoute(pos, destination).then(setRoute)
@@ -93,7 +90,7 @@ export default function NavigationScreen() {
         }
     }
 
-    const region: Region | undefined = pos
+    const region: MapRegion = pos
         ? { ...pos, latitudeDelta: 0.15, longitudeDelta: 0.15 }
         : { ...destination, latitudeDelta: 0.5, longitudeDelta: 0.5 }
 
@@ -101,28 +98,14 @@ export default function NavigationScreen() {
         <View style={{ flex: 1, backgroundColor: colors.dark }}>
             <Header title="Navigation" subtitle={`Mission #${missionId} · ${mission?.villeArrivee || mission?.destination || ""}`} back />
 
-            <MapView
-                ref={mapRef}
-                provider={PROVIDER_GOOGLE}
-                style={{ flex: 1 }}
-                initialRegion={region}
-                showsUserLocation
-                showsMyLocationButton
-            >
-                {route && (
-                    <Polyline coordinates={route.points} strokeColor={colors.brand} strokeWidth={5} />
-                )}
-                <Marker coordinate={destination} title="Destination" description={mission?.villeArrivee || mission?.destination}>
-                    <View style={styles.destPin}><Text style={{ fontSize: 16 }}>🏁</Text></View>
-                </Marker>
-                {pos && (
-                    <Marker coordinate={pos} anchor={{ x: 0.5, y: 0.5 }} flat rotation={heading}>
-                        <View style={styles.truck}><Text style={{ fontSize: 18 }}>🚚</Text></View>
-                    </Marker>
-                )}
-            </MapView>
+            <ShipmentMapView
+                region={region}
+                pos={pos}
+                heading={heading}
+                destination={destination}
+                routePoints={route?.points ?? []}
+            />
 
-            {/* Panneau bas : métriques + bouton suivi */}
             <View style={styles.panel}>
                 <View style={styles.metrics}>
                     <Metric label="Distance restante" value={`${remainingKm.toFixed(0)} km`} />
@@ -164,8 +147,6 @@ const styles = StyleSheet.create({
     metric: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.md, alignItems: "center", paddingVertical: spacing.md },
     metricValue: { fontSize: font.h3, fontWeight: "800", color: colors.text },
     metricLabel: { fontSize: font.tiny, color: colors.muted, marginTop: 2 },
-    truck: { backgroundColor: colors.brand, borderRadius: 20, padding: 5, borderWidth: 2, borderColor: "#fff" },
-    destPin: { backgroundColor: colors.success, borderRadius: 20, padding: 5, borderWidth: 2, borderColor: "#fff" },
     liveRow: { flexDirection: "row", alignItems: "center", gap: 8 },
     dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success },
     liveText: { color: colors.success, fontSize: font.small, fontWeight: "700" },
