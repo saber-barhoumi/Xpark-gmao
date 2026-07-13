@@ -14,6 +14,7 @@ public interface IMissionService
     Task<MissionResponseDto>              CreateClientRequestAsync(long clientUserId, string? clientNom, ClientMissionRequestDto dto);
     Task<bool>                            CancelMyMissionAsync(long clientUserId, long missionId);
     Task<IEnumerable<MissionResponseDto>> GetByClientAsync(long clientUserId);
+    Task<IEnumerable<MissionResponseDto>> GetByDriverNameAsync(string chauffeurNom, string? statut);
     Task<bool>                            CancelMissionAsync(long id);
     Task<bool>                            DeleteAsync(long id);
 }

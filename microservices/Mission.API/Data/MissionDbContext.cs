@@ -8,6 +8,7 @@ public class MissionDbContext(DbContextOptions<MissionDbContext> options) : DbCo
 {
     public DbSet<MissionEntity> Missions => Set<MissionEntity>();
     public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
+    public DbSet<LivePosition>  LivePositions => Set<LivePosition>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -22,6 +23,12 @@ public class MissionDbContext(DbContextOptions<MissionDbContext> options) : DbCo
         {
             e.ToTable("SupportTickets");
             e.HasKey(t => t.IdTicket);
+        });
+
+        mb.Entity<LivePosition>(e =>
+        {
+            e.ToTable("LivePositions");
+            e.HasKey(p => p.IdPosition);
         });
 
         base.OnModelCreating(mb);

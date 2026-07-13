@@ -33,6 +33,19 @@ public class MissionsController(
     public async Task<IActionResult> GetMyMissions()
         => Ok(await missionService.GetByClientAsync(CurrentUserId));
 
+    /// <summary>Missions du chauffeur connecté (app XPARK Driver).
+    /// Résolues par correspondance de nom (Mission.ChauffeurNom = prénom+nom).
+    /// NB : à remplacer par un lien Utilisateur↔Employee quand il existera
+    /// (voir docs xpark-driver). Filtrable par statut : ?statut=EN_COURS.</summary>
+    [HttpGet("driver")]
+    [Authorize(Roles = "CHAUFFEUR,ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> GetDriverMissions([FromQuery] string? statut)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentUserName))
+            return Ok(Array.Empty<object>());
+        return Ok(await missionService.GetByDriverNameAsync(CurrentUserName, statut));
+    }
+
     /// <summary>Demande de réservation client → mission EN_ATTENTE, affectée
     /// ensuite par l'admin ou OptimisateurFlotteIA.</summary>
     [HttpPost("client-request")]

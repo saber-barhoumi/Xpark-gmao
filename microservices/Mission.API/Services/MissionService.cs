@@ -242,6 +242,17 @@ public class MissionService(
                   .Select(m => mapper.Map<MissionResponseDto>(m));
     }
 
+    public async Task<IEnumerable<MissionResponseDto>> GetByDriverNameAsync(string chauffeurNom, string? statut)
+    {
+        var target = chauffeurNom.Trim().ToLowerInvariant();
+        var all = await missionRepo.GetAllAsync();
+        var query = all.Where(m => (m.ChauffeurNom ?? "").Trim().ToLowerInvariant() == target);
+        if (!string.IsNullOrWhiteSpace(statut) && Enum.TryParse<StatutMission>(statut, true, out var s))
+            query = query.Where(m => m.Statut == s);
+        return query.OrderByDescending(m => m.DateDepart)
+                    .Select(m => mapper.Map<MissionResponseDto>(m));
+    }
+
     public async Task<MissionResponseDto> AssignMissionAsync(long missionId, AssignMissionDto dto)
     {
         var mission = await missionRepo.GetWithDetailsAsync(missionId)

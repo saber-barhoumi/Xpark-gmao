@@ -110,6 +110,23 @@ using (var scope = app.Services.CreateScope())
         );
         CREATE INDEX IF NOT EXISTS ""IX_SupportTickets_Client""
             ON ""SupportTickets"" (""ClientIdUtilisateur"");
+
+        -- XPARK Driver : positions GPS temps réel des chauffeurs (feature tracking)
+        CREATE TABLE IF NOT EXISTS ""LivePositions"" (
+            ""IdPosition"" BIGSERIAL PRIMARY KEY,
+            ""MissionId""  BIGINT           NOT NULL,
+            ""DriverId""   BIGINT           NOT NULL,
+            ""VehiculeId"" BIGINT           NULL,
+            ""Latitude""   DOUBLE PRECISION NOT NULL,
+            ""Longitude""  DOUBLE PRECISION NOT NULL,
+            ""SpeedKmh""   DOUBLE PRECISION NULL,
+            ""Heading""    DOUBLE PRECISION NULL,
+            ""Accuracy""   DOUBLE PRECISION NULL,
+            ""RecordedAt"" TIMESTAMPTZ      NOT NULL,
+            ""ReceivedAt"" TIMESTAMPTZ      NOT NULL DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS ""IX_LivePositions_Mission""
+            ON ""LivePositions"" (""MissionId"", ""RecordedAt"" DESC);
     ");
 }
 // ─────────────────────────────────────────────────────────────────────────────
