@@ -10,6 +10,7 @@ import { useToast } from "@/components/portal/Feedback"
 import { resolveCity } from "@/lib/tracking/cityCoordinates"
 import { getRoute } from "@/lib/tracking/routeService"
 import { createEngine } from "@/lib/tracking/trackingEngine"
+import { getLiveFix } from "@/lib/tracking/liveTrackingService"
 import { DriverCard, VehicleCard, RouteCard, Timeline, StateBadge } from "@/components/tracking/TrackingPanels"
 
 /**
@@ -56,7 +57,10 @@ export default function TrackingPage() {
     const [dark, setDark] = useState(false)
     const [follow, setFollow] = useState(false)
     const [recenter, setRecenter] = useState(0)
+    const [isLive, setIsLive] = useState(false)   // GPS réel frais disponible
     const prevStateRef = useRef(null)
+    const liveFixRef = useRef(null)               // dernier fix GPS frais (ou null)
+    const liveRef = useRef(null)                  // {position,index,bearing} pour la carte
 
     // ── Chargement des missions ──────────────────────────────────────────────
     const load = useCallback(() => {
@@ -104,10 +108,41 @@ export default function TrackingPage() {
         () => (route && selected ? createEngine({ mission: selected, route }) : null),
         [route, selected])
 
-    // ── Tick texte (1 s) : snapshot + progression + ETA ──────────────────────
+    // ── Polling GPS réel (5 s) : si un fix frais existe, il prime ───────────
+    useEffect(() => {
+        if (!selectedId) return
+        liveFixRef.current = null; setIsLive(false)
+        let alive = true
+        const poll = async () => {
+            const fix = await getLiveFix(selectedId)
+            if (!alive) return
+            const fresh = !!(fix && fix.isFresh)
+            liveFixRef.current = fresh ? fix : null
+            setIsLive(fresh)
+        }
+        poll()
+        const id = setInterval(poll, 5000)
+        return () => { alive = false; clearInterval(id) }
+    }, [selectedId])
+
+    // ── Tick texte (1 s) : snapshot depuis le GPS réel si dispo, sinon simulation ──
     useEffect(() => {
         if (!engine) { setSnapshot(null); return }
-        const upd = () => setSnapshot(engine.snapshotAt(Date.now()))
+        const upd = () => {
+            const f = liveFixRef.current
+            let s
+            if (f) {
+                s = engine.snapshotFromPosition({
+                    latitude: f.latitude, longitude: f.longitude,
+                    speedKmh: f.speedKmh, heading: f.heading,
+                })
+                liveRef.current = { position: s.position, index: s.index, bearing: s.bearing }
+            } else {
+                s = engine.snapshotAt(Date.now())
+                liveRef.current = null
+            }
+            setSnapshot(s)
+        }
         upd()
         const id = setInterval(upd, 1000)
         return () => clearInterval(id)
@@ -158,6 +193,13 @@ export default function TrackingPage() {
                         <div style={{ ...card, marginBottom: 16 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
                                 <StateBadge state={snapshot.state} big />
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12,
+                                    fontWeight: 700, padding: "4px 10px", borderRadius: 20,
+                                    background: isLive ? "#d1e7dd" : "var(--pbg)",
+                                    color: isLive ? "#146c43" : "var(--pmuted)",
+                                    border: `1px solid ${isLive ? "#146c43" : "var(--pborder)"}` }}>
+                                    {isLive ? "🛰️ GPS en direct" : "📡 Position estimée"}
+                                </span>
                                 <div style={{ fontSize: 13.5, color: "var(--pmuted)" }}>
                                     Mission #{selected.idMission} · {selected.villeDepart || "—"} → {selected.villeArrivee || selected.destination}
                                 </div>
@@ -186,7 +228,7 @@ export default function TrackingPage() {
                         gap: 16, marginBottom: 16 }} className="track-grid">
                         <div style={{ ...card, padding: 8 }}>
                             {engine
-                                ? <ShipmentMap engine={engine} dark={dark} follow={follow} recenterSignal={recenter} />
+                                ? <ShipmentMap engine={engine} dark={dark} follow={follow} recenterSignal={recenter} liveRef={liveRef} />
                                 : <div style={{ height: "clamp(360px,55vh,560px)", display: "flex",
                                     alignItems: "center", justifyContent: "center", color: "var(--pmuted)" }}>
                                     Calcul de l'itinéraire…

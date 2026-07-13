@@ -57,7 +57,13 @@ const pinIcon = (color, glyph) => L.divIcon({
     </div>`,
 })
 
-export default function ShipmentMap({ engine, dark, follow, recenterSignal }) {
+// Interpolation d'angle par le plus court chemin (gère le passage 359°→0°)
+function easeAngle(from, to, k) {
+    let d = ((to - from + 540) % 360) - 180
+    return (from + d * k + 360) % 360
+}
+
+export default function ShipmentMap({ engine, dark, follow, recenterSignal, liveRef }) {
     const containerRef = useRef(null)
     const mapRef = useRef(null)
     const layersRef = useRef({})
@@ -103,22 +109,33 @@ export default function ShipmentMap({ engine, dark, follow, recenterSignal }) {
         map.fitBounds(L.latLngBounds(points), { padding: [40, 40] })
         setTimeout(() => map.invalidateSize(), 200)
 
-        // ── Boucle d'animation : le camion suit le moteur en continu ──
+        // ── Boucle d'animation : le camion suit une CIBLE (GPS réel si dispo,
+        //    sinon simulation), avec lissage → mouvement fluide dans les 2 cas ──
+        const init = engine.snapshotAt(Date.now())
+        const cur = { pos: [...init.position], brng: init.bearing }
+        const EASE = 0.12
         let raf
         const tick = () => {
-            const snap = engine.snapshotAt(Date.now())
-            const pos = snap.position
-            truck.setLatLng(pos)
-            const rot = truck.getElement()?.querySelector(".xpk-rot")
-            if (rot) rot.style.transform = `rotate(${snap.bearing}deg)`
+            // Cible : fix GPS frais transmis par la page, sinon moteur (simulation)
+            const live = liveRef?.current
+            const target = live || engine.snapshotAt(Date.now())
+            cur.pos = [
+                cur.pos[0] + (target.position[0] - cur.pos[0]) * EASE,
+                cur.pos[1] + (target.position[1] - cur.pos[1]) * EASE,
+            ]
+            cur.brng = easeAngle(cur.brng, target.bearing ?? cur.brng, EASE)
 
-            const head = points.slice(0, snap.index + 1)
-            traveled.setLatLngs([...head, pos])
-            remaining.setLatLngs([pos, ...points.slice(snap.index + 1)])
+            truck.setLatLng(cur.pos)
+            const rot = truck.getElement()?.querySelector(".xpk-rot")
+            if (rot) rot.style.transform = `rotate(${cur.brng}deg)`
+
+            const idx = target.index ?? 0
+            traveled.setLatLngs([...points.slice(0, idx + 1), cur.pos])
+            remaining.setLatLngs([cur.pos, ...points.slice(idx + 1)])
 
             if (followRef.current && Date.now() - lastPanRef.current > 1000) {
                 lastPanRef.current = Date.now()
-                map.panTo(pos, { animate: true, duration: 0.6, noMoveStart: true })
+                map.panTo(cur.pos, { animate: true, duration: 0.6, noMoveStart: true })
             }
             raf = requestAnimationFrame(tick)
         }

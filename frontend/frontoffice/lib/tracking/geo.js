@@ -42,6 +42,34 @@ export function cumulativeKm(points) {
 }
 
 /**
+ * Projette un point GPS [lat,lng] sur la polyligne (accroche à la route).
+ * Retourne le point projeté, l'index de segment, la distance parcourue (km)
+ * jusqu'à la projection et le cap du segment. Sert à convertir une position
+ * GPS réelle en progression/ETA (voir trackingEngine.snapshotFromPosition).
+ */
+export function projectOntoRoute(points, cum, target) {
+    if (points.length < 2) return { position: points[0] ?? target, index: 0, coveredKm: 0, bearing: 0 }
+    const kx = Math.cos(rad(target[0])) // correction longitude à cette latitude
+    let best = { d2: Infinity, index: 0, t: 0 }
+    for (let i = 0; i < points.length - 1; i++) {
+        const ax = points[i][1] * kx, ay = points[i][0]
+        const bx = points[i + 1][1] * kx, by = points[i + 1][0]
+        const px = target[1] * kx, py = target[0]
+        const dx = bx - ax, dy = by - ay
+        const len2 = dx * dx + dy * dy || 1e-12
+        let t = ((px - ax) * dx + (py - ay) * dy) / len2
+        t = Math.max(0, Math.min(1, t))
+        const cx = ax + dx * t, cy = ay + dy * t
+        const d2 = (px - cx) ** 2 + (py - cy) ** 2
+        if (d2 < best.d2) best = { d2, index: i, t }
+    }
+    const i = best.index
+    const position = lerp(points[i], points[i + 1], best.t)
+    const coveredKm = cum[i] + haversineKm(points[i], position)
+    return { position, index: i, coveredKm, bearing: bearing(points[i], points[i + 1]) }
+}
+
+/**
  * Position le long d'une polyligne à une distance parcourue donnée (km).
  * Retourne la position interpolée, l'index du segment courant et le cap.
  */

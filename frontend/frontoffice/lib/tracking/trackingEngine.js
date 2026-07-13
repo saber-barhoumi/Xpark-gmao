@@ -14,7 +14,7 @@
  * timeline) est déjà factorisée ici. L'UI (carte, panneaux) ne change pas.
  */
 
-import { bearing, haversineKm, pointAtDistance } from "./geo"
+import { bearing, haversineKm, pointAtDistance, projectOntoRoute } from "./geo"
 
 // ── États du colis (couvre le cycle demandé) ────────────────────────────────
 export const STATES = {
@@ -179,5 +179,32 @@ export function createEngine({ mission, route }) {
         return items
     }
 
-    return { route, pickup, destination, totalKm, snapshotAt, buildTimeline }
+    /**
+     * ★ Point d'entrée GPS RÉEL : convertit une position mesurée par le
+     * téléphone du chauffeur en instantané complet (même forme que snapshotAt).
+     * C'est ce qui rend le module « prêt pour le GPS » : l'UI (carte, panneaux)
+     * ne fait aucune différence entre simulation et position réelle.
+     *
+     * fix = { latitude, longitude, speedKmh?, heading?, recordedAt? }
+     */
+    function snapshotFromPosition(fix, nowMs = Date.now()) {
+        const proj = projectOntoRoute(route.points, route.cum, [fix.latitude, fix.longitude])
+        const covered = proj.coveredKm
+        const progress = Math.min(100, (covered / totalKm) * 100)
+        const remainingKm = Math.max(0, totalKm - covered)
+        const speed = fix.speedKmh != null && fix.speedKmh >= 0 ? fix.speedKmh : 60
+        const remMin = Math.max(0, Math.round(remainingKm / Math.max(speed, 20) * 60))
+        const etaDate = new Date(nowMs + remMin * 60_000)
+        const brng = fix.heading != null ? fix.heading : proj.bearing
+
+        let state = STATES.IN_TRANSIT
+        if (mission.statut === "TERMINEE" || progress >= 99.5) state = mission.statut === "TERMINEE" ? STATES.DELIVERED : STATES.ARRIVED
+        else if (progress >= 88) state = STATES.NEAR
+        else if (speed < 3) state = STATES.STOP
+        else if (speed < 35) state = STATES.TRAFFIC
+
+        return base(state, proj.position, progress, covered, totalKm, speed, remMin, etaDate, proj.index, brng)
+    }
+
+    return { route, pickup, destination, totalKm, snapshotAt, snapshotFromPosition, buildTimeline }
 }
