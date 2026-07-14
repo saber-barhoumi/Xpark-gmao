@@ -180,7 +180,7 @@ const Notifications = () => {
                       <span className={`d-block ${alert.statut === 'ACTIVE' ? 'fw-bold text-dark' : 'text-muted'}`} style={{ fontSize: 13 }}>
                         {alert.message}
                       </span>
-                      <span className="fs-12 text-muted">{timeSince(new Date(alert.dateAlerte))}</span>
+                      <span className="fs-12 text-muted">{timeSince(new Date(alert.dateCreation))}</span>
                     </span>
                     <button
                       className="btn btn-xs btn-outline-primary btn-sm flex-shrink-0"

@@ -8,12 +8,20 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import api from '@/lib/axiosConfig'
 import Swal from 'sweetalert2'
 import missionService from '@/services/missionService'
+import aiPricingService, { type PredictionData } from '@/services/aiPricingService'
 import { getRessourcesDisponibles } from '@/services/disponibiliteService'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
 import { CITY_GROUPS } from '@/data/distanceMatrix'
 
-const AI_API = import.meta.env.VITE_AI_API_URL ?? 'http://localhost:8000'
+// Types de véhicule proposés POUR L'ESTIMATION quand l'affectation est
+// automatique (aucun véhicule réel choisi) — mêmes libellés que le portail client.
+const PRICING_VEHICLE_OPTIONS = [
+    { value: 'BERLINE', label: 'Berline (léger)' },
+    { value: 'UTILITAIRE', label: 'Utilitaire' },
+    { value: 'VAN', label: 'Van / Minibus' },
+    { value: 'CAMION', label: 'Camion' },
+]
 
 // ── Grouped city options for react-select ────────────────────────────────────
 const GROUPED_CITY_OPTIONS = Object.entries(CITY_GROUPS)
@@ -75,6 +83,7 @@ interface WizardForm {
     vehiculeGmaoType: string    // raw GMAO enum: BERLINE, CAMION, UTILITAIRE…
     vehiculeCarburant: string
     vehiculeConsommation: number
+    pricingVehicleType: string  // type véhicule choisi POUR L'ESTIMATION (mode auto-assign)
     employeeId: number
     chauffeurNom: string
     kilometrageDepart: number
@@ -102,6 +111,7 @@ const emptyForm = (): WizardForm => ({
     dateDepart: nowLocal(), dateRetour: '', objetMission: '',
     autoAssign: false,
     vehiculeId: 0, vehiculeImmatriculation: '', vehiculeGmaoType: '', vehiculeCarburant: '', vehiculeConsommation: 0,
+    pricingVehicleType: '',
     employeeId: 0, chauffeurNom: '', kilometrageDepart: 0,
     cargoWeight: 0, passengerCount: 1, luggageWeight: 0,
     trafficCondition: 'Normal', weatherCondition: 'Sunny',
@@ -109,20 +119,7 @@ const emptyForm = (): WizardForm => ({
     coutEstime: 0, useManualCost: false, manualCoutInput: '', aiVehiculeTypeUsed: '',
 })
 
-// ── AI prediction data from the /predict endpoint ────────────────────────────
-interface PredictionData {
-    predicted_cost_tnd: number
-    distance_km: number
-    travel_hours: number
-    fuel_cost_tnd: number
-    labor_cost_tnd: number
-    toll_cost_tnd: number
-    driver_allowance_tnd: number
-    maintenance_cost_tnd: number
-    cargo_surcharge_tnd: number
-    vehicle_type_used: string
-    fuel_type_used: string
-}
+// PredictionData (contrat unique de POST /predict) est importé depuis aiPricingService.
 
 // ── STEP 1 — Route & Mission Details ─────────────────────────────────────────
 const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
@@ -136,15 +133,14 @@ const Step1 = ({ nextStep, isActive, form, setForm }: any) => {
         }
         setDistLoading(true)
         setDistError('')
-        fetch(`${AI_API}/distance?departure=${encodeURIComponent(form.villeDepart)}&arrival=${encodeURIComponent(form.villeArrivee)}`)
-            .then(r => { if (!r.ok) throw new Error('not found'); return r.json() })
-            .then((d: any) => {
+        aiPricingService.getDistance(form.villeDepart, form.villeArrivee)
+            .then((d) => {
                 setForm((f: WizardForm) => ({
                     ...f,
                     distanceEstimee: d.distance_km,
                     travelHours: d.travel_hours,
-                    departureGovernorate: d.departure_governorate,
-                    arrivalGovernorate: d.arrival_governorate,
+                    departureGovernorate: d.departure_governorate ?? '',
+                    arrivalGovernorate: d.arrival_governorate ?? '',
                 }))
             })
             .catch(() => {
@@ -429,6 +425,25 @@ const Step2 = ({ previousStep, nextStep, isActive, form, setForm, execute, clear
                             }))}
                         />
 
+                        {form.autoAssign && (
+                            <div className="mb-1">
+                                <Form.Label className="small fw-bold">
+                                    Type de véhicule prévu
+                                    <span className="text-muted fw-normal"> (pour l&apos;estimation du prix)</span>
+                                </Form.Label>
+                                <Select
+                                    options={PRICING_VEHICLE_OPTIONS}
+                                    value={PRICING_VEHICLE_OPTIONS.find(o => o.value === form.pricingVehicleType) ?? null}
+                                    onChange={(o: any) => setForm((f: WizardForm) => ({ ...f, pricingVehicleType: o?.value ?? '' }))}
+                                    placeholder="Type de véhicule (défaut : véhicule léger)…"
+                                    isClearable
+                                />
+                                <div className="form-text small">
+                                    L&apos;IA estime le coût selon ce type ; le véhicule réel sera choisi par l&apos;OptimisateurFlotteIA.
+                                </div>
+                            </div>
+                        )}
+
                         {!form.autoAssign && (
                         <Row className="g-3">
                             <Col md={12}>
@@ -579,28 +594,21 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
         setIsPredicting(true)
         setPredError('')
 
-        fetch(`${AI_API}/predict`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                departure: form.villeDepart,
-                arrival: form.villeArrivee,
-                date_depart: form.dateDepart,
-                vehicle_type_gmao: form.vehiculeGmaoType || undefined,
-                fuel_type_gmao: form.vehiculeCarburant || undefined,
-                fuel_consumption_per_100km: form.vehiculeConsommation > 0 ? form.vehiculeConsommation : undefined,
-                has_autoroute: form.carteAutorouteRemise,
-                cargo_weight: form.cargoWeight,
-                passenger_count: form.passengerCount,
-                luggage_weight: form.luggageWeight,
-                traffic_condition: form.trafficCondition,
-                weather_condition: form.weatherCondition,
-            }),
+        aiPricingService.predictPrice({
+            departure: form.villeDepart,
+            arrival: form.villeArrivee,
+            date_depart: form.dateDepart,
+            // véhicule réel si choisi, sinon type prévu pour l'estimation (mode auto-assign)
+            vehicle_type_gmao: form.vehiculeGmaoType || form.pricingVehicleType || undefined,
+            fuel_type_gmao: form.vehiculeCarburant || undefined,
+            fuel_consumption_per_100km: form.vehiculeConsommation > 0 ? form.vehiculeConsommation : undefined,
+            has_autoroute: form.carteAutorouteRemise,
+            cargo_weight: form.cargoWeight,
+            passenger_count: form.passengerCount,
+            luggage_weight: form.luggageWeight,
+            traffic_condition: form.trafficCondition,
+            weather_condition: form.weatherCondition,
         })
-            .then(r => {
-                if (!r.ok) throw new Error('Erreur IA')
-                return r.json()
-            })
             .then((d: PredictionData) => {
                 setPrediction(d)
                 setForm((f: WizardForm) => ({
