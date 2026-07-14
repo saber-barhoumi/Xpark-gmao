@@ -100,6 +100,16 @@ export const MENU_ITEMS: MenuItemType[] = [
         parentKey: 'gestion-flotte',
       },
       {
+        key: 'suivi',
+        label: 'Suivi en Direct',
+        url: '/gestion/suivi',
+        parentKey: 'gestion-flotte',
+        badge: {
+          text: 'Live',
+          variant: 'danger',
+        },
+      },
+      {
         key: 'optimisateur',
         label: 'Optimisateur IA',
         url: '/gestion/optimisateur',
