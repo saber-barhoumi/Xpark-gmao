@@ -1,14 +1,14 @@
 /**
  * AuthContext — session du chauffeur.
  *
- * Le jeton et l'identité sont conservés dans expo-secure-store (stockage
- * chiffré du système) → « se souvenir de la session » par défaut : le chauffeur
- * reste connecté entre les ouvertures de l'app. `logout` efface tout et arrête
- * le suivi GPS s'il est actif.
+ * Le jeton et l'identité sont conservés via `sessionStore` (SecureStore chiffré
+ * sur mobile, localStorage sur web) → « se souvenir de la session » par défaut :
+ * le chauffeur reste connecté entre les ouvertures. `logout` efface tout et
+ * arrête le suivi GPS s'il est actif.
  */
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
-import * as SecureStore from "expo-secure-store"
+import { sessionStore } from "@/auth/sessionStore"
 import { login as apiLogin } from "@/api/auth"
 import { stopTracking } from "@/tracking/locationTask"
 import type { AuthUser } from "@/types"
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         (async () => {
             try {
-                const raw = await SecureStore.getItemAsync(STORE_KEY)
+                const raw = await sessionStore.get(STORE_KEY)
                 if (raw) setUser(JSON.parse(raw) as AuthUser)
             } finally {
                 setLoading(false)
@@ -42,13 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const signIn = useCallback(async (email: string, password: string) => {
         const u = await apiLogin(email, password)
-        await SecureStore.setItemAsync(STORE_KEY, JSON.stringify(u))
+        await sessionStore.set(STORE_KEY, JSON.stringify(u))
         setUser(u)
     }, [])
 
     const signOut = useCallback(async () => {
         try { await stopTracking() } catch { /* ignore */ }
-        await SecureStore.deleteItemAsync(STORE_KEY)
+        await sessionStore.del(STORE_KEY)
         setUser(null)
     }, [])
 
