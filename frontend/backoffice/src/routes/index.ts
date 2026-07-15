@@ -42,6 +42,7 @@ const Projects         = lazy(() => import('@/app/(admin)/apps/Projects/page'))
 // Fleet / GMAO
 const Vehicules        = lazy(() => import('@/app/(admin)/gestion/vehicules/page'))
 const Missions         = lazy(() => import('@/app/(admin)/gestion/missions/page'))
+const DemandesTransport = lazy(() => import('@/app/(admin)/gestion/demandes-transport/page'))
 const Suivi            = lazy(() => import('@/app/(admin)/gestion/suivi/page'))
 const Optimisateur     = lazy(() => import('@/app/(admin)/gestion/optimisateur/page'))
 const IboaAssistant    = lazy(() => import('@/app/(admin)/monitoring/iboa/page'))
@@ -215,6 +216,7 @@ export const APP_ROUTES: AppRoute[] = [
   // Fleet management
   { name: 'vehicules',        path: '/gestion/vehicules',          element: createElement(Vehicules) },
   { name: 'missions',         path: '/gestion/missions',           element: createElement(Missions) },
+  { name: 'demandes-transport', path: '/gestion/demandes-transport', element: createElement(DemandesTransport), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
   { name: 'suivi',            path: '/gestion/suivi',              element: createElement(Suivi), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
   { name: 'optimisateur',     path: '/gestion/optimisateur',       element: createElement(Optimisateur), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
   { name: 'iboa',             path: '/monitoring/iboa',            element: createElement(IboaAssistant), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },

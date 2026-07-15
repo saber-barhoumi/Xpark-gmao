@@ -14,6 +14,7 @@ anciennement marquées « BIENTÔT » dans la sidebar.
 | 🤖 Assistant IA | `/account/assistant` | [05-assistant-ia.md](05-assistant-ia.md) |
 | 🎫 Support | `/account/support` | [06-support.md](06-support.md) |
 | 💬 Dialogues & notifications | (transverse) | [07-dialogues-et-notifications.md](07-dialogues-et-notifications.md) |
+| 📋 Demandes de transport (devis) | `/account/reserver` · `/account/demandes` | [../demandes-transport/README.md](../demandes-transport/README.md) |
 
 ## Architecture générale
 

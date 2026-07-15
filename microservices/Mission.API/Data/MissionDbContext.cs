@@ -6,9 +6,10 @@ namespace Mission.API.Data;
 
 public class MissionDbContext(DbContextOptions<MissionDbContext> options) : DbContext(options)
 {
-    public DbSet<MissionEntity> Missions => Set<MissionEntity>();
-    public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
-    public DbSet<LivePosition>  LivePositions => Set<LivePosition>();
+    public DbSet<MissionEntity>     Missions => Set<MissionEntity>();
+    public DbSet<SupportTicket>     SupportTickets => Set<SupportTicket>();
+    public DbSet<LivePosition>      LivePositions => Set<LivePosition>();
+    public DbSet<TransportRequest>  TransportRequests => Set<TransportRequest>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -29,6 +30,14 @@ public class MissionDbContext(DbContextOptions<MissionDbContext> options) : DbCo
         {
             e.ToTable("LivePositions");
             e.HasKey(p => p.IdPosition);
+        });
+
+        mb.Entity<TransportRequest>(e =>
+        {
+            e.ToTable("TransportRequests");
+            e.HasKey(t => t.IdTransportRequest);
+            e.Property(t => t.Statut).HasConversion<string>();
+            e.Property(t => t.PricingMethod).HasConversion<string>();
         });
 
         base.OnModelCreating(mb);

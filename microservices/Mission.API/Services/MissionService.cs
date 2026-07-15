@@ -165,13 +165,16 @@ public class MissionService(
 
     // ── Portail client (frontoffice) ──────────────────────────────────────────
 
-    public async Task<MissionResponseDto> CreateClientRequestAsync(long clientUserId, string? clientNom, ClientMissionRequestDto dto)
+    /// <summary>
+    /// Construit et persiste une Mission "d'origine client" (ClientIdUtilisateur
+    /// renseigné, EN_ATTENTE pour affectation par OptimisateurFlotteIA), et publie
+    /// l'événement métier IBOA associé. Factorisé pour être réutilisé par tout
+    /// chemin qui crée une Mission au nom d'un client (aujourd'hui : l'acceptation
+    /// d'un devis — voir CreateMissionFromAcceptedRequestAsync).
+    /// </summary>
+    private async Task<MissionResponseDto> BuildAndPersistClientMissionAsync(
+        long clientUserId, string? clientNom, ClientMissionRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.VilleDepart) || string.IsNullOrWhiteSpace(dto.VilleArrivee))
-            throw new ArgumentException("Villes de depart et d'arrivee obligatoires.");
-        if (dto.DateDepart < DateTime.UtcNow.AddMinutes(-5))
-            throw new ArgumentException("La date de depart ne peut pas etre dans le passe.");
-
         var mission = new MissionEntity
         {
             DateDepart          = DateTime.SpecifyKind(dto.DateDepart, DateTimeKind.Utc),
@@ -205,10 +208,25 @@ public class MissionService(
             dateDepart   = dto.DateDepart,
         });
 
-        logger.LogInformation("[Portail] Demande client {ClientId}: mission {MissionId} EN_ATTENTE ({Dep} vers {Arr})",
+        logger.LogInformation("[Portail] Mission client {ClientId}: mission {MissionId} EN_ATTENTE ({Dep} vers {Arr})",
             clientUserId, saved.IdMission, dto.VilleDepart, dto.VilleArrivee);
 
         return mapper.Map<MissionResponseDto>(saved);
+    }
+
+    /// <summary>
+    /// Crée la Mission au moment où le client ACCEPTE un devis (TransportRequest).
+    /// Contrairement à l'ancien flux de réservation instantanée, la date souhaitée
+    /// peut être dépassée (le devis a pu prendre du temps) : on ne bloque pas
+    /// dessus, seules les villes sont requises.
+    /// </summary>
+    public async Task<MissionResponseDto> CreateMissionFromAcceptedRequestAsync(
+        long clientUserId, string? clientNom, ClientMissionRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.VilleDepart) || string.IsNullOrWhiteSpace(dto.VilleArrivee))
+            throw new ArgumentException("Villes de depart et d'arrivee obligatoires.");
+
+        return await BuildAndPersistClientMissionAsync(clientUserId, clientNom, dto);
     }
 
     public async Task<bool> CancelMyMissionAsync(long clientUserId, long missionId)

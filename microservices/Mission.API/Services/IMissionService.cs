@@ -11,7 +11,7 @@ public interface IMissionService
     Task<MissionResponseDto>              CreateMissionAsync(CreateMissionDto dto);
     Task<MissionResponseDto>              CloseMissionAsync(long missionId, double kilometrageRetour);
     Task<MissionResponseDto>              AssignMissionAsync(long missionId, AssignMissionDto dto);
-    Task<MissionResponseDto>              CreateClientRequestAsync(long clientUserId, string? clientNom, ClientMissionRequestDto dto);
+    Task<MissionResponseDto>              CreateMissionFromAcceptedRequestAsync(long clientUserId, string? clientNom, ClientMissionRequestDto dto);
     Task<bool>                            CancelMyMissionAsync(long clientUserId, long missionId);
     Task<IEnumerable<MissionResponseDto>> GetByClientAsync(long clientUserId);
     Task<IEnumerable<MissionResponseDto>> GetByDriverNameAsync(string chauffeurNom, string? statut);

@@ -127,6 +127,42 @@ using (var scope = app.Services.CreateScope())
         );
         CREATE INDEX IF NOT EXISTS ""IX_LivePositions_Mission""
             ON ""LivePositions"" (""MissionId"", ""RecordedAt"" DESC);
+
+        -- Portail client : demandes de transport (devis) — étape avant la Mission
+        CREATE TABLE IF NOT EXISTS ""TransportRequests"" (
+            ""IdTransportRequest""      BIGSERIAL PRIMARY KEY,
+            ""ClientIdUtilisateur""     BIGINT       NOT NULL,
+            ""ClientNom""               VARCHAR(150) NULL,
+            ""DateSouhaitee""           TIMESTAMPTZ  NOT NULL,
+            ""VilleDepart""             VARCHAR(100) NOT NULL,
+            ""VilleArrivee""            VARCHAR(100) NOT NULL,
+            ""CargoDescription""        VARCHAR(500) NOT NULL DEFAULT '',
+            ""CargoWeightKg""           DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ""PassengerCount""          INT          NOT NULL DEFAULT 1,
+            ""VehicleTypeRequested""    VARCHAR(50)  NULL,
+            ""DistanceKm""              DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ""AiEstimatedPrice""        DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ""AiPriceRangeMin""         DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ""AiPriceRangeMax""         DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ""AiVehicleTypeRecommended"" VARCHAR(50) NULL,
+            ""Statut""                  VARCHAR(20)  NOT NULL DEFAULT 'PENDING_QUOTATION',
+            ""FinalPrice""              DOUBLE PRECISION NULL,
+            ""PricingMethod""           VARCHAR(20)  NULL,
+            ""AdminNote""               VARCHAR(1000) NULL,
+            ""QuotedByUserId""          BIGINT       NULL,
+            ""QuotedByName""            VARCHAR(150) NULL,
+            ""DateQuotationEnvoyee""    TIMESTAMPTZ  NULL,
+            ""ClientCancelReason""      VARCHAR(500) NULL,
+            ""ClientRejectionReason""   VARCHAR(500) NULL,
+            ""DateClientReponse""       TIMESTAMPTZ  NULL,
+            ""MissionId""               BIGINT       NULL,
+            ""DateCreation""            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+            ""DateMaj""                 TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS ""IX_TransportRequests_Client""
+            ON ""TransportRequests"" (""ClientIdUtilisateur"");
+        CREATE INDEX IF NOT EXISTS ""IX_TransportRequests_Statut""
+            ON ""TransportRequests"" (""Statut"");
     ");
 }
 // ─────────────────────────────────────────────────────────────────────────────

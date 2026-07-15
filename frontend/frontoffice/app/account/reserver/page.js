@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import missionService, { aiService } from "@/lib/missionService"
+import { aiService } from "@/lib/missionService"
+import transportRequestService from "@/lib/transportRequestService"
 import ClientPortalLayout from "@/components/portal/ClientPortalLayout"
 
 const VEHICLE_TYPES = [
@@ -15,10 +16,16 @@ const VEHICLE_TYPES = [
 
 const cardStyle = { background: "var(--pcard)", border: "1px solid var(--pborder)", borderRadius: 12, padding: 25 }
 
+// Marge d'affichage de la fourchette IA (preview seulement — la valeur qui fait foi
+// est calculée et stockée côté serveur, voir Mission.API/Services/AiPriceRangeCalculator.cs).
+// Garder ces deux constantes synchronisées si la marge change un jour.
+const PRICE_RANGE_MARGIN = 0.08
+
 /**
- * Réserver un véhicule — wizard 3 étapes (fiche FRONTOFFICE §4.4) :
- * 1. Trajet & date · 2. Véhicule & paramètres · 3. Estimation IA & confirmation.
- * Crée une mission EN_ATTENTE affectée ensuite par OptimisateurFlotteIA.
+ * Demander un transport — wizard 3 étapes (fiche FRONTOFFICE §4.4) :
+ * 1. Trajet & date · 2. Véhicule & paramètres · 3. Estimation IA & envoi.
+ * Ne crée PAS de mission : soumet une Demande de Transport (devis) que
+ * l'administrateur chiffrera avant de vous l'envoyer pour acceptation.
  */
 export default function ReserverPage() {
     const router = useRouter()
@@ -83,18 +90,21 @@ export default function ReserverPage() {
     const confirm = async () => {
         setLoading(true); setError("")
         try {
-            await missionService.createRequest({
-                dateDepart: form.dateDepart,
+            await transportRequestService.submit({
+                dateSouhaitee: form.dateDepart,
                 villeDepart: form.villeDepart,
                 villeArrivee: form.villeArrivee,
-                objetMission: form.objetMission,
+                cargoDescription: form.objetMission || `Transport ${form.villeDepart} → ${form.villeArrivee}`,
+                cargoWeightKg: Number(form.poidsFret) || 0,
+                passengerCount: Number(form.passagers) || 1,
+                vehicleTypeRequested: form.vehicleType,
                 distanceKm: distance?.distance_km ?? 0,
-                coutEstime: prediction?.predicted_cost_tnd ?? 0,
-                aiVehiculeTypeUsed: prediction?.vehicle_type_used,
+                aiEstimatedPrice: prediction?.predicted_cost_tnd ?? 0,
+                aiVehicleTypeRecommended: prediction?.vehicle_type_used,
             })
-            router.push("/account/missions?created=1")
+            router.push("/account/demandes?created=1")
         } catch (err) {
-            setError(err.message || "Erreur lors de la création de la réservation.")
+            setError(err.message || "Erreur lors de l'envoi de la demande.")
         } finally { setLoading(false) }
     }
 
@@ -222,13 +232,14 @@ export default function ReserverPage() {
                             {step === 3 && prediction && (
                                 <div>
                                     <div style={{ ...cardStyle, marginBottom: 20, textAlign: "center" }}>
-                                        <p style={{ color: "#6b7280", marginBottom: 5 }}>💡 Prix estimé par l&apos;IA XPARK</p>
-                                        <p style={{ fontSize: 42, fontWeight: 800, color: "#0d6efd", marginBottom: 5 }}>
-                                            {prediction.predicted_cost_tnd.toFixed(2)} TND
+                                        <p style={{ color: "#6b7280", marginBottom: 5 }}>💡 Estimation IA XPARK (indicative)</p>
+                                        <p style={{ fontSize: 36, fontWeight: 800, color: "#0d6efd", marginBottom: 5 }}>
+                                            {(prediction.predicted_cost_tnd * (1 - PRICE_RANGE_MARGIN)).toFixed(0)}
+                                            {" – "}
+                                            {(prediction.predicted_cost_tnd * (1 + PRICE_RANGE_MARGIN)).toFixed(0)} TND
                                         </p>
                                         <p style={{ fontSize: 13, color: "#6b7280" }}>
-                                            Carburant {prediction.fuel_cost_tnd?.toFixed(0)} · Main-d&apos;œuvre {prediction.labor_cost_tnd?.toFixed(0)}
-                                            {prediction.toll_cost_tnd > 0 && <> · Péage {prediction.toll_cost_tnd.toFixed(0)}</>} TND
+                                            Fourchette indicative — pas le prix final. Un devis précis vous sera envoyé par notre équipe.
                                         </p>
                                     </div>
 
@@ -247,9 +258,9 @@ export default function ReserverPage() {
                                             </tbody>
                                         </table>
                                         <p style={{ fontSize: 13, color: "#6b7280", marginTop: 12, marginBottom: 0 }}>
-                                            ℹ️ Votre demande sera <strong>EN ATTENTE</strong> : notre système intelligent
-                                            (OptimisateurFlotteIA) lui affectera le véhicule le plus adapté et un chauffeur
-                                            disponible. Vous suivrez tout depuis «&nbsp;Mes missions&nbsp;».
+                                            ℹ️ Votre demande sera envoyée à notre équipe, qui vous enverra un <strong>devis
+                                            précis</strong> à accepter ou refuser depuis «&nbsp;Mes demandes&nbsp;». Aucune
+                                            mission n&apos;est créée avant votre acceptation du devis.
                                         </p>
                                     </div>
 
@@ -259,7 +270,7 @@ export default function ReserverPage() {
                                             ← Retour<span />
                                         </button>
                                         <button type="button" className="thm-btn contact-two__btn" onClick={confirm} disabled={loading}>
-                                            {loading ? "Création…" : "✅ Confirmer la réservation"}<span />
+                                            {loading ? "Envoi…" : "📤 Envoyer ma demande"}<span />
                                         </button>
                                     </div>
                                     <p className="text-center" style={{ marginTop: 15 }}>

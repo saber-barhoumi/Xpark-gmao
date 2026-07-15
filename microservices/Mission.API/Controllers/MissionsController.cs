@@ -46,19 +46,6 @@ public class MissionsController(
         return Ok(await missionService.GetByDriverNameAsync(CurrentUserName, statut));
     }
 
-    /// <summary>Demande de réservation client → mission EN_ATTENTE, affectée
-    /// ensuite par l'admin ou OptimisateurFlotteIA.</summary>
-    [HttpPost("client-request")]
-    public async Task<IActionResult> CreateClientRequest([FromBody] ClientMissionRequestDto dto)
-    {
-        try
-        {
-            var mission = await missionService.CreateClientRequestAsync(CurrentUserId, CurrentUserName, dto);
-            return CreatedAtAction(nameof(GetById), new { id = mission.IdMission }, mission);
-        }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
     /// <summary>Le client annule SA réservation, tant qu'elle est EN_ATTENTE.</summary>
     [HttpPut("my/{id:long}/cancel")]
     public async Task<IActionResult> CancelMyMission(long id)

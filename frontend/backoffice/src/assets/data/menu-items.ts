@@ -100,6 +100,16 @@ export const MENU_ITEMS: MenuItemType[] = [
         parentKey: 'gestion-flotte',
       },
       {
+        key: 'demandes-transport',
+        label: 'Demandes de Transport',
+        url: '/gestion/demandes-transport',
+        parentKey: 'gestion-flotte',
+        badge: {
+          text: 'Devis',
+          variant: 'info',
+        },
+      },
+      {
         key: 'suivi',
         label: 'Suivi en Direct',
         url: '/gestion/suivi',

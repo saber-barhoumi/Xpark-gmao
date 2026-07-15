@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import authService, { getCurrentUser, isAuthenticated } from "@/lib/authService"
 import missionService from "@/lib/missionService"
+import transportRequestService from "@/lib/transportRequestService"
 
 /**
  * Client Portal shell (après login) : Header + Sidebar + Main content, SANS footer.
@@ -17,6 +18,7 @@ const NAV = [
     { icon: "🏠", label: "Tableau de bord", href: "/account" },
     { icon: "🚚", label: "Mes missions", href: "/account/missions" },
     { icon: "➕", label: "Réserver", href: "/account/reserver" },
+    { icon: "📋", label: "Mes demandes", href: "/account/demandes" },
     { icon: "📍", label: "Suivi en direct", href: "/account/tracking" },
     { icon: "💰", label: "Finances", href: "/account/finances" },
     { icon: "📄", label: "Documents", href: "/account/documents" },
@@ -43,6 +45,7 @@ export default function ClientPortalLayout({ title, children }) {
     const [avatarOpen, setAvatarOpen] = useState(false)
     const [langOpen, setLangOpen] = useState(false)
     const [missions, setMissions] = useState([])
+    const [requests, setRequests] = useState([])
     const [search, setSearch] = useState("")
     const rootRef = useRef(null)
 
@@ -51,6 +54,7 @@ export default function ClientPortalLayout({ title, children }) {
         setUser(getCurrentUser())
         setDark(localStorage.getItem("xpark_portal_dark") === "1")
         missionService.getMyMissions().then(setMissions).catch(() => {})
+        transportRequestService.getMyRequests().then(setRequests).catch(() => {})
     }, [router])
 
     // Fermer les dropdowns au clic extérieur
@@ -77,12 +81,26 @@ export default function ClientPortalLayout({ title, children }) {
         router.push(`/account/missions${search ? `?q=${encodeURIComponent(search)}` : ""}`)
     }
 
-    // Notifications = missions récemment mises à jour
-    const notifs = useMemo(() =>
-        [...missions]
-            .sort((a, b) => new Date(b.dateDepart) - new Date(a.dateDepart))
-            .slice(0, 6), [missions])
+    // Notifications = missions + devis à valider récemment mis à jour
+    const notifs = useMemo(() => {
+        const missionItems = missions.map(m => ({
+            key: `m-${m.idMission}`, href: "/account/missions",
+            title: `${m.villeDepart || "—"} → ${m.villeArrivee || m.destination}`,
+            subtitle: `Mission #${m.idMission} ${STATUS_LABEL[m.statut] || ""}`,
+            date: m.dateDepart,
+        }))
+        const quoteItems = requests.filter(r => r.statut === "QUOTATION_SENT").map(r => ({
+            key: `d-${r.idTransportRequest}`, href: "/account/demandes",
+            title: `${r.villeDepart} → ${r.villeArrivee}`,
+            subtitle: `📨 Devis à valider · ${r.finalPrice?.toFixed(0) ?? "—"} TND`,
+            date: r.dateQuotationEnvoyee || r.dateSouhaitee,
+        }))
+        return [...quoteItems, ...missionItems]
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 6)
+    }, [missions, requests])
     const pendingCount = missions.filter(m => m.statut === "EN_ATTENTE" || m.statut === "EN_COURS").length
+        + requests.filter(r => r.statut === "QUOTATION_SENT").length
 
     if (!user) return null
 
@@ -183,15 +201,11 @@ export default function ClientPortalLayout({ title, children }) {
                                 <div style={dropHead}>Notifications</div>
                                 {notifs.length === 0 ? (
                                     <div style={{ padding: 16, color: "var(--pmuted)", fontSize: 13 }}>Aucune activité récente.</div>
-                                ) : notifs.map(m => (
-                                    <Link key={m.idMission} href="/account/missions" onClick={() => setNotifOpen(false)}
+                                ) : notifs.map(n => (
+                                    <Link key={n.key} href={n.href} onClick={() => setNotifOpen(false)}
                                         style={dropItem}>
-                                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>
-                                            {m.villeDepart || "—"} → {m.villeArrivee || m.destination}
-                                        </div>
-                                        <div style={{ fontSize: 12, color: "var(--pmuted)" }}>
-                                            Mission #{m.idMission} {STATUS_LABEL[m.statut] || ""}
-                                        </div>
+                                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{n.title}</div>
+                                        <div style={{ fontSize: 12, color: "var(--pmuted)" }}>{n.subtitle}</div>
                                     </Link>
                                 ))}
                             </div>
