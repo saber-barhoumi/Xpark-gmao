@@ -22,6 +22,17 @@ export const transportRequestService = {
         const response = await api.put(`/missions/demandes/${id}/quote`, data)
         return response.data
     },
+
+    /** Suppression d'une demande (staff). */
+    remove: async (id: number): Promise<void> => {
+        await api.delete(`/missions/demandes/${id}`)
+    },
+
+    /** Suppression en masse (staff) — même convention que alerteService.removeMany. */
+    removeMany: async (ids: number[]): Promise<number> => {
+        const res = await api.post('/missions/demandes/supprimer', { ids })
+        return res.data?.count ?? ids.length
+    },
 }
 
 export default transportRequestService

@@ -197,6 +197,31 @@ public class TransportRequestsController(MissionDbContext db, IMissionService mi
         return Ok(req);
     }
 
+    /// <summary>Suppression d'une demande (staff). Même convention que Alerts.API.</summary>
+    [HttpDelete("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var req = await db.TransportRequests.FindAsync(id);
+        if (req == null) return NotFound(new { message = "Demande introuvable." });
+        db.TransportRequests.Remove(req);
+        await db.SaveChangesAsync();
+        return Ok(new { message = "Demande supprimée." });
+    }
+
+    /// <summary>Suppression en masse (staff) — miroir de POST /alertes/supprimer.</summary>
+    [HttpPost("supprimer")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> DeleteMany([FromBody] DeleteManyDto dto)
+    {
+        if (dto.Ids is not { Length: > 0 })
+            return BadRequest(new { message = "Aucun identifiant fourni." });
+        var count = await db.TransportRequests
+            .Where(r => dto.Ids.Contains(r.IdTransportRequest))
+            .ExecuteDeleteAsync();
+        return Ok(new { count });
+    }
+
     /// <summary>Le staff chiffre et envoie le devis → QUOTATION_SENT.</summary>
     [HttpPut("{id:long}/quote")]
     [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
@@ -238,3 +263,4 @@ public record SendQuotationDto(
     [property: System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))] MethodePrix PricingMethod,
     string? AdminNote);
 public record ReasonDto(string? Reason);
+public record DeleteManyDto(long[] Ids);
