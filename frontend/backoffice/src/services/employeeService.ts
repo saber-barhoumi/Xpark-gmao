@@ -1,16 +1,21 @@
 import api from '@/lib/axiosConfig';
 import { Employee, EmployeeDto } from '../types/employee';
 
+/** IAM.API (microservice) enveloppe la liste : { success, message, data: [...] }.
+ *  Le monolithe renvoyait le tableau nu — on accepte les deux formes. */
+const unwrap = (payload: any): Employee[] =>
+    Array.isArray(payload) ? payload : (payload?.data ?? [])
+
 export const employeeService = {
     getAll: async (params?: { post?: string; statut?: string }): Promise<Employee[]> => {
         const response = await api.get('/employees', { params });
-        return response.data;
+        return unwrap(response.data);
     },
 
     /** Retourne uniquement les employés actifs — pour les dropdowns de formulaires */
     getActifs: async (post?: string): Promise<Employee[]> => {
         const response = await api.get('/employees', { params: { statut: 'ACTIF', post } });
-        return response.data;
+        return unwrap(response.data);
     },
 
     getById: async (id: number): Promise<Employee> => {

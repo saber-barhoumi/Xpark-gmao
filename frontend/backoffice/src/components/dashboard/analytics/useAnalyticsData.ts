@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import kpiService, { KPI } from '@/services/kpiService'
 import { missionService } from '@/services/missionService'
 import { vehiculeService, Vehicule } from '@/services/vehiculeService'
 import { carburantService, CarburantStats } from '@/services/carburantService'
@@ -27,7 +26,6 @@ export function derniersMois(n = 6) {
 }
 
 export interface AnalyticsData {
-  kpis: KPI[]
   missions: Mission[]
   vehicules: Vehicule[]
   interventions: Intervention[]
@@ -41,7 +39,7 @@ export interface AnalyticsData {
  */
 export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
   const [data, setData] = useState<AnalyticsData>({
-    kpis: [], missions: [], vehicules: [], interventions: [], carburant: null,
+    missions: [], vehicules: [], interventions: [], carburant: null,
   })
   const [loading, setLoading] = useState(true)
 
@@ -49,15 +47,7 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
     if (!enabled) return
     setLoading(true)
 
-    const categories: string[] = []
-    if (perms.operations) categories.push('MISSIONS')
-    if (perms.fleet) categories.push('FLOTTE')
-    if (perms.finance) categories.push('FINANCE')
-    if (perms.maintenance) categories.push('MAINTENANCE')
-    if (perms.fuel) categories.push('CARBURANT')
-
-    const [kpisR, missionsR, vehiculesR, interventionsR, carburantR] = await Promise.allSettled([
-      Promise.all(categories.map(c => kpiService.getParCategorie(c).catch(() => [] as KPI[]))),
+    const [missionsR, vehiculesR, interventionsR, carburantR] = await Promise.allSettled([
       perms.operations ? missionService.getAll() : Promise.resolve([]),
       perms.fleet ? vehiculeService.getAll() : Promise.resolve([]),
       perms.maintenance ? interventionService.getAll({ pageSize: 500 }) : Promise.resolve(null),
@@ -65,7 +55,6 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
     ])
 
     setData({
-      kpis: kpisR.status === 'fulfilled' ? kpisR.value.flat() : [],
       missions: missionsR.status === 'fulfilled' ? (missionsR.value as Mission[]) : [],
       vehicules: vehiculesR.status === 'fulfilled' ? (vehiculesR.value as Vehicule[]) : [],
       interventions: interventionsR.status === 'fulfilled' && interventionsR.value

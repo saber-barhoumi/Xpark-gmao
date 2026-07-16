@@ -1,12 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Alert, Button, Card, Col, Row, Spinner } from 'react-bootstrap'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
-import KPICard from '@/components/dashboard/KPICard'
 import ChartWidget from '@/components/dashboard/ChartWidget'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
-import Swal from 'sweetalert2'
 import authService from '@/services/authService'
-import kpiService from '@/services/kpiService'
 import { permissionsFor } from './analytics/rbac'
 import { useAnalyticsData } from './analytics/useAnalyticsData'
 import StatTile from './analytics/StatTile'
@@ -47,31 +44,11 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
   const perms = useMemo(() => permissionsFor(user?.role), [user?.role])
   const own = useAnalyticsData(perms, !shared)   // désactivé si le parent fournit les données
   const { data, stats, loading, reload } = shared ?? own
-  const [calculEnCours, setCalculEnCours] = useState(false)
-
-  const handleRecalculer = async () => {
-    try {
-      setCalculEnCours(true)
-      const nouveaux = await kpiService.calculerTous()
-      await reload()
-      Swal.fire({
-        title: 'Succès !', text: `${nouveaux.length} KPIs recalculés`,
-        icon: 'success', timer: 1500, showConfirmButton: false,
-      })
-    } catch {
-      Swal.fire('Erreur', 'Erreur lors du calcul des KPIs', 'error')
-    } finally {
-      setCalculEnCours(false)
-    }
-  }
-
-  const handleShare = () => shareReport(buildSummary(data.kpis, [
+  const handleShare = () => shareReport(buildSummary([], [
     `• Missions terminées : ${stats.missionsParStatut.terminees}`,
     `• Taux de réalisation : ${stats.tauxRealisation}%`,
     `• Distance totale : ${Math.round(stats.distanceTotale).toLocaleString('fr-FR')} km`,
   ]))
-
-  const kpisDe = (cat: string) => data.kpis.filter(k => k.categorie === cat)
 
   if (loading) {
     return (
@@ -107,7 +84,7 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
               <h4 className="mb-1">Vue d'ensemble analytique</h4>
               <p className="text-muted mb-0">
                 <i className="ri-history-line me-1" />
-                Dernière mise à jour : {data.kpis[0] ? new Date(data.kpis[0].dateCalcul).toLocaleString('fr-FR') : 'Jamais'}
+                Données en direct — chargées le {new Date().toLocaleString('fr-FR')}
               </p>
             </div>
             <div className="d-flex gap-2 flex-wrap">
@@ -123,16 +100,6 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
                     <IconifyIcon icon="tabler:share-3" className="me-1 fs-16" /> Partager
                   </Button>
                 </>
-              )}
-              {perms.recalculate && (
-                <Button variant="primary" onClick={handleRecalculer} disabled={calculEnCours}
-                  className="d-flex align-items-center">
-                  {calculEnCours ? (
-                    <><Spinner animation="border" size="sm" className="me-2" />Calcul en cours...</>
-                  ) : (
-                    <><i className="ri-settings-4-line me-2" />Recalculer les KPIs</>
-                  )}
-                </Button>
               )}
             </div>
           </div>
@@ -202,11 +169,6 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
       {perms.operations && (
         <div className="mb-4">
           <SectionTitle icon="ri-truck-line" color="primary" title="Activité opérationnelle" />
-          <Row className="g-3 mb-3">
-            {kpisDe('MISSIONS').map(kpi => (
-              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
-            ))}
-          </Row>
 
           {/* Rangée 1 : répartition + carte de chaleur d'activité */}
           <Row className="g-4 mb-4">
@@ -310,11 +272,6 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
       {perms.finance && (
         <div className="mb-4">
           <SectionTitle icon="ri-money-dollar-circle-line" color="info" title="Analyse financière (privé direction)" />
-          <Row className="g-3 mb-3">
-            {kpisDe('FINANCE').map(kpi => (
-              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
-            ))}
-          </Row>
 
           {/* Rangée 1 : corrélation activité/revenus + marge nette */}
           <Row className="g-4 mb-4">
@@ -413,11 +370,6 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
       {perms.fleet && (
         <div className="mb-4">
           <SectionTitle icon="ri-car-line" color="success" title="Flotte & disponibilité" />
-          <Row className="g-3 mb-3">
-            {kpisDe('FLOTTE').map(kpi => (
-              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
-            ))}
-          </Row>
           <Row className="g-4">
             <Col xl={4}>
               <ChartWidget
@@ -480,11 +432,6 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
       {perms.maintenance && (
         <div className="mb-4">
           <SectionTitle icon="ri-tools-line" color="warning" title="Maintenance préventive & curative" />
-          <Row className="g-3 mb-3">
-            {kpisDe('MAINTENANCE').map(kpi => (
-              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
-            ))}
-          </Row>
           <Row className="g-4">
             <Col xl={4}>
               {Object.keys(stats.interventionsParType).length > 0 && (
@@ -534,11 +481,6 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
       {perms.fuel && data.carburant && (
         <div className="mb-4">
           <SectionTitle icon="ri-gas-station-line" color="danger" title="Consommation énergétique" />
-          <Row className="g-3 mb-3">
-            {kpisDe('CARBURANT').map(kpi => (
-              <Col xl={4} md={6} key={kpi.idKPI}><KPICard {...kpi} /></Col>
-            ))}
-          </Row>
           <Row className="g-4">
             <Col xl={8}>
               {(data.carburant.evolutionMensuelle ?? []).length > 0 && (

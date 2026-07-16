@@ -8,4 +8,5 @@ public interface ICarburantService
     Task<CarburantDto?> GetByIdAsync(long id);
     Task<CarburantDto> CreateAsync(CreateCarburantDto dto);
     Task<bool> DeleteAsync(long id);
+    Task<StatistiquesCarburantDto> GetStatsAsync(long? vehiculeId = null, DateTime? start = null, DateTime? end = null);
 }

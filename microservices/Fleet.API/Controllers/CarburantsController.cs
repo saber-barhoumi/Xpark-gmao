@@ -14,6 +14,11 @@ public class CarburantsController(ICarburantService service) : ControllerBase
     public async Task<IActionResult> GetAll([FromQuery] long? vehiculeId = null)
         => Ok(await service.GetByVehiculeAsync(vehiculeId));
 
+    /// <summary>Statistiques carburant (dashboard + page Consommation). Porté du monolithe.</summary>
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats([FromQuery] long? vehiculeId, [FromQuery] DateTime? start, [FromQuery] DateTime? end)
+        => Ok(await service.GetStatsAsync(vehiculeId, start, end));
+
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id)
     {
