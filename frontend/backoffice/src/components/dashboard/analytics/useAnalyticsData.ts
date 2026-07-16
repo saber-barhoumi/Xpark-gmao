@@ -34,13 +34,19 @@ export interface AnalyticsData {
   carburant: CarburantStats | null
 }
 
-export function useAnalyticsData(perms: AnalyticsPermissions) {
+/**
+ * @param enabled false = ne déclenche AUCUN appel réseau (le composant reçoit
+ * alors les données d'un parent via la prop `shared` d'AnalyticsDashboard —
+ * évite le double chargement quand le dashboard englobe les analyses).
+ */
+export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
   const [data, setData] = useState<AnalyticsData>({
     kpis: [], missions: [], vehicules: [], interventions: [], carburant: null,
   })
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
+    if (!enabled) return
     setLoading(true)
 
     const categories: string[] = []
@@ -68,7 +74,7 @@ export function useAnalyticsData(perms: AnalyticsPermissions) {
       carburant: carburantR.status === 'fulfilled' ? (carburantR.value as CarburantStats | null) : null,
     })
     setLoading(false)
-  }, [perms])
+  }, [perms, enabled])
 
   useEffect(() => { load() }, [load])
 

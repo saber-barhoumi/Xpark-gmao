@@ -10,16 +10,6 @@ export const MENU_ITEMS: MenuItemType[] = [
     url: '/dashboard',
   },
   {
-    key: 'analytics',
-    label: 'Analyses & KPIs',
-    icon: 'ri:pie-chart-line',
-    badge: {
-      text: "New",
-      variant: "success",
-    },
-    url: '/analytics',
-  },
-  {
     key: 'iboa',
     label: 'Assistant IBOA',
     icon: 'ri:radar-line',

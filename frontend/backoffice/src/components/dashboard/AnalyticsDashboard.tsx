@@ -35,10 +35,18 @@ const INTERVENTION_TYPE_LABELS: Record<string, string> = {
 
 const tnd = (v: number) => `${Math.round(v).toLocaleString('fr-FR')} TND`
 
-export default function AnalyticsDashboard() {
+interface AnalyticsDashboardProps {
+  /** Données déjà chargées par un parent (dashboard) — évite le double fetch */
+  shared?: ReturnType<typeof useAnalyticsData>
+  /** true = intégré dans le dashboard (pas de breadcrumb propre) */
+  embedded?: boolean
+}
+
+export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashboardProps = {}) {
   const user = authService.getCurrentUser()
   const perms = useMemo(() => permissionsFor(user?.role), [user?.role])
-  const { data, stats, loading, reload } = useAnalyticsData(perms)
+  const own = useAnalyticsData(perms, !shared)   // désactivé si le parent fournit les données
+  const { data, stats, loading, reload } = shared ?? own
   const [calculEnCours, setCalculEnCours] = useState(false)
 
   const handleRecalculer = async () => {
@@ -80,7 +88,7 @@ export default function AnalyticsDashboard() {
   return (
     <div id="analytics-report">
       <style>{PRINT_CSS}</style>
-      <div className="no-print"><PageBreadcrumb title="Analyses & KPIs" /></div>
+      {!embedded && <div className="no-print"><PageBreadcrumb title="Analyses & KPIs" /></div>}
 
       {/* En-tête du rapport imprimé (visible uniquement dans le PDF) */}
       <div className="print-only mb-4">
