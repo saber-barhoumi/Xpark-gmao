@@ -12,6 +12,8 @@ import Swal from 'sweetalert2'
 import api from '@/lib/axiosConfig'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 
 
@@ -77,6 +79,10 @@ export default function InterventionsPage() {
         vehiculeId: 0,
     })
     const [validated, setValidated] = useState(false)
+
+    // Sélection multiple (suppression en masse, vue tableau)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(interventions, i => i.idIntervention)
 
     const loadVehicules = useCallback(async () => {
         setLoadingVehicules(true)
@@ -235,6 +241,21 @@ export default function InterventionsPage() {
         }
     }
 
+    // Suppression en masse : réutilise interventionService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        clearError()
+        try {
+            await Promise.all(ids.map(id => interventionService.delete(id)))
+            sel.clear()
+            await load()
+            Swal.fire('Supprimées', `${ids.length} intervention(s) supprimée(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await load()
+        } finally { setDeleting(false) }
+    }
+
     const calendarEvents = useMemo(() => {
         return interventions.map(i => ({
             id: i.idIntervention.toString(),
@@ -260,6 +281,12 @@ export default function InterventionsPage() {
                     <p className="text-muted mb-0">{total} évènements</p>
                 </Col>
                 <Col xs="auto" className="d-flex gap-2 flex-wrap">
+                    <BulkDeleteButtons
+                        selectedCount={sel.count} totalCount={interventions.length}
+                        label="intervention(s)" deleting={deleting}
+                        onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                        onDeleteAll={() => deleteMany(interventions.map(i => i.idIntervention))}
+                    />
                     <ButtonGroup size="sm">
                         <Button variant={filterType === '' ? 'outline-secondary' : 'light'} onClick={() => setFilterType('')}>Toutes</Button>
                         <Button variant={filterType === 'PREVENTIVE' ? 'info' : 'light'} onClick={() => setFilterType('PREVENTIVE')}>Préventives</Button>
@@ -379,6 +406,11 @@ export default function InterventionsPage() {
                         <table className="table table-hover align-middle mb-0">
                             <thead className="bg-light text-muted small text-uppercase">
                                 <tr>
+                                    <th style={{ width: 34 }}>
+                                        <input type="checkbox" className="form-check-input"
+                                            checked={sel.allSelected} onChange={sel.toggleAll}
+                                            title="Tout sélectionner" />
+                                    </th>
                                     <th>Date</th>
                                     <th>Véhicule</th>
                                     <th>Type</th>
@@ -390,6 +422,11 @@ export default function InterventionsPage() {
                             <tbody>
                                 {interventions.map(i => (
                                     <tr key={i.idIntervention}>
+                                        <td>
+                                            <input type="checkbox" className="form-check-input"
+                                                checked={sel.isSelected(i.idIntervention)}
+                                                onChange={() => sel.toggle(i.idIntervention)} />
+                                        </td>
                                         <td className="small">{new Date(i.dateIntervention).toLocaleDateString('fr-FR')}</td>
                                         <td>
                                             <div className="d-flex align-items-center gap-2">

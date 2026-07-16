@@ -4,6 +4,8 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import Swal from 'sweetalert2'
 import authService from '@/services/authService'
 import userService, { AccountUser } from '@/services/userService'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 const ROLES = ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE', 'TECHNICIEN', 'CHAUFFEUR', 'CLIENT']
 
@@ -52,6 +54,25 @@ export default function UsersPage() {
         return (!search || text.includes(search.toLowerCase()))
             && (!roleFilter || u.role === roleFilter)
     }), [users, search, roleFilter])
+
+    // Sélection multiple — on ne peut jamais sélectionner SON PROPRE compte
+    const selectable = useMemo(() => filtered.filter(u => u.email !== me?.email), [filtered, me?.email])
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(selectable, u => u.idUtilisateur)
+
+    // Suppression en masse : réutilise le DELETE unitaire ; les comptes liés à
+    // des missions/réservations sont refusés (409) par l'API → bilan partiel.
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        const results = await Promise.allSettled(ids.map(id => userService.deleteUser(id)))
+        const ok = results.filter(r => r.status === 'fulfilled').length
+        const ko = results.length - ok
+        sel.clear()
+        await load()
+        if (ko === 0) Swal.fire('Supprimés', `${ok} compte(s) supprimé(s).`, 'success')
+        else Swal.fire('Bilan', `${ok} supprimé(s) · ${ko} refusé(s) (comptes liés à des missions — suspendez-les à la place).`, 'warning')
+        setDeleting(false)
+    }
 
     // ── Actions ──────────────────────────────────────────────────────────────
 
@@ -151,7 +172,14 @@ export default function UsersPage() {
                         {users.length} compte(s) — modifier les informations, changer le rôle, suspendre ou supprimer
                     </p>
                 </Col>
-                <Col xs="auto">
+                <Col xs="auto" className="d-flex gap-2 flex-wrap">
+                    <BulkDeleteButtons
+                        selectedCount={sel.count} totalCount={selectable.length}
+                        label="compte(s)" deleting={deleting}
+                        onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                        onDeleteAll={() => deleteMany(selectable.map(u => u.idUtilisateur))}
+                        warning="Votre propre compte est exclu. Les comptes liés à des missions seront refusés."
+                    />
                     <Button variant="outline-secondary" size="sm" onClick={load}>
                         <IconifyIcon icon="ri:refresh-line" className="me-1" /> Rafraîchir
                     </Button>
@@ -180,6 +208,11 @@ export default function UsersPage() {
                         <Table hover className="table-centered align-middle mb-0">
                             <thead className="table-light">
                                 <tr>
+                                    <th style={{ width: 34 }}>
+                                        <input type="checkbox" className="form-check-input"
+                                            checked={sel.allSelected} onChange={sel.toggleAll}
+                                            title="Tout sélectionner (sauf votre compte)" />
+                                    </th>
                                     <th>Compte</th>
                                     <th>Téléphone</th>
                                     <th>Rôle</th>
@@ -195,6 +228,13 @@ export default function UsersPage() {
                                 )}
                                 {filtered.map(u => (
                                     <tr key={u.idUtilisateur}>
+                                        <td>
+                                            <input type="checkbox" className="form-check-input"
+                                                disabled={u.email === me?.email}
+                                                title={u.email === me?.email ? 'Vous ne pouvez pas supprimer votre propre compte' : undefined}
+                                                checked={sel.isSelected(u.idUtilisateur)}
+                                                onChange={() => sel.toggle(u.idUtilisateur)} />
+                                        </td>
                                         <td>
                                             <div className="fw-semibold">
                                                 {u.prenom} {u.nom}

@@ -65,3 +65,9 @@ class TestEventRequest(BaseModel):
     severity: str = "HIGH"
     eventData: Dict[str, Any] = Field(default_factory=dict)
     context: Dict[str, Any] = Field(default_factory=dict)
+
+
+# ── Suppression depuis le dashboard (POST /events/delete, /alerts/delete) ────
+
+class DeleteIdsRequest(BaseModel):
+    ids: List[str] = Field(default_factory=list)

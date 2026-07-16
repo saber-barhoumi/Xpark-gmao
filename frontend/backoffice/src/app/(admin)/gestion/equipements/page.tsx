@@ -8,6 +8,8 @@ import { EquipementListItem, FilterEquipements, TypeEquipement, EtatEquipement, 
 import PageBreadcrumb from '@/components/PageBreadcrumb'
 import EquipmentModal from './components/EquipmentModal'
 import { useNavigate } from 'react-router-dom'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 const ETAT_COLORS: Record<string, string> = {
     Neuf: 'success',
@@ -41,6 +43,10 @@ export default function EquipementsPage() {
     // Modal state
     const [showModal, setShowModal] = useState(false)
     const [equipmentToEdit, setEquipmentToEdit] = useState<EquipementDetail | null>(null)
+
+    // Sélection multiple (désactivation en masse)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(equipements, eq => eq.id)
 
     const currentUser = authService.getCurrentUser()
     const canWrite = currentUser?.role === 'ADMIN' || currentUser?.role === 'GESTIONNAIRE'
@@ -95,6 +101,20 @@ export default function EquipementsPage() {
                 Swal.fire('Erreur', 'Impossible de désactiver l\'équipement', 'error')
             }
         }
+    }
+
+    // Désactivation en masse : réutilise equipmentService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        try {
+            await Promise.all(ids.map(id => equipmentService.delete(id)))
+            sel.clear()
+            await load()
+            Swal.fire('Désactivé', `${ids.length} équipement(s) désactivé(s).`, 'success')
+        } catch {
+            Swal.fire('Erreur', 'Désactivation partielle ou impossible.', 'error')
+            await load()
+        } finally { setDeleting(false) }
     }
 
     const handleFilterChange = (field: keyof FilterEquipements, value: any) => {
@@ -182,10 +202,21 @@ export default function EquipementsPage() {
                         </Col>
                         <Col md={2} className="text-end">
                             {canWrite && (
-                                <Button variant="primary" className="w-100 shadow-sm" onClick={openCreate}>
-                                    <IconifyIcon icon="ri:add-line" className="me-1" />
-                                    Nouvel Objet
-                                </Button>
+                                <>
+                                    <div className="d-flex gap-2 justify-content-end mb-2">
+                                        <BulkDeleteButtons
+                                            selectedCount={sel.count} totalCount={0}
+                                            label="équipement(s)" deleting={deleting}
+                                            onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                                            onDeleteAll={async () => {}}
+                                            warning="Les équipements seront désactivés."
+                                        />
+                                    </div>
+                                    <Button variant="primary" className="w-100 shadow-sm" onClick={openCreate}>
+                                        <IconifyIcon icon="ri:add-line" className="me-1" />
+                                        Nouvel Objet
+                                    </Button>
+                                </>
                             )}
                         </Col>
                     </Row>
@@ -199,6 +230,13 @@ export default function EquipementsPage() {
                     <table className="table table-hover table-centered mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
+                                {canWrite && (
+                                    <th style={{ width: 34 }}>
+                                        <input type="checkbox" className="form-check-input"
+                                            checked={sel.allSelected} onChange={sel.toggleAll}
+                                            title="Tout sélectionner" />
+                                    </th>
+                                )}
                                 <th className="ps-4">Équipement</th>
                                 <th>Type & Catégorie</th>
                                 <th>Véhicule Associé</th>
@@ -210,13 +248,13 @@ export default function EquipementsPage() {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-5">
+                                    <td colSpan={7} className="text-center py-5">
                                         <Spinner animation="border" variant="primary" />
                                     </td>
                                 </tr>
                             ) : equipements.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-5">
+                                    <td colSpan={7} className="text-center py-5">
                                         <div className="text-muted">
                                             <IconifyIcon icon="ri:tools-line" className="fs-48 mb-3 d-block mx-auto opacity-25" />
                                             <p className="fw-semibold">Aucun équipement trouvé</p>
@@ -226,6 +264,13 @@ export default function EquipementsPage() {
                             ) : (
                                 equipements.map(eq => (
                                     <tr key={eq.id}>
+                                        {canWrite && (
+                                            <td>
+                                                <input type="checkbox" className="form-check-input"
+                                                    checked={sel.isSelected(eq.id)}
+                                                    onChange={() => sel.toggle(eq.id)} />
+                                            </td>
+                                        )}
                                         <td className="ps-4">
                                             <div className="d-flex align-items-center">
                                                 <div className="avatar-sm rounded me-3 d-flex align-items-center justify-content-center bg-soft-primary overflow-hidden">

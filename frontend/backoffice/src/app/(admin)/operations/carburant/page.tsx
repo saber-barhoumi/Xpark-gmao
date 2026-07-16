@@ -4,6 +4,8 @@ import PageBreadcrumb from '@/components/PageBreadcrumb'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import carburantService, { Carburant, CarburantStats, CreateCarburantDto } from '@/services/carburantService'
 import sourceService, { Source } from '@/services/sourceService'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 import { vehiculeService } from '@/services/vehiculeService'
 import Swal from 'sweetalert2'
 import ReactApexChart from 'react-apexcharts'
@@ -19,6 +21,10 @@ export default function CarburantPage() {
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
     const [saving, setSaving] = useState(false)
+
+    // Sélection multiple (suppression en masse)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(records ?? [], r => r.idCarburant)
     
     const [form, setForm] = useState<CreateCarburantDto>({
         dateRemplissage: new Date().toISOString().split('T')[0],
@@ -121,6 +127,20 @@ export default function CarburantPage() {
             await carburantService.delete(id)
             loadData()
         }
+    }
+
+    // Suppression en masse : réutilise carburantService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        try {
+            await Promise.all(ids.map(id => carburantService.delete(id)))
+            sel.clear()
+            await loadData()
+            Swal.fire('Supprimés', `${ids.length} plein(s) supprimé(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await loadData()
+        } finally { setDeleting(false) }
     }
 
     // ApexChart config (Premium Donut Style)
@@ -361,15 +381,28 @@ export default function CarburantPage() {
                     <Card className="shadow-sm border-0">
                         <Card.Header className="bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
                             <h5 className="mb-0 fw-bold text-dark">Historique des pleins</h5>
-                            <Button variant="primary" size="sm" className="rounded-pill px-3 shadow-sm" onClick={() => setShowModal(true)}>
-                                <IconifyIcon icon="ri:add-line" className="me-1" /> Nouveau plein
-                            </Button>
+                            <div className="d-flex gap-2 flex-wrap">
+                                <BulkDeleteButtons
+                                    selectedCount={sel.count} totalCount={records?.length ?? 0}
+                                    label="plein(s)" deleting={deleting}
+                                    onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                                    onDeleteAll={() => deleteMany((records ?? []).map(r => r.idCarburant))}
+                                />
+                                <Button variant="primary" size="sm" className="rounded-pill px-3 shadow-sm" onClick={() => setShowModal(true)}>
+                                    <IconifyIcon icon="ri:add-line" className="me-1" /> Nouveau plein
+                                </Button>
+                            </div>
                         </Card.Header>
                         <Card.Body className="p-0">
                             {loading ? <div className="p-5 text-center"><Spinner animation="border" variant="primary" /></div> : (
                                 <Table hover responsive className="mb-0 align-middle">
                                     <thead className="bg-light text-muted small text-uppercase">
                                         <tr>
+                                            <th style={{ width: 34 }}>
+                                                <input type="checkbox" className="form-check-input"
+                                                    checked={sel.allSelected} onChange={sel.toggleAll}
+                                                    title="Tout sélectionner" />
+                                            </th>
                                             <th className="ps-3">Date</th>
                                             <th>Véhicule</th>
                                             <th>Quantité</th>
@@ -382,6 +415,11 @@ export default function CarburantPage() {
                                     <tbody>
                                         {records?.map(r => (
                                             <tr key={r.idCarburant}>
+                                                <td>
+                                                    <input type="checkbox" className="form-check-input"
+                                                        checked={sel.isSelected(r.idCarburant)}
+                                                        onChange={() => sel.toggle(r.idCarburant)} />
+                                                </td>
                                                 <td className="ps-3">{new Date(r.dateRemplissage).toLocaleDateString()}</td>
                                                 <td>
                                                     <div className="d-flex align-items-center">

@@ -4,6 +4,8 @@ import PageBreadcrumb from '@/components/PageBreadcrumb'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import sourceService, { CreateSourceDto, Source, TypeSource } from '@/services/sourceService'
 import Swal from 'sweetalert2'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 // ─── Helpers ────────────────────────────────────────────────────────────
 const TYPE_CONFIG: Record<TypeSource, { icon: string; badge: string; label: string }> = {
@@ -122,6 +124,24 @@ export default function SourcesPage() {
         .filter(s => !filterType || s.typeSource === filterType)
         .filter(s => filterActif === '' || String(s.actif) === filterActif)
 
+    // Sélection multiple (suppression en masse)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(filtered, x => x.idSource)
+
+    // Suppression en masse : réutilise sourceService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        try {
+            await Promise.all(ids.map(id => sourceService.delete(id)))
+            sel.clear()
+            await load()
+            Swal.fire('Supprimées', `${ids.length} source(s) supprimée(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await load()
+        } finally { setDeleting(false) }
+    }
+
     const stats = {
         total: sources.length,
         actives: sources.filter(s => s.actif).length,
@@ -175,6 +195,12 @@ export default function SourcesPage() {
                                 <option value="true">Actif</option>
                                 <option value="false">Inactif</option>
                             </Form.Select>
+                            <BulkDeleteButtons
+                                selectedCount={sel.count} totalCount={filtered.length}
+                                label="source(s)" deleting={deleting}
+                                onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                                onDeleteAll={() => deleteMany(filtered.map(x => x.idSource))}
+                            />
                             <Button variant="primary" size="sm" onClick={openCreate}>
                                 <IconifyIcon icon="ri:add-line" className="me-1" />
                                 Ajouter Source
@@ -194,6 +220,11 @@ export default function SourcesPage() {
                             <table className="table table-hover table-sm align-middle mb-0">
                                 <thead className="table-light">
                                     <tr>
+                                        <th style={{ width: 34 }}>
+                                            <input type="checkbox" className="form-check-input"
+                                                checked={sel.allSelected} onChange={sel.toggleAll}
+                                                title="Tout sélectionner" />
+                                        </th>
                                         <th>Type</th>
                                         <th>Nom</th>
                                         <th>Ville</th>
@@ -209,6 +240,11 @@ export default function SourcesPage() {
                                         const cfg = TYPE_CONFIG[s.typeSource] ?? { icon: 'ri:map-pin-line', badge: 'secondary', label: s.typeSource }
                                         return (
                                             <tr key={s.idSource}>
+                                                <td>
+                                                    <input type="checkbox" className="form-check-input"
+                                                        checked={sel.isSelected(s.idSource)}
+                                                        onChange={() => sel.toggle(s.idSource)} />
+                                                </td>
                                                 <td>
                                                     <Badge bg={cfg.badge} className="d-inline-flex align-items-center gap-1">
                                                         <IconifyIcon icon={cfg.icon} />

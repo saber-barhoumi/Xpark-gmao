@@ -10,6 +10,8 @@ import CloseMissionModal from './components/CloseMissionModal'
 import OptimizerPlanningModal from './components/OptimizerPlanningModal'
 import AssignMissionModal from './components/AssignMissionModal'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 const STATUT_COLORS: Record<string, string> = {
     EN_ATTENTE: 'info',
@@ -34,6 +36,13 @@ export default function MissionsPage() {
     const [showCloseModal, setShowCloseModal] = useState(false)
     const [showAssignModal, setShowAssignModal] = useState(false)
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
+
+    // Sélection multiple — seules les missions TERMINEE/ANNULEE sont supprimables
+    // (même règle métier que le bouton de suppression unitaire existant)
+    const deletable = missions.filter(m =>
+        m.statut === StatutMission.TERMINEE || m.statut === StatutMission.ANNULEE)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(deletable, m => m.idMission)
 
     const loadMissions = useCallback(async () => {
         setLoading(true)
@@ -68,6 +77,20 @@ export default function MissionsPage() {
                 Swal.fire('Erreur', err.response?.data?.message || 'Impossible d\'annuler.', 'error')
             }
         }
+    }
+
+    // Suppression en masse (TERMINEE/ANNULEE) : réutilise le DELETE unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        try {
+            await Promise.all(ids.map(id => missionService.delete(id)))
+            sel.clear()
+            await loadMissions()
+            Swal.fire('Supprimées', `${ids.length} mission(s) supprimée(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await loadMissions()
+        } finally { setDeleting(false) }
     }
 
     const openCloseModal = (m: Mission) => {
@@ -114,7 +137,16 @@ export default function MissionsPage() {
                     </h4>
                     <p className="text-muted mb-0">{missions.length} mission(s) affichée(s)</p>
                 </Col>
-                <Col xs="auto" className="d-flex gap-2">
+                <Col xs="auto" className="d-flex gap-2 flex-wrap">
+                    {canWrite && (
+                        <BulkDeleteButtons
+                            selectedCount={sel.count} totalCount={deletable.length}
+                            label="mission(s) terminée(s)/annulée(s)" deleting={deleting}
+                            onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                            onDeleteAll={() => deleteMany(deletable.map(m => m.idMission))}
+                            warning="Seules les missions terminées ou annulées peuvent être supprimées."
+                        />
+                    )}
                     {canWrite && (
                         <>
                             <Button variant="dark" onClick={() => setShowOptimizer(true)}>
@@ -164,6 +196,14 @@ export default function MissionsPage() {
                         <table className="table table-hover table-centered mb-0 align-middle">
                             <thead className="table-light">
                                 <tr>
+                                    {canWrite && (
+                                        <th style={{ width: 34 }}>
+                                            <input type="checkbox" className="form-check-input"
+                                                checked={sel.allSelected} onChange={sel.toggleAll}
+                                                disabled={deletable.length === 0}
+                                                title="Sélectionner les missions terminées/annulées" />
+                                        </th>
+                                    )}
                                     <th>Départ</th>
                                     <th>Trajet & Objet</th>
                                     <th>Demandé par</th>
@@ -176,6 +216,18 @@ export default function MissionsPage() {
                             <tbody>
                                 {missions.map(m => (
                                     <tr key={m.idMission}>
+                                        {canWrite && (
+                                            <td>
+                                                {(m.statut === StatutMission.TERMINEE || m.statut === StatutMission.ANNULEE) ? (
+                                                    <input type="checkbox" className="form-check-input"
+                                                        checked={sel.isSelected(m.idMission)}
+                                                        onChange={() => sel.toggle(m.idMission)} />
+                                                ) : (
+                                                    <input type="checkbox" className="form-check-input" disabled
+                                                        title="Suppression réservée aux missions terminées/annulées" />
+                                                )}
+                                            </td>
+                                        )}
                                         <td>
                                             <div className="fw-semibold small">
                                                 <IconifyIcon icon="ri-calendar-line" className="me-1 text-primary" />

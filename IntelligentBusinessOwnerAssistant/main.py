@@ -19,7 +19,7 @@ import formatters
 import pipeline
 import rabbitmq_consumer
 import storage
-from models import OwnerPreferences, TestEventRequest
+from models import DeleteIdsRequest, OwnerPreferences, TestEventRequest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -62,9 +62,41 @@ def get_events(limit: int = 50):
     return {"events": storage.recent_events(min(limit, 200))}
 
 
+@app.post("/events/delete")
+def delete_events(req: DeleteIdsRequest):
+    """Suppression ciblée d'événements depuis le dashboard (sélection)."""
+    count = storage.delete_events(req.ids)
+    logger.info("Dashboard: %d événement(s) supprimé(s)", count)
+    return {"count": count}
+
+
+@app.delete("/events")
+def delete_all_events():
+    """Purge complète du flux d'événements (dashboard)."""
+    count = storage.delete_all_events()
+    logger.info("Dashboard: purge des événements (%d)", count)
+    return {"count": count}
+
+
 @app.get("/alerts")
 def get_alerts(limit: int = 50):
     return {"alerts": storage.recent_alerts(min(limit, 200))}
+
+
+@app.post("/alerts/delete")
+def delete_alerts(req: DeleteIdsRequest):
+    """Suppression ciblée d'alertes depuis le dashboard (sélection)."""
+    count = storage.delete_alerts(req.ids)
+    logger.info("Dashboard: %d alerte(s) supprimée(s)", count)
+    return {"count": count}
+
+
+@app.delete("/alerts")
+def delete_all_alerts():
+    """Purge complète de l'historique d'alertes (dashboard)."""
+    count = storage.delete_all_alerts()
+    logger.info("Dashboard: purge des alertes (%d)", count)
+    return {"count": count}
 
 
 @app.get("/stats")

@@ -8,6 +8,8 @@ import VehiculeWizard from './components/VehiculeWizard'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 
 
@@ -60,6 +62,10 @@ export default function VehiculesPage() {
     const [showWizard, setShowWizard] = useState(false)
     const [vehiculeToEdit, setVehiculeToEdit] = useState<Vehicule | null>(null)
 
+    // Sélection multiple (suppression en masse)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(vehicules, v => v.idVehicule)
+
     const load = useCallback(async () => {
         setLoading(true)
         clearError()
@@ -99,6 +105,21 @@ export default function VehiculesPage() {
         }
     }
 
+    // Suppression en masse : réutilise le endpoint DELETE unitaire existant
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        clearError()
+        try {
+            await Promise.all(ids.map(id => api.delete(`/vehicules/${id}`)))
+            sel.clear()
+            await load()
+            Swal.fire('Supprimé', `${ids.length} véhicule(s) supprimé(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await load()
+        } finally { setDeleting(false) }
+    }
+
     const openCreate = () => {
         setVehiculeToEdit(null)
         setShowWizard(true)
@@ -127,7 +148,15 @@ export default function VehiculesPage() {
                         )}
                     </p>
                 </Col>
-                <Col xs="auto">
+                <Col xs="auto" className="d-flex gap-2 flex-wrap">
+                    {canWrite && (
+                        <BulkDeleteButtons
+                            selectedCount={sel.count} totalCount={vehicules.length}
+                            label="véhicule(s)" deleting={deleting}
+                            onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                            onDeleteAll={() => deleteMany(vehicules.map(v => v.idVehicule))}
+                        />
+                    )}
                     {canWrite && (
                         <Button variant="primary" onClick={openCreate}>
                             <IconifyIcon icon="ri:add-line" className="me-1" />
@@ -174,6 +203,13 @@ export default function VehiculesPage() {
                         <table className="table table-hover table-centered mb-0 align-middle">
                             <thead className="table-light">
                                 <tr>
+                                    {canWrite && (
+                                        <th style={{ width: 34 }}>
+                                            <input type="checkbox" className="form-check-input"
+                                                checked={sel.allSelected} onChange={sel.toggleAll}
+                                                title="Tout sélectionner" />
+                                        </th>
+                                    )}
                                     <th>Immatriculation</th>
                                     <th>Marque / Modèle</th>
                                     <th>Type / Carburant</th>
@@ -187,6 +223,13 @@ export default function VehiculesPage() {
                             <tbody>
                                 {vehicules.map(v => (
                                     <tr key={v.idVehicule}>
+                                        {canWrite && (
+                                            <td>
+                                                <input type="checkbox" className="form-check-input"
+                                                    checked={sel.isSelected(v.idVehicule)}
+                                                    onChange={() => sel.toggle(v.idVehicule)} />
+                                            </td>
+                                        )}
                                         <td>
                                             <strong className="text-primary">{v.immatriculation}</strong>
                                         </td>

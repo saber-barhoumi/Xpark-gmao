@@ -8,6 +8,8 @@ import Swal from 'sweetalert2'
 import api from '@/lib/axiosConfig'
 import { useApiError } from '@/hooks/useApiError'
 import { AlerteErreur } from '@/components/AlerteErreur'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 
 
@@ -62,6 +64,10 @@ export default function OrdresTravailPage() {
         priorite: 'MOYENNE',
     })
     const [validated, setValidated] = useState(false)
+
+    // Sélection multiple (suppression en masse, vue tableau)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(ordres, o => o.idOrdreTravail)
 
     // Charger les véhicules disponibles
     const loadVehicules = useCallback(async () => {
@@ -168,6 +174,21 @@ export default function OrdresTravailPage() {
         }
     }
 
+    // Suppression en masse : réutilise ordreTravailService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        clearError()
+        try {
+            await Promise.all(ids.map(id => ordreTravailService.delete(id)))
+            sel.clear()
+            await load()
+            Swal.fire('Supprimés', `${ids.length} ordre(s) de travail supprimé(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await load()
+        } finally { setDeleting(false) }
+    }
+
     const handleDelete = async (id: number, ref: string) => {
         const result = await Swal.fire({
             title: `Supprimer ${ref} ?`,
@@ -221,7 +242,13 @@ export default function OrdresTravailPage() {
                     </h4>
                     <p className="text-muted mb-0">{total} ordre(s) trouvé(s)</p>
                 </Col>
-                <Col xs="auto" className="d-flex gap-2">
+                <Col xs="auto" className="d-flex gap-2 flex-wrap">
+                    <BulkDeleteButtons
+                        selectedCount={sel.count} totalCount={ordres.length}
+                        label="ordre(s) de travail" deleting={deleting}
+                        onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                        onDeleteAll={() => deleteMany(ordres.map(o => o.idOrdreTravail))}
+                    />
                     <div className="btn-group btn-group-sm">
                         <Button variant={viewMode === 'table' ? 'primary' : 'light'} onClick={() => setViewMode('table')}>
                             <IconifyIcon icon="ri:table-line" />
@@ -329,6 +356,11 @@ export default function OrdresTravailPage() {
                         <table className="table table-hover table-centered mb-0 border-top">
                             <thead className="table-light">
                                 <tr>
+                                    <th style={{ width: 34 }}>
+                                        <input type="checkbox" className="form-check-input"
+                                            checked={sel.allSelected} onChange={sel.toggleAll}
+                                            title="Tout sélectionner" />
+                                    </th>
                                     <th style={{ width: '60px' }}>Prio.</th>
                                     <th>Référence</th>
                                     <th>Véhicule</th>
@@ -343,6 +375,11 @@ export default function OrdresTravailPage() {
                             <tbody>
                                 {ordres.map(ordre => (
                                     <tr key={ordre.idOrdreTravail}>
+                                        <td>
+                                            <input type="checkbox" className="form-check-input"
+                                                checked={sel.isSelected(ordre.idOrdreTravail)}
+                                                onChange={() => sel.toggle(ordre.idOrdreTravail)} />
+                                        </td>
                                         <td><PriorityIcon priority={ordre.priorite} /></td>
                                         <td><strong>{ordre.reference}</strong></td>
                                         <td>

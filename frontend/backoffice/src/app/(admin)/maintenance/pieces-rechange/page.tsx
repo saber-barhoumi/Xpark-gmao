@@ -3,6 +3,8 @@ import { Badge, Button, Card, Col, Modal, Row, Form, Spinner, Alert, InputGroup,
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import pieceRechangeService, { PieceRechange, CreatePieceRechangeDto, UpdatePieceRechangeDto, CATEGORIES_PIECE } from '@/services/pieceRechangeService'
 import Swal from 'sweetalert2'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 export default function PiecesRechangePage() {
     const [pieces, setPieces] = useState<PieceRechange[]>([])
@@ -31,6 +33,9 @@ export default function PiecesRechangePage() {
         imageUrl: '',
     })
     const [validated, setValidated] = useState(false)
+
+    // Sélection multiple (suppression en masse)
+    const [deleting, setDeleting] = useState(false)
 
     // Modal Ajuster Stock
     const [showStockModal, setShowStockModal] = useState(false)
@@ -63,6 +68,9 @@ export default function PiecesRechangePage() {
             (p.designation?.toLowerCase().includes(q))
         )
     }, [pieces, searchQuery])
+
+    // Sélection multiple sur la liste filtrée
+    const sel = useBulkSelection(filteredPieces, p => p.idPiece)
 
     const openCreate = () => {
         setEditPiece(null)
@@ -158,6 +166,20 @@ export default function PiecesRechangePage() {
         }
     }
 
+    // Suppression en masse : réutilise pieceRechangeService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        try {
+            await Promise.all(ids.map(id => pieceRechangeService.delete(id)))
+            sel.clear()
+            await load()
+            Swal.fire('Supprimées', `${ids.length} pièce(s) supprimée(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression partielle ou impossible.', 'error')
+            await load()
+        } finally { setDeleting(false) }
+    }
+
     const handleDelete = async (id: number, designation: string) => {
         const result = await Swal.fire({
             title: `Désactiver ${designation} ?`,
@@ -225,6 +247,12 @@ export default function PiecesRechangePage() {
                         <option value="">Toutes catégories</option>
                         {CATEGORIES_PIECE.map(c => <option key={c} value={c}>{c}</option>)}
                     </Form.Select>
+                    <BulkDeleteButtons
+                        selectedCount={sel.count} totalCount={filteredPieces.length}
+                        label="pièce(s)" deleting={deleting}
+                        onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                        onDeleteAll={() => deleteMany(filteredPieces.map(p => p.idPiece))}
+                    />
                     <Button variant="success" size="sm" onClick={openCreate} className="px-3">
                         <IconifyIcon icon="ri:add-line" className="me-1" />
                         Ajouter
@@ -250,6 +278,11 @@ export default function PiecesRechangePage() {
                         <table className="table table-hover align-middle mb-0">
                             <thead className="bg-light text-muted small text-uppercase">
                                 <tr>
+                                    <th style={{ width: 34 }}>
+                                        <input type="checkbox" className="form-check-input"
+                                            checked={sel.allSelected} onChange={sel.toggleAll}
+                                            title="Tout sélectionner" />
+                                    </th>
                                     <th>Image</th>
                                     <th>Référence</th>
                                     <th>Désignation</th>
@@ -266,6 +299,11 @@ export default function PiecesRechangePage() {
 
                                     return (
                                         <tr key={p.idPiece} style={isLowStock ? { backgroundColor: 'rgba(255, 193, 7, 0.1)' } : {}}>
+                                            <td>
+                                                <input type="checkbox" className="form-check-input"
+                                                    checked={sel.isSelected(p.idPiece)}
+                                                    onChange={() => sel.toggle(p.idPiece)} />
+                                            </td>
                                             <td style={{ width: '80px' }}>
                                                 <OverlayTrigger
                                                     placement="right"

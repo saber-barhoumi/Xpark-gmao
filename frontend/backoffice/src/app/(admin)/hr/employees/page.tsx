@@ -5,6 +5,8 @@ import employeeService from '@/services/employeeService'
 import { Employee, EmployeeDto, PostEmployee, StatutEmployee } from '@/types/employee'
 import EmployeeModal from './components/EmployeeModal'
 import Swal from 'sweetalert2'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 const EmployeesPage = () => {
     const [employees, setEmployees] = useState<Employee[]>([])
@@ -48,6 +50,24 @@ const EmployeesPage = () => {
             e.numeroMatricule.toLowerCase().includes(q)
         )
     }, [employees, searchQuery])
+
+    // Sélection multiple (désactivation en masse)
+    const [deleting, setDeleting] = useState(false)
+    const sel = useBulkSelection(filteredEmployees, e => e.idEmployee)
+
+    // Désactivation en masse : réutilise employeeService.delete unitaire
+    const deleteMany = async (ids: number[]) => {
+        setDeleting(true)
+        try {
+            await Promise.all(ids.map(id => employeeService.delete(id)))
+            sel.clear()
+            await loadEmployees()
+            Swal.fire('Désactivés', `${ids.length} employé(s) désactivé(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Désactivation partielle ou impossible.', 'error')
+            await loadEmployees()
+        } finally { setDeleting(false) }
+    }
 
     const handleSave = async (data: EmployeeDto) => {
         try {

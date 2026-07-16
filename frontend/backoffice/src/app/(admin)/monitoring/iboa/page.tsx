@@ -5,6 +5,8 @@ import Swal from 'sweetalert2'
 import iboaService, {
     IboaAlert, IboaEvent, IboaHealth, IboaPreferences, IboaStats,
 } from '@/services/iboaService'
+import useBulkSelection from '@/hooks/useBulkSelection'
+import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
 const CLASS_COLORS: Record<string, string> = {
     CRITIQUE: 'danger', IMPORTANT: 'warning', NORMAL: 'info', INFO: 'secondary',
@@ -33,7 +35,12 @@ export default function IboaPage() {
     const [offline, setOffline] = useState(false)
     const [savingPrefs, setSavingPrefs] = useState(false)
     const [testing, setTesting] = useState(false)
+    const [deleting, setDeleting] = useState(false)
     const [expandedEvent, setExpandedEvent] = useState<string | null>(null)
+
+    // Sélection multiple — un jeu de cases par onglet (événements / alertes)
+    const evSel = useBulkSelection(events, e => e.eventId)
+    const alSel = useBulkSelection(alerts, a => a.alertId)
 
     const refresh = useCallback(async () => {
         try {
@@ -71,6 +78,49 @@ export default function IboaPage() {
         } finally {
             setTesting(false)
         }
+    }
+
+    // ── Suppressions (événements / alertes) ─────────────────────────────────
+    const deleteEvents = async (ids: string[], all = false) => {
+        setDeleting(true)
+        try {
+            const { count } = all ? await iboaService.deleteAllEvents() : await iboaService.deleteEvents(ids)
+            setEvents(prev => all ? [] : prev.filter(e => !ids.includes(e.eventId)))
+            evSel.clear()
+            Swal.fire('Supprimé', `${count} événement(s) supprimé(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.message || 'Suppression impossible.', 'error')
+        } finally { setDeleting(false) }
+    }
+
+    const deleteAlerts = async (ids: string[], all = false) => {
+        setDeleting(true)
+        try {
+            const { count } = all ? await iboaService.deleteAllAlerts() : await iboaService.deleteAlerts(ids)
+            setAlerts(prev => all ? [] : prev.filter(a => !ids.includes(a.alertId)))
+            alSel.clear()
+            Swal.fire('Supprimé', `${count} alerte(s) supprimée(s).`, 'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.message || 'Suppression impossible.', 'error')
+        } finally { setDeleting(false) }
+    }
+
+    const deleteOneEvent = async (e: IboaEvent) => {
+        const res = await Swal.fire({
+            title: 'Supprimer cet événement ?', text: e.eventType, icon: 'warning',
+            showCancelButton: true, confirmButtonText: 'Supprimer', cancelButtonText: 'Annuler',
+            confirmButtonColor: '#dc3545',
+        })
+        if (res.isConfirmed) await deleteEvents([e.eventId])
+    }
+
+    const deleteOneAlert = async (a: IboaAlert) => {
+        const res = await Swal.fire({
+            title: 'Supprimer cette alerte ?', text: a.eventType || a.deliveryChannel, icon: 'warning',
+            showCancelButton: true, confirmButtonText: 'Supprimer', cancelButtonText: 'Annuler',
+            confirmButtonColor: '#dc3545',
+        })
+        if (res.isConfirmed) await deleteAlerts([a.alertId])
     }
 
     const savePrefs = async () => {
@@ -164,38 +214,70 @@ export default function IboaPage() {
                     <Tabs defaultActiveKey="events" className="mb-3">
                         {/* ── Flux événements ───────────────────────── */}
                         <Tab eventKey="events" title={<span><IconifyIcon icon="ri:pulse-line" className="me-1" />Événements ({events.length})</span>}>
+                            <div className="d-flex gap-2 mb-2 justify-content-end">
+                                <BulkDeleteButtons
+                                    selectedCount={evSel.count} totalCount={events.length}
+                                    label="événement(s)" deleting={deleting}
+                                    onDeleteSelected={() => deleteEvents(evSel.selectedIds)}
+                                    onDeleteAll={() => deleteEvents([], true)}
+                                />
+                            </div>
                             <Card>
                                 <div className="table-responsive">
                                     <Table hover size="sm" className="align-middle mb-0">
                                         <thead className="table-light">
                                             <tr>
+                                                <th style={{ width: 34 }}>
+                                                    <input type="checkbox" className="form-check-input"
+                                                        checked={evSel.allSelected} onChange={evSel.toggleAll}
+                                                        title="Tout sélectionner" />
+                                                </th>
                                                 <th>Heure</th><th>Type</th><th>Source</th>
                                                 <th>Sévérité</th><th>Score</th><th>Classification</th><th />
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {events.length === 0 && (
-                                                <tr><td colSpan={7} className="text-center text-muted py-4">
+                                                <tr><td colSpan={8} className="text-center text-muted py-4">
                                                     Aucun événement reçu — terminez une mission, changez le statut d&apos;un véhicule
                                                     ou cliquez «&nbsp;Simuler une panne critique&nbsp;»
                                                 </td></tr>
                                             )}
                                             {events.map(e => (
                                                 <Fragment key={e.eventId}>
-                                                    <tr style={{ cursor: 'pointer' }}
-                                                        onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
-                                                        <td className="small">{new Date(e.timestamp).toLocaleString('fr-FR', {
-                                                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
-                                                        <td className="small fw-semibold">{e.eventType.replace('xpark.', '')}</td>
+                                                    <tr>
+                                                        <td onClick={ev => ev.stopPropagation()}>
+                                                            <input type="checkbox" className="form-check-input"
+                                                                checked={evSel.isSelected(e.eventId)}
+                                                                onChange={() => evSel.toggle(e.eventId)} />
+                                                        </td>
+                                                        <td className="small" style={{ cursor: 'pointer' }}
+                                                            onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
+                                                            {new Date(e.timestamp).toLocaleString('fr-FR', {
+                                                                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                        </td>
+                                                        <td className="small fw-semibold" style={{ cursor: 'pointer' }}
+                                                            onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
+                                                            {e.eventType.replace('xpark.', '')}
+                                                        </td>
                                                         <td className="small text-muted">{e.sourceService}</td>
                                                         <td><Badge bg="light" text="dark">{e.severity}</Badge></td>
                                                         <td className="fw-bold">{e.criticityScore}</td>
                                                         <td><Badge bg={CLASS_COLORS[e.classification]}>{e.classification}</Badge></td>
-                                                        <td><IconifyIcon icon="ri:arrow-down-s-line" className="text-muted" /></td>
+                                                        <td className="text-end text-nowrap">
+                                                            <Button variant="link" size="sm" className="p-0 me-2 text-muted"
+                                                                onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
+                                                                <IconifyIcon icon="ri:arrow-down-s-line" />
+                                                            </Button>
+                                                            <Button variant="link" size="sm" className="p-0 text-danger" title="Supprimer"
+                                                                disabled={deleting} onClick={() => deleteOneEvent(e)}>
+                                                                <IconifyIcon icon="ri:delete-bin-line" />
+                                                            </Button>
+                                                        </td>
                                                     </tr>
                                                     {expandedEvent === e.eventId && (
                                                         <tr>
-                                                            <td colSpan={7} className="bg-light small">
+                                                            <td colSpan={8} className="bg-light small">
                                                                 <strong>Calcul criticité :</strong> {e.scoreBreakdown?.join(' · ')}<br />
                                                                 <strong>Données :</strong> <code>{JSON.stringify(e.eventData)}</code>
                                                             </td>
@@ -211,21 +293,39 @@ export default function IboaPage() {
 
                         {/* ── Alertes envoyées ──────────────────────── */}
                         <Tab eventKey="alerts" title={<span><IconifyIcon icon="ri:notification-3-line" className="me-1" />Alertes ({alerts.length})</span>}>
+                            <div className="d-flex gap-2 mb-2 justify-content-end">
+                                <BulkDeleteButtons
+                                    selectedCount={alSel.count} totalCount={alerts.length}
+                                    label="alerte(s)" deleting={deleting}
+                                    onDeleteSelected={() => deleteAlerts(alSel.selectedIds)}
+                                    onDeleteAll={() => deleteAlerts([], true)}
+                                />
+                            </div>
                             <Card>
                                 <div className="table-responsive">
                                     <Table hover size="sm" className="align-middle mb-0">
                                         <thead className="table-light">
                                             <tr>
+                                                <th style={{ width: 34 }}>
+                                                    <input type="checkbox" className="form-check-input"
+                                                        checked={alSel.allSelected} onChange={alSel.toggleAll}
+                                                        title="Tout sélectionner" />
+                                                </th>
                                                 <th>Heure</th><th>Événement</th><th>Canal</th>
-                                                <th>Destinataire</th><th>Statut</th><th>Score</th>
+                                                <th>Destinataire</th><th>Statut</th><th>Score</th><th />
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {alerts.length === 0 && (
-                                                <tr><td colSpan={6} className="text-center text-muted py-4">Aucune alerte émise</td></tr>
+                                                <tr><td colSpan={8} className="text-center text-muted py-4">Aucune alerte émise</td></tr>
                                             )}
                                             {alerts.map(a => (
                                                 <tr key={a.alertId} title={a.failureReason ?? a.messageContent.slice(0, 300)}>
+                                                    <td>
+                                                        <input type="checkbox" className="form-check-input"
+                                                            checked={alSel.isSelected(a.alertId)}
+                                                            onChange={() => alSel.toggle(a.alertId)} />
+                                                    </td>
                                                     <td className="small">{new Date(a.sentAt ?? a.createdAt).toLocaleString('fr-FR', {
                                                         day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
                                                     <td className="small fw-semibold">{(a.eventType ?? '').replace('xpark.', '')}</td>
@@ -236,6 +336,12 @@ export default function IboaPage() {
                                                     <td className="small text-muted">{a.recipient || '—'}</td>
                                                     <td><Badge bg={STATUS_COLORS[a.alertStatus] ?? 'secondary'}>{a.alertStatus}</Badge></td>
                                                     <td className="fw-bold">{a.criticityScore}</td>
+                                                    <td className="text-end">
+                                                        <Button variant="link" size="sm" className="p-0 text-danger" title="Supprimer"
+                                                            disabled={deleting} onClick={() => deleteOneAlert(a)}>
+                                                            <IconifyIcon icon="ri:delete-bin-line" />
+                                                        </Button>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>

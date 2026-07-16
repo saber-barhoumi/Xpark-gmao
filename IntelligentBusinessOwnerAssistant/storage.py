@@ -201,6 +201,36 @@ def recent_alerts(limit: int = 50) -> List[dict]:
                 for r in cur.fetchall()]
 
 
+def delete_events(ids: List[str]) -> int:
+    """Suppression ciblée d'événements (dashboard). Les alertes liées restent
+    (elles portent leur propre historique d'envoi)."""
+    if not ids:
+        return 0
+    with _conn() as conn, conn.cursor() as cur:
+        cur.execute('DELETE FROM "IboaEvents" WHERE "EventId" = ANY(%s)', (ids,))
+        return cur.rowcount
+
+
+def delete_all_events() -> int:
+    with _conn() as conn, conn.cursor() as cur:
+        cur.execute('DELETE FROM "IboaEvents"')
+        return cur.rowcount
+
+
+def delete_alerts(ids: List[str]) -> int:
+    if not ids:
+        return 0
+    with _conn() as conn, conn.cursor() as cur:
+        cur.execute('DELETE FROM "IboaAlerts" WHERE "AlertId" = ANY(%s)', (ids,))
+        return cur.rowcount
+
+
+def delete_all_alerts() -> int:
+    with _conn() as conn, conn.cursor() as cur:
+        cur.execute('DELETE FROM "IboaAlerts"')
+        return cur.rowcount
+
+
 def alerts_sent_today_count() -> int:
     with _conn() as conn, conn.cursor() as cur:
         cur.execute(

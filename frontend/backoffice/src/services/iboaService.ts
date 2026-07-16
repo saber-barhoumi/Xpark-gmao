@@ -96,6 +96,42 @@ export const iboaService = {
         return res.json();
     },
 
+    /** Suppression ciblée d'événements (sélection du dashboard) */
+    deleteEvents: async (ids: string[]): Promise<{ count: number }> => {
+        const res = await fetch(`${IBOA_API}/events/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids }),
+        });
+        if (!res.ok) throw new Error(`IBOA events/delete → HTTP ${res.status}`);
+        return res.json();
+    },
+
+    /** Purge complète du flux d'événements */
+    deleteAllEvents: async (): Promise<{ count: number }> => {
+        const res = await fetch(`${IBOA_API}/events`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`IBOA DELETE events → HTTP ${res.status}`);
+        return res.json();
+    },
+
+    /** Suppression ciblée d'alertes (sélection du dashboard) */
+    deleteAlerts: async (ids: string[]): Promise<{ count: number }> => {
+        const res = await fetch(`${IBOA_API}/alerts/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids }),
+        });
+        if (!res.ok) throw new Error(`IBOA alerts/delete → HTTP ${res.status}`);
+        return res.json();
+    },
+
+    /** Purge complète de l'historique d'alertes */
+    deleteAllAlerts: async (): Promise<{ count: number }> => {
+        const res = await fetch(`${IBOA_API}/alerts`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`IBOA DELETE alerts → HTTP ${res.status}`);
+        return res.json();
+    },
+
     dailyPdfUrl: `${IBOA_API}/reports/daily.pdf`,
     dailyExcelUrl: `${IBOA_API}/reports/daily.xlsx`,
 };
