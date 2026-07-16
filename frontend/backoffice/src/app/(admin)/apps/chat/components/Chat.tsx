@@ -296,7 +296,7 @@ const Chat = ({
           <div className="chat-sidebar__avatar-wrap">
             <div className="chat-sidebar__avatar">
               {currentUser?.photo || currentUser?.photoUrl ? (
-                <img src={`${API_URL}${currentUser.photo || currentUser.photoUrl}`} alt="avatar" />
+                <img src={`${API_URL}${currentUser.photo || currentUser.photoUrl}`} alt="avatar"  onError={(e) => { e.currentTarget.style.display = 'none' }} />
               ) : (
                 <span>{currentUser ? getFirstTwoLetters(`${currentUser.prenom} ${currentUser.nom}`) : 'ME'}</span>
               )}
@@ -662,7 +662,7 @@ const ConvItem = ({
           {isGroup ? (
             <IconifyIcon icon="tabler:users" style={{ fontSize: 20 }} />
           ) : photo ? (
-            <img src={`${API_URL}${photo}`} alt="avatar" />
+            <img src={`${API_URL}${photo}`} alt="avatar"  onError={(e) => { e.currentTarget.style.display = 'none' }} />
           ) : (
             <span>{getFirstTwoLetters(displayName)}</span>
           )}
@@ -712,7 +712,7 @@ const ContactSearchItem = ({ user, isOnline, onStart }: { user: ChatUtilisateur;
       <div className="chat-contact-item__avatar-wrap">
         <div className="chat-contact-item__avatar">
           {photo ? (
-            <img src={`${API_URL}${photo}`} alt="avatar" />
+            <img src={`${API_URL}${photo}`} alt="avatar"  onError={(e) => { e.currentTarget.style.display = 'none' }} />
           ) : (
             <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>
           )}
@@ -802,7 +802,7 @@ const NewGroupModal = ({
               <div key={user.idUtilisateur} onClick={() => toggle(user)} className="chat-modal__user-item">
                 <div className="chat-modal__user-avatar-wrap">
                   <div className="chat-modal__user-avatar">
-                    {photo ? <img src={`${API_URL}${photo}`} alt="avatar" /> : <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>}
+                    {photo ? <img src={`${API_URL}${photo}`} alt="avatar"  onError={(e) => { e.currentTarget.style.display = 'none' }} /> : <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>}
                   </div>
                   <span className={`chat-modal__user-online${online ? ' chat-modal__user-online--on' : ''}`} />
                 </div>
@@ -878,7 +878,7 @@ const NewContactModal = ({
               <div key={user.idUtilisateur} className="d-flex align-items-center gap-3 py-2" style={{ borderBottom: '1px solid #e4e6eb' }}>
                 <div className="chat-modal__user-avatar-wrap">
                   <div className="chat-modal__user-avatar-lg">
-                    {photo ? <img src={`${API_URL}${photo}`} alt="avatar" /> : <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>}
+                    {photo ? <img src={`${API_URL}${photo}`} alt="avatar"  onError={(e) => { e.currentTarget.style.display = 'none' }} /> : <span style={{ textTransform: 'uppercase' }}>{getFirstTwoLetters(`${user.prenom} ${user.nom}`)}</span>}
                   </div>
                   <span className={`chat-modal__user-online-lg${online ? ' chat-modal__user-online-lg--on' : ''}`} />
                 </div>

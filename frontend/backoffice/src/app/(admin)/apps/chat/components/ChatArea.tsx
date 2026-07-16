@@ -129,7 +129,7 @@ const MessageBubble: React.FC<BubbleProps> = ({ message, currentUserId, onContex
 
           {/* Image */}
           {message.typeMessage === 'IMAGE' && message.cheminFichier && (
-            <img src={`${API_URL}${message.cheminFichier}`} alt="image" className="chat-msg__image" />
+            <img src={`${API_URL}${message.cheminFichier}`} alt="image" className="chat-msg__image"  onError={(e) => { e.currentTarget.style.display = 'none' }} />
           )}
 
           {/* File */}
@@ -393,7 +393,7 @@ const ChatArea = ({
                   const other = conversation.participants.find(p => normalizeId(p.utilisateurId) !== normalizeId(currentUserId))?.utilisateur;
                   const photo = other?.photo || other?.photoUrl;
                   return photo ? (
-                    <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }} />
+                    <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }}  onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   ) : (
                     <span className="fw-semibold">{getFirstTwoLetters(displayName)}</span>
                   );
@@ -581,7 +581,7 @@ const ChatArea = ({
                         }}
                       >
                         <div className={`chat-forward-modal__avatar chat-forward-modal__avatar--${isGroup ? 'group' : 'private'}`}>
-                          {photo ? <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }} /> : initials}
+                          {photo ? <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }}  onError={(e) => { e.currentTarget.style.display = 'none' }} /> : initials}
                         </div>
                         <span className="chat-forward-modal__name">{name}</span>
                       </button>

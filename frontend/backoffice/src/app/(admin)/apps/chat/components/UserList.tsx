@@ -75,7 +75,7 @@ const UserList = ({ onlineUsers, onStartChat }: UserListProps) => {
                 <div className="position-relative me-2 flex-shrink-0">
                   <div className="avatar-sm rounded-circle bg-info text-white d-flex align-items-center justify-content-center">
                     {photo ? (
-                      <img src={`${API_URL}${photo}`} alt={displayName} className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }} />
+                      <img src={`${API_URL}${photo}`} alt={displayName} className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }}  onError={(e) => { e.currentTarget.style.display = 'none' }} />
                     ) : (
                       <span className="fw-semibold user-list__avatar-font">
                         {getFirstTwoLetters(displayName)}

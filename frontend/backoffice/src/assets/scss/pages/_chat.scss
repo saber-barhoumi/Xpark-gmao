@@ -5,7 +5,7 @@
 //
 // Fallback values for Bootstrap variables (used when this file is compiled
 // standalone via Chat.tsx direct import — !default is a no-op if already defined)
-$primary: #0d6efd !default;
+$primary: #C11425 !default;
 $success: #198754 !default;
 $danger:  #dc3545 !default;
 $prefix:  bs- !default;
@@ -13,17 +13,17 @@ $prefix:  bs- !default;
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. PALETTE (local SCSS variables)
 // ─────────────────────────────────────────────────────────────────────────────
-$c-accent:       #0d6efd;
-$c-accent-soft:  #e8f0fe;
+$c-accent:       #C11425;   // rouge XPARK
+$c-accent-soft:  #fdeaec;
 $c-hover:        #f0f2f5;
-$c-active-bg:    #dbeafe;
+$c-active-bg:    #fbe3e6;
 $c-text:         #050505;
 $c-subtext:      #65676b;
 $c-border:       #e4e6eb;
 $c-online:       #31a24c;
 $c-offline:      #ccd0d5;
-$c-avatar-bg:    rgba(13, 110, 253, .13);
-$c-avatar-color: #0d6efd;
+$c-avatar-bg:    rgba(193, 20, 37, .12);
+$c-avatar-color: #C11425;
 $c-group-bg:     rgba(255, 193, 7, .13);
 $c-group-color:  #ffc107;
 
@@ -36,8 +36,8 @@ $c-group-color:  #ffc107;
 }
 
 @keyframes callPulse {
-  0%, 100% { box-shadow: 0 0 0 8px  rgba(13, 110, 253, .2),  0 0 0 16px rgba(13, 110, 253, .1); }
-  50%       { box-shadow: 0 0 0 14px rgba(13, 110, 253, .15), 0 0 0 28px rgba(13, 110, 253, .05); }
+  0%, 100% { box-shadow: 0 0 0 8px  rgba(193, 20, 37, .2),  0 0 0 16px rgba(193, 20, 37, .1); }
+  50%       { box-shadow: 0 0 0 14px rgba(193, 20, 37, .15), 0 0 0 28px rgba(193, 20, 37, .05); }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -866,7 +866,7 @@ $c-group-color:  #ffc107;
     height: 32px;
     border-radius: 50%;
     background: rgba(13, 110, 253, .13);
-    color: #0d6efd;
+    color: $c-accent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -895,18 +895,19 @@ $c-group-color:  #ffc107;
 
   &__bubble {
     padding: 9px 14px;
-    border-radius: 18px 18px 18px 4px;
-    background: #f0f2f5;
+    border-radius: 16px 16px 16px 5px;
+    background: #f2f4f7;
     color: #212529;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+    box-shadow: 0 1px 2px rgba(15, 27, 36, .07);
     cursor: context-menu;
     word-break: break-word;
     user-select: text;
 
     &--mine {
-      border-radius: 18px 18px 4px 18px;
-      background: #0d6efd;
+      border-radius: 16px 16px 5px 16px;
+      background: linear-gradient(135deg, #C11425 0%, #e04250 100%);
       color: #fff;
+      box-shadow: 0 2px 6px rgba(193, 20, 37, .25);
     }
   }
 
@@ -917,7 +918,7 @@ $c-group-color:  #ffc107;
     opacity: .85;
 
     &--mine  { border-left: 3px solid rgba(255, 255, 255, .5); }
-    &--their { border-left: 3px solid #0d6efd; }
+    &--their { border-left: 3px solid $c-accent; }
 
     &-name {
       font-size: 10px;
@@ -925,7 +926,7 @@ $c-group-color:  #ffc107;
       margin-bottom: 1px;
 
       &--mine  { color: rgba(255, 255, 255, .8); }
-      &--their { color: #0d6efd; }
+      &--their { color: $c-accent; }
     }
 
     &-text {
@@ -1183,7 +1184,7 @@ $c-group-color:  #ffc107;
   padding: 8px 14px;
   background: var(--bs-light, #f8f9fa);
   border-top: 1px solid var(--bs-border-color, #dee2e6);
-  border-left: 3px solid var(--bs-primary, #0d6efd);
+  border-left: 3px solid var(--bs-primary, $c-accent);
   margin: 0 12px;
   border-radius: 6px 6px 0 0;
 
@@ -1251,7 +1252,7 @@ $c-group-color:  #ffc107;
 
     &--mine {
       border-radius: 18px 18px 4px 18px;
-      background: #0d6efd;
+      background: $c-accent;
       color: #fff;
     }
 
@@ -1269,7 +1270,7 @@ $c-group-color:  #ffc107;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(13, 110, 253, .1);
+    background: rgba(193, 20, 37, .1);
 
     &--mine   { background: rgba(255, 255, 255, .18); }
     &--missed { background: rgba(220, 53, 69, .12); }
@@ -1277,7 +1278,7 @@ $c-group-color:  #ffc107;
 
   &__icon {
     font-size: 22px;
-    color: #0d6efd;
+    color: $c-accent;
 
     &--mine   { color: #fff; }
     &--missed { color: #dc3545; }
@@ -1358,7 +1359,7 @@ $c-group-color:  #ffc107;
     width: 96px;
     height: 96px;
     border-radius: 50%;
-    background: #0d6efd;
+    background: $c-accent;
     color: #fff;
     display: flex;
     align-items: center;
@@ -1369,7 +1370,7 @@ $c-group-color:  #ffc107;
 
     &--pulse {
       animation: callPulse 2s infinite;
-      box-shadow: 0 0 0 8px rgba(13, 110, 253, .2), 0 0 0 16px rgba(13, 110, 253, .1);
+      box-shadow: 0 0 0 8px rgba(193, 20, 37, .2), 0 0 0 16px rgba(193, 20, 37, .1);
     }
   }
 
@@ -1582,7 +1583,7 @@ $c-group-color:  #ffc107;
   &__file-icon {
     font-size: 22px;
     flex-shrink: 0;
-    color: #0d6efd;
+    color: $c-accent;
   }
 
   &__file-name {
@@ -1599,7 +1600,7 @@ $c-group-color:  #ffc107;
     background: var(--bs-light, #f8f9fa);
     margin-bottom: 6px;
     font-size: 13px;
-    border-left: 3px solid #0d6efd;
+    border-left: 3px solid $c-accent;
   }
 
   &__pinned-author {
@@ -1689,7 +1690,7 @@ $c-group-color:  #ffc107;
     transition: background .2s;
     background: #dee2e6;
 
-    &--on { background: #0d6efd; }
+    &--on { background: $c-accent; }
   }
 
   &__toggle-thumb {

@@ -175,6 +175,11 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwaggerUI();
 }
 
+// Avatars & fichiers uploadés (/uploads/... — volume partagé ./data/uploads).
+// Nécessaire depuis la migration microservices : le monolithe servait ces
+// fichiers ; ici UsersController écrit dans /app/wwwroot mais rien ne servait.
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ErrorHandlingMiddleware>();

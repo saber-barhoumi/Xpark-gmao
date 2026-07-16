@@ -77,7 +77,7 @@ export const ConversationInfoPanel: React.FC<InfoPanelProps> = ({
                 if (isGroup) return <IconifyIcon icon="tabler:users" style={{ fontSize: 32 }} />;
                 const photo = otherParticipant?.utilisateur?.photo || otherParticipant?.utilisateur?.photoUrl;
                 return photo
-                  ? <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }} />
+                  ? <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }}  onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   : getFirstTwoLetters(displayName);
               })()}
             </div>
@@ -103,7 +103,7 @@ export const ConversationInfoPanel: React.FC<InfoPanelProps> = ({
               <div className="info-panel__media-grid">
                 {sharedImages.slice(0, 9).map(m => (
                   <a key={m.idMessage} href={`${API_URL}${m.cheminFichier}`} target="_blank" rel="noopener noreferrer">
-                    <img src={`${API_URL}${m.cheminFichier}`} alt="" className="info-panel__media-img" />
+                    <img src={`${API_URL}${m.cheminFichier}`} alt="" className="info-panel__media-img"  onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   </a>
                 ))}
               </div>
@@ -166,7 +166,7 @@ export const ConversationInfoPanel: React.FC<InfoPanelProps> = ({
                         <div className="info-panel__p-avatar-wrap">
                           <div className="info-panel__p-avatar">
                             {photo
-                              ? <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }} />
+                              ? <img src={`${API_URL}${photo}`} alt="avatar" className="h-100 w-100 rounded-circle" style={{ objectFit: 'cover' }}  onError={(e) => { e.currentTarget.style.display = 'none' }} />
                               : getFirstTwoLetters(name)}
                           </div>
                           <span className={`info-panel__p-online${online ? ' info-panel__p-online--on' : ''}`} />

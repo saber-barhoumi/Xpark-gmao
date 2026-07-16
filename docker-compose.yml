@@ -76,7 +76,7 @@ services:
     ports:
       - "5001:80"
     volumes:
-      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+      - ./data/uploads:/app/wwwroot/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -159,7 +159,7 @@ services:
     ports:
       - "5004:80"
     volumes:
-      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+      - ./data/uploads:/app/wwwroot/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -242,7 +242,7 @@ services:
     ports:
       - "5007:80"
     volumes:
-      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+      - ./data/uploads:/app/wwwroot/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -268,7 +268,7 @@ services:
     ports:
       - "5000:80"
     volumes:
-      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/app/wwwroot/uploads
+      - ./data/uploads:/app/wwwroot/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -379,7 +379,7 @@ services:
     ports:
       - "3000:80"
     volumes:
-      - ./backend/src/XparkGMAO.API/wwwroot/uploads:/usr/share/nginx/html/uploads:ro
+      - ./data/uploads:/usr/share/nginx/html/uploads:ro
     depends_on:
       - nginx
     networks:

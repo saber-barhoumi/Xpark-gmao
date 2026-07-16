@@ -94,7 +94,8 @@ const LeftSideBar = () => {
         <div className="sidenav-user">
           <Dropdown className="dropdown-center text-center">
             <DropdownToggle as={'a'} className="topbar-link text-reset drop-arrow-none px-2" data-bs-toggle="dropdown" type="button" aria-haspopup="false" aria-expanded="false">
-              <img src={avatarSrc} width={46} height={46} className="rounded-circle" style={{ objectFit: 'cover' }} alt="user-image" />
+              <img src={avatarSrc} width={46} height={46} className="rounded-circle" style={{ objectFit: 'cover' }} alt="user-image"
+                onError={(e) => { e.currentTarget.src = avatar1 }} />
               <span className="d-flex gap-1 sidenav-user-name my-2">
                 <span>
                   <span className="mb-0 fw-semibold lh-base fs-15">{displayName}</span>

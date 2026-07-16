@@ -6,3 +6,11 @@
 .env.*.local
 *.env
 !.env.example
+data/uploads/*
+!data/uploads/.gitkeep
+!data/uploads/avatars
+data/uploads/avatars/*
+!data/uploads/avatars/.gitkeep
+!data/uploads/chat
+data/uploads/chat/*
+!data/uploads/chat/.gitkeep

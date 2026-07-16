@@ -40,6 +40,12 @@ export const MENU_ITEMS: MenuItemType[] = [
     badge: { text: 'IA', variant: 'success' },
   },
   {
+    key: 'chat',
+    label: 'Messagerie',
+    icon: 'tabler:message',
+    url: '/apps/chat',
+  },
+  {
     key: 'taches',
     label: 'Tâches',
     icon: 'tabler:layout-kanban',
@@ -171,12 +177,6 @@ export const MENU_ITEMS: MenuItemType[] = [
     label: 'Sécurité (MFA)',
     icon: 'ri:shield-keyhole-line',
     url: '/security',
-  },
-  {
-    key: 'chat',
-    label: 'Messagerie (Chat)',
-    icon: 'tabler:message',
-    url: '/apps/chat',
   },
   {
     key: 'email',
