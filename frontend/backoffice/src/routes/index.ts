@@ -29,7 +29,7 @@ const ServiceUnavail   = lazy(() => import('@/app/(other)/errors/service-unavail
 
 // ─── Admin Pages ─────────────────────────────────────────────────────────────
 const Dashboard        = lazy(() => import('@/app/(admin)/dashboard/page'))
-// /analytics est fusionné dans le Dashboard (redirection conservée pour les favoris)
+const Analytics        = lazy(() => import('@/app/(admin)/analytics/page'))
 const Alertes          = lazy(() => import('@/app/(admin)/alertes/page'))
 
 // Apps
@@ -203,7 +203,7 @@ export const APP_ROUTES: AppRoute[] = [
 
   // Dashboard & Analytics
   { name: 'dashboard',   path: '/dashboard',  element: createElement(Dashboard) },
-  { name: 'analytics',   path: '/analytics',  element: createElement(Navigate, { to: '/dashboard', replace: true }) },
+  { name: 'analytics',   path: '/analytics',  element: createElement(Analytics) },
   { name: 'alertes',     path: '/alertes',    element: createElement(Alertes) },
 
   // Apps

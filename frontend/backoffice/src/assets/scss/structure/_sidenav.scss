@@ -198,7 +198,9 @@ html[data-sidenav-size="condensed"]:not([data-layout="topnav"]) {
     }
 
     .sidenav-menu {
-        position: absolute;
+        // fixed (et non absolute) : la sidebar reste en place, seul le contenu
+        // défile — même comportement que le mode « default »
+        position: fixed;
         width: $sidenav-width-sm;
 
         .simplebar-mask,
