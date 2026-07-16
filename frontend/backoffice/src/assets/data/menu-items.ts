@@ -40,19 +40,23 @@ export const MENU_ITEMS: MenuItemType[] = [
     badge: { text: 'IA', variant: 'success' },
   },
   {
-    key: 'kanban',
-    label: 'Tâches (Kanban)',
+    key: 'taches',
+    label: 'Tâches',
     icon: 'tabler:layout-kanban',
-    url: '/tasks/kanban',
+    children: [
+      { key: 'kanban', label: 'Kanban', url: '/tasks/kanban', parentKey: 'taches' },
+      { key: 'view-details', label: 'Vue détaillée', url: '/tasks/view-details', parentKey: 'taches' },
+    ],
   },
 
   // ── Clients & Ventes ────────────────────────────────────────
   { key: 'sec-clients', label: 'Clients & Ventes', isTitle: true },
   {
     key: 'demandes-transport',
-    label: 'Devis & Réservations',
+    label: 'Demandes de Transport',
     icon: 'ri:price-tag-3-line',
     url: '/gestion/demandes-transport',
+    badge: { text: 'Devis', variant: 'warning' },
   },
   {
     key: 'contacts',
@@ -109,7 +113,11 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: 'factures',
     label: 'Factures',
     icon: 'tabler:invoice',
-    url: '/invoices',
+    children: [
+      { key: 'invoices', label: 'Liste des factures', url: '/invoices', parentKey: 'factures' },
+      { key: 'create-invoice', label: 'Créer une facture', url: '/invoices/create-invoice', parentKey: 'factures' },
+      { key: 'view-invoice', label: 'Aperçu facture', url: '/invoices/view-invoice', parentKey: 'factures' },
+    ],
   },
   {
     key: 'carburant',
@@ -166,9 +174,29 @@ export const MENU_ITEMS: MenuItemType[] = [
   },
   {
     key: 'chat',
-    label: 'Chat',
+    label: 'Messagerie (Chat)',
     icon: 'tabler:message',
     url: '/apps/chat',
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    icon: 'tabler:mailbox',
+    url: '/apps/email',
+  },
+
+  // ── Pages complémentaires (existantes, usage occasionnel) ───
+  { key: 'sec-autres', label: 'Autres', isTitle: true },
+  {
+    key: 'autres-pages',
+    label: 'Autres pages',
+    icon: 'tabler:package',
+    children: [
+      { key: 'projects', label: 'Projets', url: '/apps/Projects', parentKey: 'autres-pages' },
+      { key: 'file-manager', label: 'Gestionnaire de fichiers', url: '/apps/file-manager', parentKey: 'autres-pages' },
+      { key: 'widgets', label: 'Widgets', url: '/wallet', parentKey: 'autres-pages' },
+      { key: 'faq', label: 'FAQ / Support', url: '/pages/faq', parentKey: 'autres-pages' },
+    ],
   },
 ]
 
