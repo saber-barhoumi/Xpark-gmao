@@ -1,6 +1,6 @@
 """Small talk — les salutations ne doivent JAMAIS partir dans le RAG."""
-from app.rag.language import detect_language
-from app.rag.smalltalk import detect_intent, reply_smalltalk
+from app.agent.language import detect_language
+from app.agent.smalltalk import detect_intent, reply_smalltalk
 
 
 def test_greetings_all_languages():

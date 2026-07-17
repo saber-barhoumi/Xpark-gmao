@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from app.config import get_settings
 from app.rag.embeddings import EmbeddingService
-from app.rag.language import expand_arabizi
+from app.agent.language import expand_arabizi
 from app.rag.lexical import LexicalIndex
 from app.rag.vectorstore import QdrantStore
 

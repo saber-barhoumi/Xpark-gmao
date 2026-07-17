@@ -1,13 +1,18 @@
-# 🤖 Ayshaa — Assistante virtuelle RAG de XPARK
+# 🤖 Ayshaa — Agent IA de XPARK (LLM + RAG + Tool Calling)
 
-Ayshaa est l'assistante conversationnelle du site vitrine XPARK
-(http://localhost:3001). Elle répond **en français, anglais et tounsi
-(darija)**, **par texte ou par la voix**, à toutes les questions sur XPARK :
-services, tarifs, réservation, suivi de livraison, factures, compte client,
-processus internes (chauffeurs, techniciens, rôles)…
+Ayshaa est l'**employée virtuelle** de XPARK (http://localhost:3001). Elle
+répond **en français, anglais et tounsi (darija)**, **par texte ou par la
+voix** — et ne se contente plus de la connaissance documentaire : connectée
+aux APIs de l'entreprise, elle consulte **vos missions, la position GPS de
+votre camion, vos devis, votre profil**, estime un **prix de transport** via
+l'IA de tarification et déclenche la **réinitialisation de mot de passe**.
 
-Elle repose sur une architecture **RAG (Retrieval-Augmented Generation)**
-complète, développée comme **microservice indépendant** dans ce dossier.
+Architecture **agent** : un routeur d'intentions décide pour chaque message
+qui répond — le LLM (conversation), le **RAG** (connaissance XPARK, Qdrant +
+BM25) ou un **outil** (APIs temps réel, avec les droits de l'utilisateur
+connecté). Voir [docs/agent-architecture.md](docs/agent-architecture.md),
+[docs/tool-calling.md](docs/tool-calling.md) et
+[docs/speech-and-language.md](docs/speech-and-language.md).
 
 ## Démarrage rapide
 

@@ -1,5 +1,5 @@
 """Mémoire de conversation — fenêtre glissante et isolation des sessions."""
-from app.rag.memory import SqliteStore
+from app.memory.store import SqliteStore
 
 
 def _store(tmp_path):

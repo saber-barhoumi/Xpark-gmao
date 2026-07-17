@@ -21,13 +21,13 @@ from app.core.logging import log_event
 from app.core.metrics import CHAT_LATENCY, CHAT_MESSAGES, CHAT_NO_ANSWER
 from app.rag.chunking import load_knowledge_base
 from app.rag.embeddings import EmbeddingService
-from app.rag.language import detect_language
+from app.agent.language import detect_language
 from app.rag.lexical import LexicalIndex
-from app.rag.memory import SqliteStore
-from app.rag.prompts import GREETINGS, NO_ANSWER, SUGGESTIONS
-from app.rag.providers import ExtractiveProvider, OllamaProvider
+from app.memory.store import SqliteStore
+from app.prompts.library import GREETINGS, NO_ANSWER, SUGGESTIONS
+from app.llm.providers import ExtractiveProvider, OllamaProvider
 from app.rag.retriever import HybridRetriever
-from app.rag.smalltalk import detect_intent, reply_smalltalk, strip_greeting_prefix
+from app.agent.smalltalk import detect_intent, reply_smalltalk, strip_greeting_prefix
 from app.rag.vectorstore import QdrantStore
 
 log = logging.getLogger("ayshaa.pipeline")

@@ -1,5 +1,14 @@
 # Architecture d'Ayshaa
 
+> **Depuis la refonte « agent » (juillet 2026)**, ce document décrit le socle
+> RAG historique. La couche agent au-dessus (routeur d'intentions, Tool
+> Calling vers les APIs XPARK, voix améliorée) est documentée dans :
+> [agent-architecture.md](agent-architecture.md) ·
+> [tool-calling.md](tool-calling.md) ·
+> [speech-and-language.md](speech-and-language.md).
+> L'entrée de l'API est désormais `AyshaaAgent` (app/agent/orchestrator.py),
+> qui délègue au pipeline ci-dessous pour la route « connaissance ».
+
 ## 1. Diagramme global
 
 ```mermaid

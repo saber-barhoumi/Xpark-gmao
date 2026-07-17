@@ -20,9 +20,15 @@ export async function getGreeting(lang = "fr") {
  */
 export async function chatStream(message, sessionId, handlers = {}) {
     try {
+        // JWT du portail (s'il existe) : donne à Ayshaa les capacités de
+        // l'utilisateur — « mes missions », « où est mon camion »… (Tool Calling)
+        const token = typeof localStorage !== "undefined" ? localStorage.getItem("xpark_client_token") : null
         const res = await fetch(`${AYSHAA_API}/api/v1/chat/stream`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
             body: JSON.stringify({ message, session_id: sessionId || null }),
         })
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)

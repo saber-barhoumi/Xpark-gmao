@@ -25,6 +25,8 @@ class ChatResponse(BaseModel):
     answer: str
     lang: str
     provider: str
+    intent: str = "rag"                 # smalltalk | tool | rag
+    tool: str | None = None             # nom de l'outil quand intent == "tool"
     sources: list[Source] = []
     suggestions: list[str] = []
 

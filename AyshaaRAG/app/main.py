@@ -21,17 +21,18 @@ from app.core.errors import register_error_handlers
 from app.core.logging import setup_logging
 from app.core.ratelimit import RateLimitMiddleware
 from app.core.security import SecurityHeadersMiddleware
-from app.rag.pipeline import AyshaaPipeline
+from app.agent.orchestrator import AyshaaAgent
 
 log = logging.getLogger("ayshaa.main")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    pipeline = AyshaaPipeline()
-    pipeline.startup_index()
-    app.state.pipeline = pipeline
-    log.info("Ayshaa ready")
+    agent = AyshaaAgent()
+    agent.startup_index()
+    app.state.agent = agent
+    app.state.pipeline = agent          # routes admin/system existantes (health, reindex)
+    log.info("Ayshaa agent ready — RAG + %d outils", len(agent.tools.catalog()))
     yield
 
 
@@ -42,7 +43,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=settings.version,
-        description="Assistante virtuelle RAG de XPARK — trilingue (fr / en / darija).",
+        description="Ayshaa — agent IA de XPARK : LLM + RAG + Tool Calling, trilingue (fr / en / darija).",
         lifespan=lifespan,
     )
 
@@ -50,7 +51,7 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-Admin-Key"],
+        allow_headers=["Content-Type", "X-Admin-Key", "Authorization"],
     )
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)

@@ -17,7 +17,7 @@ import re
 from rank_bm25 import BM25Okapi
 
 from app.rag.chunking import Chunk
-from app.rag.language import normalize_arabic
+from app.agent.language import normalize_arabic
 
 _TOKEN_RE = re.compile(r"[\w؀-ۿ]+")
 

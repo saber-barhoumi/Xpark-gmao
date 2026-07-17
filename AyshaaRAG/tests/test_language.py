@@ -1,5 +1,5 @@
 """Détection de langue — messages courts réels des trois publics."""
-from app.rag.language import detect_language, normalize_arabic
+from app.agent.language import detect_language, normalize_arabic
 
 
 def test_french():

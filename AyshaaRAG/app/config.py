@@ -50,6 +50,14 @@ class Settings(BaseSettings):
     rate_limit_rpm: int = 30        # requêtes chat / minute / IP
     max_message_chars: int = 1000
 
+    # ── Tool Calling — APIs XPARK (noms de services docker-compose par défaut,
+    #    surchargés en local par AYSHAA_*_API_URL=http://localhost:500x) ───────
+    iam_api_url: str = "http://iam-api:80"
+    mission_api_url: str = "http://mission-api:80"
+    fleet_api_url: str = "http://fleet-api:80"
+    pricing_api_url: str = "http://ai-predictor:8000"
+    tools_timeout: int = 8          # s — un outil lent ne doit pas geler le chat
+
     # ── Chemins ──────────────────────────────────────────────────────────────
     knowledge_dir: str = "knowledge"
     data_dir: str = "data"

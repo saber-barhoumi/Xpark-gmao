@@ -28,7 +28,7 @@ import httpx
 
 from app.config import get_settings
 from app.core.metrics import COMPONENT_ERRORS
-from app.rag.prompts import EXTRACTIVE_INTRO, NO_ANSWER, build_llm_messages
+from app.prompts.library import EXTRACTIVE_INTRO, NO_ANSWER, build_llm_messages
 
 log = logging.getLogger("ayshaa.providers")
 

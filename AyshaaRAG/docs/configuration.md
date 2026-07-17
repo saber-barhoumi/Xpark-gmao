@@ -61,6 +61,21 @@ Modèle fourni : `.env.example` (ne jamais committer `.env`).
 | `AYSHAA_RATE_LIMIT_RPM` | `30` | messages chat / minute / IP |
 | `AYSHAA_MAX_MESSAGE_CHARS` | `1000` | longueur maximale d'un message |
 
+### Tool Calling — APIs XPARK (agent)
+
+| Variable | Défaut (docker-compose) | Rôle |
+|---|---|---|
+| `AYSHAA_IAM_API_URL` | `http://iam-api:80` | profil, réinitialisation de mot de passe |
+| `AYSHAA_MISSION_API_URL` | `http://mission-api:80` | missions, devis, suivi GPS |
+| `AYSHAA_FLEET_API_URL` | `http://fleet-api:80` | état de la flotte (stats staff) |
+| `AYSHAA_PRICING_API_URL` | `http://ai-predictor:8000` | estimation de prix (même IA que la réservation) |
+| `AYSHAA_TOOLS_TIMEOUT` | `8` | timeout (s) par appel d'outil |
+
+En développement hors Docker : `AYSHAA_IAM_API_URL=http://localhost:5001`,
+`AYSHAA_MISSION_API_URL=http://localhost:5003`,
+`AYSHAA_FLEET_API_URL=http://localhost:5002`,
+`AYSHAA_PRICING_API_URL=http://localhost:8000`.
+
 ## Côté frontoffice
 
 | Variable | Défaut | Rôle |

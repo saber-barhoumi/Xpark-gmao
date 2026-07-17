@@ -16,7 +16,7 @@ from __future__ import annotations
 import random
 import re
 
-from app.rag.language import normalize_arabic
+from app.agent.language import normalize_arabic
 
 # ── Déclencheurs par intention (fr / en / darija romanisée / arabe) ──────────
 

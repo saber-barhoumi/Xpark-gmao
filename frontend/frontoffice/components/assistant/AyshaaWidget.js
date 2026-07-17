@@ -46,8 +46,12 @@ export default function AyshaaWidget() {
     const [input, setInput] = useState("")
     const [busy, setBusy] = useState(false)
     const [listening, setListening] = useState(false)
-    const [voiceOut, setVoiceOut] = useState(false)
+    // Mode de restitution : "text" (silencieux) | "both" (texte + voix) |
+    // "voice" (voix + micro relancé après la réponse = conversation mains-libres)
+    const [voiceMode, setVoiceMode] = useState("text")
     const sessionRef = useRef(null)
+    const lastLangRef = useRef(null)     // dernière langue détectée par le serveur
+    const startMicRef = useRef(null)     // relance mains-libres (mode « voice »)
     const recognitionRef = useRef(null)
     const voicesRef = useRef([])
     const bottomRef = useRef(null)
@@ -57,6 +61,7 @@ export default function AyshaaWidget() {
         const navLang = (navigator.language || "fr").slice(0, 2)
         setLang(["fr", "en", "ar"].includes(navLang) ? navLang : "fr")
         sessionRef.current = sessionStorage.getItem("ayshaa_session") || null
+        setVoiceMode(localStorage.getItem("ayshaa_voice_mode") || "text")
 
         // Les voix arrivent de façon asynchrone selon les navigateurs
         const loadVoices = () => { voicesRef.current = window.speechSynthesis?.getVoices() || [] }
@@ -104,7 +109,7 @@ export default function AyshaaWidget() {
 
     // ── Synthèse vocale : la voix suit la langue de la RÉPONSE ───────────────
     const speak = useCallback((text, metaLang) => {
-        if (!voiceOut || typeof window === "undefined" || !window.speechSynthesis) return
+        if (voiceMode === "text" || typeof window === "undefined" || !window.speechSynthesis) return
         window.speechSynthesis.cancel()
         const clean = text
             .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
@@ -125,8 +130,11 @@ export default function AyshaaWidget() {
         if (voice) utter.voice = voice
 
         utter.rate = 1
+        // Mode « voice » = conversation mains-libres : le micro se rouvre
+        // automatiquement quand Ayshaa a fini de parler.
+        if (voiceMode === "voice") utter.onend = () => startMicRef.current?.()
         window.speechSynthesis.speak(utter)
-    }, [voiceOut])
+    }, [voiceMode])
 
     // ── Envoi d'un message (texte ou dicté) ──────────────────────────────────
     const send = useCallback(async (raw) => {
@@ -142,6 +150,7 @@ export default function AyshaaWidget() {
                 sessionRef.current = m.session_id
                 sessionStorage.setItem("ayshaa_session", m.session_id)
                 answerLang = m.lang
+                lastLangRef.current = m.lang   // la voix ET le micro suivent l'utilisateur
             },
             onToken: (t) => setMessages(prev => {
                 const next = [...prev]
@@ -179,7 +188,10 @@ export default function AyshaaWidget() {
             return
         }
         const rec = new SR()
-        rec.lang = LANGS.find(l => l.code === lang)?.stt || "fr-FR"
+        // Locale du micro : dernière langue DÉTECTÉE en priorité (l'utilisateur
+        // n'a rien à régler), sinon le sélecteur manuel.
+        const sttLang = lastLangRef.current || lang
+        rec.lang = LANGS.find(l => l.code === sttLang)?.stt || "fr-FR"
         rec.interimResults = false
         rec.maxAlternatives = 1
         rec.onresult = (e) => {
@@ -193,6 +205,8 @@ export default function AyshaaWidget() {
         setListening(true)
         rec.start()
     }
+    // Référence stable pour la relance mains-libres depuis `speak` (mode « voice »)
+    startMicRef.current = () => { if (!listening && !busy) toggleMic() }
 
     // Le portail client (/account) et l'auth ont leur propre contexte
     if (pathname?.startsWith("/account") || pathname?.startsWith("/auth")) return null
@@ -232,8 +246,19 @@ export default function AyshaaWidget() {
                                         className={`ayshaa-lang ${lang === l.code ? "on" : ""}`}>{l.label}</button>
                                 ))}
                             </div>
-                            <button type="button" title="Réponse vocale" onClick={() => setVoiceOut(v => !v)}
-                                className={`ayshaa-iconbtn ${voiceOut ? "on" : ""}`}>{voiceOut ? "🔊" : "🔇"}</button>
+                            <button type="button"
+                                title={voiceMode === "text" ? "Réponse : texte (cliquer : texte + voix)"
+                                    : voiceMode === "both" ? "Réponse : texte + voix (cliquer : conversation vocale)"
+                                    : "Conversation vocale mains-libres (cliquer : texte)"}
+                                onClick={() => {
+                                    const next = { text: "both", both: "voice", voice: "text" }[voiceMode]
+                                    setVoiceMode(next)
+                                    localStorage.setItem("ayshaa_voice_mode", next)
+                                    if (next === "text") window.speechSynthesis?.cancel()
+                                }}
+                                className={`ayshaa-iconbtn ${voiceMode !== "text" ? "on" : ""}`}>
+                                {voiceMode === "text" ? "💬" : voiceMode === "both" ? "🔊" : "🎧"}
+                            </button>
                             <button type="button" onClick={closeChat} className="ayshaa-iconbtn" aria-label="Fermer">✕</button>
                         </div>
 
