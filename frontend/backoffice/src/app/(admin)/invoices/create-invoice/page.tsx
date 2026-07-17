@@ -1,234 +1,185 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Button, Card, CardBody, Col, Form, Row, Spinner } from 'react-bootstrap'
+import { useNavigate } from 'react-router-dom'
+import Select from 'react-select'
+import Swal from 'sweetalert2'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
-
-import React from 'react'
-import logoDark from '@/assets/images/logo-dark.png'
-import PreviewButton from './Preview'
-import { Card, CardBody, Col, Row } from 'react-bootstrap'
-
 import PageBreadcrumb from '@/components/PageBreadcrumb'
+import factureService from '@/services/factureService'
+import missionService from '@/services/missionService'
+import userService, { AccountUser } from '@/services/userService'
+import { Mission, StatutMission } from '@/types/mission'
 
+/**
+ * Nouvelle facture — /invoices/create-invoice (100 % dynamique).
+ *
+ * Flux réel : choisir un CLIENT (comptes IAM) → optionnellement une de ses
+ * missions TERMINÉES (le montant HT se pré-remplit depuis le coût de la
+ * mission) → TVA 19 % (Tunisie) → POST Finance.API → document imprimable.
+ */
 
-// 
+const TVA_DEFAUT = 19
+const dt = (v: number) => `${v.toFixed(3)} DT`
 
-const CreateInvoicePage = () => {
-  return (
-    <>
-      <PageBreadcrumb title='Create Invoice' />
-      <Row>
-        <Col xs={12}>
-          <Card className="position-relative">
-            <form>
-              <CardBody>
-                <div className="d-flex align-items-start justify-content-between mb-4">
-                  <div className="overflow-hidden position-relative border rounded d-flex align-items-center justify-content-start px-2" style={{ height: 60, width: 260 }}>
-                    <label htmlFor="imageInput" className="position-absolute top-0 start-0 end-0 bottom-0" />
-                    <input className="d-none" type="file" id="imageInput" />
-                    <img id="preview" src={logoDark} alt="Preview Image" height={28} />
-                  </div>
-                  <div className="text-end">
-                    <Row className=" g-1 align-items-center">
-                      <Col xs={'auto'}>
-                        <label htmlFor="invoiceNo" className="col-form-label fs-16 fw-bold">#INV</label>
-                      </Col>
-                      <Col xs={'auto'}>
-                        <input type="number" id="invoiceNo" className="form-control" placeholder={'00001234'} />
-                      </Col>
-                    </Row>
-                  </div>
-                </div>
-                <Row>
-                  <Col xl={4} lg={4} md={6} sm={6} className="mt-sm-0 mt-3">
-                    <div className="mb-2">
-                      <label className="form-label">Invoice Date :</label>
-                      <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-deafult-date="today" className="form-control" placeholder="Select Date" />
-                    </div>
-                    <div className="mb-2">
-                      <label className="form-label">Due Date :</label>
-                      <input type="text" data-provider="flatpickr" data-altformat="F j, Y" className="form-control" placeholder="Select Date" />
-                    </div>
-                    <div className="mb-2">
-                      <label htmlFor="InvoicePaymentStatus" className="form-label">Payment
-                        Status</label>
-                      <select className="form-select" id="InvoicePaymentStatus">
-                        <option >Select Status</option>
-                        <option value="Choice 1">Paid</option>
-                        <option value="Choice 2">Unpaid</option>
-                        <option value="Choice 3">Cancelled</option>
-                        <option value="Choice 4">Refunded</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="InvoicePaymentMethod" className="form-label">Payment
-                        Method</label>
-                      <select className="form-select" id="InvoicePaymentMethod">
-                        <option >Select Method</option>
-                        <option value="Choice 1">Credit / Debit Card</option>
-                        <option value="Choice 2">Bank Transfer</option>
-                        <option value="Choice 3">PayPal</option>
-                        <option value="Choice 4">Payoneer</option>
-                        <option value="Choice 5">Cash On Delivery</option>
-                        <option value="Choice 6">Wallet</option>
-                        <option value="Choice 7">UPI (Gpay)</option>
-                      </select>
-                    </div>
-                  </Col>
-                  <Col lg={4} md={6} sm={6}>
-                    <div className="mb-4">
-                      <label className="form-label">Billing Address :</label>
-                      <div className="mb-2 pb-1">
-                        <input type="text" id="BName" className="form-control" placeholder="Full Name" />
-                      </div>
-                      <div className="mb-2 pb-1">
-                        <textarea id="BAddress" rows={3} className="form-control" placeholder="Address" defaultValue={""} />
-                      </div>
-                      <div>
-                        <input type="text" id="BNumber" className="form-control" placeholder="Phone Number" />
-                      </div>
-                    </div>
-                  </Col>
-                  <Col xl={4} lg={4} md={6} sm={6} className="mt-sm-0 mt-3">
-                    <div className="mb-4">
-                      <label className="form-label">Shipping Address :</label>
-                      <div className="mb-2 pb-1">
-                        <input type="text" id="SName" className="form-control" placeholder="Full Name" />
-                      </div>
-                      <div className="mb-2 pb-1">
-                        <textarea id="SAddress" rows={3} className="form-control" placeholder="Address" defaultValue={""} />
-                      </div>
-                      <div>
-                        <input type="text" id="SNumber" className="form-control" placeholder="Phone Number" />
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-                <div className="mt-4">
-                  <div className="table-responsive">
-                    <table className="table text-center table-nowrap align-middle mb-0">
-                      <thead>
-                        <tr className="bg-light bg-opacity-50">
-                          <th scope="col" className="border-0" style={{ width: 70 }}>#</th>
-                          <th scope="col" className="border-0 text-start">Product Details</th>
-                          <th scope="col" className="border-0" style={{ width: 140 }}>Quantity
-                          </th>
-                          <th scope="col" className="border-0" style={{ width: 140 }}>Unit
-                            price</th>
-                          <th scope="col" className="border-0" style={{ width: 240 }}>Amount
-                          </th>
-                          <th scope="col" className="border-0" style={{ width: 50 }}>•••</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <th scope="row">01</th>
-                          <td className="text-start">
-                            <input type="text" id="product-detail-one" className="form-control mb-1" placeholder="Product One" />
-                            <input type="text" id="product-desc-one" className="form-control" placeholder="Item description" />
-                          </td>
-                          <td>
-                            <input type="number" id="product-category-one" className="form-control" placeholder="Quantity" />
-                          </td>
-                          <td>
-                            <input type="number" className="form-control" placeholder="Price" />
-                          </td>
-                          <td>
-                            <input type="number" className="form-control  w-auto" placeholder="$0.00" />
-                          </td>
-                          <td>
-                            <button type="button" className="btn flex-shrink-0 rounded-circle btn-icon btn-ghost-danger"><IconifyIcon icon="solar:trash-bin-trash-bold-duotone" className="fs-20" /></button>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">02</th>
-                          <td className="text-start">
-                            <input type="text" id="product-detail-two" className="form-control mb-1" placeholder="Product Two" />
-                            <input type="text" id="product-desc-two" className="form-control" placeholder="Item description" />
-                          </td>
-                          <td>
-                            <input type="number" id="product-category-two" className="form-control" placeholder="Quantity" />
-                          </td>
-                          <td>
-                            <input type="number" className="form-control" placeholder="Price" />
-                          </td>
-                          <td>
-                            <input type="number" className="form-control  w-auto" placeholder="$0.00" />
-                          </td>
-                          <td>
-                            <button type="button" className="btn flex-shrink-0 rounded-circle btn-icon btn-ghost-danger"><IconifyIcon icon="solar:trash-bin-trash-bold-duotone" className="fs-20" /></button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <div className="p-2">
-                      <button type="button" className="btn btn-primary"><IconifyIcon icon='tabler:circle-plus' className="me-1" /> Add Products</button>
-                    </div>
-                  </div>
-                  <div>
-                    <table className="table table-sm table-borderless table-nowrap align-middle mb-0 ms-auto" style={{ width: 300 }}>
-                      <tbody>
-                        <tr>
-                          <td className="fw-medium">Subtotal</td>
-                          <td className="text-end">
-                            <div className="ms-auto" style={{ width: 160 }}>
-                              <input type="number" id="productSubtotal" className="form-control" placeholder="$0.00" />
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="fw-medium">Shipping</td>
-                          <td className="text-end">
-                            <div className="ms-auto" style={{ width: 160 }}>
-                              <input type="number" id="productShipping" className="form-control" placeholder="$0.00" />
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="fw-medium">Discount <small className="text-muted">(10%)</small></td>
-                          <td className="text-end">
-                            <div className="ms-auto" style={{ width: 160 }}>
-                              <input type="number" id="productDiscount" className="form-control" placeholder="$0.00" />
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="fw-medium">Tax <small className="text-muted">(18%)</small></td>
-                          <td className="text-end">
-                            <div className="ms-auto" style={{ width: 160 }}>
-                              <input type="number" id="productTaxes" className="form-control" placeholder="$0.00" />
-                            </div>
-                          </td>
-                        </tr>
-                        <tr className="fs-15">
-                          <th scope="row" className="fw-bold">Total Amount</th>
-                          <th className="text-end">
-                            <div className="ms-auto" style={{ width: 160 }}>
-                              <input type="number" id="productTotalAmount" disabled className="form-control" placeholder="$0.00" />
-                            </div>
-                          </th>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div>
-                  <label className="form-label" htmlFor="InvoiceNote"> Note : </label>
-                  <textarea className="form-control" id="InvoiceNote" placeholder="Thanks for your business " rows={3} defaultValue={""} />
-                </div>
-              </CardBody>
-            </form>
-          </Card>
-          <div className="mb-5">
-            <div className="d-flex justify-content-center gap-2">
-              <PreviewButton />
-              <a href="" className="btn btn-success gap-1"><IconifyIcon icon='tabler:device-floppy' className="fs-16" /> Save</a>
-              <a href="" className="btn btn-info gap-1"><IconifyIcon icon='tabler:send' className=" fs-16" /> Send Invoice</a>
-            </div>
-          </div>
-        </Col>
-      </Row>
-    </>
+export default function CreateInvoicePage() {
+    const navigate = useNavigate()
+    const [clients, setClients] = useState<AccountUser[]>([])
+    const [missions, setMissions] = useState<Mission[]>([])
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
 
+    const [clientId, setClientId] = useState<number | null>(null)
+    const [missionId, setMissionId] = useState<number | null>(null)
+    const [montant, setMontant] = useState('')            // HT
+    const [tauxTVA, setTauxTVA] = useState(TVA_DEFAUT)
+    const [description, setDescription] = useState('')
+    const [dateEcheance, setDateEcheance] = useState(() => {
+        const d = new Date(); d.setDate(d.getDate() + 30)   // échéance 30 jours (usage)
+        return d.toISOString().slice(0, 10)
+    })
 
-  )
+    useEffect(() => {
+        Promise.all([userService.getAllUsers(), missionService.getAll()])
+            .then(([users, ms]) => {
+                setClients(users.filter(u => u.role === 'CLIENT'))
+                setMissions(ms)
+            })
+            .catch(() => Swal.fire('Erreur', 'Impossible de charger clients/missions.', 'error'))
+            .finally(() => setLoading(false))
+    }, [])
+
+    // Missions facturables du client choisi : TERMINÉES (prestations livrées)
+    const missionsClient = useMemo(() =>
+        missions.filter(m => m.clientIdUtilisateur === clientId && m.statut === StatutMission.TERMINEE),
+        [missions, clientId])
+
+    const clientOptions = clients.map(c => ({
+        value: c.idUtilisateur, label: `${c.prenom} ${c.nom} — ${c.email}`,
+    }))
+    const missionOptions = missionsClient.map(m => ({
+        value: m.idMission,
+        label: `#${m.idMission} ${m.villeDepart || '—'} → ${m.villeArrivee || m.destination}`
+            + (m.coutTotal > 0 ? ` (${m.coutTotal.toFixed(0)} DT)` : ''),
+        cout: m.coutTotal,
+        desc: `Transport ${m.villeDepart || ''} → ${m.villeArrivee || m.destination} — mission #${m.idMission}`,
+    }))
+
+    const ht = parseFloat(montant) || 0
+    const tva = ht * tauxTVA / 100
+    const ttc = ht + tva
+
+    const submit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!clientId) { Swal.fire('Erreur', 'Choisissez un client.', 'warning'); return }
+        if (ht <= 0) { Swal.fire('Erreur', 'Le montant HT doit être positif.', 'warning'); return }
+        setSaving(true)
+        try {
+            const f = await factureService.create({
+                clientId, missionId: missionId ?? undefined,
+                montant: ht, tauxTVA,
+                description: description.trim() || undefined,
+                dateEcheance: dateEcheance || undefined,
+            })
+            await Swal.fire('Facture créée', `${f.numeroFacture} — ${dt(f.montantTTC)}`, 'success')
+            navigate(`/invoices/view-invoice?id=${f.idFacture}`)
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Création impossible.', 'error')
+        } finally { setSaving(false) }
+    }
+
+    return (
+        <>
+            <PageBreadcrumb title="Nouvelle facture" />
+            <Row className="justify-content-center">
+                <Col xxl={8} lg={10}>
+                    <Card className="border-0 shadow-sm">
+                        <CardBody className="p-4">
+                            <h4 className="mb-1">
+                                <IconifyIcon icon="tabler:invoice" className="me-2 text-primary" />
+                                Nouvelle facture XPARK
+                            </h4>
+                            <p className="text-muted mb-4">
+                                Facturez une prestation livrée : le montant se pré-remplit depuis la mission terminée du client.
+                            </p>
+
+                            {loading ? (
+                                <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
+                            ) : (
+                                <Form onSubmit={submit}>
+                                    <Row className="g-3">
+                                        <Col md={12}>
+                                            <Form.Label className="fw-bold small">Client <span className="text-danger">*</span></Form.Label>
+                                            <Select options={clientOptions} isClearable
+                                                placeholder="Choisir un client…"
+                                                noOptionsMessage={() => 'Aucun compte client'}
+                                                value={clientOptions.find(o => o.value === clientId) ?? null}
+                                                onChange={(o: any) => { setClientId(o?.value ?? null); setMissionId(null) }} />
+                                        </Col>
+                                        <Col md={12}>
+                                            <Form.Label className="fw-bold small">
+                                                Mission terminée <span className="text-muted fw-normal">(optionnel — pré-remplit le montant)</span>
+                                            </Form.Label>
+                                            <Select options={missionOptions} isClearable isDisabled={!clientId}
+                                                placeholder={clientId ? (missionOptions.length ? 'Associer une mission…' : 'Aucune mission terminée pour ce client') : 'Choisissez d’abord un client'}
+                                                value={missionOptions.find(o => o.value === missionId) ?? null}
+                                                onChange={(o: any) => {
+                                                    setMissionId(o?.value ?? null)
+                                                    if (o?.cout > 0) setMontant(String(o.cout))
+                                                    if (o?.desc && !description) setDescription(o.desc)
+                                                }} />
+                                        </Col>
+                                        <Col md={4}>
+                                            <Form.Label className="fw-bold small">Montant HT (DT) <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control type="number" min={0} step="0.001" value={montant}
+                                                onChange={e => setMontant(e.target.value)} placeholder="Ex : 850.000" required />
+                                        </Col>
+                                        <Col md={4}>
+                                            <Form.Label className="fw-bold small">TVA (%)</Form.Label>
+                                            <Form.Select value={tauxTVA} onChange={e => setTauxTVA(+e.target.value)}>
+                                                <option value={19}>19 % (standard)</option>
+                                                <option value={13}>13 %</option>
+                                                <option value={7}>7 %</option>
+                                                <option value={0}>0 % (exonéré)</option>
+                                            </Form.Select>
+                                        </Col>
+                                        <Col md={4}>
+                                            <Form.Label className="fw-bold small">Échéance</Form.Label>
+                                            <Form.Control type="date" value={dateEcheance}
+                                                onChange={e => setDateEcheance(e.target.value)} />
+                                        </Col>
+                                        <Col md={12}>
+                                            <Form.Label className="fw-bold small">Description / objet</Form.Label>
+                                            <Form.Control as="textarea" rows={2} value={description}
+                                                onChange={e => setDescription(e.target.value)}
+                                                placeholder="Ex : Transport de marchandises Tunis → Sfax, mission #28" />
+                                        </Col>
+                                    </Row>
+
+                                    {/* ── Totaux en direct ───────────────────── */}
+                                    <div className="bg-light rounded-2 p-3 my-4">
+                                        <div className="d-flex justify-content-between small"><span>Total HT</span><strong>{dt(ht)}</strong></div>
+                                        <div className="d-flex justify-content-between small"><span>TVA {tauxTVA} %</span><strong>{dt(tva)}</strong></div>
+                                        <hr className="my-2" />
+                                        <div className="d-flex justify-content-between fs-5 fw-bold text-primary">
+                                            <span>Total TTC</span><span>{dt(ttc)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="d-flex justify-content-end gap-2">
+                                        <Button variant="outline-secondary" onClick={() => navigate('/invoices')} disabled={saving}>
+                                            Annuler
+                                        </Button>
+                                        <Button type="submit" variant="primary" disabled={saving} className="px-4">
+                                            {saving ? <><Spinner size="sm" animation="border" className="me-1" /> Création…</>
+                                                : <><IconifyIcon icon="ri:check-line" className="me-1" /> Créer la facture</>}
+                                        </Button>
+                                    </div>
+                                </Form>
+                            )}
+                        </CardBody>
+                    </Card>
+                </Col>
+            </Row>
+        </>
+    )
 }
-
-export default CreateInvoicePage
