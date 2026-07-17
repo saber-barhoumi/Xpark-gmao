@@ -88,7 +88,7 @@ export const MENU_ITEMS: MenuItemType[] = [
   {
     key: 'equipements',
     label: 'Équipements',
-    icon: 'ri:tools-fill',
+    icon: 'ri:box-3-line',
     url: '/gestion/equipements',
   },
 
