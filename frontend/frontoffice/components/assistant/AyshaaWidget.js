@@ -254,7 +254,20 @@ export default function AyshaaWidget() {
                                     const next = { text: "both", both: "voice", voice: "text" }[voiceMode]
                                     setVoiceMode(next)
                                     localStorage.setItem("ayshaa_voice_mode", next)
-                                    if (next === "text") window.speechSynthesis?.cancel()
+                                    if (next === "text") { window.speechSynthesis?.cancel(); return }
+                                    // Confirmation parlée IMMÉDIATE : feedback clair + « déverrouille »
+                                    // l'audio (Chrome exige un geste utilisateur avant la 1re synthèse —
+                                    // sans ça, la lecture des réponses peut être bloquée silencieusement).
+                                    try {
+                                        const msg = lang === "en"
+                                            ? (next === "voice" ? "Hands-free conversation enabled" : "Voice replies enabled")
+                                            : lang === "ar" ? "الصوت خدّام توّا"
+                                            : (next === "voice" ? "Conversation vocale activée" : "Réponses vocales activées")
+                                        const u = new SpeechSynthesisUtterance(msg)
+                                        u.lang = { fr: "fr-FR", en: "en-US", ar: "ar-TN" }[lang] || "fr-FR"
+                                        window.speechSynthesis?.cancel()
+                                        window.speechSynthesis?.speak(u)
+                                    } catch { /* synthèse indisponible : le mode reste actif */ }
                                 }}
                                 className={`ayshaa-iconbtn ${voiceMode !== "text" ? "on" : ""}`}>
                                 {voiceMode === "text" ? "💬" : voiceMode === "both" ? "🔊" : "🎧"}
