@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Cœur métier — AUCUNE dépendance vers les autres couches.
+       Seule concession pragmatique : XparkGMAO.Shared (enums transverses du
+       système, TypeUtilisateur etc.) car le schéma de base est partagé. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>IAM.Domain</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\XparkGMAO.Shared\XparkGMAO.Shared.csproj" />
+  </ItemGroup>
+</Project>

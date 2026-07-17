@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Détails techniques — implémente les interfaces de l'Application :
+       EF Core/PostgreSQL (base partagée), JWT/TOTP/BCrypt, email MailKit
+       (gabarit XPARK embarqué), enregistrement DI centralisé. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>IAM.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Les services historiques utilisaient les usings implicites du SDK Web ;
+         on les fournit globalement ici pour déplacer le code SANS le réécrire. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Using Include="IAM.Application.Interfaces" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <PackageReference Include="MassTransit" Version="8.3.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IAM.Application\IAM.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Gabarit email XPARK + logo — copiés jusqu'au publish de l'API -->
+    <Content Include="EmailTemplates\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

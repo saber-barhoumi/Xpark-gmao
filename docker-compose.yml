@@ -52,7 +52,7 @@ services:
   iam-api:
     build:
       context: ./microservices
-      dockerfile: IAM.API/Dockerfile
+      dockerfile: IAM/IAM.API/Dockerfile
     container_name: xpark-iam-api
     environment:
       - ASPNETCORE_URLS=http://+:80

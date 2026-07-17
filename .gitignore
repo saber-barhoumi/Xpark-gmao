@@ -14,3 +14,7 @@ data/uploads/avatars/*
 !data/uploads/chat
 data/uploads/chat/*
 !data/uploads/chat/.gitkeep
+
+# Artefacts de build .NET (introduits proprement avec la migration Clean Architecture)
+microservices/**/bin/
+microservices/**/obj/
