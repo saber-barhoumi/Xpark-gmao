@@ -200,7 +200,7 @@ services:
   alerts-api:
     build:
       context: ./microservices
-      dockerfile: Alerts.API/Dockerfile
+      dockerfile: Alerts/Alerts.API/Dockerfile
     container_name: xpark-alerts-api
     environment:
       - ASPNETCORE_URLS=http://+:80
