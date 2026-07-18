@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Couche Application du chat - VOLONTAIREMENT minimale : le controleur et
+       le hub travaillent directement avec le DbContext (pattern d'origine,
+       conserve sans reecriture). Le projet existe pour l'uniformite de la
+       famille Clean Architecture et accueillera les cas d'usage futurs. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Chat.Application</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Chat.Domain\Chat.Domain.csproj" />
+  </ItemGroup>
+</Project>

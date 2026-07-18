@@ -1,7 +1,7 @@
 using MassTransit;
 using XparkGMAO.Shared.Events;
 
-namespace Chat.API.Consumers;
+namespace Chat.Infrastructure.Consumers;
 
 // Consumes IAM user status change events (presence supplement to SignalR OnConnected/OnDisconnected)
 public class UserStatusChangedConsumer(ILogger<UserStatusChangedConsumer> logger) : IConsumer<UserStatusChangedEvent>

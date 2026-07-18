@@ -1,12 +1,12 @@
 using System.Collections.Concurrent;
 using System.Security.Claims;
-using Chat.API.Data;
-using Chat.API.Entities;
+using Chat.Infrastructure.Data;
+using Chat.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Chat.API.Hubs;
+namespace Chat.Infrastructure.SignalR;
 
 public class ActiveCallInfo
 {

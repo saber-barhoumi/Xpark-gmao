@@ -1,7 +1,7 @@
-using Chat.API.Entities;
+using Chat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Chat.API.Data;
+namespace Chat.Infrastructure.Data;
 
 public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(options)
 {

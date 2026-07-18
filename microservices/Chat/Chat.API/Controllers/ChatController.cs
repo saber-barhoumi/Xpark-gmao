@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Chat.API.Data;
-using Chat.API.Entities;
-using Chat.API.Hubs;
+using Chat.Infrastructure.Data;
+using Chat.Domain.Entities;
+using Chat.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;

@@ -1,7 +1,8 @@
 using System.Text;
-using Chat.API.Consumers;
-using Chat.API.Data;
-using Chat.API.Hubs;
+using Chat.Infrastructure.Consumers;
+using Chat.Infrastructure;
+using Chat.Infrastructure.Data;
+using Chat.Infrastructure.SignalR;
 using Chat.API.Middleware;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,8 +22,8 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // ─── Database ─────────────────────────────────────────────────────────────────
-builder.Services.AddDbContext<ChatDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Couche Infrastructure (DbContext) - hub SignalR et bus configures ci-dessous (pipeline d'hote)
+builder.Services.AddChatInfrastructure(builder.Configuration);
 
 // ─── JWT Authentication (with SignalR query-string support) ───────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]!;

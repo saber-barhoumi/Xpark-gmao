@@ -227,7 +227,7 @@ services:
   chat-api:
     build:
       context: ./microservices
-      dockerfile: Chat.API/Dockerfile
+      dockerfile: Chat/Chat.API/Dockerfile
     container_name: xpark-chat-api
     environment:
       - ASPNETCORE_URLS=http://+:80

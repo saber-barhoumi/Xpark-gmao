@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Coeur metier chat - conversations, messages, participants.
+       NB : ChatEntities.cs contient aussi quelques DTOs (fichier historique
+       conserve tel quel - separation = amelioration future documentee). -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Chat.Domain</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\XparkGMAO.Shared\XparkGMAO.Shared.csproj" />
+  </ItemGroup>
+</Project>

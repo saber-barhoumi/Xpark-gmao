@@ -1,4 +1,4 @@
-namespace Chat.API.Entities;
+namespace Chat.Domain.Entities;
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 public enum TypeConversation { PRIVEE, GROUPE }
