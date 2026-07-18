@@ -117,7 +117,7 @@ services:
   mission-api:
     build:
       context: ./microservices
-      dockerfile: Mission.API/Dockerfile
+      dockerfile: Mission/Mission.API/Dockerfile
     container_name: xpark-mission-api
     environment:
       - ASPNETCORE_URLS=http://+:80

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Détails techniques missions — EF Core/PostgreSQL, repositories,
+       bus RabbitMQ brut (xpark.ai), consumer de plans d'optimisation,
+       seeder d'historique IA, enregistrement DI. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Mission.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Recette de migration : usings implicites du SDK Web pour le code déplacé -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Using Include="Mission.Application.Interfaces" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <!-- 7.x (IChannel) : version transitive de MassTransit.RabbitMQ 8.3.6 d'avant migration -->
+    <PackageReference Include="RabbitMQ.Client" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mission.Application\Mission.Application.csproj" />
+    <ProjectReference Include="..\..\XparkGMAO.Shared.AiTelemetry\XparkGMAO.Shared.AiTelemetry.csproj" />
+  </ItemGroup>
+</Project>
