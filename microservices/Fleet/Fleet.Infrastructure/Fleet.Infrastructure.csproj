@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Détails techniques flotte — EF Core/PostgreSQL, publication RabbitMQ
+       brute (bus xpark.ai pour les services Python), implémentations des
+       services, enregistrement DI. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Fleet.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Usings implicites du SDK Web fournis au classlib : le code déplacé
+         compile à l'identique (recette de migration, voir ARCHITECTURE.md) -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Using Include="Fleet.Application.Interfaces" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <!-- 7.x (IChannel) : même version que celle apportée transitivement par
+         MassTransit.RabbitMQ 8.3.6 avant la migration — code inchangé -->
+    <PackageReference Include="RabbitMQ.Client" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fleet.Application\Fleet.Application.csproj" />
+  </ItemGroup>
+</Project>

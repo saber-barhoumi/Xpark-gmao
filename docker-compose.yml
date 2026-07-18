@@ -90,7 +90,7 @@ services:
   fleet-api:
     build:
       context: ./microservices
-      dockerfile: Fleet.API/Dockerfile
+      dockerfile: Fleet/Fleet.API/Dockerfile
     container_name: xpark-fleet-api
     environment:
       - ASPNETCORE_URLS=http://+:80
