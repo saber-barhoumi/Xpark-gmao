@@ -144,7 +144,7 @@ services:
   maintenance-api:
     build:
       context: ./microservices
-      dockerfile: Maintenance.API/Dockerfile
+      dockerfile: Maintenance/Maintenance.API/Dockerfile
     container_name: xpark-maintenance-api
     environment:
       - ASPNETCORE_URLS=http://+:80
