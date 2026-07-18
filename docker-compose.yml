@@ -173,7 +173,7 @@ services:
   finance-api:
     build:
       context: ./microservices
-      dockerfile: Finance.API/Dockerfile
+      dockerfile: Finance/Finance.API/Dockerfile
     container_name: xpark-finance-api
     environment:
       - ASPNETCORE_URLS=http://+:80
