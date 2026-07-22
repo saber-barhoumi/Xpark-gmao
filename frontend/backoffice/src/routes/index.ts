@@ -57,6 +57,7 @@ const Carburant        = lazy(() => import('@/app/(admin)/operations/carburant/p
 const OrdresTravail    = lazy(() => import('@/app/(admin)/maintenance/ordres-travail/page'))
 const Interventions    = lazy(() => import('@/app/(admin)/maintenance/interventions/page'))
 const PiecesRechange   = lazy(() => import('@/app/(admin)/maintenance/pieces-rechange/page'))
+const PredictionPannes = lazy(() => import('@/app/(admin)/maintenance/prediction-pannes/page'))
 
 // HR / Users
 const Employees        = lazy(() => import('@/app/(admin)/hr/employees/page'))
@@ -230,6 +231,7 @@ export const APP_ROUTES: AppRoute[] = [
   { name: 'ordres-travail',   path: '/maintenance/ordres-travail',  element: createElement(OrdresTravail) },
   { name: 'interventions',    path: '/maintenance/interventions',   element: createElement(Interventions) },
   { name: 'pieces-rechange',  path: '/maintenance/pieces-rechange', element: createElement(PiecesRechange) },
+  { name: 'prediction-pannes', path: '/maintenance/prediction-pannes', element: createElement(PredictionPannes), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE', 'TECHNICIEN'] },
 
   // HR / Users
   { name: 'employees',    path: '/hr/employees',        element: createElement(Employees),  allowedRoles: ['ADMIN', 'RH'] },

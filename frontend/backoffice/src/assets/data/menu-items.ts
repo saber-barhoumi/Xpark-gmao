@@ -112,6 +112,13 @@ export const MENU_ITEMS: MenuItemType[] = [
     icon: 'ri:settings-5-line',
     url: '/maintenance/pieces-rechange',
   },
+  {
+    key: 'maintenance-prediction',
+    label: 'Prédiction de Pannes',
+    icon: 'ri:radar-line',
+    url: '/maintenance/prediction-pannes',
+    badge: { text: 'IA', variant: 'info' },
+  },
 
   // ── Finance ─────────────────────────────────────────────────
   { key: 'sec-finance', label: 'Finance', isTitle: true },
