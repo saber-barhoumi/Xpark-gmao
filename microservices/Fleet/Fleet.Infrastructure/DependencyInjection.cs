@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IVehiculeService, VehiculeService>();
         services.AddScoped<IAssuranceService, AssuranceService>();
         services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<IEcheanceService, EcheanceService>();
         services.AddScoped<ICarburantService, CarburantService>();
         services.AddScoped<ISourceService, SourceService>();
 
