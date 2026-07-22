@@ -289,6 +289,45 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
         return Ok(new { message = "Statut mis à jour" });
     }
 
+    /// <summary>
+    /// Vide une colonne du kanban (« Nettoyer la colonne »).
+    ///
+    /// Le front proposait déjà cette action avec sa modale de confirmation, mais
+    /// l'endpoint n'existait pas : la contrainte de route {id:long} ne pouvait
+    /// pas matcher « kanban », l'appel partait donc en 404 et la colonne se
+    /// vidait à l'écran sans que rien ne soit supprimé en base.
+    ///
+    /// Opération destructive → réservée à ADMIN, comme la suppression unitaire,
+    /// et tracée dans les logs.
+    /// </summary>
+    [HttpDelete("kanban/clear/{statut}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> ClearSection(string statut)
+    {
+        if (!Enum.TryParse<StatutOrdreTravail>(statut, true, out var s))
+            return BadRequest(new { message = $"Statut invalide : {statut}" });
+
+        var ots = await context.OrdresTravail.Where(o => o.Statut == s).ToListAsync();
+        if (ots.Count == 0) return Ok(new { supprimes = 0 });
+
+        // Les interventions rattachées perdent leur OT sans être supprimées :
+        // une intervention réalisée reste un fait comptable et d'historique.
+        var ids = ots.Select(o => o.IdOrdreTravail).ToList();
+        var interventions = await context.Interventions
+            .Where(i => i.OrdreTravailId != null && ids.Contains(i.OrdreTravailId!.Value))
+            .ToListAsync();
+        foreach (var i in interventions) i.OrdreTravailId = null;
+
+        context.OrdresTravail.RemoveRange(ots);
+        await context.SaveChangesAsync();
+
+        logger.LogWarning(
+            "Colonne kanban {Statut} vidée par l'utilisateur {UserId} : {Nb} ordre(s) supprimé(s), {NbInt} intervention(s) détachée(s)",
+            s, GetUserId(), ots.Count, interventions.Count);
+
+        return Ok(new { supprimes = ots.Count, interventionsDetachees = interventions.Count });
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Page « Détails de la tâche » (/tasks/view-details)
     // Les entités Attachment et Commentaire ainsi que leurs tables existaient
@@ -427,6 +466,58 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
             id = attachment.Id, nom = attachment.Nom, url = attachment.Url,
             taille = attachment.Taille, type = attachment.Type, createdAt = attachment.CreatedAt,
         });
+    }
+
+    /// <summary>
+    /// Supprime un commentaire. Règle : seul son AUTEUR ou un ADMIN peut le
+    /// faire — un technicien ne doit pas pouvoir effacer la remarque d'un autre.
+    /// </summary>
+    [HttpDelete("{id:long}/commentaires/{commentaireId:long}")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE,TECHNICIEN")]
+    public async Task<IActionResult> DeleteCommentaire(long id, long commentaireId)
+    {
+        var c = await context.Commentaires
+            .FirstOrDefaultAsync(x => x.Id == commentaireId && x.OrdreId == id);
+        if (c == null) return NotFound(new { message = "Commentaire introuvable" });
+
+        if (c.AuteurId != GetUserId() && !User.IsInRole("ADMIN"))
+            return Forbid();
+
+        context.Commentaires.Remove(c);
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Supprime une pièce jointe (ligne en base + fichier sur le volume).
+    /// Le fichier est supprimé après la base : si l'écriture échoue, on ne
+    /// laisse pas une ligne pointant vers un fichier disparu.
+    /// </summary>
+    [HttpDelete("{id:long}/attachments/{attachmentId:long}")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE,TECHNICIEN")]
+    public async Task<IActionResult> DeleteAttachment(long id, long attachmentId)
+    {
+        var a = await context.Attachments
+            .FirstOrDefaultAsync(x => x.Id == attachmentId && x.OrdreId == id);
+        if (a == null) return NotFound(new { message = "Pièce jointe introuvable" });
+
+        context.Attachments.Remove(a);
+        await context.SaveChangesAsync();
+
+        // Nettoyage du fichier — best effort : l'échec ne doit pas faire échouer
+        // la requête, la ligne est déjà partie et c'est elle qui fait foi.
+        try
+        {
+            var nomFichier = Path.GetFileName(a.Url);
+            var chemin = Path.Combine("/app/wwwroot/uploads/ordres-travail", nomFichier);
+            if (System.IO.File.Exists(chemin)) System.IO.File.Delete(chemin);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Fichier {Url} non supprimé du volume", a.Url);
+        }
+
+        return NoContent();
     }
 
     // ── Helpers de résolution cross-service (base partagée, lecture seule) ────
