@@ -70,6 +70,35 @@ const ViewDetailsPage = () => {
     setOrdre(prev => prev ? { ...prev, attachments: [...prev.attachments, attachment] } : prev)
   }
 
+  const handleDeleteCommentaire = async (commentaireId: number) => {
+    if (!ordre) return
+    if (!window.confirm('Supprimer ce commentaire ?')) return
+    try {
+      await viewDetailsService.deleteCommentaire(ordre.id, commentaireId)
+      setOrdre(prev => prev ? {
+        ...prev,
+        commentaires: prev.commentaires.filter(c => c.id !== commentaireId),
+      } : prev)
+    } catch {
+      // L'API refuse si l'utilisateur n'est ni l'auteur ni ADMIN.
+      setError("Suppression refusée : vous n’êtes pas l’auteur de ce commentaire.")
+    }
+  }
+
+  const handleDeleteAttachment = async (attachmentId: number) => {
+    if (!ordre) return
+    if (!window.confirm('Supprimer cette pièce jointe ?')) return
+    try {
+      await viewDetailsService.deleteAttachment(ordre.id, attachmentId)
+      setOrdre(prev => prev ? {
+        ...prev,
+        attachments: prev.attachments.filter(a => a.id !== attachmentId),
+      } : prev)
+    } catch {
+      setError('La suppression de la pièce jointe a échoué.')
+    }
+  }
+
   // ── Mode sélecteur ────────────────────────────────────────────────────────
   if (!idStr) return (
     <>
@@ -148,10 +177,18 @@ const ViewDetailsPage = () => {
       <Row>
         <Col xl={8}>
           <Dashboard ordre={ordre} />
-          <Commentaires commentaires={ordre.commentaires} onAdd={handleAddCommentaire} />
+          <Commentaires
+            commentaires={ordre.commentaires}
+            onAdd={handleAddCommentaire}
+            onDelete={handleDeleteCommentaire}
+          />
         </Col>
         <Col xl={4}>
-          <Attachments attachments={ordre.attachments} onUpload={handleUpload} />
+          <Attachments
+            attachments={ordre.attachments}
+            onUpload={handleUpload}
+            onDelete={handleDeleteAttachment}
+          />
         </Col>
       </Row>
     </>

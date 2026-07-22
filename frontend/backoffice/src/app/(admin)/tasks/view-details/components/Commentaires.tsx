@@ -10,9 +10,11 @@ dayjs.extend(relativeTime)
 interface CommentairesProps {
   commentaires: Commentaire[]
   onAdd: (contenu: string) => Promise<void>
+  /** Absent = suppression non proposée (l'API reste l'autorité : auteur ou ADMIN). */
+  onDelete?: (id: number) => Promise<void>
 }
 
-const Commentaires = ({ commentaires, onAdd }: CommentairesProps) => {
+const Commentaires = ({ commentaires, onAdd, onDelete }: CommentairesProps) => {
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -47,8 +49,17 @@ const Commentaires = ({ commentaires, onAdd }: CommentairesProps) => {
               <div className="flex-1">
                 <h5 className="mt-0 fs-14">
                   {c.auteur}
-                  <small className="text-muted fw-normal float-end">
+                  <small className="text-muted fw-normal float-end d-flex align-items-center gap-2">
                     {dayjs(c.createdAt).fromNow()}
+                    {onDelete && (
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 text-danger"
+                        title="Supprimer ce commentaire"
+                        onClick={() => onDelete(c.id)}>
+                        <IconifyIcon icon="tabler:trash" />
+                      </button>
+                    )}
                   </small>
                 </h5>
                 <p className="mb-0 text-muted fs-13">{c.contenu}</p>

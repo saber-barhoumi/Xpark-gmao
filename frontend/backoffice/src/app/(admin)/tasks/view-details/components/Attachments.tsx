@@ -1,37 +1,26 @@
 import FileUpload from '@/components/FileUpload'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
-import React from 'react'
-import { Card, CardBody, CardHeader, Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'react-bootstrap'
+import { Card, CardBody, CardHeader } from 'react-bootstrap'
 import { Attachment } from '@/services/viewDetailsService'
 import { getFileExtensionIcon } from '@/utils/get-icons'
 
 const API_URL = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
 
-const Attachments = ({ attachments, onUpload }: { attachments: Attachment[], onUpload: (file: File) => void }) => {
+interface AttachmentsProps {
+  attachments: Attachment[]
+  onUpload:    (file: File) => void
+  /** Absent = suppression non proposée. */
+  onDelete?:   (id: number) => Promise<void>
+}
+
+const Attachments = ({ attachments, onUpload, onDelete }: AttachmentsProps) => {
   return (
     <Card>
-      <CardHeader className="d-flex justify-content-between align-items-center border-bottom border-dashed">
-        <h5 className="header-title">Attachments</h5>
-        <Dropdown align={'end'} className="float-end">
-          <DropdownToggle as={'a'} className="drop-arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
-            <IconifyIcon icon='ri:more-2-fill' className="fs-18" />
-          </DropdownToggle>
-          <DropdownMenu className="dropdown-menu-end">
-            <DropdownItem>
-              <IconifyIcon icon='tabler:paperclip' className="me-1" />Attachment
-            </DropdownItem>
-            <DropdownItem>
-              <IconifyIcon icon='tabler:pencil' className="me-1" />Edit
-            </DropdownItem>
-            <DropdownItem>
-              <IconifyIcon icon='tabler:copy' className="me-1" />Mark as Duplicate
-            </DropdownItem>
-            <div className="dropdown-divider" />
-            <DropdownItem className=" text-danger">
-              <IconifyIcon icon='tabler:trash' className="me-1" />Delete
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+      {/* Le menu déroulant d'origine (Edit / Mark as Duplicate / Delete) venait
+          du template : aucun de ses éléments n'avait de gestionnaire, ils ne
+          faisaient donc rien. Retiré au profit d'une action réelle par fichier. */}
+      <CardHeader className="border-bottom border-dashed">
+        <h5 className="header-title mb-0">Pièces jointes ({attachments.length})</h5>
       </CardHeader>
       <CardBody>
         {attachments.length > 0 && (
@@ -49,17 +38,26 @@ const Attachments = ({ attachments, onUpload }: { attachments: Attachment[], onU
                   </h5>
                   <small className="text-muted">{(file.taille / 1024).toFixed(1)} KB</small>
                 </div>
+                {onDelete && (
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm text-danger p-0 ms-2 flex-shrink-0"
+                    title="Supprimer cette pièce jointe"
+                    onClick={() => onDelete(file.id)}>
+                    <IconifyIcon icon="tabler:trash" className="fs-18" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
-        <FileUpload 
-          title="Ajouter un fichier" 
+        <FileUpload
+          title="Ajouter un fichier"
           onFileUpload={(files) => {
             if (files && files.length > 0) {
               onUpload(files[0] as File);
             }
-          }} 
+          }}
         />
       </CardBody>
     </Card>

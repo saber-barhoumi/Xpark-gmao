@@ -50,6 +50,16 @@ const viewDetailsService = {
     })
     return res.data
   },
+
+  /** Supprime un commentaire (auteur ou ADMIN uniquement, contrôlé côté API). */
+  async deleteCommentaire(ordreId: number, commentaireId: number): Promise<void> {
+    await api.delete(`/ordres-travail/${ordreId}/commentaires/${commentaireId}`)
+  },
+
+  /** Supprime une pièce jointe (ligne + fichier du volume partagé). */
+  async deleteAttachment(ordreId: number, attachmentId: number): Promise<void> {
+    await api.delete(`/ordres-travail/${ordreId}/attachments/${attachmentId}`)
+  },
 }
 
 export default viewDetailsService
