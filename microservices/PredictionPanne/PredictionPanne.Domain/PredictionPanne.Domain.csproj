@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Coeur metier prediction de pannes - entites + enums, ne depend d'aucune technique. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>PredictionPanne.Domain</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\XparkGMAO.Shared\XparkGMAO.Shared.csproj" />
+  </ItemGroup>
+</Project>

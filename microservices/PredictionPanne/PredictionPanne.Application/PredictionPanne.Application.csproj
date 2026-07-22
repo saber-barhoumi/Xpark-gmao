@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Cas d'usage prediction - DTOs, ports (IPredictionService, IPredictionEngine). -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>PredictionPanne.Application</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PredictionPanne.Domain\PredictionPanne.Domain.csproj" />
+  </ItemGroup>
+</Project>

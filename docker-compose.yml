@@ -223,6 +223,28 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── PredictionPanne Service (maintenance predictive IA) ────────
+  prediction-api:
+    build:
+      context: ./microservices
+      dockerfile: PredictionPanne/PredictionPanne.API/Dockerfile
+    container_name: xpark-prediction-api
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+    ports:
+      - "5009:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
   # ── Chat Service (SignalR chatHub + REST /api/chat/) ───────────
   chat-api:
     build:
