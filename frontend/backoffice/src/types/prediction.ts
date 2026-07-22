@@ -46,6 +46,18 @@ export interface SanteVehicule {
 
 export interface Repartition { libelle: string; nombre: number }
 
+/** Alerte actionnable dérivée d'une prédiction ELEVE/CRITIQUE. */
+export interface AlertePrediction {
+    niveau:          NiveauRisque
+    vehiculeId:      number
+    immatriculation: string
+    typePanne:       string
+    message:         string
+    dateEcheance?:   string | null
+    joursRestants?:  number | null
+    enRetard:        boolean
+}
+
 export interface PredictionDashboard {
     nombreVehiculesAnalyses:       number
     nombreVehiculesARisque:        number
@@ -56,6 +68,7 @@ export interface PredictionDashboard {
     repartitionRisque:             Repartition[]
     repartitionTypePanne:          Repartition[]
     classementVehicules:           SanteVehicule[]
+    alertes:                       AlertePrediction[]
 }
 
 export interface RecalculResultat {

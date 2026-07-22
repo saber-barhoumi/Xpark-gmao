@@ -58,10 +58,33 @@ public record DashboardDto(
     // Répartition des prédictions par organe (barres).
     IEnumerable<RepartitionDto> RepartitionTypePanne,
     // Classement des véhicules les plus à risque.
-    IEnumerable<SanteVehiculeDto> ClassementVehicules
+    IEnumerable<SanteVehiculeDto> ClassementVehicules,
+    // Alertes actionnables, triées par urgence.
+    IEnumerable<AlertePredictionDto> Alertes
 );
 
 public record RepartitionDto(string Libelle, int Nombre);
+
+/// <summary>
+/// Alerte actionnable dérivée d'une prédiction.
+///
+/// Volontairement PAS écrite dans la table Alertes du service Alerts : une
+/// alerte de prédiction est recalculée à chaque exécution du moteur et n'a pas
+/// de cycle de vie propre (pas d'accusé de lecture, pas de traitement). La
+/// dupliquer créerait des doublons à chaque recalcul et un problème de
+/// synchronisation. Elle est donc dérivée à la lecture.
+/// </summary>
+public record AlertePredictionDto(
+    string    Niveau,          // ELEVE | CRITIQUE
+    long      VehiculeId,
+    string    Immatriculation,
+    string    TypePanne,
+    string    Message,
+    DateTime? DateEcheance,
+    int?      JoursRestants,
+    // true si l'intervention conseillée est déjà dépassée
+    bool      EnRetard
+);
 
 // Résultat d'un recalcul déclenché manuellement.
 public record RecalculResultatDto(

@@ -167,6 +167,51 @@ const PredictionPannesPage = () => {
                 </>
             )}
 
+            {/* ── Alertes actionnables ── */}
+            {dashboard && dashboard.alertes.length > 0 && (
+                <Card className="mb-3">
+                    <CardBody>
+                        <h5 className="mb-3 d-flex align-items-center gap-2">
+                            <IconifyIcon icon="tabler:bell-ringing" className="text-danger" />
+                            Alertes de maintenance
+                            <Badge bg="danger">{dashboard.alertes.length}</Badge>
+                        </h5>
+                        <div className="d-flex flex-column gap-2">
+                            {dashboard.alertes.map((a, i) => (
+                                <div
+                                    key={`${a.vehiculeId}-${a.typePanne}-${i}`}
+                                    className={`d-flex align-items-start gap-2 border-start border-3 ps-2 py-1 border-${
+                                        a.enRetard ? 'danger' : a.niveau === NiveauRisque.CRITIQUE ? 'danger' : 'warning'
+                                    }`}>
+                                    <IconifyIcon
+                                        icon={a.enRetard ? 'tabler:alert-octagon' : 'tabler:alert-triangle'}
+                                        className={`fs-18 mt-1 text-${a.enRetard ? 'danger' : 'warning'}`}
+                                    />
+                                    <div className="flex-grow-1">
+                                        <div className="d-flex flex-wrap align-items-center gap-2">
+                                            <strong>{a.immatriculation}</strong>
+                                            <Badge bg="light" text="dark">
+                                                {ORGANE_LABEL[a.typePanne] ?? a.typePanne}
+                                            </Badge>
+                                            <Badge bg={a.niveau === NiveauRisque.CRITIQUE ? 'danger' : 'warning'}>
+                                                {a.niveau}
+                                            </Badge>
+                                            {a.enRetard && <Badge bg="dark">EN RETARD</Badge>}
+                                        </div>
+                                        <div className="text-muted fs-13">{a.message}</div>
+                                    </div>
+                                    {a.dateEcheance && (
+                                        <span className="text-muted fs-13 text-nowrap">
+                                            {new Date(a.dateEcheance).toLocaleDateString('fr-FR')}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </CardBody>
+                </Card>
+            )}
+
             {/* ── Classement des véhicules ── */}
             <Card>
                 <CardBody>

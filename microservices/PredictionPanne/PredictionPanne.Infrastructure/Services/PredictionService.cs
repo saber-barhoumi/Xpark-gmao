@@ -171,6 +171,34 @@ public class PredictionService(
             .OrderByDescending(r => r.Nombre)
             .ToList();
 
+        // ── Alertes actionnables ─────────────────────────────────────────────
+        // Seuls les risques ELEVE/CRITIQUE méritent d'interrompre un exploitant.
+        // Les échéances déjà dépassées passent devant : ce sont les plus urgentes.
+        var maintenant = DateTime.UtcNow;
+        var alertes = sante
+            .SelectMany(v => v.Predictions
+                .Where(p => p.NiveauRisque is "ELEVE" or "CRITIQUE")
+                .Select(p => {
+                    var enRetard = p.DateMaintenanceRecommandee.HasValue &&
+                                   p.DateMaintenanceRecommandee.Value < maintenant;
+                    return new AlertePredictionDto(
+                        Niveau:          p.NiveauRisque,
+                        VehiculeId:      v.VehiculeId,
+                        Immatriculation: v.Immatriculation,
+                        TypePanne:       p.TypePanne,
+                        Message:         enRetard
+                            ? $"Intervention en retard — {p.Recommandation}"
+                            : p.Recommandation,
+                        DateEcheance:    p.DateMaintenanceRecommandee,
+                        JoursRestants:   p.DureeVieRestanteJours,
+                        EnRetard:        enRetard);
+                }))
+            .OrderByDescending(a => a.EnRetard)
+            .ThenByDescending(a => a.Niveau == "CRITIQUE")
+            .ThenBy(a => a.DateEcheance ?? DateTime.MaxValue)
+            .Take(20)
+            .ToList();
+
         return new DashboardDto(
             NombreVehiculesAnalyses:  sante.Count,
             NombreVehiculesARisque:   aRisque,
@@ -182,7 +210,8 @@ public class PredictionService(
                 toutes.Count(p => p.NiveauRisque is "ELEVE" or "CRITIQUE") * CoutMoyenPanneEvitee),
             RepartitionRisque:    repartitionRisque,
             RepartitionTypePanne: repartitionType,
-            ClassementVehicules:  sante.Take(10).ToList());
+            ClassementVehicules:  sante.Take(10).ToList(),
+            Alertes:              alertes);
     }
 
     // ═══ Helpers ═════════════════════════════════════════════════════════════
