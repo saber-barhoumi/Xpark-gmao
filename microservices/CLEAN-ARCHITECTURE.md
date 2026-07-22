@@ -24,6 +24,7 @@ PostgreSQL est partagée entre services, ces enums sont le vocabulaire commun).
 | Finance | `ccd7a92` | Finance/ARCHITECTURE.md | facturation XPARK, projections lecture seule |
 | Alerts (= Notification) | `f81bdef` | Alerts/ARCHITECTURE.md | notifications système |
 | Chat | `7690f8d` | Chat/ARCHITECTURE.md | SignalR en Infrastructure, Application minimale assumée |
+| **PredictionPanne** | `a6243e7` | PredictionPanne/ARCHITECTURE.md | **Nouveau service** (juil. 2026) — maintenance prédictive ; `IPredictionEngine` = point d'intégration du modèle IA |
 
 **Ordre appliqué** : IAM → Fleet → Mission → Maintenance → Finance → Alerts → Chat.
 
@@ -66,10 +67,12 @@ login via la chaîne backoffice `:3000` → **200** · consumer
 `xpark.optimization.plan-generated` à l'écoute · négociation SignalR **200** ·
 chaîne de facturation complète **OK**.
 
-## Reste à faire avant push
+## État
 
-- [ ] Test E2E manuel complet de la plateforme par le propriétaire du projet
-- [ ] Sur accord explicite uniquement : push de l'ensemble vers `Saber`
-- [ ] Nettoyage optionnel : coquilles héritées `<Svc>.API/{bin,obj}` restées
-      sur disque (verrouillées par l'IDE au moment des déplacements) —
-      gitignorées, sans effet, supprimables à tout moment
+Migration Clean Architecture **terminée et poussée** sur `Saber` puis `main`
+(`7571d71`). Les coquilles héritées `<Svc>.API/{bin,obj}` ont été supprimées et
+les artefacts de build sont désormais hors suivi git.
+
+Depuis, le 8e service **PredictionPanne** a été créé directement en Clean
+Architecture, en appliquant la même recette — preuve que le gabarit est
+reproductible pour un service neuf, pas seulement pour une migration.
