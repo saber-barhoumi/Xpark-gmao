@@ -1,26 +1,17 @@
+import { Alert, Card, CardBody, Col, Spinner } from 'react-bootstrap'
 
-import { Card, CardBody, Col } from 'react-bootstrap'
+import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import useCalendar from '../useCalendar'
-import AddEditEvent from './AddEditEvent'
 import Calendar from './Calendar'
+import EventDetails from './EventDetails'
 import SidePanel from './SidePanel'
 
 const CalendarPage = () => {
   const {
-    createNewEvent,
-    eventData,
-    events,
-    externalEvents,
-    isEditable,
-    onAddEvent,
-    onCloseModal,
-    onDateClick,
-    onDrop,
-    onEventClick,
-    onEventDrop,
-    onRemoveEvent,
-    onUpdateEvent,
-    show,
+    events, allEvents, isLoading, error, failedSources,
+    filters, setFilter, toggleType, resetFilters, isFiltered,
+    typeOptions, vehiculeOptions, employeeOptions, clientOptions,
+    selected, onEventClick, closeDetails, reload,
   } = useCalendar()
 
   return (
@@ -28,7 +19,20 @@ const CalendarPage = () => {
       <Col xl={3}>
         <Card>
           <CardBody>
-            <SidePanel externalEvents={externalEvents} createNewEvent={createNewEvent} />
+            <SidePanel
+              filters={filters}
+              typeOptions={typeOptions}
+              vehiculeOptions={vehiculeOptions}
+              employeeOptions={employeeOptions}
+              clientOptions={clientOptions}
+              isFiltered={isFiltered}
+              total={allEvents.length}
+              affiches={events.length}
+              onToggleType={toggleType}
+              onSetFilter={setFilter}
+              onReset={resetFilters}
+              onReload={reload}
+            />
           </CardBody>
         </Card>
       </Col>
@@ -36,20 +40,35 @@ const CalendarPage = () => {
       <Col xl={9}>
         <Card>
           <CardBody>
-            <Calendar events={events} onDateClick={onDateClick} onDrop={onDrop} onEventClick={onEventClick} onEventDrop={onEventDrop} />
+            {error && (
+              <Alert variant="danger" className="d-flex align-items-center gap-2">
+                <IconifyIcon icon="tabler:alert-circle" /> {error}
+              </Alert>
+            )}
+
+            {/* Dégradation partielle : on nomme les sources indisponibles au
+                lieu d'afficher un calendrier vide sans explication. */}
+            {!error && failedSources.length > 0 && (
+              <Alert variant="warning" className="d-flex align-items-center gap-2">
+                <IconifyIcon icon="tabler:plug-connected-x" />
+                Source(s) indisponible(s) : {failedSources.join(', ')}. Les autres
+                événements restent affichés.
+              </Alert>
+            )}
+
+            {isLoading ? (
+              <div className="text-center py-5">
+                <Spinner animation="border" variant="primary" />
+                <p className="text-muted mt-2 mb-0">Chargement des événements…</p>
+              </div>
+            ) : (
+              <Calendar events={events} onEventClick={onEventClick} />
+            )}
           </CardBody>
         </Card>
       </Col>
 
-      <AddEditEvent
-        eventData={eventData}
-        isEditable={isEditable}
-        onAddEvent={onAddEvent}
-        onRemoveEvent={onRemoveEvent}
-        onUpdateEvent={onUpdateEvent}
-        open={show}
-        toggle={onCloseModal}
-      />
+      <EventDetails event={selected} open={!!selected} toggle={closeDetails} />
     </>
   )
 }

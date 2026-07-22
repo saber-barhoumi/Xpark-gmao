@@ -8,7 +8,7 @@ import PageBreadcrumb from '@/components/PageBreadcrumb'
 const Schedule = () => {
   return (
     <>
-    <PageBreadcrumb title='Calender' />
+    <PageBreadcrumb title='Calendrier métier' />
       <Row>
         <CalendarPage />
       </Row>

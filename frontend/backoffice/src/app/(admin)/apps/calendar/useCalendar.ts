@@ -1,213 +1,151 @@
-import {
-  DateInput, EventClickArg, EventDropArg, EventInput,
-} from '@fullcalendar/core'
-import { DateClickArg, Draggable, type DropArg } from '@fullcalendar/interaction'
-import { useEffect, useState, useCallback } from 'react'
-import calendarService, { CalendarEventCategory } from '@/services/calendarService'
+import { EventClickArg, EventInput } from '@fullcalendar/core'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import calendarService, {
+  CalendarEventType, TYPE_LABELS, XparkEventProps,
+} from '@/services/calendarService'
 
-export type SubmitEventType = {
-  title:          string
-  category:       CalendarEventCategory
-  description?:   string
-  typeEvenement?: string
-  isExternal?:    boolean // Pour savoir si on ajoute à la sidebar
+/** Filtres demandés : type, véhicule, chauffeur, client, plage de dates. */
+export interface CalendarFilters {
+  types:      CalendarEventType[]   // vide = tous
+  vehiculeId: number | null
+  employeeId: number | null
+  clientId:   number | null
+  dateFrom:   string                // 'YYYY-MM-DD', '' = pas de borne
+  dateTo:     string
 }
 
-const useCalendar = () => {
-  const [show,         setShow]           = useState(false)
-  const [isEditable,   setIsEditable]     = useState(false)
-  const [isLoading,    setIsLoading]      = useState(true)
-  const [events,       setEvents]         = useState<EventInput[]>([])
-  const [eventData,    setEventData]      = useState<EventInput>()
-  const [dateInfo,     setDateInfo]       = useState<DateClickArg>()
-  const [error,        setError]          = useState<string | null>(null)
-  
-  // Bug 1: State pour les tâches dans la sidebar
-  const [externalEvents, setExternalEvents] = useState([
-    { id: '1', variant: 'success', title: 'New Event Planning' },
-    { id: '2', variant: 'info',    title: 'Meeting' },
-    { id: '3', variant: 'warning', title: 'Generating Reports' },
-    { id: '4', variant: 'danger',  title: 'Create New theme' },
-  ])
+const FILTRES_VIDES: CalendarFilters = {
+  types: [], vehiculeId: null, employeeId: null, clientId: null,
+  dateFrom: '', dateTo: '',
+}
 
-  // ── Charger les événements depuis l'API ───────────────────────
+/** Option de liste déroulante déduite des événements réellement chargés. */
+export interface FilterOption { id: number; label: string }
+
+const props = (e: EventInput) => e.extendedProps as XparkEventProps
+
+const useCalendar = () => {
+  const [allEvents,     setAllEvents]     = useState<EventInput[]>([])
+  const [isLoading,     setIsLoading]     = useState(true)
+  const [error,         setError]         = useState<string | null>(null)
+  const [failedSources, setFailedSources] = useState<string[]>([])
+  const [filters,       setFilters]       = useState<CalendarFilters>(FILTRES_VIDES)
+  const [selected,      setSelected]      = useState<EventInput | null>(null)
+
+  // ── Chargement depuis les microservices ────────────────────────────────────
   const loadEvents = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await calendarService.getEvents()
-      setEvents(data)
-    } catch (err) {
+      const { events, failedSources } = await calendarService.getEvents()
+      setAllEvents(events)
+      setFailedSources(failedSources)
+    } catch {
       setError('Impossible de charger le calendrier.')
     } finally {
       setIsLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    loadEvents()
-  }, [loadEvents])
+  useEffect(() => { loadEvents() }, [loadEvents])
 
-  // Initialisation du Draggable (important pour les nouveaux éléments ajoutés à la sidebar)
-  useEffect(() => {
-    const draggableEl = document.getElementById('external-events')
-    let draggable: Draggable | null = null
-    if (draggableEl) {
-      draggable = new Draggable(draggableEl, { 
-        itemSelector: '.external-event',
-        eventData: (el) => ({
-          title:     el.getAttribute('title'),
-          className: el.getAttribute('data-class'),
-        })
-      })
+  // ── Options de filtres déduites des données chargées ───────────────────────
+  // Avantage : on ne propose que des valeurs qui existent vraiment dans le
+  // calendrier, et cela n'ajoute aucun appel réseau supplémentaire.
+  const buildOptions = (
+    idOf: (p: XparkEventProps) => number | undefined,
+    labelOf: (p: XparkEventProps) => string | undefined,
+  ): FilterOption[] => {
+    const map = new Map<number, string>()
+    allEvents.forEach(e => {
+      const p = props(e)
+      const id = idOf(p)
+      if (id != null && !map.has(id)) map.set(id, labelOf(p) || `#${id}`)
+    })
+    return [...map.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }
+
+  const vehiculeOptions = useMemo(
+    () => buildOptions(p => p.vehiculeId, p => p.immatriculation), [allEvents])
+  const employeeOptions = useMemo(
+    () => buildOptions(p => p.employeeId, p => p.chauffeurNom), [allEvents])
+  const clientOptions = useMemo(
+    () => buildOptions(p => p.clientId, p => p.clientNom), [allEvents])
+
+  /** Types réellement présents, pour n'afficher que des filtres utiles. */
+  const typeOptions = useMemo(() => {
+    const compte = new Map<CalendarEventType, number>()
+    allEvents.forEach(e => {
+      const t = props(e).type
+      compte.set(t, (compte.get(t) ?? 0) + 1)
+    })
+    return [...compte.entries()]
+      .map(([type, count]) => ({ type, count, label: TYPE_LABELS[type] }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [allEvents])
+
+  // ── Application des filtres ────────────────────────────────────────────────
+  const events = useMemo(() => allEvents.filter(e => {
+    const p = props(e)
+    if (filters.types.length && !filters.types.includes(p.type))   return false
+    if (filters.vehiculeId != null && p.vehiculeId !== filters.vehiculeId) return false
+    if (filters.employeeId != null && p.employeeId !== filters.employeeId) return false
+    if (filters.clientId   != null && p.clientId   !== filters.clientId)   return false
+
+    if (filters.dateFrom || filters.dateTo) {
+      const jour = String(e.start).slice(0, 10)          // ISO → 'YYYY-MM-DD'
+      if (filters.dateFrom && jour < filters.dateFrom) return false
+      if (filters.dateTo   && jour > filters.dateTo)   return false
     }
-    return () => draggable?.destroy()
-  }, [externalEvents]) // Se ré-exécute si on ajoute un externalEvent
+    return true
+  }), [allEvents, filters])
 
-  const onOpenModal  = () => setShow(true)
-  const onCloseModal = () => {
-    setEventData(undefined)
-    setDateInfo(undefined)
-    setShow(false)
-  }
+  // ── Actions de filtrage ───────────────────────────────────────────────────
+  const toggleType = useCallback((type: CalendarEventType) => {
+    setFilters(f => ({
+      ...f,
+      types: f.types.includes(type)
+        ? f.types.filter(t => t !== type)
+        : [...f.types, type],
+    }))
+  }, [])
 
-  const onDateClick = (arg: DateClickArg) => {
-    setDateInfo(arg)
-    setIsEditable(false)
-    onOpenModal()
-  }
+  const setFilter = useCallback(
+    <K extends keyof CalendarFilters>(cle: K, valeur: CalendarFilters[K]) => {
+      setFilters(f => ({ ...f, [cle]: valeur }))
+    }, [])
 
-  const onEventClick = (arg: EventClickArg) => {
-    setEventData({
-      id:        String(arg.event.id),
-      title:     arg.event.title,
-      className: arg.event.classNames[0],
+  const resetFilters = useCallback(() => setFilters(FILTRES_VIDES), [])
+
+  const isFiltered = useMemo(
+    () => filters.types.length > 0 || filters.vehiculeId != null ||
+          filters.employeeId != null || filters.clientId != null ||
+          !!filters.dateFrom || !!filters.dateTo,
+    [filters])
+
+  // ── Détail d'un événement ─────────────────────────────────────────────────
+  const onEventClick = useCallback((arg: EventClickArg) => {
+    setSelected({
+      id:            arg.event.id,
+      title:         arg.event.title,
+      start:         arg.event.startStr,
+      end:           arg.event.endStr,
+      allDay:        arg.event.allDay,
+      className:     arg.event.classNames[0],
       extendedProps: arg.event.extendedProps,
     })
-    setIsEditable(true)
-    onOpenModal()
-  }
-
-  // ── Créer un événement → API ou Sidebar ──────────────────────
-  const onAddEvent = useCallback(async (data: SubmitEventType) => {
-    if (data.isExternal) {
-      // Bug 1: Ajout à la sidebar
-      const newExt = {
-        id:      Math.random().toString(),
-        title:   data.title,
-        variant: data.category.replace('bg-', ''),
-      }
-      setExternalEvents(prev => [...prev, newExt])
-      onCloseModal()
-      return
-    }
-
-    try {
-      const newEvent = await calendarService.createEvent({
-        title:          data.title,
-        category:       data.category,
-        start:          dateInfo?.date ?? new Date(),
-        typeEvenement:  data.typeEvenement as any,
-        description:    data.description,
-      })
-      setEvents(prev => [...prev, newEvent])
-      onCloseModal()
-    } catch (err) {
-      setError('Erreur lors de la création de l\'événement.')
-    }
-  }, [dateInfo])
-
-  // ── Modifier un événement ────────────────────────────────────
-  const onUpdateEvent = useCallback(async (data: SubmitEventType) => {
-    if (!eventData?.id) return
-    try {
-      const updated = await calendarService.updateEvent(String(eventData.id), {
-        title:    data.title,
-        category: data.category,
-      })
-      setEvents(prev =>
-        prev.map(e => String(e.id) === String(eventData.id) ? updated : e)
-      )
-      onCloseModal()
-      setIsEditable(false)
-    } catch (err) {
-      setError('Erreur lors de la modification.')
-    }
-  }, [eventData])
-
-  // ── Supprimer un événement ───────────────────────────────────
-  const onRemoveEvent = useCallback(async () => {
-    if (!eventData?.id) return
-    try {
-      await calendarService.deleteEvent(String(eventData.id))
-      setEvents(prev => prev.filter(e => String(e.id) !== String(eventData.id)))
-      onCloseModal()
-    } catch (err) {
-      setError('Erreur lors de la suppression.')
-    }
-  }, [eventData])
-
-  // ── Persister le drag & drop interne au calendrier ─────────────
-  const onEventDrop = useCallback(async (arg: EventDropArg) => {
-    try {
-      await calendarService.updateEvent(arg.event.id, {
-        start: arg.event.start?.toISOString() || new Date().toISOString(),
-        end:   arg.event.end?.toISOString(),
-      })
-      setEvents(prev =>
-        prev.map(e => {
-          if (String(e.id) === arg.event.id) {
-            return {
-              ...e,
-              start:     arg.event.start as DateInput,
-              end:       arg.event.end as DateInput,
-              className: arg.event.classNames,
-            }
-          }
-          return e
-        })
-      )
-    } catch (err) {
-      arg.revert()
-      setError('Erreur lors du déplacement.')
-    }
   }, [])
 
-  // ── Drag & Drop depuis la sidebar → Bug 3 ──────────────────────
-  const onDrop = useCallback(async (arg: any) => {
-    const title = arg.draggedEl?.getAttribute('title') || arg.event?.title
-    const category = arg.draggedEl?.getAttribute('data-class') || arg.event?.classNames?.[0]
-    
-    // Si c'est un event effectif (eventReceive)
-    if (arg.event) {
-        arg.event.remove() // On supprime l'event local de FullCalendar pour éviter le doublon (Bug 3)
-    }
-
-    try {
-      const newEvent = await calendarService.createEvent({
-        title,
-        category:  category || 'bg-primary' as CalendarEventCategory,
-        start:     new Date(arg.dateStr || arg.event.startStr),
-      })
-      setEvents(prev => [...prev, newEvent])
-    } catch (err) {
-      setError('Erreur lors du dépôt de l\'événement.')
-    }
-  }, [])
-
-  const createNewEvent = () => {
-    setIsEditable(false)
-    onOpenModal()
-  }
+  const closeDetails = useCallback(() => setSelected(null), [])
 
   return {
-    show, isLoading, error,
-    events, externalEvents, eventData, dateInfo, isEditable,
-    createNewEvent,
-    onDateClick, onEventClick,
-    onDrop, onEventDrop,
-    onCloseModal,
-    onAddEvent, onUpdateEvent, onRemoveEvent,
+    events, allEvents, isLoading, error, failedSources,
+    filters, setFilter, toggleType, resetFilters, isFiltered,
+    typeOptions, vehiculeOptions, employeeOptions, clientOptions,
+    selected, onEventClick, closeDetails,
+    reload: loadEvents,
   }
 }
 
