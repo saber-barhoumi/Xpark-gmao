@@ -177,6 +177,25 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
             .OrderBy(ot => ot.Priorite).ThenByDescending(ot => ot.DateCreation)
             .ToListAsync();
 
+        // Compteurs réels (2 requêtes agrégées, pas de N+1) : le kanban et la page
+        // de détail doivent montrer les mêmes chiffres.
+        var nbPiecesJointes = await context.Attachments
+            .GroupBy(a => a.OrdreId)
+            .Select(g => new { OrdreId = g.Key, Nb = g.Count() })
+            .ToDictionaryAsync(x => x.OrdreId, x => x.Nb);
+
+        var nbCommentaires = await context.Commentaires
+            .GroupBy(c => c.OrdreId)
+            .Select(g => new { OrdreId = g.Key, Nb = g.Count() })
+            .ToDictionaryAsync(x => x.OrdreId, x => x.Nb);
+
+        // OT ayant au moins une pièce détachée consommée (via ses interventions).
+        var otAvecPieces = (await context.InterventionPieces
+            .Where(ip => ip.Intervention!.OrdreTravailId != null)
+            .Select(ip => ip.Intervention!.OrdreTravailId!.Value)
+            .Distinct()
+            .ToListAsync()).ToHashSet();
+
         var result = new Dictionary<string, object>();
         foreach (var col in new[] { "PLANIFIE", "EN_COURS", "TERMINE", "ANNULE" })
             result[col] = new List<object>();
@@ -195,10 +214,11 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
                 dateEcheance     = ot.DateFin,
                 technicienId     = ot.TechnicienId,
                 vehiculeId       = ot.VehiculeId,
-                hasAttachments   = false,
-                commentsCount    = ot.Interventions.Count,
-                hasSpareParts    = false,
-                tags             = Array.Empty<string>()
+                hasAttachments   = nbPiecesJointes.GetValueOrDefault(ot.IdOrdreTravail) > 0,
+                commentsCount    = nbCommentaires.GetValueOrDefault(ot.IdOrdreTravail),
+                hasSpareParts    = otAvecPieces.Contains(ot.IdOrdreTravail),
+                tags             = ot.Interventions.Select(i => i.TypeIntervention.ToString())
+                                     .Distinct().ToArray()
             }).ToList();
         }
 
@@ -269,8 +289,183 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
         return Ok(new { message = "Statut mis à jour" });
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Page « Détails de la tâche » (/tasks/view-details)
+    // Les entités Attachment et Commentaire ainsi que leurs tables existaient
+    // déjà ; seule la couche API manquait, d'où une page systématiquement en
+    // « Ordre de travail introuvable ».
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Vue complète d'un OT : entête + pièces jointes + commentaires.</summary>
+    [HttpGet("{id:long}/detail")]
+    public async Task<IActionResult> GetDetail(long id)
+    {
+        var ot = await context.OrdresTravail
+            .Include(o => o.Interventions)
+            .FirstOrDefaultAsync(o => o.IdOrdreTravail == id);
+        if (ot == null) return NotFound(new { message = $"Ordre de travail {id} introuvable" });
+
+        var attachments = await context.Attachments
+            .Where(a => a.OrdreId == id)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new { a.Id, a.Nom, a.Url, a.Taille, a.Type, a.CreatedAt })
+            .ToListAsync();
+
+        var commentaires = await context.Commentaires
+            .Where(c => c.OrdreId == id)
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => new { c.Id, c.Contenu, c.AuteurId, c.CreatedAt })
+            .ToListAsync();
+
+        // Enrichissement des noms : même approche que kanban/metadata — Maintenance
+        // ne projette volontairement pas Vehicule/Utilisateur (voir les stubs du
+        // Domain : « use FK only »), on lit donc la base partagée en SQL brut.
+        var auteurs = await ResoudreNomsUtilisateurs(
+            commentaires.Select(c => c.AuteurId)
+                        .Concat(ot.TechnicienId.HasValue ? [ot.TechnicienId.Value] : [])
+                        .Distinct().ToList());
+
+        var immatriculation = (await ResoudreImmatriculations([ot.VehiculeId]))
+            .GetValueOrDefault(ot.VehiculeId);
+
+        return Ok(new {
+            id           = ot.IdOrdreTravail,
+            titre        = string.IsNullOrWhiteSpace(ot.Reference) ? ot.Description : ot.Reference,
+            description  = string.IsNullOrWhiteSpace(ot.Description) ? ot.Observations : ot.Description,
+            priorite     = ot.Priorite.ToString(),
+            statut       = ot.Statut.ToString(),
+            dateCreation = ot.DateCreation,
+            dateEcheance = ot.DateFin,
+            technicien   = ot.TechnicienId.HasValue
+                             ? auteurs.GetValueOrDefault(ot.TechnicienId.Value)
+                             : null,
+            equipement   = immatriculation,
+            // Pas de colonne « tags » en base : on expose une information réelle
+            // et utile — les types d'intervention rattachés à cet OT.
+            tags         = ot.Interventions.Select(i => i.TypeIntervention.ToString())
+                             .Distinct().ToArray(),
+            attachments  = attachments.Select(a => new {
+                             a.Id, a.Nom, a.Url, a.Taille, a.Type, a.CreatedAt }),
+            commentaires = commentaires.Select(c => new {
+                             c.Id, c.Contenu,
+                             auteur = auteurs.GetValueOrDefault(c.AuteurId) ?? $"Utilisateur #{c.AuteurId}",
+                             c.CreatedAt }),
+        });
+    }
+
+    /// <summary>Ajoute un commentaire à l'OT (auteur = utilisateur authentifié).</summary>
+    [HttpPost("{id:long}/commentaires")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE,TECHNICIEN")]
+    public async Task<IActionResult> AddCommentaire(long id, [FromBody] AddCommentaireRequest dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Contenu))
+            return BadRequest(new { message = "Le commentaire ne peut pas être vide." });
+
+        if (!await context.OrdresTravail.AnyAsync(o => o.IdOrdreTravail == id))
+            return NotFound(new { message = $"Ordre de travail {id} introuvable" });
+
+        var auteurId = GetUserId();
+        var commentaire = new Commentaire {
+            OrdreId   = id,
+            Contenu   = dto.Contenu.Trim(),
+            AuteurId  = auteurId,
+            CreatedAt = DateTime.UtcNow,
+        };
+        context.Commentaires.Add(commentaire);
+        await context.SaveChangesAsync();
+
+        var noms = await ResoudreNomsUtilisateurs([auteurId]);
+        return Ok(new {
+            id        = commentaire.Id,
+            contenu   = commentaire.Contenu,
+            auteur    = noms.GetValueOrDefault(auteurId) ?? $"Utilisateur #{auteurId}",
+            createdAt = commentaire.CreatedAt,
+        });
+    }
+
+    /// <summary>Téléverse une pièce jointe (volume partagé ./data/uploads).</summary>
+    [HttpPost("{id:long}/attachments")]
+    [Authorize(Roles = "ADMIN,GESTIONNAIRE,TECHNICIEN")]
+    public async Task<IActionResult> UploadAttachment(long id, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "Fichier vide" });
+
+        const long tailleMax = 20 * 1024 * 1024; // 20 Mo
+        if (file.Length > tailleMax)
+            return BadRequest(new { message = "Fichier trop volumineux (max 20 Mo)" });
+
+        var extensionsAutorisees = new[] {
+            ".jpg", ".jpeg", ".png", ".gif", ".webp",
+            ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!extensionsAutorisees.Contains(extension))
+            return BadRequest(new { message = $"Format non supporté : {extension}" });
+
+        if (!await context.OrdresTravail.AnyAsync(o => o.IdOrdreTravail == id))
+            return NotFound(new { message = $"Ordre de travail {id} introuvable" });
+
+        var uploadsPath = Path.Combine("/app/wwwroot/uploads/ordres-travail");
+        Directory.CreateDirectory(uploadsPath);
+
+        var fileName = $"{Guid.NewGuid()}{extension}";
+        await using (var stream = new FileStream(Path.Combine(uploadsPath, fileName), FileMode.Create))
+            await file.CopyToAsync(stream);
+
+        var attachment = new Attachment {
+            OrdreId   = id,
+            Nom       = Path.GetFileName(file.FileName),
+            Url       = $"/uploads/ordres-travail/{fileName}",
+            Taille    = file.Length,
+            Type      = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+            CreatedAt = DateTime.UtcNow,
+        };
+        context.Attachments.Add(attachment);
+        await context.SaveChangesAsync();
+
+        return Ok(new {
+            id = attachment.Id, nom = attachment.Nom, url = attachment.Url,
+            taille = attachment.Taille, type = attachment.Type, createdAt = attachment.CreatedAt,
+        });
+    }
+
+    // ── Helpers de résolution cross-service (base partagée, lecture seule) ────
+    private async Task<Dictionary<long, string>> ResoudreNomsUtilisateurs(List<long> ids)
+    {
+        var valides = ids.Where(i => i > 0).Distinct().ToList();
+        if (valides.Count == 0) return [];
+
+        var rows = await context.Database
+            .SqlQueryRaw<TechnicienMetaRow>(
+                $"SELECT \"IdUtilisateur\" as id, \"Nom\" as nom, \"Prenom\" as prenom " +
+                $"FROM \"Utilisateurs\" WHERE \"IdUtilisateur\" IN ({string.Join(",", valides)})")
+            .ToListAsync();
+
+        return rows.ToDictionary(r => r.Id, r => $"{r.Prenom} {r.Nom}".Trim());
+    }
+
+    private async Task<Dictionary<long, string>> ResoudreImmatriculations(List<long> ids)
+    {
+        var valides = ids.Where(i => i > 0).Distinct().ToList();
+        if (valides.Count == 0) return [];
+
+        var rows = await context.Database
+            .SqlQueryRaw<VehiculeMetaRow>(
+                $"SELECT \"IdVehicule\" as id, \"Immatriculation\" as immatriculation " +
+                $"FROM \"Vehicules\" WHERE \"IdVehicule\" IN ({string.Join(",", valides)})")
+            .ToListAsync();
+
+        return rows.Where(r => r.Immatriculation != null)
+                   .ToDictionary(r => r.Id, r => r.Immatriculation!);
+    }
+
     private long GetUserId() =>
         long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
+}
+
+public class AddCommentaireRequest
+{
+    public string Contenu { get; set; } = string.Empty;
 }
 
 // Raw SQL projection types for cross-service reads from the shared DB
