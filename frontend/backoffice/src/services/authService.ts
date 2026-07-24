@@ -71,6 +71,7 @@ export interface AuthenticatorSetup {
 }
 
 export interface LoginHistoryEntry {
+    id: number;
     loggedInAt: string;
     loginMethod: string;
     mfaMethod?: string;
@@ -195,6 +196,16 @@ export const authService = {
     getLoginHistory: async (limit = 20): Promise<LoginHistoryEntry[]> => {
         const response = await authApi.get<any>(`/auth/security/login-history?limit=${limit}`);
         return response.data?.data ?? response.data;
+    },
+
+    /** Supprimer une entrée de l'historique de connexion (borné à l'utilisateur courant côté API) */
+    deleteLoginHistory: async (id: number): Promise<void> => {
+        await authApi.delete(`/auth/security/login-history/${id}`);
+    },
+
+    /** Vider tout l'historique de connexion de l'utilisateur courant */
+    clearLoginHistory: async (): Promise<void> => {
+        await authApi.delete('/auth/security/login-history');
     },
 
     /** Inscription d'un nouvel utilisateur */
