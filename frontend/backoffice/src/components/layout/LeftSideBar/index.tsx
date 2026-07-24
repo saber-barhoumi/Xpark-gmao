@@ -11,6 +11,7 @@ import { Button, Dropdown, DropdownHeader, DropdownItem, DropdownMenu, DropdownT
 import { useLayoutContext } from '@/context/useLayoutContext'
 import HoverMenuToggle from './components/HoverMenuToggle'
 import authService, { AuthResponse } from '@/services/authService'
+import profileService from '@/services/profileService'
 import { usePendingMissionsCount } from '@/hooks/usePendingMissionsCount'
 import type { MenuItemType } from '@/types/layout'
 // import AppMenu from './components/AppMenu'
@@ -38,7 +39,19 @@ const LeftSideBar = () => {
   const [user, setUser] = useState<AuthResponse | null>(null)
 
   useEffect(() => {
-    const fetchUser = () => setUser(authService.getCurrentUser());
+    const fetchUser = async () => {
+      const currentUser = authService.getCurrentUser();
+      if (!currentUser) { setUser(null); return; }
+      setUser(currentUser);
+      // La photo n'est pas toujours dans le localStorage : on récupère la
+      // version fraîche depuis la base (même logique que le menu du topbar).
+      try {
+        const profile = await profileService.getProfile(currentUser.idUtilisateur);
+        if (profile.photoUrl) {
+          setUser(prev => prev ? { ...prev, photoUrl: profile.photoUrl! } : null);
+        }
+      } catch { /* on garde le fallback avatar */ }
+    };
     fetchUser();
 
     // Recharger si le localStorage change (ex: après un upload de photo dans un autre composant)
