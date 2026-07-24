@@ -55,6 +55,34 @@ function exportPdf(rows: Carburant[]) {
 
 const PAGE_SIZE = 10
 
+// État vide réutilisable pour un graphique sans données.
+function EmptyChart({ icon, label }: { icon: string; label: string }) {
+    return (
+        <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{ height: 300 }}>
+            <IconifyIcon icon={icon} className="fs-48 mb-2 opacity-25" />
+            <p className="mb-0 fs-13">{label}</p>
+        </div>
+    )
+}
+
+// En-tête de colonne triable (indicateur de sens de tri).
+type SortCol = 'date' | 'montant' | 'quantite' | 'km' | 'conso'
+function SortHeader({ label, col, sortKey, sortDir, onSort }: {
+    label: string; col: SortCol; sortKey: SortCol; sortDir: 'asc' | 'desc'; onSort: (c: SortCol) => void
+}) {
+    const actif = sortKey === col
+    return (
+        <th role="button" className="user-select-none" onClick={() => onSort(col)} title="Trier">
+            <span className="d-inline-flex align-items-center gap-1">
+                {label}
+                <IconifyIcon
+                    icon={actif ? (sortDir === 'asc' ? 'ri:arrow-up-s-line' : 'ri:arrow-down-s-line') : 'ri:arrow-up-down-line'}
+                    className={actif ? 'text-primary' : 'opacity-50'} />
+            </span>
+        </th>
+    )
+}
+
 export default function CarburantPage() {
     const [records, setRecords] = useState<Carburant[]>([])
     const [stats, setStats] = useState<CarburantStats | null>(null)
@@ -527,150 +555,176 @@ export default function CarburantPage() {
                 </Col>
             </Row>
 
-            {/* ── Visual Analytics Row ─────────────────────────────────── */}
+            {/* ── Analytics : tendance + top véhicules ─────────────────── */}
             <Row className="g-4 mb-4">
-                <Col lg={7}>
+                <Col lg={8}>
                     <Card className="shadow-sm border-0 h-100">
                         <Card.Header className="bg-transparent border-0 py-3">
                             <h5 className="mb-0 fw-bold text-dark">Tendance de Consommation</h5>
                             <p className="text-muted fs-12 mb-0">Évolution mensuelle des coûts et volumes</p>
                         </Card.Header>
                         <Card.Body>
-                            <ReactApexChart options={areaOptions} series={areaSeries} type="area" height={300} />
+                            {stats?.evolutionMensuelle?.length ? (
+                                <ReactApexChart options={areaOptions} series={areaSeries} type="area" height={300} />
+                            ) : <EmptyChart icon="ri:line-chart-line" label="Pas encore de données mensuelles" />}
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col lg={5}>
+                <Col lg={4}>
+                    <Card className="shadow-sm border-0 h-100">
+                        <Card.Header className="bg-transparent border-0 py-3">
+                            <h5 className="mb-0 fw-bold text-dark">Répartition par type</h5>
+                            <p className="text-muted fs-12 mb-0">Part de chaque carburant dans la dépense</p>
+                        </Card.Header>
+                        <Card.Body>
+                            {typeChartSeries.length ? (
+                                <ReactApexChart options={typeChartOptions} series={typeChartSeries} type="donut" height={300} />
+                            ) : <EmptyChart icon="ri:donut-chart-line" label="Aucun enregistrement sur la sélection" />}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row className="g-4 mb-4">
+                <Col lg={7}>
                     <Card className="shadow-sm border-0 h-100">
                         <Card.Header className="bg-transparent border-0 py-3">
                             <h5 className="mb-0 fw-bold text-dark">Top 5 Véhicules par Coût</h5>
                             <p className="text-muted fs-12 mb-0">Dépenses totales par immatriculation</p>
                         </Card.Header>
                         <Card.Body>
-                            <ReactApexChart options={columnOptions} series={columnSeries} type="bar" height={300} />
+                            {stats?.topVehiculesParCout?.length ? (
+                                <ReactApexChart options={columnOptions} series={columnSeries} type="bar" height={300} />
+                            ) : <EmptyChart icon="ri:bar-chart-2-line" label="Pas de véhicule à classer" />}
+                        </Card.Body>
+                    </Card>
+                </Col>
+                <Col lg={5}>
+                    <Card className="shadow-sm border-0 h-100">
+                        <Card.Header className="bg-transparent border-0 py-3">
+                            <h5 className="mb-0 fw-bold text-dark">Répartition par Source</h5>
+                            <p className="text-muted fs-12 mb-0">Dépense par point d'approvisionnement</p>
+                        </Card.Header>
+                        <Card.Body>
+                            {stats?.repartitionParSource?.length ? (
+                                <ReactApexChart options={chartOptions} series={chartSeries} type="donut" height={300} />
+                            ) : <EmptyChart icon="ri:donut-chart-line" label="Pas de données sources" />}
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
 
-            <Row className="g-4">
-                {/* ── Records Table ───────────────────────────────────── */}
-                <Col lg={8}>
-                    <Card className="shadow-sm border-0">
-                        <Card.Header className="bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
-                            <h5 className="mb-0 fw-bold text-dark">Historique des pleins</h5>
-                            <div className="d-flex gap-2 flex-wrap">
-                                <BulkDeleteButtons
-                                    selectedCount={sel.count} totalCount={records?.length ?? 0}
-                                    label="plein(s)" deleting={deleting}
-                                    onDeleteSelected={() => deleteMany(sel.selectedIds)}
-                                    onDeleteAll={() => deleteMany((records ?? []).map(r => r.idCarburant))}
-                                />
-                                <Button variant="primary" size="sm" className="rounded-pill px-3 shadow-sm" onClick={() => setShowModal(true)}>
-                                    <IconifyIcon icon="ri:add-line" className="me-1" /> Nouveau plein
-                                </Button>
-                            </div>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            {loading ? <div className="p-5 text-center"><Spinner animation="border" variant="primary" /></div> : (
-                                <Table hover responsive className="mb-0 align-middle">
-                                    <thead className="bg-light text-muted small text-uppercase">
-                                        <tr>
-                                            <th style={{ width: 34 }}>
-                                                <input type="checkbox" className="form-check-input"
-                                                    checked={sel.allSelected} onChange={sel.toggleAll}
-                                                    title="Tout sélectionner" />
-                                            </th>
-                                            <th className="ps-3">Date</th>
-                                            <th>Véhicule</th>
-                                            <th>Quantité</th>
-                                            <th>Total</th>
-                                            <th>km</th>
-                                            <th>Source</th>
-                                            <th className="text-end pe-3">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {records?.map(r => (
-                                            <tr key={r.idCarburant}>
-                                                <td>
-                                                    <input type="checkbox" className="form-check-input"
-                                                        checked={sel.isSelected(r.idCarburant)}
-                                                        onChange={() => sel.toggle(r.idCarburant)} />
-                                                </td>
-                                                <td className="ps-3">{new Date(r.dateRemplissage).toLocaleDateString()}</td>
-                                                <td>
-                                                    <div className="d-flex align-items-center">
-                                                        <div className="avatar-xs bg-soft-primary rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                            <IconifyIcon icon="ri:car-fill" className="text-primary" />
-                                                        </div>
-                                                        <strong>{r.vehiculeImmatriculation}</strong>
-                                                    </div>
-                                                </td>
-                                                <td>{r.quantite} <small className="text-muted">L</small></td>
-                                                <td className="fw-bold text-dark">{r.montantTotal.toFixed(2)} <small className="fw-normal text-muted">TND</small></td>
-                                                <td>{r.kilometrage?.toLocaleString()}</td>
-                                                <td>
-                                                    {r.sourceNom ? (
-                                                        <Badge bg="soft-primary" text="primary" className="fw-normal border border-primary-subtle">
-                                                            {r.sourceNom}
-                                                        </Badge>
-                                                    ) : <span className="text-muted small italic">Station externe</span>}
-                                                </td>
-                                                <td className="text-end pe-3">
-                                                    <Button variant="link" size="sm" className="text-danger p-0" title="Supprimer" onClick={() => handleDelete(r.idCarburant)}>
-                                                        <IconifyIcon icon="ri:delete-bin-7-line" className="fs-18" />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            )}
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                {/* ── Sidebar Stats ───────────────────────────────────── */}
-                <Col lg={4}>
-                    <Card className="shadow-sm border-0 mb-4">
-                        <Card.Header className="bg-white py-3 border-bottom-0">
-                            <h5 className="mb-0 fw-bold text-dark">Répartition par Source</h5>
-                        </Card.Header>
-                        <Card.Body>
-                            {stats?.repartitionParSource?.length ? (
-                                <ReactApexChart options={chartOptions} series={chartSeries} type="donut" height={320} />
-                            ) : <div className="text-center text-muted py-5"><IconifyIcon icon="ri:donut-chart-line" className="fs-48 mb-2 opacity-25" /><p>Pas de données sources</p></div>}
-                        </Card.Body>
-                    </Card>
-
-                    <Card className="shadow-sm">
-                        <Card.Header className="bg-white py-3">
-                            <h5 className="mb-0 fw-semibold">Détails sources</h5>
-                        </Card.Header>
-                        <Card.Body className="p-0 text-center">
-                            <Table size="sm" className="mb-0">
-                                <thead className="table-light">
+            {/* ── Historique (recherche/tri/pagination) ────────────────── */}
+            <Card className="shadow-sm border-0">
+                <Card.Header className="bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom-0">
+                    <div>
+                        <h5 className="mb-0 fw-bold text-dark">Historique des pleins</h5>
+                        <p className="text-muted fs-12 mb-0">{recordsFiltres.length} enregistrement(s){filtresActifs ? ' (filtré)' : ''}</p>
+                    </div>
+                    <BulkDeleteButtons
+                        selectedCount={sel.count} totalCount={records?.length ?? 0}
+                        label="plein(s)" deleting={deleting}
+                        onDeleteSelected={() => deleteMany(sel.selectedIds)}
+                        onDeleteAll={() => deleteMany((records ?? []).map(r => r.idCarburant))}
+                    />
+                </Card.Header>
+                <Card.Body className="p-0">
+                    {loading ? (
+                        <div className="p-5 text-center"><Spinner animation="border" variant="primary" /></div>
+                    ) : recordsFiltres.length === 0 ? (
+                        <div className="text-center text-muted py-5">
+                            <IconifyIcon icon="ri:gas-station-line" className="fs-48 mb-2 opacity-25" />
+                            <p className="mb-1">{filtresActifs ? 'Aucun plein ne correspond aux filtres.' : 'Aucun plein enregistré.'}</p>
+                            {filtresActifs
+                                ? <Button variant="link" size="sm" onClick={resetFiltres}>Réinitialiser les filtres</Button>
+                                : <Button variant="primary" size="sm" onClick={() => setShowModal(true)}><IconifyIcon icon="ri:add-line" className="me-1" />Enregistrer un plein</Button>}
+                        </div>
+                    ) : (
+                        <>
+                            <Table hover responsive className="mb-0 align-middle">
+                                <thead className="bg-light text-muted small text-uppercase">
                                     <tr>
+                                        <th style={{ width: 34 }} className="ps-3">
+                                            <input type="checkbox" className="form-check-input"
+                                                checked={sel.allSelected} onChange={sel.toggleAll} title="Tout sélectionner" />
+                                        </th>
+                                        <SortHeader label="Date" col="date" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                        <th>Véhicule</th>
+                                        <th>Type</th>
+                                        <SortHeader label="Quantité" col="quantite" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                        <th>Prix/L</th>
+                                        <SortHeader label="Total" col="montant" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                        <SortHeader label="Km" col="km" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                                        <SortHeader label="Conso" col="conso" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                                         <th>Source</th>
-                                        <th>Coût</th>
-                                        <th>Pleins</th>
+                                        <th className="text-end pe-3">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {stats?.repartitionParSource?.map(s => (
-                                        <tr key={s.nomSource}>
-                                            <td className="text-start ps-3">{s.nomSource}</td>
-                                            <td className="fw-semibold">{s.coutTotal.toFixed(0)} <small>TND</small></td>
-                                            <td>{s.nombrePleins}</td>
+                                    {recordsPage.map(r => (
+                                        <tr key={r.idCarburant}>
+                                            <td className="ps-3">
+                                                <input type="checkbox" className="form-check-input"
+                                                    checked={sel.isSelected(r.idCarburant)} onChange={() => sel.toggle(r.idCarburant)} />
+                                            </td>
+                                            <td>{new Date(r.dateRemplissage).toLocaleDateString('fr-FR')}</td>
+                                            <td>
+                                                <div className="d-flex align-items-center">
+                                                    <div className="avatar-xs bg-soft-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                        <IconifyIcon icon="ri:car-fill" className="text-primary" />
+                                                    </div>
+                                                    <strong>{r.vehiculeImmatriculation ?? `#${r.vehiculeId}`}</strong>
+                                                </div>
+                                            </td>
+                                            <td><Badge bg="soft-secondary" text="dark" className="fw-normal">{r.typeCarburant}</Badge></td>
+                                            <td>{r.quantite} <small className="text-muted">L</small></td>
+                                            <td>{r.prixUnitaire?.toFixed(3)} <small className="text-muted">TND</small></td>
+                                            <td className="fw-bold text-dark">{r.montantTotal.toFixed(2)} <small className="fw-normal text-muted">TND</small></td>
+                                            <td>{r.kilometrage?.toLocaleString()}</td>
+                                            <td>
+                                                {r.consommationL100km != null ? (
+                                                    <Badge bg={r.consommationL100km > 12 ? 'soft-danger' : r.consommationL100km > 8 ? 'soft-warning' : 'soft-success'}
+                                                           text={r.consommationL100km > 12 ? 'danger' : r.consommationL100km > 8 ? 'warning' : 'success'}
+                                                           className="fw-semibold">
+                                                        {r.consommationL100km.toFixed(1)} L/100
+                                                    </Badge>
+                                                ) : <span className="text-muted">—</span>}
+                                            </td>
+                                            <td>
+                                                {r.sourceNom ? (
+                                                    <Badge bg="soft-primary" text="primary" className="fw-normal border border-primary-subtle">{r.sourceNom}</Badge>
+                                                ) : <span className="text-muted small">{r.station || 'Station externe'}</span>}
+                                            </td>
+                                            <td className="text-end pe-3">
+                                                <Button variant="link" size="sm" className="text-danger p-0" title="Supprimer" onClick={() => handleDelete(r.idCarburant)}>
+                                                    <IconifyIcon icon="ri:delete-bin-7-line" className="fs-18" />
+                                                </Button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="d-flex justify-content-between align-items-center px-3 py-2 border-top flex-wrap gap-2">
+                                    <span className="text-muted fs-13">
+                                        Page {pageCourante} / {totalPages} — {recordsFiltres.length} lignes
+                                    </span>
+                                    <div className="btn-group btn-group-sm">
+                                        <Button variant="outline-secondary" disabled={pageCourante === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                                            <IconifyIcon icon="ri:arrow-left-s-line" /> Précédent
+                                        </Button>
+                                        <Button variant="outline-secondary" disabled={pageCourante === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+                                            Suivant <IconifyIcon icon="ri:arrow-right-s-line" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </Card.Body>
+            </Card>
 
 
             {/* ── Modal Add Record ───────────────────────────────────── */}
