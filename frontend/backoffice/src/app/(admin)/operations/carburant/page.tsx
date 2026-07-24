@@ -339,7 +339,7 @@ export default function CarburantPage() {
                         fontSize: '20px', 
                         fontWeight: '700', 
                         color: getConsumptionColor(stats?.consommationMoyenne || 0),
-                        formatter: () => stats?.consommationMoyenne?.toFixed(2) + ' L'
+                        formatter: () => (stats?.consommationMoyenne ?? 0).toFixed(2) + ' L'
                     }
                 }
             }
