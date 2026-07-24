@@ -193,18 +193,13 @@ export const MENU_ITEMS: MenuItemType[] = [
   },
 
   // ── Pages complémentaires (existantes, usage occasionnel) ───
+  // Items directs (comme le reste du menu) plutôt qu'un sous-menu déroulant :
+  // même indentation, même icône, cohérent avec les autres sections.
   { key: 'sec-autres', label: 'Autres', isTitle: true },
-  {
-    key: 'autres-pages',
-    label: 'Autres pages',
-    icon: 'tabler:package',
-    children: [
-      { key: 'projects', label: 'Projets', url: '/apps/Projects', parentKey: 'autres-pages' },
-      { key: 'file-manager', label: 'Gestionnaire de fichiers', url: '/apps/file-manager', parentKey: 'autres-pages' },
-      { key: 'widgets', label: 'Widgets', url: '/wallet', parentKey: 'autres-pages' },
-      { key: 'faq', label: 'FAQ / Support', url: '/pages/faq', parentKey: 'autres-pages' },
-    ],
-  },
+  { key: 'projects',     label: 'Projets',                 icon: 'tabler:folders',      url: '/apps/Projects' },
+  { key: 'file-manager', label: 'Gestionnaire de fichiers', icon: 'tabler:folder',       url: '/apps/file-manager' },
+  { key: 'wallet',       label: 'Trésorerie',              icon: 'tabler:wallet',       url: '/wallet' },
+  { key: 'faq',          label: 'FAQ / Support',           icon: 'tabler:help-circle',  url: '/pages/faq' },
 ]
 
 export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
