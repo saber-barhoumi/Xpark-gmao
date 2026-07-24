@@ -1,65 +1,70 @@
-import React from 'react'
-import { projectData } from '../data';
-import { splitArray } from '@/utils/array';
-;
-import { Card, CardBody, Col, ProgressBar, Row } from 'react-bootstrap';
+import { Card, CardBody, Col, ProgressBar, Row } from 'react-bootstrap'
+import IconifyIcon from '@/components/wrappers/IconifyIcon'
+import { STATUS_VARIANT, type Project } from '@/services/projectService'
 
-const Projects = () => {
+interface ProjectsProps {
+  projects: Project[]
+  onView:   (p: Project) => void
+}
 
-
-  const chunk_size = 3;
-  const appsChunks = splitArray(projectData, chunk_size);
+/** Grille de cartes projet — présentation pure, pilotée par les props. */
+const Projects = ({ projects, onView }: ProjectsProps) => {
   return (
-    <>
-      {(appsChunks || []).map((chunk, idx) => (
-        <Row key={idx}>
-          {(chunk || []).map((item, idx) => (
-            <Col xl={4} key={idx}>
-              <Card>
-                <CardBody>
-                  <div className="d-flex justify-content-between">
-                    <div>
-                      <h4 className="mt-0"><a href='' className="text-dark">{item.title}</a></h4>
-                      <p className={`text-${item.variant} text-uppercase fw-semibold fs-11`}>{item.category}</p>
-                    </div>
-                    <div>
-                      <div className={`badge badge-soft-${item.variant} p-1`}>{item.status}</div>
-                    </div>
+    <Row>
+      {projects.map((item) => {
+        const variant = STATUS_VARIANT[item.status]
+        return (
+          <Col xl={4} md={6} key={item.id}>
+            <Card className="h-100">
+              <CardBody className="d-flex flex-column">
+                <div className="d-flex justify-content-between">
+                  <div>
+                    <h4 className="mt-0">
+                      <a role="button" className="text-dark" onClick={() => onView(item)}>{item.title}</a>
+                    </h4>
+                    <p className={`text-${variant} text-uppercase fw-semibold fs-11`}>{item.category}</p>
                   </div>
-                  <p className="text-muted mb-3">{item.description} <a href="#" className="link-dark">View more</a>
-                  </p>
-                  <ul className="list-inline">
-                    <li className="list-inline-item me-4">
-                      <h4 className="mb-0 lh-base">{item.questions}</h4>
-                      <p className="text-muted">Questions</p>
-                    </li>&nbsp;
-                    <li className="list-inline-item">
-                      <h4 className="mb-0 lh-base">{item.comments}</h4>
-                      <p className="text-muted">Comments</p>
-                    </li>
-                  </ul>
-                  <div className="d-flex align-items-center mb-3">
-                    <h5 className="me-3 mb-0">Team :</h5>
-                    <div className="avatar-group">
-                      {
-                        item.team &&
-                        item.team.map((avatar: any, idx: number) => (
-                          <a href="#" className="avatar" key={idx} data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Mat Helme" data-bs-original-title="Mat Helme">
-                            <img src={avatar} className="rounded-circle avatar-sm" alt="friend" />
-                          </a>
-                        ))
-                      }
-                    </div>
+                  <div><span className={`badge badge-soft-${variant} p-1`}>{item.status}</span></div>
+                </div>
+
+                <p className="text-muted mb-3">
+                  {item.description}{' '}
+                  <a role="button" className="link-dark" onClick={() => onView(item)}>Voir plus</a>
+                </p>
+
+                <ul className="list-inline mb-3">
+                  <li className="list-inline-item me-4">
+                    <h4 className="mb-0 lh-base">{item.tasksDone}/{item.tasksTotal}</h4>
+                    <p className="text-muted mb-0">Tâches</p>
+                  </li>
+                  <li className="list-inline-item">
+                    <h4 className="mb-0 lh-base">{item.comments}</h4>
+                    <p className="text-muted mb-0">Commentaires</p>
+                  </li>
+                </ul>
+
+                <div className="d-flex align-items-center mb-3">
+                  <h5 className="me-3 mb-0">Équipe :</h5>
+                  <div className="avatar-group">
+                    {item.team.map((m, idx) => (
+                      <span className="avatar" key={idx} title={m.name}>
+                        <img src={m.avatar} className="rounded-circle avatar-sm" alt={m.name} />
+                      </span>
+                    ))}
                   </div>
-                  <h5 className="mb-2">Progress <span className={`text-${item.variant} float-end`}>{item.progress}%</span></h5>
-                    <ProgressBar variant={item.variant} className={`progress-soft progress-sm`}   now={item.progress} role="progressbar" aria-valuenow={80} aria-valuemin={0} aria-valuemax={100}/>
-                </CardBody>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      ))}
-    </>
+                </div>
+
+                <div className="mt-auto">
+                  <h5 className="mb-2">Avancement <span className={`text-${variant} float-end`}>{item.progress}%</span></h5>
+                  <ProgressBar variant={variant} className="progress-soft progress-sm" now={item.progress}
+                               aria-valuenow={item.progress} aria-valuemin={0} aria-valuemax={100} />
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        )
+      })}
+    </Row>
   )
 }
 

@@ -1,46 +1,52 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
-import * as React from 'react'
-import { Card, CardHeader, Col, Row } from 'react-bootstrap'
+import { Button, Card, CardBody, Col, Form, InputGroup, Row } from 'react-bootstrap'
+import { ProjectStatus } from '@/services/projectService'
 
-const Head = () => {
+export type SortKey = 'recent' | 'progress' | 'name' | 'due'
+
+interface HeadProps {
+  search:      string
+  statut:      ProjectStatus | 'ALL'
+  sortKey:     SortKey
+  onSearch:    (v: string) => void
+  onStatut:    (v: ProjectStatus | 'ALL') => void
+  onSort:      (v: SortKey) => void
+  onCreate:    () => void
+}
+
+/** Barre d'actions et de filtres — désormais entièrement contrôlée. */
+const Head = ({ search, statut, sortKey, onSearch, onStatut, onSort, onCreate }: HeadProps) => {
   return (
     <Row>
       <Col xs={12}>
         <Card>
-          <CardHeader className="justify-content-between d-sm-flex gap-2">
-            <a href="" className="btn btn-secondary mb-sm-0 mb-2">
-              <IconifyIcon icon='tabler:circle-plus' className="fs-20 me-2" /> Create Project
-            </a>
-            <form className="row g-2 align-items-center">
-              <Col xs={'auto'}>
-                <div className="d-flex">
-                  <label className="d-flex align-items-center fw-semibold">Phase </label>
-                  <select className="form-select d-inline-block ms-2">
-                    <option>All Projects(6)</option>
-                    <option>Complated</option>
-                    <option>Progress</option>
-                  </select>
-                </div>
-              </Col>
-              <Col xs={'auto'}>
-                <div className="d-flex">
-                  <label className="d-flex align-items-center fw-semibold">Sort</label>
-                  <select className="form-select d-inline-block ms-2">
-                    <option>Date</option>
-                    <option>Name</option>
-                    <option>End date</option>
-                    <option>Start Date</option>
-                  </select>
-                </div>
-              </Col>
-              <Col xs={'auto'}>
-                <div className="d-flex align-items-start flex-wrap">
-                  <label htmlFor="membersearch-input" className="visually-hidden">Search</label>
-                  <input type="search" className="form-control border-light bg-light bg-opacity-50" id="membersearch-input" placeholder="Search..." />
-                </div>
-              </Col>
-            </form>
-          </CardHeader>
+          <CardBody className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <Button variant="secondary" onClick={onCreate}>
+              <IconifyIcon icon="tabler:circle-plus" className="fs-20 me-1" /> Nouveau projet
+            </Button>
+
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              <Form.Select size="sm" style={{ minWidth: 160 }} value={statut}
+                           onChange={e => onStatut(e.target.value as ProjectStatus | 'ALL')}>
+                <option value="ALL">Tous les statuts</option>
+                {Object.values(ProjectStatus).map(s => <option key={s} value={s}>{s}</option>)}
+              </Form.Select>
+
+              <Form.Select size="sm" style={{ minWidth: 150 }} value={sortKey}
+                           onChange={e => onSort(e.target.value as SortKey)}>
+                <option value="recent">Plus récents</option>
+                <option value="progress">Avancement</option>
+                <option value="name">Nom (A→Z)</option>
+                <option value="due">Échéance</option>
+              </Form.Select>
+
+              <InputGroup size="sm" style={{ minWidth: 200 }}>
+                <InputGroup.Text className="bg-light"><IconifyIcon icon="tabler:search" /></InputGroup.Text>
+                <Form.Control placeholder="Rechercher un projet…" value={search}
+                              onChange={e => onSearch(e.target.value)} />
+              </InputGroup>
+            </div>
+          </CardBody>
         </Card>
       </Col>
     </Row>
