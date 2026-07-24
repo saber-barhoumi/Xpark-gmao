@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Badge, Button, Card, Col, Form, Modal, Row, Spinner, Table } from 'react-bootstrap'
+import { useState, useEffect, useMemo } from 'react'
+import { Badge, Button, Card, Col, Dropdown, Form, InputGroup, Modal, Row, Spinner, Table } from 'react-bootstrap'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import carburantService, { Carburant, CarburantStats, CreateCarburantDto } from '@/services/carburantService'
@@ -11,6 +11,49 @@ import Swal from 'sweetalert2'
 import ReactApexChart from 'react-apexcharts'
 import OCRUploadZone from '../../gestion/vehicules/components/OCRUploadZone'
 import { ExtractedOCRData } from '@/services/groqOCRService'
+
+// ── Export (convention projet : CSV séparateur « ; » + BOM UTF-8, PDF via
+//    impression navigateur — zéro dépendance, comme la page Demandes) ──────────
+const COLS_EXPORT = ['Date', 'Véhicule', 'Type', 'Quantité (L)', 'Prix/L', 'Total (TND)', 'Km', 'Conso L/100km', 'Source']
+
+function ligneExport(r: Carburant): (string | number)[] {
+    return [
+        new Date(r.dateRemplissage).toLocaleDateString('fr-FR'),
+        r.vehiculeImmatriculation ?? `#${r.vehiculeId}`,
+        r.typeCarburant,
+        r.quantite,
+        r.prixUnitaire?.toFixed(3),
+        r.montantTotal?.toFixed(2),
+        r.kilometrage ?? '',
+        r.consommationL100km != null ? r.consommationL100km.toFixed(1) : '',
+        r.sourceNom ?? r.station ?? 'Station externe',
+    ]
+}
+
+function exportCsv(rows: Carburant[]) {
+    const lignes = rows.map(r => ligneExport(r).map(c => `"${String(c).replace(/"/g, '""')}"`).join(';'))
+    const blob = new Blob(['﻿' + [COLS_EXPORT.join(';'), ...lignes].join('\r\n')], { type: 'text/csv;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `carburant-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+}
+
+function exportPdf(rows: Carburant[]) {
+    const w = window.open('', '_blank')
+    if (!w) { Swal.fire('Bloqué', 'Autorisez les fenêtres pop-up pour exporter en PDF.', 'warning'); return }
+    const cell = (c: string | number) => `<td style="padding:6px 8px;border-bottom:1px solid #eee;font-size:12px">${c}</td>`
+    const body = rows.map(r => `<tr>${ligneExport(r).map(cell).join('')}</tr>`).join('')
+    w.document.write(`<html><head><title>Carburant XPARK</title></head><body style="font-family:system-ui,sans-serif;padding:24px">
+        <h2 style="color:#727cf5">XPARK — Historique carburant</h2>
+        <p style="color:#6c757d;font-size:12px">${rows.length} enregistrement(s) — édité le ${new Date().toLocaleString('fr-FR')}</p>
+        <table style="width:100%;border-collapse:collapse"><thead><tr>${COLS_EXPORT.map(h => `<th style="text-align:left;padding:8px;border-bottom:2px solid #333;font-size:12px">${h}</th>`).join('')}</tr></thead>
+        <tbody>${body}</tbody></table></body></html>`)
+    w.document.close(); w.focus(); setTimeout(() => w.print(), 300)
+}
+
+const PAGE_SIZE = 10
 
 export default function CarburantPage() {
     const [records, setRecords] = useState<Carburant[]>([])
@@ -38,6 +81,16 @@ export default function CarburantPage() {
 
     const [latestInfo, setLatestInfo] = useState<{ lastMileage: number, typeCarburant: string } | null>(null)
     const [fetchingInfo, setFetchingInfo] = useState(false)
+
+    // ── Filtres / recherche / tri / pagination (côté client sur les records) ──
+    const [fltVehicule, setFltVehicule] = useState<number | ''>('')
+    const [fltType,     setFltType]     = useState<string>('')
+    const [fltStart,    setFltStart]    = useState<string>('')
+    const [fltEnd,      setFltEnd]      = useState<string>('')
+    const [search,      setSearch]      = useState('')
+    const [sortKey,     setSortKey]     = useState<'date' | 'montant' | 'quantite' | 'km' | 'conso'>('date')
+    const [sortDir,     setSortDir]     = useState<'asc' | 'desc'>('desc')
+    const [page,        setPage]        = useState(1)
 
     const handleVehiculeChange = async (vid: number) => {
         setForm(prev => ({ ...prev, vehiculeId: vid }))
@@ -74,9 +127,16 @@ export default function CarburantPage() {
     const loadData = async () => {
         setLoading(true)
         try {
+            // Le véhicule et la plage de dates sont poussés au backend (agrégation
+            // des stats côté serveur) ; le type et la recherche restent client.
+            const params = {
+                vehiculeId: fltVehicule || undefined,
+                start:      fltStart || undefined,
+                end:        fltEnd || undefined,
+            }
             const [r, s, src, v] = await Promise.all([
-                carburantService.getAll(),
-                carburantService.getStats({}),
+                carburantService.getAll(fltVehicule || undefined),
+                carburantService.getStats(params),
                 sourceService.getActives(),
                 vehiculeService.getAll()
             ])
@@ -91,7 +151,50 @@ export default function CarburantPage() {
         }
     }
 
-    useEffect(() => { loadData() }, [])
+    // Recharge quand un filtre « serveur » change (véhicule / plage de dates).
+    useEffect(() => { loadData() }, [fltVehicule, fltStart, fltEnd])
+
+    // ── Données dérivées : filtre type + recherche, tri, pagination ──────────
+    const recordsFiltres = useMemo(() => {
+        let list = [...records]
+        if (fltType) list = list.filter(r => r.typeCarburant === fltType)
+        if (fltStart) list = list.filter(r => r.dateRemplissage >= fltStart)
+        if (fltEnd)   list = list.filter(r => r.dateRemplissage <= fltEnd + 'T23:59:59')
+        if (search.trim()) {
+            const q = search.trim().toLowerCase()
+            list = list.filter(r =>
+                (r.vehiculeImmatriculation ?? '').toLowerCase().includes(q) ||
+                (r.sourceNom ?? r.station ?? '').toLowerCase().includes(q) ||
+                (r.typeCarburant ?? '').toLowerCase().includes(q))
+        }
+        const val = (r: Carburant) => sortKey === 'date' ? new Date(r.dateRemplissage).getTime()
+            : sortKey === 'montant' ? r.montantTotal
+            : sortKey === 'quantite' ? r.quantite
+            : sortKey === 'km' ? (r.kilometrage ?? 0)
+            : (r.consommationL100km ?? 0)
+        list.sort((a, b) => sortDir === 'asc' ? val(a) - val(b) : val(b) - val(a))
+        return list
+    }, [records, fltType, fltStart, fltEnd, search, sortKey, sortDir])
+
+    const totalPages   = Math.max(1, Math.ceil(recordsFiltres.length / PAGE_SIZE))
+    const pageCourante = Math.min(page, totalPages)
+    const recordsPage  = recordsFiltres.slice((pageCourante - 1) * PAGE_SIZE, pageCourante * PAGE_SIZE)
+
+    useEffect(() => { setPage(1) }, [fltType, fltStart, fltEnd, search, fltVehicule])
+
+    const toggleSort = (key: typeof sortKey) => {
+        if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+        else { setSortKey(key); setSortDir('desc') }
+    }
+
+    // Véhicule le plus consommateur (par coût) — issu des stats backend.
+    const topVehicule = stats?.topVehiculesParCout?.[0]
+    // Prix moyen au litre observé sur la sélection.
+    const prixMoyenL = stats && stats.litresTotaux > 0 ? stats.coutTotal / stats.litresTotaux : 0
+
+    const resetFiltres = () => { setFltVehicule(''); setFltType(''); setFltStart(''); setFltEnd(''); setSearch('') }
+    const filtresActifs = !!(fltVehicule || fltType || fltStart || fltEnd || search)
+    const exportRows = recordsFiltres
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -275,77 +378,152 @@ export default function CarburantPage() {
         data: stats?.topVehiculesParCout?.map(v => v.coutTotal) || []
     }]
 
+    // ─── Répartition par TYPE de carburant (dérivée des records filtrés) ──────
+    const repartitionType = useMemo(() => {
+        const m = new Map<string, number>()
+        recordsFiltres.forEach(r => m.set(r.typeCarburant, (m.get(r.typeCarburant) ?? 0) + r.montantTotal))
+        return [...m.entries()].sort((a, b) => b[1] - a[1])
+    }, [recordsFiltres])
+
+    const typeChartOptions: any = {
+        chart: { type: 'donut' },
+        labels: repartitionType.map(([t]) => t),
+        colors: ["#727cf5", "#0acf97", "#fa5c7c", "#ffbc00", "#39afd1", "#313a46"],
+        legend: { position: 'bottom', fontSize: '12px', markers: { radius: 12 } },
+        plotOptions: { pie: { donut: { size: '68%' } } },
+        dataLabels: { enabled: true, formatter: (val: number) => val.toFixed(0) + '%' },
+        stroke: { width: 2, colors: ['#fff'] },
+        tooltip: { theme: 'light', y: { formatter: (val: any) => val.toLocaleString() + ' TND' } },
+    }
+    const typeChartSeries = repartitionType.map(([, v]) => v)
+
     return (
         <>
             <PageBreadcrumb title="Consommation Carburant" subName="Opérations" />
 
+            {/* ── Barre de filtres / actions ──────────────────────────── */}
+            <Card className="border-0 shadow-sm mb-3">
+                <Card.Body className="py-3">
+                    <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h4 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                                <IconifyIcon icon="ri:gas-station-fill" className="text-primary" />
+                                Analytique Carburant de la Flotte
+                            </h4>
+                            <p className="text-muted fs-13 mb-0">
+                                Suivi des consommations, coûts et performance énergétique du parc
+                            </p>
+                        </div>
+                        <div className="d-flex gap-2 flex-wrap">
+                            <Dropdown>
+                                <Dropdown.Toggle variant="outline-secondary" size="sm" disabled={exportRows.length === 0}>
+                                    <IconifyIcon icon="ri:download-2-line" className="me-1" /> Exporter
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu align="end">
+                                    <Dropdown.Item onClick={() => exportCsv(exportRows)}>
+                                        <IconifyIcon icon="ri:file-excel-2-line" className="me-2 text-success" /> CSV (Excel)
+                                    </Dropdown.Item>
+                                    <Dropdown.Item onClick={() => exportPdf(exportRows)}>
+                                        <IconifyIcon icon="ri:file-pdf-2-line" className="me-2 text-danger" /> PDF (impression)
+                                    </Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                            <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
+                                <IconifyIcon icon="ri:add-line" className="me-1" /> Nouveau plein
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Row className="g-2 align-items-end">
+                        <Col md={3} sm={6}>
+                            <Form.Label className="fs-12 text-muted mb-1">Véhicule</Form.Label>
+                            <Form.Select size="sm" value={fltVehicule} onChange={e => setFltVehicule(e.target.value ? Number(e.target.value) : '')}>
+                                <option value="">Tous les véhicules</option>
+                                {vehicules?.map(v => <option key={v.idVehicule} value={v.idVehicule}>{v.immatriculation} — {v.marque} {v.modele}</option>)}
+                            </Form.Select>
+                        </Col>
+                        <Col md={2} sm={6}>
+                            <Form.Label className="fs-12 text-muted mb-1">Type</Form.Label>
+                            <Form.Select size="sm" value={fltType} onChange={e => setFltType(e.target.value)}>
+                                <option value="">Tous</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Essence">Essence</option>
+                                <option value="Sans Plomb">Sans Plomb</option>
+                                <option value="GPL">GPL</option>
+                                <option value="Electrique">Électrique</option>
+                            </Form.Select>
+                        </Col>
+                        <Col md={2} sm={6}>
+                            <Form.Label className="fs-12 text-muted mb-1">Du</Form.Label>
+                            <Form.Control size="sm" type="date" value={fltStart} onChange={e => setFltStart(e.target.value)} />
+                        </Col>
+                        <Col md={2} sm={6}>
+                            <Form.Label className="fs-12 text-muted mb-1">Au</Form.Label>
+                            <Form.Control size="sm" type="date" value={fltEnd} onChange={e => setFltEnd(e.target.value)} />
+                        </Col>
+                        <Col md={3} sm={12}>
+                            <Form.Label className="fs-12 text-muted mb-1">Recherche</Form.Label>
+                            <InputGroup size="sm">
+                                <InputGroup.Text className="bg-white"><IconifyIcon icon="ri:search-line" /></InputGroup.Text>
+                                <Form.Control placeholder="Immat., source, type…" value={search} onChange={e => setSearch(e.target.value)} />
+                                {filtresActifs && (
+                                    <Button variant="outline-secondary" onClick={resetFiltres} title="Réinitialiser">
+                                        <IconifyIcon icon="ri:close-line" />
+                                    </Button>
+                                )}
+                            </InputGroup>
+                        </Col>
+                    </Row>
+                </Card.Body>
+            </Card>
+
             {/* ── KPI Row ─────────────────────────────────────────── */}
             <Row className="g-3 mb-4">
-                <Col md={3}>
-                    <Card className="h-100 border-0 shadow-sm overflow-hidden" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)' }}>
+                {/* Carte jauge : consommation moyenne */}
+                <Col xl={3} md={6}>
+                    <Card className="h-100 border-0 shadow-sm overflow-hidden">
                         <Card.Body className="pb-0">
-                            <p className="text-muted mb-1 fs-13">Performance Consommation</p>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <h4 className="mb-0 fw-bold text-primary">
-                                    {stats?.consommationMoyenne?.toFixed(2) || '0.00'} <small className="fs-12 text-muted">L/100km</small>
-                                </h4>
-                            </div>
+                            <p className="text-muted mb-1 fs-13">Consommation moyenne</p>
+                            <h4 className="mb-0 fw-bold text-primary">
+                                {stats?.consommationMoyenne?.toFixed(2) || '0.00'} <small className="fs-12 text-muted">L/100km</small>
+                            </h4>
                         </Card.Body>
                         <div style={{ marginTop: '-40px' }}>
                             <ReactApexChart options={radialBarOptions} series={radialBarSeries} type="radialBar" height={180} />
                         </div>
                     </Card>
                 </Col>
-                <Col md={3}>
-                    <Card className="h-100 border-0 shadow-sm" style={{ background: 'linear-gradient(135deg, #fff 0%, #f8f9ff 100%)' }}>
-                        <Card.Body>
-                            <div className="d-flex justify-content-between mt-2">
-                                <div>
-                                    <p className="text-muted mb-1 fs-13">Coût Total</p>
-                                    <h4 className="mb-0 fw-bold text-danger">
-                                        {stats?.coutTotal?.toLocaleString()} <small className="fs-12 text-muted">TND</small>
-                                    </h4>
-                                </div>
-                                <div className="avatar-sm bg-soft-danger rounded-circle d-flex align-items-center justify-content-center">
-                                    <IconifyIcon icon="ri:money-cny-box-line" className="fs-24 text-danger" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={3}>
-                    <Card className="h-100 border-0 shadow-sm">
-                        <Card.Body>
-                            <div className="d-flex justify-content-between mt-2">
-                                <div>
-                                    <p className="text-muted mb-1 fs-13">Volume Canalité</p>
-                                    <h4 className="mb-0 fw-bold text-success">
-                                        {stats?.litresTotaux?.toLocaleString()} <small className="fs-12 text-muted">Litres</small>
-                                    </h4>
-                                </div>
-                                <div className="avatar-sm bg-soft-success rounded-circle d-flex align-items-center justify-content-center">
-                                    <IconifyIcon icon="ri:drop-line" className="fs-24 text-success" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={3}>
-                    <Card className="h-100 border-0 shadow-sm">
-                        <Card.Body>
-                            <div className="d-flex justify-content-between mt-2">
-                                <div>
-                                    <p className="text-muted mb-1 fs-13">Distance Totale</p>
-                                    <h4 className="mb-0 fw-bold text-info">
-                                        {stats?.kilometrageTotal?.toLocaleString()} <small className="fs-12 text-muted">km</small>
-                                    </h4>
-                                </div>
-                                <div className="avatar-sm bg-soft-info rounded-circle d-flex align-items-center justify-content-center">
-                                    <IconifyIcon icon="ri:road-map-line" className="fs-24 text-info" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
+
+                {/* Cartes KPI compactes */}
+                <Col xl={9}>
+                    <Row className="g-3 h-100">
+                        {[
+                            { label: 'Coût total',       value: (stats?.coutTotal ?? 0).toLocaleString(),      unit: 'TND',    icon: 'ri:money-dollar-circle-line', color: 'danger'  },
+                            { label: 'Volume total',     value: (stats?.litresTotaux ?? 0).toLocaleString(),   unit: 'Litres', icon: 'ri:drop-line',                color: 'success' },
+                            { label: 'Distance totale',  value: (stats?.kilometrageTotal ?? 0).toLocaleString(), unit: 'km',   icon: 'ri:road-map-line',            color: 'info'    },
+                            { label: 'Nombre de pleins', value: (stats?.nombrePleins ?? 0).toLocaleString(),   unit: 'pleins', icon: 'ri:gas-station-line',         color: 'primary' },
+                            { label: 'Prix moyen / L',   value: prixMoyenL.toFixed(3),                          unit: 'TND/L',  icon: 'ri:price-tag-3-line',         color: 'warning' },
+                            { label: 'Top consommateur', value: topVehicule?.vehiculeImmatriculation ?? '—',    unit: topVehicule ? `${topVehicule.coutTotal.toLocaleString()} TND` : '', icon: 'ri:car-fill', color: 'secondary' },
+                        ].map((k, i) => (
+                            <Col md={4} sm={6} key={i}>
+                                <Card className="h-100 border-0 shadow-sm">
+                                    <Card.Body>
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div className="overflow-hidden">
+                                                <p className="text-muted mb-1 fs-13 text-truncate">{k.label}</p>
+                                                <h5 className={`mb-0 fw-bold text-${k.color} text-truncate`}>
+                                                    {k.value} {k.unit && <small className="fs-12 text-muted fw-normal">{k.unit}</small>}
+                                                </h5>
+                                            </div>
+                                            <div className={`avatar-sm bg-soft-${k.color} rounded-circle d-flex align-items-center justify-content-center flex-shrink-0`}>
+                                                <IconifyIcon icon={k.icon} className={`fs-22 text-${k.color}`} />
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
                 </Col>
             </Row>
 
