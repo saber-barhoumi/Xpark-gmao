@@ -24,4 +24,6 @@ public interface IMfaService
                                                    string? ip, string? userAgent, bool success, string? failureReason = null);
     Task                          AuditAsync(long? userId, string action, string? description, string? ip);
     Task<List<LoginHistoryDto>>   GetLoginHistoryAsync(long userId, int limit = 20);
+    Task<bool>                    DeleteLoginHistoryAsync(long userId, long id);
+    Task<int>                     ClearLoginHistoryAsync(long userId);
 }

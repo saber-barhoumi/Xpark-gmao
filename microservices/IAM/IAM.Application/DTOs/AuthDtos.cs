@@ -27,6 +27,7 @@ public record MfaSettingsDto(
     bool   MfaRequired);
 public record AuthenticatorSetupDto(string Secret, string OtpAuthUri, string QrCodeDataUri);
 public record LoginHistoryDto(
+    long     Id,
     DateTime LoggedInAt,
     string   LoginMethod,
     string?  MfaMethod,

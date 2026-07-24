@@ -82,6 +82,26 @@ public class AuthController(
         => Ok(ApiResponse<List<LoginHistoryDto>>.Ok(
             await mfaService.GetLoginHistoryAsync(CurrentUserId, Math.Min(limit, 100))));
 
+    /// <summary>Supprime une entrée de l'historique de connexion de l'utilisateur courant.</summary>
+    [Authorize]
+    [HttpDelete("security/login-history/{id:long}")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteLoginHistory(long id)
+    {
+        var ok = await mfaService.DeleteLoginHistoryAsync(CurrentUserId, id);
+        return ok
+            ? Ok(ApiResponse<object>.Ok(new { }, "Entrée supprimée"))
+            : NotFound(ApiResponse<object>.Fail("Entrée introuvable"));
+    }
+
+    /// <summary>Vide tout l'historique de connexion de l'utilisateur courant.</summary>
+    [Authorize]
+    [HttpDelete("security/login-history")]
+    public async Task<ActionResult<ApiResponse<object>>> ClearLoginHistory()
+    {
+        var n = await mfaService.ClearLoginHistoryAsync(CurrentUserId);
+        return Ok(ApiResponse<object>.Ok(new { supprimes = n }, $"{n} entrée(s) supprimée(s)"));
+    }
+
     // ── Auth core ─────────────────────────────────────────────────────────────
 
     [HttpPost("login")]

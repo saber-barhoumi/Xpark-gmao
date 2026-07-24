@@ -237,7 +237,31 @@ public class MfaService(
             .OrderByDescending(h => h.LoggedInAt)
             .Take(limit)
             .Select(h => new LoginHistoryDto(
-                h.LoggedInAt, h.LoginMethod, h.MfaMethod, h.IpAddress,
+                h.Id, h.LoggedInAt, h.LoginMethod, h.MfaMethod, h.IpAddress,
                 h.UserAgent, h.IsSuccessful, h.FailureReason))
             .ToListAsync();
+
+    /// <summary>
+    /// Supprime une entrée d'historique — bornée à l'utilisateur courant : le
+    /// filtre UserId dans la même requête empêche de supprimer l'entrée d'autrui
+    /// même en devinant un Id.
+    /// </summary>
+    public async Task<bool> DeleteLoginHistoryAsync(long userId, long id)
+    {
+        var entry = await db.LoginHistory.FirstOrDefaultAsync(h => h.Id == id && h.UserId == userId);
+        if (entry == null) return false;
+        db.LoginHistory.Remove(entry);
+        await db.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>Vide tout l'historique de connexion de l'utilisateur courant.</summary>
+    public async Task<int> ClearLoginHistoryAsync(long userId)
+    {
+        var entries = await db.LoginHistory.Where(h => h.UserId == userId).ToListAsync();
+        if (entries.Count == 0) return 0;
+        db.LoginHistory.RemoveRange(entries);
+        await db.SaveChangesAsync();
+        return entries.Count;
+    }
 }
