@@ -20,7 +20,40 @@ interface FileProps {
   onOpenSidebar:() => void
 }
 
-const toDo = (label: string) => () => Swal.fire({ icon: 'info', title: label, text: 'Action à brancher sur le backend documentaire.' })
+const shareLink = (f: ManagedFile) => `${window.location.origin}/apps/file-manager?file=${f.id}`
+
+const toast = (title: string) => Swal.fire({ icon: 'success', title, timer: 1400, showConfirmButton: false, toast: true, position: 'top-end' })
+
+/** Copie le lien de partage dans le presse-papiers (repli : affiche le lien). */
+const copyLink = async (f: ManagedFile) => {
+  try {
+    await navigator.clipboard.writeText(shareLink(f))
+    toast('Lien copié dans le presse-papiers')
+  } catch {
+    Swal.fire({ icon: 'info', title: 'Lien de partage', text: shareLink(f) })
+  }
+}
+
+/** Partage natif si disponible, sinon copie du lien. */
+const share = async (f: ManagedFile) => {
+  const nav = navigator as Navigator & { share?: (d: any) => Promise<void> }
+  if (nav.share) {
+    try { await nav.share({ title: f.title, url: shareLink(f) }); return } catch { /* annulé */ }
+  }
+  copyLink(f)
+}
+
+/** Télécharge réellement un fichier (contenu de démonstration pour le mock). */
+const download = (f: ManagedFile) => {
+  const content = `XPARK GMAO — ${f.title}\nDossier : ${f.folder}\nTaille : ${f.sizeMb} Mo\nAjouté par : ${f.owner.name} (${f.owner.email})\nModifié : ${f.updatedAt}\n\n(Contenu de démonstration — sera remplacé par le fichier réel une fois le backend documentaire branché.)`
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = f.title.replace(/\.[^.]+$/, '') + '.txt'
+  a.click()
+  URL.revokeObjectURL(a.href)
+  toast('Téléchargement lancé')
+}
 
 /** Panneau principal du gestionnaire de fichiers (liste + recherche + actions). */
 const File = ({
@@ -133,10 +166,10 @@ const File = ({
                             <IconifyIcon icon="ri:more-2-fill" />
                           </DropdownToggle>
                           <DropdownMenu className="dropdown-menu-end">
-                            <DropdownItem onClick={toDo('Partager')}><IconifyIcon icon="ri:share-line" className="me-1" /> Partager</DropdownItem>
-                            <DropdownItem onClick={toDo('Lien de partage')}><IconifyIcon icon="ri:link" className="me-1" /> Lien de partage</DropdownItem>
-                            <DropdownItem onClick={toDo('Téléchargement')}><IconifyIcon icon="ri:download-line" className="me-1" /> Télécharger</DropdownItem>
-                            <DropdownItem onClick={() => onToggleStar(item.id)}><IconifyIcon icon="ri:star-line" className="me-1" /> {item.starred ? 'Retirer des favoris' : 'Favori'}</DropdownItem>
+                            <DropdownItem onClick={() => share(item)}><IconifyIcon icon="ri:share-line" className="me-1" /> Partager</DropdownItem>
+                            <DropdownItem onClick={() => copyLink(item)}><IconifyIcon icon="ri:link" className="me-1" /> Lien de partage</DropdownItem>
+                            <DropdownItem onClick={() => download(item)}><IconifyIcon icon="ri:download-line" className="me-1" /> Télécharger</DropdownItem>
+                            <DropdownItem onClick={() => onToggleStar(item.id)}><IconifyIcon icon="ri:star-line" className="me-1" /> {item.starred ? 'Retirer des favoris' : 'Ajouter aux favoris'}</DropdownItem>
                             <DropdownDivider />
                             <DropdownItem className="text-danger" onClick={() => onDelete(item.id)}><IconifyIcon icon="ri:delete-bin-line" className="me-1" /> Supprimer</DropdownItem>
                           </DropdownMenu>
