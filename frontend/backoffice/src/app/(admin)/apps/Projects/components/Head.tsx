@@ -1,5 +1,5 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
-import { Button, Card, CardBody, Col, Form, InputGroup, Row } from 'react-bootstrap'
+import { Card, CardBody, Col, Form, InputGroup, Row } from 'react-bootstrap'
 import { ProjectStatus } from '@/services/projectService'
 
 export type SortKey = 'recent' | 'progress' | 'name' | 'due'
@@ -11,20 +11,15 @@ interface HeadProps {
   onSearch:    (v: string) => void
   onStatut:    (v: ProjectStatus | 'ALL') => void
   onSort:      (v: SortKey) => void
-  onCreate:    () => void
 }
 
-/** Barre d'actions et de filtres — désormais entièrement contrôlée. */
-const Head = ({ search, statut, sortKey, onSearch, onStatut, onSort, onCreate }: HeadProps) => {
+/** Barre de filtres — entièrement contrôlée. */
+const Head = ({ search, statut, sortKey, onSearch, onStatut, onSort }: HeadProps) => {
   return (
     <Row>
       <Col xs={12}>
         <Card>
-          <CardBody className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <Button variant="secondary" onClick={onCreate}>
-              <IconifyIcon icon="tabler:circle-plus" className="fs-20 me-1" /> Nouveau projet
-            </Button>
-
+          <CardBody className="d-flex justify-content-end align-items-center flex-wrap gap-2">
             <div className="d-flex align-items-center gap-2 flex-wrap">
               <Form.Select size="sm" style={{ minWidth: 160 }} value={statut}
                            onChange={e => onStatut(e.target.value as ProjectStatus | 'ALL')}>

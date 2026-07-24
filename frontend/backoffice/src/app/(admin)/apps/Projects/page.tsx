@@ -69,7 +69,6 @@ const ProjectsPage = () => {
       <Head
         search={search} statut={statut} sortKey={sortKey}
         onSearch={setSearch} onStatut={setStatut} onSort={setSortKey}
-        onCreate={() => alert('Création de projet — à brancher sur le futur endpoint POST /projets')}
       />
 
       {loading ? (
