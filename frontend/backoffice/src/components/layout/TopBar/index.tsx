@@ -1,7 +1,6 @@
 import LogoBox from '@/components/LogoBox'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import { useEffect, useRef, useState } from 'react'
-import Apps from './components/Apps'
 import Flag from './components/Flag'
 import LeftSideBarToggle from './components/LeftSideBarToggle'
 import Notifications from './components/Notifications'
@@ -62,7 +61,6 @@ const TopBar = () => {
             <SearchBox />
             <Flag />
             <Notifications />
-            <Apps />
             <ThemeCustomizeToggle />
             <ThemeModeToggle />
             <ProfileDropdown />

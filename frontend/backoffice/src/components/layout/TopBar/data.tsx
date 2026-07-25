@@ -1,16 +1,6 @@
 
 import { ReactNode } from "react"
 
-import aws from '@/assets/images/brands/aws.svg'
-import bitbucket from '@/assets/images/brands/bitbucket.svg'
-import bootstrap from '@/assets/images/brands/bootstrap.svg'
-import digitalOcean from '@/assets/images/brands/digital-ocean.svg'
-import dribbble from '@/assets/images/brands/dribbble.svg'
-import dropbox from '@/assets/images/brands/dropbox.svg'
-import gitlab from '@/assets/images/brands/gitlab.svg'
-import googleCloud from '@/assets/images/brands/google-cloud.svg'
-import slack from '@/assets/images/brands/slack.svg'
-
 import userAvatar10 from '@/assets/images/users/avatar-10.jpg'
 import userAvatar2 from '@/assets/images/users/avatar-2.jpg'
 import userAvatar4 from '@/assets/images/users/avatar-4.jpg'
@@ -35,51 +25,6 @@ export type NotificationType = {
   time: Date
 }
 
-
-export type AppsType = {
-  name: string
-  image: string
-}
-
-
-export const appData: AppsType[] = [
-  {
-    name: 'slack',
-    image: slack
-  },
-  {
-    name: 'Gitlab',
-    image: gitlab
-  },
-  {
-    name: 'Dribbble',
-    image: dribbble
-  },
-  {
-    name: 'Bitbucket',
-    image: bitbucket
-  },
-  {
-    name: 'Dropbox',
-    image: dropbox
-  },
-  {
-    name: 'G Cloud',
-    image: googleCloud
-  },
-  {
-    name: 'AWS',
-    image: aws
-  },
-  {
-    name: 'Server',
-    image: digitalOcean
-  },
-  {
-    name: 'Bootstrap',
-    image: bootstrap
-  },
-]
 
 
 export const notificationData: NotificationType[] = [
