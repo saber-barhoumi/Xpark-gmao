@@ -244,10 +244,14 @@ function FeedItem({ icon, title, subtitle, badge, right }: {
             <IconifyIcon icon={icon} className="text-muted mt-1 flex-shrink-0" />
             <div className="flex-grow-1 min-w-0">
                 <div className="small fw-semibold text-truncate">{title}</div>
-                {subtitle && <div className="text-muted" style={{ fontSize: 11 }}>{subtitle}</div>}
+                {/* text-truncate indispensable : les types d'alerte sont des
+                    jetons sans espace (MISSION_SANS_AFFECTATION…) qui, sans
+                    troncature, élargissent la ligne et poussent le badge hors
+                    de la carte. */}
+                {subtitle && <div className="text-muted text-truncate" style={{ fontSize: 11 }}>{subtitle}</div>}
             </div>
-            {badge && <Badge bg={badge.bg} className="flex-shrink-0 fw-normal">{badge.text}</Badge>}
-            {right && <span className="text-muted flex-shrink-0" style={{ fontSize: 11 }}>{right}</span>}
+            {badge && <Badge bg={badge.bg} className="flex-shrink-0 fw-normal align-self-start">{badge.text}</Badge>}
+            {right && <span className="text-muted flex-shrink-0 align-self-start" style={{ fontSize: 11 }}>{right}</span>}
         </div>
     )
 }
