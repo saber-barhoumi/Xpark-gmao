@@ -3,6 +3,8 @@ import { missionService } from '@/services/missionService'
 import { vehiculeService, Vehicule } from '@/services/vehiculeService'
 import { carburantService, CarburantStats } from '@/services/carburantService'
 import { interventionService, Intervention } from '@/services/interventionService'
+import { clientService, Client } from '@/services/clientService'
+import profileService from '@/services/profileService'
 import { Mission, StatutMission } from '@/types/mission'
 import { AnalyticsPermissions } from './rbac'
 
@@ -30,6 +32,7 @@ export interface AnalyticsData {
   vehicules: Vehicule[]
   interventions: Intervention[]
   carburant: CarburantStats | null
+  clients: Client[]
 }
 
 /**
@@ -39,19 +42,24 @@ export interface AnalyticsData {
  */
 export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
   const [data, setData] = useState<AnalyticsData>({
-    missions: [], vehicules: [], interventions: [], carburant: null,
+    missions: [], vehicules: [], interventions: [], carburant: null, clients: [],
   })
+  // Noms résolus à la volée pour les clients absents de /clients (ex. clients
+  // auto-inscrits) — id → « Prénom Nom ». Complète la table clients.
+  const [extraNames, setExtraNames] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     if (!enabled) return
     setLoading(true)
 
-    const [missionsR, vehiculesR, interventionsR, carburantR] = await Promise.allSettled([
+    const [missionsR, vehiculesR, interventionsR, carburantR, clientsR] = await Promise.allSettled([
       perms.operations ? missionService.getAll() : Promise.resolve([]),
       perms.fleet ? vehiculeService.getAll() : Promise.resolve([]),
       perms.maintenance ? interventionService.getAll({ pageSize: 500 }) : Promise.resolve(null),
       perms.fuel ? carburantService.getStats({}) : Promise.resolve(null),
+      // Résout les noms de clients pour le « Top clients » (finance) ; ignoré si non autorisé.
+      perms.finance ? clientService.getAll() : Promise.resolve([]),
     ])
 
     setData({
@@ -61,8 +69,32 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
         ? ((interventionsR.value as any).items ?? interventionsR.value ?? [])
         : [],
       carburant: carburantR.status === 'fulfilled' ? (carburantR.value as CarburantStats | null) : null,
+      clients: clientsR.status === 'fulfilled' ? (clientsR.value as Client[]) : [],
     })
     setLoading(false)
+
+    // Résolution complémentaire des noms de clients (finance uniquement).
+    // On ne résout QUE les ids présents dans des missions terminées facturées
+    // et absents de /clients — quelques appels au plus, jamais un par mission.
+    if (perms.finance) {
+      const missions = missionsR.status === 'fulfilled' ? (missionsR.value as Mission[]) : []
+      const known = new Set((clientsR.status === 'fulfilled' ? (clientsR.value as Client[]) : []).map(c => c.idUtilisateur))
+      const manquants = [...new Set(missions
+        .filter(m => m.statut === StatutMission.TERMINEE && (m.coutTotal ?? 0) > 0 && m.clientIdUtilisateur != null && !known.has(m.clientIdUtilisateur!))
+        .map(m => m.clientIdUtilisateur as number))].slice(0, 15)
+
+      if (manquants.length > 0) {
+        const resolus: Record<number, string> = {}
+        await Promise.allSettled(manquants.map(async id => {
+          try {
+            const p = await profileService.getProfile(id)
+            const nom = `${p.prenom ?? ''} ${p.nom ?? ''}`.trim()
+            if (nom) resolus[id] = nom
+          } catch { /* id non résoluble → repli « Client #id » */ }
+        }))
+        setExtraNames(resolus)
+      }
+    }
   }, [perms, enabled])
 
   useEffect(() => { load() }, [load])
@@ -173,10 +205,19 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
       .sort((a, b) => b.y - a.y).slice(0, 8)
 
     // ── Top clients par revenus (privé direction) ──
+    // On résout le vrai nom du client : d'abord le champ dénormalisé de la
+    // mission, sinon la table clients (id → « Prénom Nom »), sinon un repli.
+    const clientsById = new Map<number, string>()
+    for (const c of data.clients) {
+      clientsById.set(c.idUtilisateur, `${c.prenom ?? ''} ${c.nom ?? ''}`.trim() || c.email || `Client #${c.idUtilisateur}`)
+    }
     const clientCA: Record<string, number> = {}
     for (const m of missions) {
       if (m.statut !== StatutMission.TERMINEE || !(m.coutTotal > 0)) continue
-      const nom = (m.clientNom || '').trim() || (m.clientIdUtilisateur ? `Client #${m.clientIdUtilisateur}` : 'Interne')
+      const nom = (m.clientNom || '').trim()
+        || (m.clientIdUtilisateur != null ? clientsById.get(m.clientIdUtilisateur) : undefined)
+        || (m.clientIdUtilisateur != null ? extraNames[m.clientIdUtilisateur] : undefined)
+        || (m.clientIdUtilisateur != null ? `Client #${m.clientIdUtilisateur}` : 'Interne')
       clientCA[nom] = (clientCA[nom] || 0) + m.coutTotal
     }
     const topClients = Object.entries(clientCA)
@@ -220,7 +261,7 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
       coutsTotal,
       panierMoyen,
     }
-  }, [data])
+  }, [data, extraNames])
 
   return { data, stats, loading, reload: load }
 }
