@@ -7,7 +7,7 @@ import FallbackLoading from '@/components/FallbackLoading'
 import { getMenuItems } from '@/helpers/Manu'
 
 import avatar1 from '@/assets/images/users/avatar-1.jpg'
-import { Button, Dropdown, DropdownHeader, DropdownItem, DropdownMenu, DropdownToggle } from 'react-bootstrap'
+import { Dropdown, DropdownHeader, DropdownItem, DropdownMenu, DropdownToggle } from 'react-bootstrap'
 import { useLayoutContext } from '@/context/useLayoutContext'
 import HoverMenuToggle from './components/HoverMenuToggle'
 import authService, { AuthResponse } from '@/services/authService'
@@ -162,10 +162,12 @@ const LeftSideBar = () => {
               <i className="ri-magic-line me-1"></i>
               Analyses & KPIs
             </Link>
-            <Button variant="soft-success" className="btn-sm rounded-pill mt-1">
+            {/* Ouvre la page Analyses puis déclenche automatiquement la
+                génération du rapport PDF (impression) — voir AnalyticsDashboard. */}
+            <Link to="/analytics?report=1" className="btn btn-soft-success btn-sm rounded-pill mt-1">
               <i className="ri-file-chart-line me-1"></i>
               Générer Rapport
-            </Button>
+            </Link>
           </div>
         </div>
         <div className="clearfix" />

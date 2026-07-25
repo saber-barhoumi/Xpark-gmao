@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Alert, Button, Card, Col, Row, Spinner } from 'react-bootstrap'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
 import ChartWidget from '@/components/dashboard/ChartWidget'
@@ -44,6 +45,21 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
   const perms = useMemo(() => permissionsFor(user?.role), [user?.role])
   const own = useAnalyticsData(perms, !shared)   // désactivé si le parent fournit les données
   const { data, stats, loading, reload } = shared ?? own
+
+  // « Générer Rapport » (bouton de la barre latérale) arrive sur /analytics?report=1 :
+  // une fois les données chargées et les graphiques peints, on déclenche
+  // automatiquement l'impression PDF, puis on nettoie l'URL.
+  const location = useLocation()
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (embedded || loading) return
+    if (new URLSearchParams(location.search).get('report') !== '1') return
+    const t = setTimeout(() => {
+      window.print()
+      navigate('/analytics', { replace: true })
+    }, 900)
+    return () => clearTimeout(t)
+  }, [embedded, loading, location.search, navigate])
   const handleShare = () => shareReport(buildSummary([], [
     `• Missions terminées : ${stats.missionsParStatut.terminees}`,
     `• Taux de réalisation : ${stats.tauxRealisation}%`,
