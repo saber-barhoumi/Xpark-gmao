@@ -76,12 +76,17 @@ const LeftSideBar = () => {
     : 'Utilisateur'
   const displayRole = user?.role || 'Utilisateur'
 
+  /**
+   * Bascule replier / déplier.
+   *
+   * L'ancienne version ne traitait que 'default' et 'full' : depuis n'importe
+   * quel autre état (condensed, compact, sm-hover…) le bouton ne faisait
+   * RIEN — une fois la barre repliée on ne pouvait plus la déplier, d'où
+   * l'impression d'une navigation « bloquée à moitié masquée ».
+   * Toute taille autre que 'default' revient donc maintenant à 'default'.
+   */
   const changeMenu = () => {
-    if (mainMenu.size == 'default') {
-      changeMainMenuSize('condensed')
-    } else if (mainMenu.size == 'full') {
-      changeMainMenuSize('default')
-    }
+    changeMainMenuSize(mainMenu.size === 'default' ? 'condensed' : 'default')
   }
 
 

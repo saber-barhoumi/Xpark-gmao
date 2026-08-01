@@ -40,9 +40,25 @@ const useLayoutContext = () => {
     return context;
 };
 
+/** Tailles de barre latérale acceptées (cf. MainMenuType). */
+const TAILLES_MENU_VALIDES: MainMenuType['size'][] = [
+    'default', 'compact', 'condensed', 'hidden', 'sm-hover', 'full', 'fullscreen', 'sm-hover-active',
+]
+
+/**
+ * Filet de sécurité au chargement : une taille de menu absente ou invalide
+ * (réglage corrompu par l'ancien bug de nettoyage, ou réglage hérité d'une
+ * version précédente) retombe sur 'default' au lieu de casser l'affichage.
+ */
+const assainirReglages = (s: LayoutState): LayoutState =>
+    TAILLES_MENU_VALIDES.includes(s?.mainMenu?.size)
+        ? s
+        : { ...s, mainMenu: { ...(s?.mainMenu ?? INIT_STATE.mainMenu), size: 'default' } }
+
 const LayoutProvider = ({children}: ChildrenType) => {
 
-        const [settings, setSettings] = useLocalStorage<LayoutState>('__OSEN_NEXT_CONFIG__', INIT_STATE);
+        const [rawSettings, setSettings] = useLocalStorage<LayoutState>('__OSEN_NEXT_CONFIG__', INIT_STATE);
+        const settings = assainirReglages(rawSettings);
 
         const [offcanvasStates, setOffcanvasStates] = useState<LayoutOffcanvasStatesType>({
             showThemeCustomizer: false,
@@ -153,6 +169,26 @@ const LayoutProvider = ({children}: ChildrenType) => {
             setOffcanvasStates({...offcanvasStates, showBackdrop: !offcanvasStates.showBackdrop});
         }, [offcanvasStates.showBackdrop]);
 
+        // Attributs de layout portés par <html> pour toute la durée de vie de
+        // l'application. Ils sont (re)posés à chaque changement de réglage.
+        //
+        // Il y avait ici une fonction de nettoyage qui les SUPPRIMAIT. Comme
+        // l'effet dépend de `settings`, ce nettoyage s'exécutait avant CHAQUE
+        // re-exécution (donc à chaque changement de thème, de taille de menu,
+        // de couleur…), pas seulement au démontage : `data-sidenav-size`
+        // disparaissait un instant et la barre latérale retombait sur la
+        // largeur par défaut du CSS — d'où l'affichage « parfois correct,
+        // parfois partiellement masqué ».
+        //
+        // Pire, elle passait les mauvaises valeurs (`mainMenu.color` pour
+        // `data-sidenav-size`, `mainMenu.size` pour `data-layout-mode`) : or
+        // toggleDocumentAttribute POSE la valeur quand l'attribut est absent
+        // au lieu de la retirer, ce qui pouvait écrire `data-sidenav-size="light"`
+        // — une taille invalide qui cassait durablement la barre latérale.
+        //
+        // Ces attributs n'ont aucune raison d'être retirés tant que
+        // l'application tourne : chaque exécution de l'effet les écrase avec
+        // les bonnes valeurs. Le nettoyage a donc été supprimé.
         useEffect(() => {
             toggleDocumentAttribute('data-bs-theme', settings.theme)
             toggleDocumentAttribute('data-topbar-color', settings.topBar.color)
@@ -160,14 +196,6 @@ const LayoutProvider = ({children}: ChildrenType) => {
             toggleDocumentAttribute('data-sidenav-size', settings.mainMenu.size)
             toggleDocumentAttribute('data-layout-mode', settings.mode)
             toggleDocumentAttribute('data-layout', settings.orientation === 'vertical' ? '' : 'topnav')
-            return () => {
-              toggleDocumentAttribute('data-bs-theme', settings.theme, true)
-              toggleDocumentAttribute('data-topbar-color', settings.topBar.color, true)
-              toggleDocumentAttribute('data-sidenav-size', settings.mainMenu.color, true)
-              toggleDocumentAttribute('data-layout-mode', settings.mainMenu.size, true)
-              toggleDocumentAttribute('data-layout', settings.orientation === 'vertical' ? '' : 'topnav', true)
-        
-            }
         }, [settings]);
 
         const resetSettings = () => updateSettings(INIT_STATE);
