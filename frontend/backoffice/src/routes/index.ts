@@ -62,6 +62,7 @@ const PredictionPannes = lazy(() => import('@/app/(admin)/maintenance/prediction
 // HR / Users
 const Employees        = lazy(() => import('@/app/(admin)/hr/employees/page'))
 const PendingUsers     = lazy(() => import('@/app/(admin)/users/pending/page'))
+const UserArchives     = lazy(() => import('@/app/(admin)/users/archives/page'))
 const Contacts         = lazy(() => import('@/app/(admin)/users/contacts/page'))
 const Profile          = lazy(() => import('@/app/(admin)/users/profile/page'))
 const ProfileEdit      = lazy(() => import('@/app/(admin)/users/profile/edit/page'))
@@ -236,6 +237,7 @@ export const APP_ROUTES: AppRoute[] = [
   // HR / Users
   { name: 'employees',    path: '/hr/employees',        element: createElement(Employees),  allowedRoles: ['ADMIN', 'RH'] },
   { name: 'pending-users',path: '/users/pending',       element: createElement(PendingUsers), allowedRoles: ['ADMIN'] },
+  { name: 'user-archives',path: '/users/archives',      element: createElement(UserArchives), allowedRoles: ['ADMIN', 'ADMINISTRATEUR'] },
   { name: 'users-accounts',path: '/users',              element: createElement(UsersAccounts), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
   { name: 'contacts',     path: '/users/contacts',      element: createElement(Contacts) },
   { name: 'profile',      path: '/users/profile',       element: createElement(Profile) },

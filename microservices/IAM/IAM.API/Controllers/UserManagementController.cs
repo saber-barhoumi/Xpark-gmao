@@ -12,7 +12,8 @@ namespace IAM.API.Controllers;
 [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
 [ApiController]
 [Route("api/user-management")]
-public class UserManagementController(IUserService userService, IamDbContext db) : ControllerBase
+public class UserManagementController(
+    IUserService userService, IUserArchiveService archiveService, IamDbContext db) : ControllerBase
 {
     private long AdminId => long.Parse(User.FindFirst("userId")!.Value);
 
@@ -98,12 +99,41 @@ public class UserManagementController(IUserService userService, IamDbContext db)
         return Ok(ApiResponse<UserProfileDto>.Ok(updated, "Compte mis à jour."));
     }
 
-    /// <summary>Supprime définitivement un compte (impossible sur soi-même ;
-    /// 409 si le compte est lié à des données métier — le suspendre à la place).</summary>
+    /// <summary>
+    /// Suppression intelligente : le compte est ARCHIVÉ s'il porte un
+    /// historique métier (missions, factures, maintenance…), et réellement
+    /// supprimé s'il n'en porte aucun. Impossible sur soi-même.
+    /// </summary>
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<string>>> DeleteUser(long id)
+    public async Task<ActionResult<ApiResponse<DeleteOrArchiveResultDto>>> DeleteUser(long id)
     {
-        await userService.DeleteUserAsync(AdminId, id);
+        var res = await archiveService.DeleteOrArchiveAsync(AdminId, id);
+        return Ok(ApiResponse<DeleteOrArchiveResultDto>.Ok(res, res.Message));
+    }
+
+    /// <summary>Données métier rattachées à un compte (avant suppression).</summary>
+    [HttpGet("{id}/dependencies")]
+    public async Task<ActionResult<ApiResponse<UserDependenciesDto>>> GetDependencies(long id)
+        => Ok(ApiResponse<UserDependenciesDto>.Ok(await archiveService.GetDependenciesAsync(id)));
+
+    /// <summary>Comptes archivés (module Archives).</summary>
+    [HttpGet("archives")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<ArchivedUserDto>>>> GetArchives()
+        => Ok(ApiResponse<IEnumerable<ArchivedUserDto>>.Ok(await archiveService.GetArchivedAsync()));
+
+    /// <summary>Restaure un compte archivé (repasse en SUSPENDU, à réactiver).</summary>
+    [HttpPost("archives/{id}/restore")]
+    public async Task<ActionResult<ApiResponse<string>>> RestoreArchived(long id)
+    {
+        await archiveService.RestoreAsync(id);
+        return Ok(ApiResponse<string>.Ok("Compte restauré. Réactivez-le pour rétablir l'accès."));
+    }
+
+    /// <summary>Purge définitive d'un archivé — refusée s'il porte de l'historique.</summary>
+    [HttpDelete("archives/{id}")]
+    public async Task<ActionResult<ApiResponse<string>>> PurgeArchived(long id)
+    {
+        await archiveService.PurgeAsync(id);
         return Ok(ApiResponse<string>.Ok("Compte supprimé définitivement."));
     }
 

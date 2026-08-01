@@ -49,7 +49,12 @@ public class UserService(IamDbContext db, IPublishEndpoint bus) : IUserService
 
     public async Task<List<UserProfileDto>> GetAllUsersAsync()
     {
-        var users = await db.Utilisateurs.ToListAsync();
+        // Les comptes ARCHIVÉS sont exclus de tous les écrans actifs : ils ne
+        // vivent plus que dans le module Archives, d'où ils peuvent être
+        // restaurés. Leur historique métier, lui, reste intact.
+        var users = await db.Utilisateurs
+            .Where(u => u.Statut != StatutUtilisateur.ARCHIVE)
+            .ToListAsync();
         return users.Select(ToDto).ToList();
     }
 

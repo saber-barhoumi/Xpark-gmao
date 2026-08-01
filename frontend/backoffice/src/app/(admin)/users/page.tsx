@@ -4,7 +4,7 @@ import { Badge, Button, Card, Col, Form, Modal, Row, Spinner, Table } from 'reac
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import Swal from 'sweetalert2'
 import authService from '@/services/authService'
-import userService, { AccountUser } from '@/services/userService'
+import userService, { AccountUser, UserDependencies } from '@/services/userService'
 import useBulkSelection from '@/hooks/useBulkSelection'
 import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
 
@@ -142,26 +142,44 @@ export default function UsersPage() {
         }
     }
 
+    /**
+     * Suppression intelligente : on montre d'abord à l'administrateur ce que
+     * porte le compte, pour qu'il sache s'il s'apprête à archiver (historique
+     * conservé, restaurable) ou à supprimer définitivement.
+     */
     const deleteUser = async (u: AccountUser) => {
+        let deps: UserDependencies | null = null
+        try { deps = await userService.getDependencies(u.idUtilisateur) } catch { /* on continue */ }
+
+        const seraArchive = deps?.aDesDonneesMetier ?? false
+        const listeDeps = (deps?.details ?? [])
+            .map(d => `<li>${d.libelle} : <strong>${d.nombre}</strong></li>`).join('')
+
         const confirm = await Swal.fire({
-            title: 'Supprimer définitivement ?',
-            html: `<strong>${u.prenom} ${u.nom}</strong> (${u.email})<br/>
-                   <small>Cette action est irréversible. Si le compte est lié à des
-                   missions/réservations, la suppression sera refusée — suspendez-le à la place.</small>`,
+            title: seraArchive ? 'Archiver ce compte ?' : 'Supprimer définitivement ?',
+            html: `<strong>${u.prenom} ${u.nom}</strong> (${u.email})<br/><br/>` + (seraArchive
+                ? `<small>Ce compte porte un historique métier : il sera <strong>archivé</strong>
+                    (retiré des écrans actifs) et restera <strong>restaurable</strong> depuis
+                    Administration › Utilisateurs › Archives. Aucune donnée n'est perdue.</small>
+                   <ul style="text-align:left;display:inline-block;margin-top:.5rem">${listeDeps}</ul>`
+                : `<small>Ce compte n'est rattaché à <strong>aucune donnée métier</strong> :
+                    il sera supprimé définitivement. Cette action est irréversible.</small>`),
             icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Supprimer', cancelButtonText: 'Annuler',
+            confirmButtonColor: seraArchive ? '#0ab39c' : '#dc3545',
+            confirmButtonText: seraArchive ? 'Archiver' : 'Supprimer définitivement',
+            cancelButtonText: 'Annuler',
         })
         if (!confirm.isConfirmed) return
+
         try {
-            await userService.deleteUser(u.idUtilisateur)
+            const res = await userService.deleteUser(u.idUtilisateur)
             await load()
-            Swal.fire('Supprimé', 'Le compte a été supprimé.', 'success')
-        } catch (err: any) {
             Swal.fire(
-                err.response?.status === 409 ? 'Suppression impossible' : 'Erreur',
-                err.response?.data?.message || 'Suppression impossible.',
-                err.response?.status === 409 ? 'warning' : 'error')
+                res?.archive ? 'Compte archivé' : 'Compte supprimé',
+                res?.message || 'Opération effectuée.',
+                'success')
+        } catch (err: any) {
+            Swal.fire('Erreur', err.response?.data?.message || 'Suppression impossible.', 'error')
         }
     }
 

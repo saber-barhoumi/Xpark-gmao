@@ -2,7 +2,10 @@ namespace XparkGMAO.Shared.Enums;
 
 // ─── User / IAM ───────────────────────────────────────────────────────────────
 public enum Role { CLIENT = 1, CHAUFFEUR = 2, TECHNICIEN = 3, GESTIONNAIRE = 4, ADMINISTRATEUR = 5, ADMIN = 6 }
-public enum StatutUtilisateur { EN_ATTENTE = 0, ACTIF = 1, SUSPENDU = 2, DESACTIVE = 3 }
+// ARCHIVE : compte retiré des écrans actifs mais conservé, parce qu'il porte
+// un historique métier (missions, factures, maintenance…) qu'on ne peut pas
+// détruire. Restaurable ; voir le module Archives.
+public enum StatutUtilisateur { EN_ATTENTE = 0, ACTIF = 1, SUSPENDU = 2, DESACTIVE = 3, ARCHIVE = 4 }
 public enum StatutChauffeur { DISPONIBLE, EN_MISSION, EN_CONGE, SUSPENDU, INACTIF }
 public enum CategoriePermis { A, B, C, D, E, BE, CE }
 public enum PostEmployee { CHAUFFEUR, TECHNICIEN, ADMINISTRATEUR, GESTIONNAIRE, DIRECTEUR, RESPONSABLE_MAINTENANCE }

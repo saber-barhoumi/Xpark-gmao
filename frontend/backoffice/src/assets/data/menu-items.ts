@@ -170,6 +170,7 @@ export const MENU_ITEMS: MenuItemType[] = [
     children: [
       { key: 'users-accounts', label: 'Tous les comptes', url: '/users', parentKey: 'users' },
       { key: 'pending-users', label: 'Admissions', url: '/users/pending', parentKey: 'users' },
+      { key: 'user-archives', label: 'Archives', url: '/users/archives', parentKey: 'users' },
       { key: 'profile', label: 'Profil', url: '/users/profile', parentKey: 'users' },
     ],
   },
