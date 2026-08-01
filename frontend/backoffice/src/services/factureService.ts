@@ -73,6 +73,15 @@ const factureService = {
         return res.data
     },
 
+    /**
+     * Ids des missions déjà facturées (factures non annulées).
+     * Permet de ne proposer que les prestations encore facturables.
+     */
+    getMissionsFacturees: async (): Promise<number[]> => {
+        const res = await api.get('/factures/missions-facturees')
+        return Array.isArray(res.data) ? res.data : (res.data?.data ?? [])
+    },
+
     payer: async (id: number, methodePaiement?: string): Promise<void> => {
         await api.patch(`/factures/${id}/payer`, { methodePaiement })
     },

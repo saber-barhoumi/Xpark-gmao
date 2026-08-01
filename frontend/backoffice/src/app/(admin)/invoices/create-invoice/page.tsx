@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Button, Card, CardBody, Col, Form, Row, Spinner } from 'react-bootstrap'
+import { Alert, Badge, Button, Card, CardBody, Col, Form, Row, Spinner } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Select from 'react-select'
 import Swal from 'sweetalert2'
@@ -13,9 +13,14 @@ import { Mission, StatutMission } from '@/types/mission'
 /**
  * Nouvelle facture — /invoices/create-invoice (100 % dynamique).
  *
- * Flux réel : choisir un CLIENT (comptes IAM) → optionnellement une de ses
- * missions TERMINÉES (le montant HT se pré-remplit depuis le coût de la
- * mission) → TVA 19 % (Tunisie) → POST Finance.API → document imprimable.
+ * Règle métier : on ne facture QUE des prestations livrées et pas encore
+ * facturées. L'écran part donc des missions facturables (TERMINÉE + non
+ * facturée) et n'expose que les clients qui en ont au moins une — inutile de
+ * proposer un client sans rien à facturer.
+ *
+ * Flux : client → mission éligible → montant/description pré-remplis depuis la
+ * mission → TVA 19 % (Tunisie) → POST Finance.API.
+ * L'anti-doublon est doublé côté serveur (409 si la mission est déjà facturée).
  */
 
 const TVA_DEFAUT = 19
@@ -25,6 +30,7 @@ export default function CreateInvoicePage() {
     const navigate = useNavigate()
     const [clients, setClients] = useState<AccountUser[]>([])
     const [missions, setMissions] = useState<Mission[]>([])
+    const [dejaFacturees, setDejaFacturees] = useState<Set<number>>(new Set())
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
@@ -38,31 +44,65 @@ export default function CreateInvoicePage() {
         return d.toISOString().slice(0, 10)
     })
 
-    useEffect(() => {
-        Promise.all([userService.getAllUsers(), missionService.getAll()])
-            .then(([users, ms]) => {
+    const charger = () => {
+        setLoading(true)
+        Promise.all([
+            userService.getAllUsers(),
+            missionService.getAll(),
+            factureService.getMissionsFacturees(),
+        ])
+            .then(([users, ms, facturees]) => {
                 setClients(users.filter(u => u.role === 'CLIENT'))
                 setMissions(ms)
+                setDejaFacturees(new Set(facturees))
             })
-            .catch(() => Swal.fire('Erreur', 'Impossible de charger clients/missions.', 'error'))
+            .catch(() => Swal.fire('Erreur', 'Impossible de charger les données de facturation.', 'error'))
             .finally(() => setLoading(false))
-    }, [])
+    }
+    useEffect(charger, [])
 
-    // Missions facturables du client choisi : TERMINÉES (prestations livrées)
+    // ── Missions facturables : livrées, rattachées à un client, non facturées ──
+    const missionsFacturables = useMemo(() =>
+        missions.filter(m =>
+            m.statut === StatutMission.TERMINEE &&
+            m.clientIdUtilisateur != null &&
+            !dejaFacturees.has(m.idMission)),
+        [missions, dejaFacturees])
+
+    // ── Clients facturables : uniquement ceux qui ont au moins une mission ci-dessus ──
+    const clientsFacturables = useMemo(() => {
+        const ids = new Set(missionsFacturables.map(m => m.clientIdUtilisateur as number))
+        return clients.filter(c => ids.has(c.idUtilisateur))
+    }, [clients, missionsFacturables])
+
     const missionsClient = useMemo(() =>
-        missions.filter(m => m.clientIdUtilisateur === clientId && m.statut === StatutMission.TERMINEE),
-        [missions, clientId])
+        missionsFacturables.filter(m => m.clientIdUtilisateur === clientId),
+        [missionsFacturables, clientId])
 
-    const clientOptions = clients.map(c => ({
-        value: c.idUtilisateur, label: `${c.prenom} ${c.nom} — ${c.email}`,
-    }))
+    const clientOptions = clientsFacturables.map(c => {
+        const n = missionsFacturables.filter(m => m.clientIdUtilisateur === c.idUtilisateur).length
+        return {
+            value: c.idUtilisateur,
+            label: `${c.prenom} ${c.nom} — ${n} mission${n > 1 ? 's' : ''} à facturer`,
+        }
+    })
     const missionOptions = missionsClient.map(m => ({
         value: m.idMission,
         label: `#${m.idMission} ${m.villeDepart || '—'} → ${m.villeArrivee || m.destination}`
-            + (m.coutTotal > 0 ? ` (${m.coutTotal.toFixed(0)} DT)` : ''),
-        cout: m.coutTotal,
-        desc: `Transport ${m.villeDepart || ''} → ${m.villeArrivee || m.destination} — mission #${m.idMission}`,
+            + (m.coutTotal > 0 ? ` · ${m.coutTotal.toFixed(0)} DT` : ''),
+        mission: m,
     }))
+
+    /** Pré-remplissage automatique depuis la mission choisie. */
+    const choisirMission = (m: Mission | null) => {
+        setMissionId(m?.idMission ?? null)
+        if (!m) return
+        setMontant(m.coutTotal > 0 ? String(m.coutTotal) : '')
+        setDescription(
+            `Transport ${m.villeDepart || '—'} → ${m.villeArrivee || m.destination} — mission #${m.idMission}`)
+    }
+
+    const missionChoisie = missionsClient.find(m => m.idMission === missionId) ?? null
 
     const ht = parseFloat(montant) || 0
     const tva = ht * tauxTVA / 100
@@ -71,11 +111,12 @@ export default function CreateInvoicePage() {
     const submit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!clientId) { Swal.fire('Erreur', 'Choisissez un client.', 'warning'); return }
+        if (!missionId) { Swal.fire('Erreur', 'Choisissez la mission à facturer.', 'warning'); return }
         if (ht <= 0) { Swal.fire('Erreur', 'Le montant HT doit être positif.', 'warning'); return }
         setSaving(true)
         try {
             const f = await factureService.create({
-                clientId, missionId: missionId ?? undefined,
+                clientId, missionId,
                 montant: ht, tauxTVA,
                 description: description.trim() || undefined,
                 dateEcheance: dateEcheance || undefined,
@@ -83,7 +124,15 @@ export default function CreateInvoicePage() {
             await Swal.fire('Facture créée', `${f.numeroFacture} — ${dt(f.montantTTC)}`, 'success')
             navigate(`/invoices/view-invoice?id=${f.idFacture}`)
         } catch (err: any) {
-            Swal.fire('Erreur', err.response?.data?.message || 'Création impossible.', 'error')
+            // 409 = la mission vient d'être facturée (autre onglet / autre agent).
+            if (err.response?.status === 409) {
+                await Swal.fire('Mission déjà facturée',
+                    err.response?.data?.message || 'Cette mission a déjà une facture.', 'warning')
+                charger()
+                setMissionId(null)
+            } else {
+                Swal.fire('Erreur', err.response?.data?.message || 'Création impossible.', 'error')
+            }
         } finally { setSaving(false) }
     }
 
@@ -94,44 +143,90 @@ export default function CreateInvoicePage() {
                 <Col xxl={8} lg={10}>
                     <Card className="border-0 shadow-sm">
                         <CardBody className="p-4">
-                            <h4 className="mb-1">
-                                <IconifyIcon icon="tabler:invoice" className="me-2 text-primary" />
-                                Nouvelle facture XPARK
-                            </h4>
+                            <div className="d-flex justify-content-between align-items-start mb-1">
+                                <h4 className="mb-0">
+                                    <IconifyIcon icon="tabler:invoice" className="me-2 text-primary" />
+                                    Nouvelle facture XPARK
+                                </h4>
+                                <Button variant="light" size="sm" onClick={charger} title="Actualiser">
+                                    <IconifyIcon icon="ri:refresh-line" />
+                                </Button>
+                            </div>
                             <p className="text-muted mb-4">
-                                Facturez une prestation livrée : le montant se pré-remplit depuis la mission terminée du client.
+                                Seules les missions <strong>terminées et non encore facturées</strong> sont proposées.
                             </p>
 
                             {loading ? (
                                 <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
+                            ) : clientsFacturables.length === 0 ? (
+                                <div className="text-center text-muted py-5">
+                                    <IconifyIcon icon="tabler:file-check" className="fs-48 mb-2 opacity-25 d-block mx-auto" />
+                                    <h5 className="mb-1">Tout est facturé 🎉</h5>
+                                    <p className="mb-3">Aucune mission terminée n’attend de facture pour le moment.</p>
+                                    <Button variant="outline-primary" size="sm" onClick={() => navigate('/invoices')}>
+                                        Voir les factures existantes
+                                    </Button>
+                                </div>
                             ) : (
                                 <Form onSubmit={submit}>
                                     <Row className="g-3">
                                         <Col md={12}>
-                                            <Form.Label className="fw-bold small">Client <span className="text-danger">*</span></Form.Label>
+                                            <Form.Label className="fw-bold small">
+                                                Client <span className="text-danger">*</span>
+                                                <span className="text-muted fw-normal ms-1">
+                                                    ({clientsFacturables.length} client(s) à facturer)
+                                                </span>
+                                            </Form.Label>
                                             <Select options={clientOptions} isClearable
                                                 placeholder="Choisir un client…"
-                                                noOptionsMessage={() => 'Aucun compte client'}
+                                                noOptionsMessage={() => 'Aucun client à facturer'}
                                                 value={clientOptions.find(o => o.value === clientId) ?? null}
-                                                onChange={(o: any) => { setClientId(o?.value ?? null); setMissionId(null) }} />
+                                                onChange={(o: any) => {
+                                                    setClientId(o?.value ?? null)
+                                                    choisirMission(null)
+                                                    setMontant(''); setDescription('')
+                                                }} />
                                         </Col>
                                         <Col md={12}>
                                             <Form.Label className="fw-bold small">
-                                                Mission terminée <span className="text-muted fw-normal">(optionnel — pré-remplit le montant)</span>
+                                                Mission à facturer <span className="text-danger">*</span>
                                             </Form.Label>
                                             <Select options={missionOptions} isClearable isDisabled={!clientId}
-                                                placeholder={clientId ? (missionOptions.length ? 'Associer une mission…' : 'Aucune mission terminée pour ce client') : 'Choisissez d’abord un client'}
+                                                placeholder={clientId ? 'Choisir la mission…' : 'Choisissez d’abord un client'}
+                                                noOptionsMessage={() => 'Aucune mission facturable'}
                                                 value={missionOptions.find(o => o.value === missionId) ?? null}
-                                                onChange={(o: any) => {
-                                                    setMissionId(o?.value ?? null)
-                                                    if (o?.cout > 0) setMontant(String(o.cout))
-                                                    if (o?.desc && !description) setDescription(o.desc)
-                                                }} />
+                                                onChange={(o: any) => choisirMission(o?.mission ?? null)} />
                                         </Col>
+
+                                        {/* Récapitulatif de la prestation facturée */}
+                                        {missionChoisie && (
+                                            <Col md={12}>
+                                                <Alert variant="light" className="border mb-0 py-2">
+                                                    <div className="d-flex flex-wrap gap-3 align-items-center small">
+                                                        <Badge bg="soft-success" text="success" className="fw-normal">
+                                                            Mission #{missionChoisie.idMission} · terminée
+                                                        </Badge>
+                                                        <span><IconifyIcon icon="tabler:map-pin" className="me-1 text-muted" />
+                                                            {missionChoisie.villeDepart || '—'} → {missionChoisie.villeArrivee || missionChoisie.destination}</span>
+                                                        {missionChoisie.distance > 0 && (
+                                                            <span><IconifyIcon icon="tabler:route" className="me-1 text-muted" />
+                                                                {Math.round(missionChoisie.distance)} km</span>)}
+                                                        {missionChoisie.vehiculeImmatriculation && (
+                                                            <span><IconifyIcon icon="tabler:truck" className="me-1 text-muted" />
+                                                                {missionChoisie.vehiculeImmatriculation}</span>)}
+                                                        {missionChoisie.chauffeurNom && (
+                                                            <span><IconifyIcon icon="tabler:user" className="me-1 text-muted" />
+                                                                {missionChoisie.chauffeurNom}</span>)}
+                                                    </div>
+                                                </Alert>
+                                            </Col>
+                                        )}
+
                                         <Col md={4}>
                                             <Form.Label className="fw-bold small">Montant HT (DT) <span className="text-danger">*</span></Form.Label>
                                             <Form.Control type="number" min={0} step="0.001" value={montant}
                                                 onChange={e => setMontant(e.target.value)} placeholder="Ex : 850.000" required />
+                                            <Form.Text className="text-muted">Repris du coût de la mission — ajustable.</Form.Text>
                                         </Col>
                                         <Col md={4}>
                                             <Form.Label className="fw-bold small">TVA (%)</Form.Label>
@@ -169,7 +264,7 @@ export default function CreateInvoicePage() {
                                         <Button variant="outline-secondary" onClick={() => navigate('/invoices')} disabled={saving}>
                                             Annuler
                                         </Button>
-                                        <Button type="submit" variant="primary" disabled={saving} className="px-4">
+                                        <Button type="submit" variant="primary" disabled={saving || !missionId} className="px-4">
                                             {saving ? <><Spinner size="sm" animation="border" className="me-1" /> Création…</>
                                                 : <><IconifyIcon icon="ri:check-line" className="me-1" /> Créer la facture</>}
                                         </Button>

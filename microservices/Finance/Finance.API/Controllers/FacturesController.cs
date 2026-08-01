@@ -51,6 +51,15 @@ public class FacturesController(IFacturationService service, ILogger<FacturesCon
         return Ok(factures);
     }
 
+    /// <summary>
+    /// Ids des missions déjà facturées — permet à l'écran de création de ne
+    /// proposer que les prestations encore facturables (anti-doublon).
+    /// </summary>
+    [HttpGet("missions-facturees")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> GetMissionsFacturees()
+        => Ok(await service.GetMissionsFactureesAsync());
+
     [HttpPost]
     [Authorize(Roles = "ADMIN,GESTIONNAIRE")]
     public async Task<IActionResult> Create([FromBody] CreateFactureDto dto)
@@ -61,6 +70,9 @@ public class FacturesController(IFacturationService service, ILogger<FacturesCon
             return CreatedAtAction(nameof(GetById), new { id = facture.IdFacture }, facture);
         }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        // Mission déjà facturée → 409 : le client peut distinguer un doublon
+        // d'une erreur de saisie.
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
 
     [HttpPatch("{id:long}/payer")]

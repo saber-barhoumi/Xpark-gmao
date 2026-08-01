@@ -73,8 +73,31 @@ public class FacturationService(IFactureRepository repo, IMapper mapper, Finance
         return mapper.Map<IEnumerable<FactureResponseDto>>(factures);
     }
 
+    /// <summary>
+    /// Missions déjà facturées. Une facture ANNULÉE ne compte pas : la mission
+    /// redevient facturable (c'est justement l'usage de l'annulation).
+    /// </summary>
+    public async Task<IEnumerable<long>> GetMissionsFactureesAsync()
+        => await db.Factures
+            .AsNoTracking()
+            .Where(f => f.MissionId != null && f.Statut != StatutFacture.ANNULEE)
+            .Select(f => f.MissionId!.Value)
+            .Distinct()
+            .ToListAsync();
+
     public async Task<FactureResponseDto> CreateAsync(CreateFactureDto dto)
     {
+        // Anti-doublon : une prestation ne se facture qu'une fois. Contrôle
+        // côté serveur (autorité) et pas seulement dans l'écran de saisie.
+        if (dto.MissionId is > 0)
+        {
+            var dejaFacturee = await db.Factures.AnyAsync(f =>
+                f.MissionId == dto.MissionId && f.Statut != StatutFacture.ANNULEE);
+            if (dejaFacturee)
+                throw new InvalidOperationException(
+                    $"La mission #{dto.MissionId} est déjà facturée. Annulez la facture existante pour la refacturer.");
+        }
+
         var numero = await repo.GenerateNumeroFactureAsync();
         var mttc   = dto.Montant * (1 + dto.TauxTVA / 100);
 
