@@ -88,8 +88,8 @@ export default function OptimisateurPage() {
                             </div>
                             <p className="small text-muted mb-0">
                                 Le véhicule le plus sobre compatible avec la nature du trajet est
-                                privilégié (40% du score). Algorithme : Greedy → Génétique → Recherche
-                                locale, plan généré en moins de 5 secondes via RabbitMQ.
+                                privilégié (40 % du score). Le plan d’affectation est calculé en
+                                moins de 5 secondes.
                             </p>
                         </Card.Body>
                     </Card>

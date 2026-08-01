@@ -66,16 +66,12 @@ const TimelinePage = () => {
                       <p className="mb-0">2hr Ago</p>
                     </div>
                   </div>
-                  <p className="mb-2 text-dark fw-semibold fs-16 my-3">Join as a full stack developers</p>
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">html</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">CSS</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">JavaScript</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">NodeJS</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">ExpressJS</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">ExpressJS</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">Django</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">MySQL</span>&nbsp;
-                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12 my-1">PostgreSQL</span>&nbsp;
+                  <p className="mb-2 text-dark fw-semibold fs-16 my-3">Nouvelle demande de transport enregistrée</p>
+                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">Transport</span>&nbsp;
+                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">Marchandises</span>&nbsp;
+                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">Tunis → Sfax</span>&nbsp;
+                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12">Poids lourd</span>&nbsp;
+                  <span className="badge bg-light-subtle border text-dark fw-medium px-2 py-1 fs-12 my-1">Devis à établir</span>&nbsp;
                 </div>
               </div>
             </div>

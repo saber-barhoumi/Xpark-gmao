@@ -193,7 +193,7 @@ const OptimizerPanel = ({ onApplied }: OptimizerPanelProps) => {
                     <Button variant="dark" size="lg" onClick={runOptimization} disabled={optimizing}>
                         {optimizing
                             ? <><Spinner animation="border" size="sm" className="me-2" />
-                                Optimisation via RabbitMQ (Greedy → Génétique → Recherche locale)…</>
+                                Optimisation du planning en cours…</>
                             : <><IconifyIcon icon="ri:flashlight-line" className="me-2" />
                                 Optimiser le planning</>}
                     </Button>

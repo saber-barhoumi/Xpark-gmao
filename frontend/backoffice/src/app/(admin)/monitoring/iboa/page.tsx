@@ -71,7 +71,7 @@ export default function IboaPage() {
             await new Promise(r => setTimeout(r, 1500))   // laisser le pipeline traiter
             await refresh()
             Swal.fire('Événement de test envoyé',
-                'Une panne véhicule simulée (client PREMIUM) a traversé tout le pipeline RabbitMQ → scoring → alerte.',
+                'Une panne véhicule simulée (client PREMIUM) a bien été détectée, évaluée puis remontée en alerte.',
                 'success')
         } catch (err: any) {
             Swal.fire('Erreur', err.message, 'error')
@@ -155,7 +155,7 @@ export default function IboaPage() {
                         <>
                             <Badge bg={health.rabbitmqConnected ? 'success' : 'danger'}>
                                 <IconifyIcon icon="ri:exchange-line" className="me-1" />
-                                RabbitMQ {health.rabbitmqConnected ? 'connecté' : 'déconnecté'}
+                                Collecte des événements {health.rabbitmqConnected ? 'active' : 'interrompue'}
                             </Badge>
                             <Badge bg={health.whatsappMode === 'TWILIO' ? 'success' : 'secondary'}>
                                 <IconifyIcon icon="ri:whatsapp-line" className="me-1" />
@@ -175,7 +175,8 @@ export default function IboaPage() {
                 <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
             ) : offline ? (
                 <BsAlert variant="danger">
-                    Le service IBOA (port 5008) est injoignable. Vérifiez <code>docker compose up -d iboa</code>.
+                    L’assistant IBOA est momentanément indisponible. Réessayez dans quelques
+                    instants ; si le problème persiste, contactez votre administrateur.
                 </BsAlert>
             ) : (
                 <>
