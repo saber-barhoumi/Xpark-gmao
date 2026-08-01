@@ -52,6 +52,12 @@ interface MissionWizardModalProps {
     show: boolean
     onHide: () => void
     reloadList: () => void
+    /**
+     * Client donneur d'ordre pré-sélectionné (mission créée depuis l'annuaire
+     * ou une fiche utilisateur). Absent = mission interne, comportement
+     * historique inchangé.
+     */
+    client?: { id: number; nom: string } | null
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -769,7 +775,7 @@ const Step3 = ({ previousStep, isActive, form, setForm, onFinish, isSaving }: an
 }
 
 // ── Root modal ────────────────────────────────────────────────────────────────
-const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProps) => {
+const MissionWizardModal = ({ show, onHide, reloadList, client }: MissionWizardModalProps) => {
     const [form, setForm] = useState<WizardForm>(emptyForm())
     const [isSaving, setIsSaving] = useState(false)
     const { error, execute, clearError } = useApiError()
@@ -804,6 +810,10 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                 distanceEstimee: form.distanceEstimee,
                 coutEstime: finalCout,
                 aiVehiculeTypeUsed: form.aiVehiculeTypeUsed || undefined,
+                // Rattachement au client donneur d'ordre quand la mission est
+                // créée depuis l'annuaire / une fiche utilisateur.
+                clientIdUtilisateur: client?.id,
+                clientNom: client?.nom,
             })
             await Swal.fire('Succès', 'La mission a été créée avec succès.', 'success')
             reloadList()
@@ -820,9 +830,18 @@ const MissionWizardModal = ({ show, onHide, reloadList }: MissionWizardModalProp
                 <Modal.Title>
                     <IconifyIcon icon="ri:map-pin-add-line" className="me-2" />
                     Nouvelle Mission
+                    {client && <span className="fs-14 fw-normal ms-2">— pour {client.nom}</span>}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
+                {/* Rappel visible du donneur d'ordre : l'utilisateur voit pour
+                    qui il crée la mission sans avoir à le re-saisir. */}
+                {client && (
+                    <div className="alert alert-info d-flex align-items-center gap-2 py-2 mb-3">
+                        <IconifyIcon icon="tabler:user-check" className="fs-18" />
+                        <span>Mission créée pour le client <strong>{client.nom}</strong>.</span>
+                    </div>
+                )}
                 {error && (
                     <AlerteErreur status={error.status} message={error.message}
                         onDismiss={clearError} className="mb-3" />

@@ -58,6 +58,10 @@ export interface CreateMissionDto {
     distanceEstimee?: number;
     coutEstime?: number;
     aiVehiculeTypeUsed?: string;
+    // Client donneur d'ordre (mission créée depuis l'annuaire ou une fiche
+    // utilisateur). Absent = mission interne.
+    clientIdUtilisateur?: number;
+    clientNom?: string;
 }
 
 export interface CloseMissionDto {

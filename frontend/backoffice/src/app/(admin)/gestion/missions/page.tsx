@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Badge, Button, Card, Col, Row, Spinner, Alert } from 'react-bootstrap'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import authService from '@/services/authService'
+import clientService from '@/services/clientService'
 import missionService from '@/services/missionService'
 import { Mission, StatutMission } from '@/types/mission'
 import Swal from 'sweetalert2'
@@ -32,6 +34,35 @@ export default function MissionsPage() {
 
     // Modals
     const [showWizard, setShowWizard] = useState(false)
+    // Client donneur d'ordre pré-sélectionné : la page est ouverte avec
+    // ?clientId=… depuis l'annuaire ou une fiche utilisateur, et l'assistant
+    // de création s'ouvre directement sur ce client.
+    const [searchParams, setSearchParams] = useSearchParams()
+    const [clientPreselectionne, setClientPreselectionne] = useState<{ id: number; nom: string } | null>(null)
+
+    useEffect(() => {
+        const brut = searchParams.get('clientId')
+        const id = brut ? Number(brut) : NaN
+        if (!Number.isFinite(id) || id <= 0) return
+
+        let annule = false
+        clientService.getById(id)
+            .then(c => {
+                if (annule) return
+                const nom = `${c.prenom ?? ''} ${c.nom ?? ''}`.trim() || c.nomSociete || `Client #${id}`
+                setClientPreselectionne({ id, nom })
+                setShowWizard(true)
+            })
+            // Client introuvable (supprimé, droits) : on ouvre quand même
+            // l'assistant, sans pré-sélection, plutôt que de bloquer.
+            .catch(() => { if (!annule) setShowWizard(true) })
+            // L'URL est nettoyée : un rafraîchissement ne rouvre pas l'assistant.
+            .finally(() => { if (!annule) setSearchParams({}, { replace: true }) })
+
+        return () => { annule = true }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     const [showOptimizer, setShowOptimizer] = useState(false)
     const [showCloseModal, setShowCloseModal] = useState(false)
     const [showAssignModal, setShowAssignModal] = useState(false)
@@ -349,8 +380,9 @@ export default function MissionsPage() {
             <ErrorBoundary>
                 <MissionWizardModal
                     show={showWizard}
-                    onHide={() => setShowWizard(false)}
+                    onHide={() => { setShowWizard(false); setClientPreselectionne(null) }}
                     reloadList={loadMissions}
+                    client={clientPreselectionne}
                 />
             </ErrorBoundary>
 

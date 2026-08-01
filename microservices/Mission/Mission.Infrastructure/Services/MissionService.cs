@@ -104,6 +104,10 @@ public class MissionService(
             DistanceKm            = dto.DistanceEstimee,
             CoutEstimeAI          = dto.CoutEstime,
             AiVehiculeTypeUsed    = dto.AiVehiculeTypeUsed,
+            // Client donneur d'ordre (mission créée depuis l'annuaire ou une
+            // fiche utilisateur) ; null pour une mission interne.
+            ClientIdUtilisateur   = dto.ClientIdUtilisateur,
+            ClientNom             = dto.ClientNom,
             DateCreation          = DateTime.UtcNow
         };
 

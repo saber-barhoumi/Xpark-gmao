@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Badge, Button, Card, Col, Form, Modal, Row, Spinner, Table } from 'react-bootstrap'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import Swal from 'sweetalert2'
@@ -24,6 +25,7 @@ const STATUT_COLORS: Record<string, string> = {
  * réactivation et suppression.
  */
 export default function UsersPage() {
+    const navigate = useNavigate()
     const [users, setUsers] = useState<AccountUser[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
@@ -35,6 +37,9 @@ export default function UsersPage() {
     const [saving, setSaving] = useState(false)
 
     const me = authService.getCurrentUser()
+    // Seuls les rôles qui pilotent l'exploitation créent des missions (mêmes
+    // rôles que la page Missions).
+    const peutCreerMission = ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'].includes(me?.role ?? '')
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -255,6 +260,15 @@ export default function UsersPage() {
                                         <td className="small">{new Date(u.dateCreation).toLocaleDateString('fr-FR')}</td>
                                         <td>
                                             <div className="d-flex gap-1">
+                                                {/* Créer une mission pour ce client — réutilise l'assistant
+                                                    de création existant, avec le client pré-sélectionné. */}
+                                                {u.role === 'CLIENT' && peutCreerMission && (
+                                                    <Button variant="outline-success" size="sm"
+                                                        title={`Créer une mission pour ${u.prenom} ${u.nom}`}
+                                                        onClick={() => navigate(`/gestion/missions?clientId=${u.idUtilisateur}`)}>
+                                                        <IconifyIcon icon="ri:truck-line" />
+                                                    </Button>
+                                                )}
                                                 <Button variant="outline-primary" size="sm" title="Modifier"
                                                     onClick={() => openEdit(u)}>
                                                     <IconifyIcon icon="ri:pencil-line" />

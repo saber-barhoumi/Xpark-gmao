@@ -22,4 +22,10 @@ public class CreateMissionDto
     public double    DistanceEstimee         { get; set; }
     public double    CoutEstime              { get; set; }
     public string?   AiVehiculeTypeUsed      { get; set; }
+    // Client donneur d'ordre, quand la mission est créée pour un client
+    // identifié (depuis l'annuaire ou la fiche utilisateur). Null = mission
+    // interne. Indispensable pour la facturation, qui ne facture que les
+    // missions rattachées à un client.
+    public long?     ClientIdUtilisateur     { get; set; }
+    public string?   ClientNom               { get; set; }
 }

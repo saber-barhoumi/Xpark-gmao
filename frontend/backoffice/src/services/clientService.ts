@@ -1,19 +1,31 @@
 import api from '@/lib/axiosConfig'
 
-/** Client (ClientDto de IAM.API). */
+/** Client (ClientDto de IAM.API — /api/clients). */
 export interface Client {
-  idUtilisateur: number
-  prenom:        string
-  nom:           string
-  email?:        string
-  telephone?:    string
+  idUtilisateur:   number
+  nom:             string
+  prenom:          string
+  email:           string
+  telephone?:      string | null
+  nomSociete?:     string | null
+  secteurActivite?: string | null
+  adresse?:        string | null
+  ville?:          string | null
+  estEntreprise:   boolean
+  numeroFiscal?:   string | null
+  dateCreation:    string
 }
 
 export const clientService = {
-  /** Tous les clients — utilisé pour résoudre les noms (ex. Top clients Analyses). */
+  /** Tous les clients — annuaire, résolution de noms (Top clients Analyses), contacts. */
   getAll: async (): Promise<Client[]> => {
     const res = await api.get<any>('/clients')
     return res.data?.data ?? res.data ?? []
+  },
+
+  getById: async (id: number): Promise<Client> => {
+    const res = await api.get<any>(`/clients/${id}`)
+    return res.data?.data ?? res.data
   },
 }
 
