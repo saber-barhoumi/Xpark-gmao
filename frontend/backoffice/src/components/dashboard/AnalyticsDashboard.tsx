@@ -8,7 +8,7 @@ import authService from '@/services/authService'
 import { permissionsFor } from './analytics/rbac'
 import { useAnalyticsData } from './analytics/useAnalyticsData'
 import StatTile from './analytics/StatTile'
-import { exportPdf, shareReport, buildSummary, PRINT_CSS } from './analytics/reportActions'
+import { exportPdf, shareReport, buildSummary, generateReport, PRINT_CSS } from './analytics/reportActions'
 
 /**
  * Analyses & KPIs — données 100 % réelles + RBAC.
@@ -46,25 +46,35 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
   const own = useAnalyticsData(perms, !shared)   // désactivé si le parent fournit les données
   const { data, stats, loading, reload } = shared ?? own
 
-  // « Générer Rapport » (bouton de la barre latérale) arrive sur /analytics?report=1 :
-  // une fois les données chargées et les graphiques peints, on déclenche
-  // automatiquement l'impression PDF, puis on nettoie l'URL.
+  // « Générer Rapport » (barre latérale) arrive sur /analytics?report=1 : une
+  // fois les données chargées, on génère le RAPPORT (document dédié dans un
+  // nouvel onglet — différent du tableau de bord), puis on nettoie l'URL.
   const location = useLocation()
   const navigate = useNavigate()
   useEffect(() => {
     if (embedded || loading) return
     if (new URLSearchParams(location.search).get('report') !== '1') return
     const t = setTimeout(() => {
-      window.print()
+      handleReport()
       navigate('/analytics', { replace: true })
-    }, 900)
+    }, 600)
     return () => clearTimeout(t)
-  }, [embedded, loading, location.search, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedded, loading, location.search])
   const handleShare = () => shareReport(buildSummary([], [
     `• Missions terminées : ${stats.missionsParStatut.terminees}`,
     `• Taux de réalisation : ${stats.tauxRealisation}%`,
     `• Distance totale : ${Math.round(stats.distanceTotale).toLocaleString('fr-FR')} km`,
   ]))
+
+  /** Génère le rapport (document dédié dans un nouvel onglet), avec les données chargées. */
+  const handleReport = () => generateReport({
+    user: user ? { prenom: user.prenom, nom: user.nom, role: user.role } : undefined,
+    perms,
+    stats,
+    vehiculesCount: data.vehicules.length,
+    interventionsCount: data.interventions.length,
+  })
 
   if (loading) {
     return (
@@ -92,35 +102,43 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
         <hr />
       </div>
 
-      {/* Barre d'actions */}
-      <Row className="mb-4 no-print">
-        <Col>
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-              <h4 className="mb-1">Vue d'ensemble analytique</h4>
-              <p className="text-muted mb-0">
-                <i className="ri-history-line me-1" />
-                Données en direct — chargées le {new Date().toLocaleString('fr-FR')}
+      {/* En-tête — bandeau dégradé (nouveau design) */}
+      <Card className="border-0 shadow-sm mb-4 no-print overflow-hidden analytics-hero">
+        <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg,#405189 0%,#2a3a6b 100%)' }}>
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+            <div className="text-white">
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <span className="badge bg-white bg-opacity-25 text-white fw-semibold">
+                  <span className="live-dot me-1" /> En direct
+                </span>
+                <span className="text-white-50 fs-13">Chargé le {new Date().toLocaleString('fr-FR')}</span>
+              </div>
+              <h3 className="text-white fw-bold mb-1">Vue d'ensemble analytique</h3>
+              <p className="text-white-50 mb-0 fs-14">
+                Indicateurs clés de performance de la flotte, des missions et de l'exploitation.
               </p>
             </div>
             <div className="d-flex gap-2 flex-wrap">
-              <Button variant="soft-info" onClick={reload} className="btn-icon" title="Actualiser">
+              <Button variant="light" onClick={reload} className="btn-icon" title="Actualiser">
                 <i className="ri-refresh-line" />
               </Button>
               {perms.export && (
                 <>
-                  <Button variant="soft-secondary" onClick={exportPdf} className="d-flex align-items-center">
-                    <IconifyIcon icon="tabler:file-type-pdf" className="me-1 fs-16" /> Exporter PDF
+                  <Button variant="light" onClick={handleReport} className="d-flex align-items-center fw-semibold">
+                    <IconifyIcon icon="tabler:file-analytics" className="me-1 fs-16" /> Générer Rapport
                   </Button>
-                  <Button variant="soft-primary" onClick={handleShare} className="d-flex align-items-center">
+                  <Button variant="outline-light" onClick={exportPdf} className="d-flex align-items-center">
+                    <IconifyIcon icon="tabler:printer" className="me-1 fs-16" /> Imprimer
+                  </Button>
+                  <Button variant="outline-light" onClick={handleShare} className="d-flex align-items-center">
                     <IconifyIcon icon="tabler:share-3" className="me-1 fs-16" /> Partager
                   </Button>
                 </>
               )}
             </div>
           </div>
-        </Col>
-      </Row>
+        </Card.Body>
+      </Card>
 
       {/* Avis RBAC pour les rôles restreints */}
       {!perms.finance && (

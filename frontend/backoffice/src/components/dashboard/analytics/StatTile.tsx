@@ -3,17 +3,25 @@ import ReactApexChart from 'react-apexcharts'
 import { ApexOptions } from 'apexcharts'
 
 /**
- * Tuile de synthèse compacte : valeur + tendance + sparkline (style « sparklines »
- * des pages /charts — chart.sparkline.enabled). Utilisée en tête de la page Analyses.
+ * Tuile de synthèse : valeur + tendance + sparkline.
+ * Design mis à jour : accent coloré à gauche, pastille d'icône teintée,
+ * puce de tendance colorée, effet de survol (voir .kpi-tile dans PRINT_CSS).
  */
 
 interface StatTileProps {
   label: string
   value: string
   icon: string
-  color: string          // couleur hex du sparkline
+  color: string          // couleur hex (accent + sparkline)
   serie: number[]        // 6 derniers mois
-  suffix?: string        // ex. "vs mois dernier"
+  suffix?: string
+}
+
+/** Convertit un hex en rgba (fond teinté de la pastille d'icône). */
+const tint = (hex: string, a: number) => {
+  const m = hex.replace('#', '')
+  const r = parseInt(m.slice(0, 2), 16), g = parseInt(m.slice(2, 4), 16), b = parseInt(m.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
 }
 
 export default function StatTile({ label, value, icon, color, serie, suffix }: StatTileProps) {
@@ -30,27 +38,29 @@ export default function StatTile({ label, value, icon, color, serie, suffix }: S
   }
 
   return (
-    <Card className="border-0 shadow-sm h-100">
+    <Card className="border-0 shadow-sm h-100 kpi-tile overflow-hidden" style={{ borderLeft: `3px solid ${color}` }}>
       <Card.Body className="pb-2">
         <div className="d-flex justify-content-between align-items-start">
-          <div>
+          <div className="me-2">
             <p className="text-muted text-uppercase fw-bold fs-12 mb-1">{label}</p>
-            <h3 className="fw-bold mb-0">{value}</h3>
-            <p className="text-muted fs-12 mb-0 mt-1">
+            <h3 className="fw-bold mb-1">{value}</h3>
+            <p className="fs-12 mb-0 d-flex align-items-center gap-1">
               {delta !== null && (
-                <span className={`fw-bold me-1 ${delta >= 0 ? 'text-success' : 'text-danger'}`}>
+                <span className="badge rounded-pill d-inline-flex align-items-center"
+                  style={{ background: tint(delta >= 0 ? '#0ab39c' : '#f06548', 0.12), color: delta >= 0 ? '#0ab39c' : '#f06548' }}>
                   <i className={`ri-arrow-${delta >= 0 ? 'up' : 'down'}-line`} />
                   {Math.abs(delta).toFixed(0)}%
                 </span>
               )}
-              {suffix ?? 'vs mois précédent'}
+              <span className="text-muted">{suffix ?? 'vs mois précédent'}</span>
             </p>
           </div>
-          <span className="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center fs-20">
-            <i className={icon} style={{ color }} />
+          <span className="avatar-md rounded d-flex align-items-center justify-content-center fs-22 flex-shrink-0"
+            style={{ background: tint(color, 0.12), color }}>
+            <i className={icon} />
           </span>
         </div>
-        <ReactApexChart options={options} series={[{ name: label, data: serie }]} type="area" height={52} />
+        <ReactApexChart options={options} series={[{ name: label, data: serie }]} type="area" height={48} />
       </Card.Body>
     </Card>
   )
