@@ -8,6 +8,7 @@ import authService from '@/services/authService'
 import { permissionsFor } from './analytics/rbac'
 import { useAnalyticsData } from './analytics/useAnalyticsData'
 import StatTile from './analytics/StatTile'
+import AnalyticsFilters from './analytics/AnalyticsFilters'
 import { exportPdf, shareReport, buildSummary, generateReport, PRINT_CSS } from './analytics/reportActions'
 
 /**
@@ -44,7 +45,10 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
   const user = authService.getCurrentUser()
   const perms = useMemo(() => permissionsFor(user?.role), [user?.role])
   const own = useAnalyticsData(perms, !shared)   // désactivé si le parent fournit les données
-  const { data, stats, loading, reload } = shared ?? own
+  const {
+    data, stats, loading, reload,
+    filters, setFilter, resetFilters, isFiltered, filterOptions,
+  } = shared ?? own
 
   // « Générer Rapport » (barre latérale) arrive sur /analytics?report=1 : une
   // fois les données chargées, on génère le RAPPORT (document dédié dans un
@@ -149,6 +153,15 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
             Vous visualisez les indicateurs autorisés pour votre rôle ({user?.role}).
           </span>
         </Alert>
+      )}
+
+      {/* ══════════ FILTRES MÉTIER ══════════ */}
+      {!embedded && (
+        <AnalyticsFilters
+          filters={filters} options={filterOptions} isFiltered={isFiltered}
+          nbMissions={data.missions.length}
+          onSet={setFilter} onReset={resetFilters}
+        />
       )}
 
       {/* ══════════ SYNTHÈSE — tuiles sparkline (6 mois) ══════════ */}
@@ -302,6 +315,85 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
         </div>
       )}
 
+      {/* ══════════ PERFORMANCE — chauffeurs, véhicules, clients ══════════ */}
+      {perms.operations && (stats.perfChauffeurs.length > 0 || stats.perfVehicules.length > 0 || stats.missionsParClient.length > 0) && (
+        <div className="mb-4">
+          <SectionTitle icon="ri-medal-line" color="primary" title="Performance opérationnelle" />
+          <Row className="g-4">
+            {stats.perfChauffeurs.length > 0 && (
+              <Col xl={4}>
+                <ChartWidget
+                  titre="Performance des chauffeurs"
+                  icon="ri-user-star-line"
+                  type="bar" height={300}
+                  series={[
+                    { name: 'Missions', data: stats.perfChauffeurs.map(c => c.missions) },
+                    { name: 'Distance (km)', data: stats.perfChauffeurs.map(c => c.km) },
+                  ]}
+                  options={{
+                    colors: ['#405189', '#0ab39c'],
+                    plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                    xaxis: { categories: stats.perfChauffeurs.map(c => c.label) },
+                    legend: { position: 'bottom' },
+                  }}
+                />
+              </Col>
+            )}
+            {stats.perfVehicules.length > 0 && (
+              <Col xl={4}>
+                <ChartWidget
+                  titre="Performance des véhicules"
+                  icon="ri-truck-line"
+                  type="bar" height={300}
+                  series={[
+                    { name: 'Missions', data: stats.perfVehicules.map(v => v.missions) },
+                    { name: 'Distance (km)', data: stats.perfVehicules.map(v => v.km) },
+                  ]}
+                  options={{
+                    colors: ['#299cdb', '#f7b84b'],
+                    plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+                    xaxis: { categories: stats.perfVehicules.map(v => v.label) },
+                    legend: { position: 'bottom' },
+                  }}
+                />
+              </Col>
+            )}
+            {stats.missionsParClient.length > 0 && (
+              <Col xl={4}>
+                <ChartWidget
+                  titre="Missions par client"
+                  icon="ri-building-line"
+                  type="donut" height={300}
+                  series={stats.missionsParClient.map(c => c.value)}
+                  options={{
+                    labels: stats.missionsParClient.map(c => c.label),
+                    colors: PALETTE,
+                    legend: { position: 'bottom' },
+                    tooltip: { y: { formatter: (v: number) => `${v} mission${v > 1 ? 's' : ''}` } },
+                  }}
+                />
+              </Col>
+            )}
+            {Object.keys(stats.parTypeVehicule).length > 0 && (
+              <Col xl={4}>
+                <ChartWidget
+                  titre="Parc par type de véhicule"
+                  icon="ri-bus-line"
+                  type="bar" height={280}
+                  series={[{ name: 'Véhicules', data: Object.values(stats.parTypeVehicule) }]}
+                  options={{
+                    colors: PALETTE,
+                    plotOptions: { bar: { distributed: true, columnWidth: '45%', borderRadius: 4 } },
+                    xaxis: { categories: Object.keys(stats.parTypeVehicule) },
+                    legend: { show: false },
+                  }}
+                />
+              </Col>
+            )}
+          </Row>
+        </div>
+      )}
+
       {/* ══════════ FINANCE — direction uniquement (privé) ══════════ */}
       {perms.finance && (
         <div className="mb-4">
@@ -426,10 +518,14 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
                 }}
               />
             </Col>
-            <Col xl={4}>
-              {Object.keys(stats.vehiculesParStatut).length > 0 && (
+            {/* Colonne rendue UNIQUEMENT s'il y a des données : auparavant la
+                <Col> était toujours produite et laissait un grand vide de
+                ~440 px au milieu de la page quand le parc était vide. */}
+            {Object.keys(stats.vehiculesParStatut).length > 0 && (
+              <Col xl={4}>
                 <ChartWidget
                   titre={`État de la flotte (${data.vehicules.length})`}
+                  icon="ri-car-line"
                   type="donut" height={300}
                   series={Object.values(stats.vehiculesParStatut)}
                   options={{
@@ -438,7 +534,29 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
                     legend: { position: 'bottom' },
                   }}
                 />
-              )}
+              </Col>
+            )}
+
+            {/* Taux d'utilisation : part du parc réellement mobilisée */}
+            <Col xl={4}>
+              <ChartWidget
+                titre="Taux d’utilisation du parc"
+                icon="ri-pie-chart-2-line"
+                type="radialBar" height={300}
+                series={[stats.tauxUtilisation]}
+                options={{
+                  colors: [stats.tauxUtilisation >= 60 ? '#0ab39c' : stats.tauxUtilisation >= 30 ? '#f7b84b' : '#f06548'],
+                  plotOptions: { radialBar: {
+                    hollow: { size: '62%' }, track: { background: '#f1f3fa' },
+                    dataLabels: {
+                      name: { show: true, fontSize: '13px', color: '#adb5bd', offsetY: 22 },
+                      value: { fontSize: '28px', fontWeight: 700, offsetY: -12, formatter: (v: number) => `${v}%` },
+                    },
+                  } },
+                  labels: [`${stats.vehiculesUtilises}/${stats.totalVehicules} véhicules utilisés`],
+                  stroke: { lineCap: 'round' },
+                }}
+              />
             </Col>
             <Col xl={4}>
               <ChartWidget
@@ -467,10 +585,12 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
         <div className="mb-4">
           <SectionTitle icon="ri-tools-line" color="warning" title="Maintenance préventive & curative" />
           <Row className="g-4">
-            <Col xl={4}>
-              {Object.keys(stats.interventionsParType).length > 0 && (
+            {/* Idem : pas de colonne vide quand aucune intervention */}
+            {Object.keys(stats.interventionsParType).length > 0 && (
+              <Col xl={4}>
                 <ChartWidget
                   titre={`Interventions par type (${data.interventions.length})`}
+                  icon="ri-tools-line"
                   type="donut" height={300}
                   series={Object.values(stats.interventionsParType)}
                   options={{
@@ -479,8 +599,8 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
                     legend: { position: 'bottom' },
                   }}
                 />
-              )}
-            </Col>
+              </Col>
+            )}
             <Col xl={perms.finance ? 4 : 8}>
               <ChartWidget
                 titre="Interventions par mois"
@@ -516,10 +636,11 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
         <div className="mb-4">
           <SectionTitle icon="ri-gas-station-line" color="danger" title="Consommation énergétique" />
           <Row className="g-4">
-            <Col xl={8}>
-              {(data.carburant.evolutionMensuelle ?? []).length > 0 && (
+            {(data.carburant.evolutionMensuelle ?? []).length > 0 && (
+              <Col xl={8}>
                 <ChartWidget
                   titre={`Évolution mensuelle carburant — total ${tnd(data.carburant.coutTotal)} · ${Math.round(data.carburant.litresTotaux).toLocaleString('fr-FR')} L`}
+                  icon="ri-gas-station-line"
                   type="bar" height={300}
                   series={[
                     { name: 'Coût (TND)', data: data.carburant.evolutionMensuelle.map(e => Math.round(e.coutTotal)) },
@@ -532,8 +653,8 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
                     legend: { show: false },
                   }}
                 />
-              )}
-            </Col>
+              </Col>
+            )}
             <Col xl={4}>
               <ChartWidget
                 titre="Top véhicules par coût carburant"

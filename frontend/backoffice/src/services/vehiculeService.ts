@@ -17,7 +17,13 @@ export interface Vehicule {
 export const vehiculeService = {
     getAll: async (): Promise<Vehicule[]> => {
         const response = await api.get('/vehicules?pageSize=1000')
-        return response.data.data || []
+        // Fleet.API renvoie { total, page, pageSize, items }. Le code lisait
+        // `.data.data`, qui n'existe pas : la liste revenait toujours VIDE et
+        // les écrans qui s'appuient dessus (Analyses : disponibilité de la
+        // flotte, état du parc, consommation par véhicule) affichaient 0.
+        // On accepte les trois formes rencontrées dans le projet.
+        const body = response.data
+        return Array.isArray(body) ? body : (body?.items ?? body?.data ?? [])
     },
     getDisponibles: async (): Promise<Vehicule[]> => {
         const response = await api.get('/vehicules/disponibles')

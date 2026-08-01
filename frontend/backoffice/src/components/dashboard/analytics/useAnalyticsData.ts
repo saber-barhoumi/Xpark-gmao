@@ -35,6 +35,23 @@ export interface AnalyticsData {
   clients: Client[]
 }
 
+/** Filtres métier appliqués à l'ensemble des analyses. */
+export interface AnalyticsFilters {
+  clientId:    number | null
+  employeeId:  number | null   // chauffeur
+  vehiculeId:  number | null
+  statut:      string          // '' = tous
+  typeVehicule: string         // '' = tous
+  ville:       string          // gouvernorat / ville d'arrivée, '' = toutes
+  dateFrom:    string          // 'YYYY-MM-DD'
+  dateTo:      string
+}
+
+export const FILTRES_VIDES: AnalyticsFilters = {
+  clientId: null, employeeId: null, vehiculeId: null,
+  statut: '', typeVehicule: '', ville: '', dateFrom: '', dateTo: '',
+}
+
 /**
  * @param enabled false = ne déclenche AUCUN appel réseau (le composant reçoit
  * alors les données d'un parent via la prop `shared` d'AnalyticsDashboard —
@@ -48,6 +65,7 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
   // auto-inscrits) — id → « Prénom Nom ». Complète la table clients.
   const [extraNames, setExtraNames] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<AnalyticsFilters>(FILTRES_VIDES)
 
   const load = useCallback(async () => {
     if (!enabled) return
@@ -99,9 +117,92 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
 
   useEffect(() => { load() }, [load])
 
-  /** Agrégats dérivés — calculés une seule fois par chargement */
+  /** Options de filtres déduites des données chargées (aucun appel en plus). */
+  const filterOptions = useMemo(() => {
+    const clients = new Map<number, string>()
+    const chauffeurs = new Map<number, string>()
+    const villes = new Set<string>()
+    data.clients.forEach(c =>
+      clients.set(c.idUtilisateur, `${c.prenom ?? ''} ${c.nom ?? ''}`.trim() || c.email))
+    data.missions.forEach(m => {
+      if (m.clientIdUtilisateur != null && !clients.has(m.clientIdUtilisateur)) {
+        clients.set(m.clientIdUtilisateur,
+          (m.clientNom || '').trim() || extraNames[m.clientIdUtilisateur] || `Client #${m.clientIdUtilisateur}`)
+      }
+      if (m.employeeId != null && !chauffeurs.has(m.employeeId)) {
+        chauffeurs.set(m.employeeId, (m.chauffeurNom || '').trim() || `Chauffeur #${m.employeeId}`)
+      }
+      const v = (m.villeArrivee || m.destination || '').trim()
+      if (v) villes.add(v)
+    })
+    const tri = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label)
+    return {
+      clients:    [...clients].map(([id, label]) => ({ id, label })).sort(tri),
+      chauffeurs: [...chauffeurs].map(([id, label]) => ({ id, label })).sort(tri),
+      vehicules:  data.vehicules.map(v => ({ id: v.idVehicule, label: v.immatriculation })).sort(tri),
+      typesVehicule: [...new Set(data.vehicules.map(v => v.typeVehicule).filter(Boolean))].sort(),
+      villes:     [...villes].sort((a, b) => a.localeCompare(b)),
+    }
+  }, [data, extraNames])
+
+  /**
+   * Application des filtres AVANT tout calcul : missions, véhicules et
+   * interventions sont réduits au périmètre demandé, si bien que tous les
+   * graphiques et indicateurs de la page racontent la même histoire.
+   */
+  const dataFiltree = useMemo<AnalyticsData>(() => {
+    const f = filters
+    const actif = f.clientId != null || f.employeeId != null || f.vehiculeId != null
+      || !!f.statut || !!f.typeVehicule || !!f.ville || !!f.dateFrom || !!f.dateTo
+    if (!actif) return data
+
+    const typeParVehicule = new Map(data.vehicules.map(v => [v.idVehicule, v.typeVehicule]))
+
+    const missions = data.missions.filter(m => {
+      if (f.clientId   != null && m.clientIdUtilisateur !== f.clientId) return false
+      if (f.employeeId != null && m.employeeId !== f.employeeId) return false
+      if (f.vehiculeId != null && m.vehiculeId !== f.vehiculeId) return false
+      if (f.statut && m.statut !== f.statut) return false
+      if (f.ville && (m.villeArrivee || m.destination || '') !== f.ville) return false
+      if (f.typeVehicule) {
+        if (m.vehiculeId == null) return false
+        if (typeParVehicule.get(m.vehiculeId) !== f.typeVehicule) return false
+      }
+      const jour = (m.dateDepart || '').slice(0, 10)
+      if (f.dateFrom && jour && jour < f.dateFrom) return false
+      if (f.dateTo   && jour && jour > f.dateTo) return false
+      return true
+    })
+
+    const vehicules = data.vehicules.filter(v =>
+      (f.vehiculeId == null || v.idVehicule === f.vehiculeId) &&
+      (!f.typeVehicule || v.typeVehicule === f.typeVehicule))
+
+    const interventions = data.interventions.filter(i => {
+      if (f.vehiculeId != null && i.vehiculeId !== f.vehiculeId) return false
+      if (f.typeVehicule && typeParVehicule.get(i.vehiculeId) !== f.typeVehicule) return false
+      const jour = (i.dateIntervention || '').slice(0, 10)
+      if (f.dateFrom && jour && jour < f.dateFrom) return false
+      if (f.dateTo   && jour && jour > f.dateTo) return false
+      return true
+    })
+
+    return { ...data, missions, vehicules, interventions }
+  }, [data, filters])
+
+  const isFiltered = useMemo(
+    () => JSON.stringify(filters) !== JSON.stringify(FILTRES_VIDES), [filters])
+
+  const setFilter = useCallback(
+    <K extends keyof AnalyticsFilters>(cle: K, valeur: AnalyticsFilters[K]) =>
+      setFilters(f => ({ ...f, [cle]: valeur })), [])
+  const resetFilters = useCallback(() => setFilters(FILTRES_VIDES), [])
+
+  /** Agrégats dérivés — recalculés à chaque changement de données ou de filtres */
   const stats = useMemo(() => {
-    const { missions, vehicules, interventions } = data
+    // Tout part des données FILTRÉES : un filtre s'applique donc à l'ensemble
+    // des indicateurs et graphiques de la page, pas à un seul bloc.
+    const { missions, vehicules, interventions } = dataFiltree
     const mois = derniersMois()
 
     // ── Opérations (visibles par tout le staff — aucun montant) ──
@@ -239,7 +340,70 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
     const panierMoyen = missionsParStatut.terminees > 0
       ? revenusParMois.reduce((s, m) => s + m.value, 0) / missionsParStatut.terminees : 0
 
+    // ── Performance des chauffeurs (missions livrées + km parcourus) ──
+    const parChauffeur = new Map<string, { missions: number; km: number }>()
+    for (const m of missions) {
+      if (m.employeeId == null || m.statut === StatutMission.ANNULEE) continue
+      const nom = (m.chauffeurNom || '').trim() || `Chauffeur #${m.employeeId}`
+      const cur = parChauffeur.get(nom) ?? { missions: 0, km: 0 }
+      cur.missions++
+      if (m.statut === StatutMission.TERMINEE) cur.km += m.distance || 0
+      parChauffeur.set(nom, cur)
+    }
+    const perfChauffeurs = [...parChauffeur.entries()]
+      .map(([label, v]) => ({ label, missions: v.missions, km: Math.round(v.km) }))
+      .sort((a, b) => b.missions - a.missions).slice(0, 8)
+
+    // ── Performance des véhicules (missions + km) ──
+    const parVehicule = new Map<string, { missions: number; km: number }>()
+    for (const m of missions) {
+      if (m.vehiculeId == null || m.statut === StatutMission.ANNULEE) continue
+      const label = m.vehiculeImmatriculation || `Véhicule #${m.vehiculeId}`
+      const cur = parVehicule.get(label) ?? { missions: 0, km: 0 }
+      cur.missions++
+      if (m.statut === StatutMission.TERMINEE) cur.km += m.distance || 0
+      parVehicule.set(label, cur)
+    }
+    const perfVehicules = [...parVehicule.entries()]
+      .map(([label, v]) => ({ label, missions: v.missions, km: Math.round(v.km) }))
+      .sort((a, b) => b.missions - a.missions).slice(0, 8)
+
+    // ── Taux d'utilisation de la flotte : part des véhicules ayant servi ──
+    const vehiculesUtilises = new Set(
+      missions.filter(m => m.vehiculeId != null && m.statut !== StatutMission.ANNULEE)
+              .map(m => m.vehiculeId as number)).size
+    const tauxUtilisation = totalVehicules > 0
+      ? Math.round((vehiculesUtilises / totalVehicules) * 100) : 0
+
+    // ── Répartition du parc par type de véhicule ──
+    const parTypeVehicule: Record<string, number> = {}
+    for (const v of vehicules) {
+      const t = v.typeVehicule || 'AUTRE'
+      parTypeVehicule[t] = (parTypeVehicule[t] || 0) + 1
+    }
+
+    // ── Statistiques clients : nombre de missions par client ──
+    const missionsParClientMap = new Map<string, number>()
+    for (const m of missions) {
+      if (m.clientIdUtilisateur == null || m.statut === StatutMission.ANNULEE) continue
+      const nom = (m.clientNom || '').trim()
+        || clientsById.get(m.clientIdUtilisateur)
+        || extraNames[m.clientIdUtilisateur]
+        || `Client #${m.clientIdUtilisateur}`
+      missionsParClientMap.set(nom, (missionsParClientMap.get(nom) ?? 0) + 1)
+    }
+    const missionsParClient = [...missionsParClientMap.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value).slice(0, 6)
+
     return {
+      perfChauffeurs,
+      perfVehicules,
+      tauxUtilisation,
+      vehiculesUtilises,
+      totalVehicules,
+      parTypeVehicule,
+      missionsParClient,
       mois,
       missionsParStatut,
       missionsParMois,
@@ -261,7 +425,13 @@ export function useAnalyticsData(perms: AnalyticsPermissions, enabled = true) {
       coutsTotal,
       panierMoyen,
     }
-  }, [data, extraNames])
+  }, [dataFiltree, extraNames])
 
-  return { data, stats, loading, reload: load }
+  return {
+    // `data` = périmètre filtré (ce que la page doit afficher) ;
+    // `dataBrute` = tout, pour les compteurs de référence.
+    data: dataFiltree, dataBrute: data,
+    stats, loading, reload: load,
+    filters, setFilter, resetFilters, isFiltered, filterOptions,
+  }
 }
