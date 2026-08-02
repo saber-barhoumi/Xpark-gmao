@@ -162,16 +162,16 @@ const LeftSideBar = () => {
         <div className="help-box text-center">
           <h5 className="fw-semibold fs-16">Intelligence Artificielle</h5>
           <p className="mb-3 text-muted">Générez des rapports intelligents basés sur vos données</p>
+          {/* Le lien « Analyses & KPIs » figurait ici EN PLUS de l'entrée de la
+              section ANALYSES : la même destination apparaissait donc deux fois
+              dans la barre. Seule l'action propre à cet encart est conservée —
+              la navigation vers les analyses reste assurée par le menu.
+              Ce bouton ouvre la page Analyses et y déclenche automatiquement la
+              génération du rapport (voir AnalyticsDashboard). */}
           <div className="d-grid gap-2 px-2">
-            <Link to="/analytics" className="btn btn-primary btn-sm rounded-pill shadow-sm">
-              <i className="ri-magic-line me-1"></i>
-              Analyses & KPIs
-            </Link>
-            {/* Ouvre la page Analyses puis déclenche automatiquement la
-                génération du rapport PDF (impression) — voir AnalyticsDashboard. */}
-            <Link to="/analytics?report=1" className="btn btn-soft-success btn-sm rounded-pill mt-1">
+            <Link to="/analytics?report=1" className="btn btn-primary btn-sm rounded-pill shadow-sm">
               <i className="ri-file-chart-line me-1"></i>
-              Générer Rapport
+              Générer un rapport
             </Link>
           </div>
         </div>

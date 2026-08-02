@@ -48,8 +48,10 @@ const ProjectsPage = () => {
     switch (sortKey) {
       case 'progress': list.sort((a, b) => b.progress - a.progress); break
       case 'name':     list.sort((a, b) => a.title.localeCompare(b.title)); break
-      case 'due':      list.sort((a, b) => a.dueDate.localeCompare(b.dueDate)); break
-      default:         list.sort((a, b) => b.startDate.localeCompare(a.startDate))
+      // « À traiter » : ce qui reste à faire en volume, puis l'avancement le
+      // plus faible — l'ordre le plus utile pour un exploitant.
+      case 'restant':  list.sort((a, b) => (b.tasksTotal - b.tasksDone) - (a.tasksTotal - a.tasksDone)); break
+      default:         list.sort((a, b) => a.progress - b.progress)
     }
     return list
   }, [projects, statut, search, sortKey])

@@ -2,7 +2,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import { Card, CardBody, Col, Form, InputGroup, Row } from 'react-bootstrap'
 import { ProjectStatus } from '@/services/projectService'
 
-export type SortKey = 'recent' | 'progress' | 'name' | 'due'
+export type SortKey = 'recent' | 'progress' | 'name' | 'restant'
 
 interface HeadProps {
   search:      string
@@ -29,10 +29,10 @@ const Head = ({ search, statut, sortKey, onSearch, onStatut, onSort }: HeadProps
 
               <Form.Select size="sm" style={{ minWidth: 150 }} value={sortKey}
                            onChange={e => onSort(e.target.value as SortKey)}>
-                <option value="recent">Plus récents</option>
+                <option value="recent">À traiter en priorité</option>
                 <option value="progress">Avancement</option>
                 <option value="name">Nom (A→Z)</option>
-                <option value="due">Échéance</option>
+                <option value="restant">Volume restant</option>
               </Form.Select>
 
               <InputGroup size="sm" style={{ minWidth: 200 }}>

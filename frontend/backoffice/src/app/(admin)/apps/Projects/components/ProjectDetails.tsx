@@ -2,8 +2,6 @@ import { Badge, Col, Modal, ProgressBar, Row } from 'react-bootstrap'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import { STATUS_VARIANT, type Project } from '@/services/projectService'
 
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
-const fmtTnd  = (n: number) => n.toLocaleString('fr-FR') + ' TND'
 
 /** Fiche détaillée d'un projet (lecture). */
 const ProjectDetails = ({ project, open, onClose }: { project: Project | null; open: boolean; onClose: () => void }) => {
@@ -42,20 +40,26 @@ const ProjectDetails = ({ project, open, onClose }: { project: Project | null; o
         <ProgressBar variant={variant} className="progress-soft progress-sm mb-4" now={project.progress} />
 
         <Row>
-          {line('tabler:calendar-plus', 'Début',       fmtDate(project.startDate))}
-          {line('tabler:calendar-due',  'Échéance',     fmtDate(project.dueDate))}
-          {line('tabler:checkbox',      'Tâches',       `${project.tasksDone} / ${project.tasksTotal}`)}
-          {line('tabler:message-2',     'Commentaires', project.comments)}
-          {line('tabler:coin',          'Budget',       project.budget ? fmtTnd(project.budget) : '—')}
-          {line('tabler:users',         'Équipe',       `${project.team.length} membre(s)`)}
+          {line('tabler:checkbox',        project.mesure,            `${project.tasksDone} / ${project.tasksTotal}`)}
+          {line('tabler:alert-circle',    project.indicateur.label,  project.indicateur.value)}
+          {line('tabler:category',        'Domaine',                 project.category)}
+          {line('tabler:users',           'Équipe',                  `${project.team.length} personne(s)`)}
         </Row>
 
-        <h6 className="mb-2">Équipe</h6>
+        <h6 className="mb-2">Équipe affectée</h6>
         <div className="d-flex flex-wrap gap-3">
-          {project.team.map((m, i) => (
-            <div key={i} className="d-flex align-items-center gap-2">
-              <img src={m.avatar} className="rounded-circle avatar-sm" alt={m.name} />
-              <span className="fs-13">{m.name}</span>
+          {project.team.length === 0 && <span className="text-muted fs-13">Aucune personne affectée.</span>}
+          {project.team.map(m => (
+            <div key={m.id} className="d-flex align-items-center gap-2">
+              {m.avatar
+                ? <img src={m.avatar} className="rounded-circle avatar-sm" alt={m.name} />
+                : <span className="avatar-sm rounded-circle bg-soft-primary text-primary d-flex align-items-center justify-content-center fw-bold">
+                    {m.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                  </span>}
+              <div>
+                <div className="fs-13 fw-semibold">{m.name}</div>
+                <div className="fs-12 text-muted">{m.role}</div>
+              </div>
             </div>
           ))}
         </div>
