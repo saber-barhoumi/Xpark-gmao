@@ -7,6 +7,9 @@ import iboaService, {
 } from '@/services/iboaService'
 import useBulkSelection from '@/hooks/useBulkSelection'
 import BulkDeleteButtons from '@/components/table/BulkDeleteButtons'
+import {
+    decrireEvenement, GRAVITE, PRIORITE, libelleOrigine, referencesMetier,
+} from './businessLabels'
 
 const CLASS_COLORS: Record<string, string> = {
     CRITIQUE: 'danger', IMPORTANT: 'warning', NORMAL: 'info', INFO: 'secondary',
@@ -187,7 +190,9 @@ export default function IboaPage() {
                                 <Card className="border-0 shadow-sm">
                                     <Card.Body className="py-3">
                                         <div className={`fs-3 fw-bold text-${CLASS_COLORS[c]}`}>{byClass[c] ?? 0}</div>
-                                        <div className="small text-muted">Événements {c} aujourd&apos;hui</div>
+                                        <div className="small text-muted">
+                                            {PRIORITE[c]?.label ?? c} — aujourd&apos;hui
+                                        </div>
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -233,18 +238,24 @@ export default function IboaPage() {
                                                         checked={evSel.allSelected} onChange={evSel.toggleAll}
                                                         title="Tout sélectionner" />
                                                 </th>
-                                                <th>Heure</th><th>Type</th><th>Source</th>
-                                                <th>Sévérité</th><th>Score</th><th>Classification</th><th />
+                                                <th>Date</th><th>Événement</th><th>Origine</th>
+                                                <th>Gravité</th><th>Priorité</th><th />
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {events.length === 0 && (
-                                                <tr><td colSpan={8} className="text-center text-muted py-4">
+                                                <tr><td colSpan={7} className="text-center text-muted py-4">
                                                     Aucun événement reçu — terminez une mission, changez le statut d&apos;un véhicule
                                                     ou cliquez «&nbsp;Simuler une panne critique&nbsp;»
                                                 </td></tr>
                                             )}
-                                            {events.map(e => (
+                                            {events.map(e => {
+                                                const d = decrireEvenement(e.eventType)
+                                                const grav = GRAVITE[e.severity] ?? { label: e.severity, couleur: 'secondary' }
+                                                const prio = PRIORITE[e.classification] ?? { label: e.classification, couleur: 'secondary' }
+                                                const ouvrir = () => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)
+                                                const refs = referencesMetier(e.eventData)
+                                                return (
                                                 <Fragment key={e.eventId}>
                                                     <tr>
                                                         <td onClick={ev => ev.stopPropagation()}>
@@ -252,22 +263,22 @@ export default function IboaPage() {
                                                                 checked={evSel.isSelected(e.eventId)}
                                                                 onChange={() => evSel.toggle(e.eventId)} />
                                                         </td>
-                                                        <td className="small" style={{ cursor: 'pointer' }}
-                                                            onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
+                                                        <td className="small" style={{ cursor: 'pointer' }} onClick={ouvrir}>
                                                             {new Date(e.timestamp).toLocaleString('fr-FR', {
                                                                 day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                         </td>
-                                                        <td className="small fw-semibold" style={{ cursor: 'pointer' }}
-                                                            onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
-                                                            {e.eventType.replace('xpark.', '')}
+                                                        <td style={{ cursor: 'pointer' }} onClick={ouvrir}>
+                                                            <div className="d-flex align-items-center gap-2">
+                                                                <IconifyIcon icon={d.icone} className={`fs-18 text-${d.couleur}`} />
+                                                                <span className="fw-semibold">{d.titre}</span>
+                                                            </div>
                                                         </td>
-                                                        <td className="small text-muted">{e.sourceService}</td>
-                                                        <td><Badge bg="light" text="dark">{e.severity}</Badge></td>
-                                                        <td className="fw-bold">{e.criticityScore}</td>
-                                                        <td><Badge bg={CLASS_COLORS[e.classification]}>{e.classification}</Badge></td>
+                                                        <td className="small text-muted">{libelleOrigine(e.sourceService)}</td>
+                                                        <td><Badge bg={grav.couleur}>{grav.label}</Badge></td>
+                                                        <td><Badge bg={prio.couleur}>{prio.label}</Badge></td>
                                                         <td className="text-end text-nowrap">
                                                             <Button variant="link" size="sm" className="p-0 me-2 text-muted"
-                                                                onClick={() => setExpandedEvent(expandedEvent === e.eventId ? null : e.eventId)}>
+                                                                title="Voir le rapport" onClick={ouvrir}>
                                                                 <IconifyIcon icon="ri:arrow-down-s-line" />
                                                             </Button>
                                                             <Button variant="link" size="sm" className="p-0 text-danger" title="Supprimer"
@@ -276,16 +287,61 @@ export default function IboaPage() {
                                                             </Button>
                                                         </td>
                                                     </tr>
+                                                    {/* Rapport d'exploitation — remplace l'affichage du contenu
+                                                        technique brut (identifiants de lot, temps d'exécution…) */}
                                                     {expandedEvent === e.eventId && (
                                                         <tr>
-                                                            <td colSpan={8} className="bg-light small">
-                                                                <strong>Calcul criticité :</strong> {e.scoreBreakdown?.join(' · ')}<br />
-                                                                <strong>Données :</strong> <code>{JSON.stringify(e.eventData)}</code>
+                                                            <td colSpan={7} className="bg-light">
+                                                                <div className="p-2">
+                                                                    <h6 className="mb-3 d-flex align-items-center gap-2">
+                                                                        <IconifyIcon icon={d.icone} className={`text-${d.couleur}`} />
+                                                                        {d.titre}
+                                                                        <span className="text-muted fw-normal fs-13">
+                                                                            — {new Date(e.timestamp).toLocaleString('fr-FR')}
+                                                                        </span>
+                                                                    </h6>
+                                                                    <Row className="g-3">
+                                                                        <Col md={6}>
+                                                                            <p className="mb-2"><strong>Ce qui s’est passé</strong><br />
+                                                                                <span className="text-muted">{d.quoi}</span></p>
+                                                                            <p className="mb-2"><strong>Pourquoi</strong><br />
+                                                                                <span className="text-muted">{d.pourquoi}</span></p>
+                                                                        </Col>
+                                                                        <Col md={6}>
+                                                                            <p className="mb-2"><strong>Conséquence</strong><br />
+                                                                                <span className="text-muted">{d.impact}</span></p>
+                                                                            <p className="mb-2"><strong>Action recommandée</strong><br />
+                                                                                <span className="text-muted">{d.action}</span></p>
+                                                                        </Col>
+                                                                        <Col md={12}>
+                                                                            <div className="d-flex flex-wrap gap-3 align-items-center border-top pt-2">
+                                                                                <span className="fs-13">
+                                                                                    <span className="text-muted">Gravité :</span>{' '}
+                                                                                    <Badge bg={grav.couleur}>{grav.label}</Badge>
+                                                                                </span>
+                                                                                <span className="fs-13">
+                                                                                    <span className="text-muted">Priorité :</span>{' '}
+                                                                                    <Badge bg={prio.couleur}>{prio.label}</Badge>
+                                                                                </span>
+                                                                                <span className="fs-13">
+                                                                                    <span className="text-muted">Origine :</span>{' '}
+                                                                                    {libelleOrigine(e.sourceService)}
+                                                                                </span>
+                                                                                {refs.map((r, i) => (
+                                                                                    <span key={i} className="fs-13">
+                                                                                        <span className="text-muted">{r.label} :</span>{' '}
+                                                                                        <strong>{r.valeur}</strong>
+                                                                                    </span>
+                                                                                ))}
+                                                                            </div>
+                                                                        </Col>
+                                                                    </Row>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     )}
                                                 </Fragment>
-                                            ))}
+                                            )})}
                                         </tbody>
                                     </Table>
                                 </div>
@@ -329,7 +385,7 @@ export default function IboaPage() {
                                                     </td>
                                                     <td className="small">{new Date(a.sentAt ?? a.createdAt).toLocaleString('fr-FR', {
                                                         day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
-                                                    <td className="small fw-semibold">{(a.eventType ?? '').replace('xpark.', '')}</td>
+                                                    <td className="small fw-semibold">{decrireEvenement(a.eventType ?? '').titre}</td>
                                                     <td>
                                                         <IconifyIcon icon={CHANNEL_ICONS[a.deliveryChannel] ?? 'ri:question-line'} className="me-1" />
                                                         <span className="small">{a.deliveryChannel}</span>
