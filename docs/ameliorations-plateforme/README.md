@@ -15,6 +15,9 @@ Correction de 7 anomalies et ajout de fonctionnalités, réalisés sur la branch
 | 6 | Archivage intelligent des comptes | [archives-utilisateurs.md](archives-utilisateurs.md) | `65bbf9d` |
 | 7 | Barre latérale : affichage incohérent | [correctifs-interface.md](correctifs-interface.md#7--barre-latérale) | `f1b7567` |
 
+> **Seconde série de correctifs** (projets, tableaux analytiques, alertes,
+> IBOA, historiques) : voir [correctifs-aout-2026.md](correctifs-aout-2026.md).
+
 ## Principes suivis
 
 - **Réutiliser avant de créer.** Aucune logique métier dupliquée : la création
