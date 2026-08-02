@@ -9,6 +9,7 @@ import { permissionsFor } from './analytics/rbac'
 import { useAnalyticsData } from './analytics/useAnalyticsData'
 import StatTile from './analytics/StatTile'
 import AnalyticsFilters from './analytics/AnalyticsFilters'
+import AnalyticsTables from './analytics/AnalyticsTables'
 import { exportPdf, shareReport, buildSummary, generateReport, PRINT_CSS } from './analytics/reportActions'
 
 /**
@@ -675,6 +676,14 @@ export default function AnalyticsDashboard({ shared, embedded }: AnalyticsDashbo
             </Col>
           </Row>
         </div>
+      )}
+
+      {/* ══════════ DONNÉES DÉTAILLÉES — tableaux consultables ══════════
+          Les graphiques donnent la tendance ; ces tableaux permettent de lire
+          une valeur précise et de retrouver une ligne (recherche, tri, filtre,
+          pagination). Ils portent sur le MÊME périmètre que les filtres. */}
+      {!embedded && (
+        <AnalyticsTables data={data} stats={stats} perms={perms} />
       )}
     </div>
   )
