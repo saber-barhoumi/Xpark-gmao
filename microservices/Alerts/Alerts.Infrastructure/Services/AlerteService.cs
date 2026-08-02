@@ -122,7 +122,273 @@ public class AlerteService(
         await CheckPermisChauffeursAsync();
         await CheckFacturesEchuesAsync();
         await CheckMissionsSansAffectationAsync();
+        // ── Contrôles métier complémentaires (hub central de notifications) ──
+        await CheckDemandesEnAttenteDevisAsync();
+        await CheckMissionsLivreesNonFactureesAsync();
+        await CheckVehiculesHorsServiceAsync();
+        await CheckStockPiecesAsync();
+        await CheckEquipementsHorsServiceAsync();
+        await CheckComptesEnAttenteAsync();
+        await CheckPredictionsCritiquesAsync();
         await MarquerEnRetardAsync();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Contrôles métier complémentaires
+    //
+    // Même principe que les contrôles existants : lecture de la base partagée,
+    // création d'une alerte seulement si une alerte ACTIVE du même type ne
+    // couvre pas déjà le sujet (pas de doublon jour après jour).
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private sealed record DemandeRow(long IdTransportRequest, string? VilleDepart, string? VilleArrivee,
+        string? ClientNom, DateTime DateCreation);
+
+    /// <summary>Demandes de transport laissées sans devis depuis plus de 24 h.</summary>
+    private async Task CheckDemandesEnAttenteDevisAsync()
+    {
+        var now = DateTime.UtcNow;
+        var limite = now.AddHours(-24);
+        var rows = await context.Database.SqlQuery<DemandeRow>($@"
+                SELECT ""IdTransportRequest"", ""VilleDepart"", ""VilleArrivee"", ""ClientNom"", ""DateCreation""
+                FROM ""TransportRequests""
+                WHERE ""Statut"" = 'PENDING_QUOTATION' AND ""DateCreation"" <= {limite}")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            var reference = $"DEMANDE-{r.IdTransportRequest}";
+            if (await ExisteDejaAsync(TypeAlerte.AUTRE, reference)) continue;
+
+            var jours = (int)(now - r.DateCreation).TotalDays;
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = TypeAlerte.AUTRE,
+                EntiteReference = reference,
+                Priorite = jours >= 3 ? Priorite.HAUTE : Priorite.MOYENNE,
+                Message = $"🤝 Demande de transport #{r.IdTransportRequest} " +
+                          $"({r.VilleDepart ?? "—"} → {r.VilleArrivee ?? "—"}" +
+                          $"{(r.ClientNom is null ? "" : $", {r.ClientNom}")}) sans devis depuis {jours} jour(s).",
+                DateCreation = now,
+            });
+        }
+    }
+
+    private sealed record MissionFacturableRow(long IdMission, string? VilleDepart, string? VilleArrivee,
+        string? Destination, string? ClientNom, double CoutTotal);
+
+    /// <summary>
+    /// Prestations livrées jamais facturées : c'est du chiffre d'affaires qui
+    /// dort. Contrôle le plus rentable du lot.
+    /// </summary>
+    private async Task CheckMissionsLivreesNonFactureesAsync()
+    {
+        var now = DateTime.UtcNow;
+        var rows = await context.Database.SqlQuery<MissionFacturableRow>($@"
+                SELECT m.""IdMission"", m.""VilleDepart"", m.""VilleArrivee"", m.""Destination"",
+                       m.""ClientNom"", m.""CoutTotal""
+                FROM ""Missions"" m
+                WHERE m.""Statut"" = 'TERMINEE'
+                  AND m.""ClientIdUtilisateur"" IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM ""Factures"" f
+                      WHERE f.""MissionId"" = m.""IdMission"" AND f.""Statut"" <> 'ANNULEE')")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            if (await ExisteDejaMissionAsync(r.IdMission, TypeAlerte.FACTURE_IMPAYEE)) continue;
+
+            var trajet = $"{r.VilleDepart ?? "—"} → {r.VilleArrivee ?? r.Destination ?? "—"}";
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = TypeAlerte.FACTURE_IMPAYEE,
+                MissionId = r.IdMission,
+                Priorite = Priorite.HAUTE,
+                Message = $"💰 Mission #{r.IdMission} ({trajet}" +
+                          $"{(r.ClientNom is null ? "" : $", {r.ClientNom}")}) livrée mais NON FACTURÉE" +
+                          $"{(r.CoutTotal > 0 ? $" — {r.CoutTotal:0} DT à encaisser" : "")}.",
+                DateCreation = now,
+            });
+        }
+    }
+
+    private sealed record VehiculeSimpleRow(long IdVehicule, string Immatriculation, string Statut);
+
+    /// <summary>Véhicules hors service ou en panne — capacité de transport perdue.</summary>
+    private async Task CheckVehiculesHorsServiceAsync()
+    {
+        var now = DateTime.UtcNow;
+        var rows = await context.Database.SqlQuery<VehiculeSimpleRow>($@"
+                SELECT ""IdVehicule"", ""Immatriculation"", ""Statut""
+                FROM ""Vehicules""
+                WHERE ""Actif"" = true AND ""Statut"" = 'HORS_SERVICE'")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            if (await ExisteDejaVehiculeAsync(r.IdVehicule, TypeAlerte.VEHICULE_BESOIN_MAINTENANCE)) continue;
+
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = TypeAlerte.VEHICULE_BESOIN_MAINTENANCE,
+                VehiculeId = r.IdVehicule,
+                Priorite = Priorite.CRITIQUE,
+                Message = $"🔧 Véhicule {r.Immatriculation} HORS SERVICE — réaffectez ses missions et ouvrez un ordre de travail.",
+                DateCreation = now,
+            });
+        }
+    }
+
+    private sealed record PieceRow(long IdPiece, string Designation, int StockActuel, int StockMinimum);
+
+    /// <summary>Pièces de rechange sous le stock minimum (ou en rupture).</summary>
+    private async Task CheckStockPiecesAsync()
+    {
+        var now = DateTime.UtcNow;
+        var rows = await context.Database.SqlQuery<PieceRow>($@"
+                SELECT ""IdPiece"", ""Designation"", ""StockActuel"", ""StockMinimum""
+                FROM ""PiecesRechange""
+                WHERE ""Actif"" = true AND ""StockActuel"" <= ""StockMinimum""")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            var rupture = r.StockActuel <= 0;
+            var type = rupture ? TypeAlerte.STOCK_RUPTURE : TypeAlerte.STOCK_FAIBLE;
+            var reference = $"PIECE-{r.IdPiece}";
+            if (await ExisteDejaAsync(type, reference)) continue;
+
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = type,
+                EntiteReference = reference,
+                Priorite = rupture ? Priorite.HAUTE : Priorite.MOYENNE,
+                Message = rupture
+                    ? $"📦 Pièce « {r.Designation} » en RUPTURE de stock — réapprovisionnement nécessaire."
+                    : $"📦 Stock faible : « {r.Designation} » ({r.StockActuel} restant(s), minimum {r.StockMinimum}).",
+                DateCreation = now,
+            });
+        }
+    }
+
+    private sealed record EquipementRow(long IdEquipement, string Nom, string Etat);
+
+    /// <summary>Équipements hors service ou à remplacer.</summary>
+    private async Task CheckEquipementsHorsServiceAsync()
+    {
+        var now = DateTime.UtcNow;
+        var rows = await context.Database.SqlQuery<EquipementRow>($@"
+                SELECT ""IdEquipement"", ""Nom"", ""Etat""
+                FROM ""Equipements""
+                WHERE ""Etat"" IN ('HorsService', 'ARemplacer')")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            var horsService = r.Etat == "HorsService";
+            var type = horsService ? TypeAlerte.EQUIPEMENT_HORS_SERVICE : TypeAlerte.EQUIPEMENT_A_REMPLACER;
+            var reference = $"EQUIPEMENT-{r.IdEquipement}";
+            if (await ExisteDejaAsync(type, reference)) continue;
+
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = type,
+                EntiteReference = reference,
+                Priorite = horsService ? Priorite.HAUTE : Priorite.MOYENNE,
+                Message = horsService
+                    ? $"🧰 Équipement « {r.Nom} » hors service."
+                    : $"🧰 Équipement « {r.Nom} » à remplacer.",
+                DateCreation = now,
+            });
+        }
+    }
+
+    private sealed record CompteRow(long IdUtilisateur, string Nom, string Prenom, string Role, DateTime DateCreation);
+
+    /// <summary>
+    /// Nouveaux comptes en attente de validation (clients, employés…).
+    /// Utilisateurs.Statut est stocké en ENTIER (index de StatutUtilisateur) et
+    /// non en texte : EN_ATTENTE vaut 0. Comparer à la chaîne échouerait.
+    /// </summary>
+    private async Task CheckComptesEnAttenteAsync()
+    {
+        var now = DateTime.UtcNow;
+        const int statutEnAttente = (int)XparkGMAO.Shared.Enums.StatutUtilisateur.EN_ATTENTE;
+        var rows = await context.Database.SqlQuery<CompteRow>($@"
+                SELECT ""IdUtilisateur"", ""Nom"", ""Prenom"", ""Role"", ""DateCreation""
+                FROM ""Utilisateurs""
+                WHERE ""Statut"" = {statutEnAttente}")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            var reference = $"COMPTE-{r.IdUtilisateur}";
+            if (await ExisteDejaAsync(TypeAlerte.AUTRE, reference)) continue;
+
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = TypeAlerte.AUTRE,
+                EntiteReference = reference,
+                UtilisateurId = r.IdUtilisateur,
+                Priorite = Priorite.MOYENNE,
+                Message = $"👤 Nouveau compte à valider : {r.Prenom} {r.Nom} ({r.Role}).",
+                DateCreation = now,
+            });
+        }
+    }
+
+    private sealed record PredictionRow(long IdPrediction, long VehiculeId, string TypePanne,
+        string NiveauRisque, string Recommandation);
+
+    /// <summary>Prédictions de panne au niveau CRITIQUE — anticipation d'immobilisation.</summary>
+    private async Task CheckPredictionsCritiquesAsync()
+    {
+        var now = DateTime.UtcNow;
+        // Table du module de maintenance prédictive (PredictionsPanne, au
+        // singulier — à ne pas confondre avec l'ancienne PredictionsPannes).
+        var rows = await context.Database.SqlQuery<PredictionRow>($@"
+                SELECT p.""IdPrediction"", p.""VehiculeId"", p.""TypePanne"", p.""NiveauRisque"", p.""Recommandation""
+                FROM ""PredictionsPanne"" p
+                WHERE p.""NiveauRisque"" = 'CRITIQUE'
+                  AND p.""DateCalcul"" >= {now.AddDays(-7)}")
+            .ToListAsync();
+
+        foreach (var r in rows)
+        {
+            var reference = $"PREDICTION-{r.IdPrediction}";
+            if (await ExisteDejaAsync(TypeAlerte.MAINTENANCE_REQUISE, reference)) continue;
+
+            await AjouterAsync(new Alerte
+            {
+                TypeAlerte = TypeAlerte.MAINTENANCE_REQUISE,
+                VehiculeId = r.VehiculeId,
+                EntiteReference = reference,
+                Priorite = Priorite.HAUTE,
+                Message = $"🤖 Risque de panne CRITIQUE prévu ({r.TypePanne}) — {r.Recommandation}",
+                DateCreation = now,
+            });
+        }
+    }
+
+    // ── Helpers communs aux nouveaux contrôles ──────────────────────────────
+
+    private Task<bool> ExisteDejaAsync(TypeAlerte type, string reference) =>
+        context.Alertes.AnyAsync(a => a.EntiteReference == reference
+            && a.TypeAlerte == type && a.Statut == StatutAlerte.ACTIVE);
+
+    private Task<bool> ExisteDejaMissionAsync(long missionId, TypeAlerte type) =>
+        context.Alertes.AnyAsync(a => a.MissionId == missionId
+            && a.TypeAlerte == type && a.Statut == StatutAlerte.ACTIVE);
+
+    private Task<bool> ExisteDejaVehiculeAsync(long vehiculeId, TypeAlerte type) =>
+        context.Alertes.AnyAsync(a => a.VehiculeId == vehiculeId
+            && a.TypeAlerte == type && a.Statut == StatutAlerte.ACTIVE);
+
+    private async Task AjouterAsync(Alerte a)
+    {
+        await repo.AddAsync(a);
+        await repo.SaveChangesAsync();
     }
 
     // ── Checks transverses (base partagée xpark_gmao, lecture seule) ─────────
