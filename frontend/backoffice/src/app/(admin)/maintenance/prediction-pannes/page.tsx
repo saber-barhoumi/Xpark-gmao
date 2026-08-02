@@ -12,6 +12,7 @@ import {
     type PredictionDashboard, type SanteVehicule,
 } from '@/types/prediction'
 import VehiculeDetailModal from './components/VehiculeDetailModal'
+import HistoriqueAlertes from './components/HistoriqueAlertes'
 
 /** Couleur Bootstrap → hex, pour les graphiques ApexCharts. */
 const HEX: Record<string, string> = {
@@ -211,6 +212,11 @@ const PredictionPannesPage = () => {
                     </CardBody>
                 </Card>
             )}
+
+            {/* ── Historique des alertes (gestion : sélection, filtres, purge) ── */}
+            <ErrorBoundary>
+                <HistoriqueAlertes onChange={charger} />
+            </ErrorBoundary>
 
             {/* ── Classement des véhicules ── */}
             <Card>

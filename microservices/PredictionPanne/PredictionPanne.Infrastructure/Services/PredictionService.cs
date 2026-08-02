@@ -150,6 +150,48 @@ public class PredictionService(
         return predictions.Select(p => Mapper(p, v));
     }
 
+    /// <summary>
+    /// Historique de tout le parc. Les immatriculations sont résolues en une
+    /// seule requête (pas un appel par ligne) pour rester efficace.
+    /// </summary>
+    public async Task<IEnumerable<PredictionDto>> GetHistoriqueGlobalAsync(int limite = 500)
+    {
+        var predictions = await context.Predictions.AsNoTracking()
+            .OrderByDescending(p => p.DateCalcul)
+            .Take(Math.Clamp(limite, 1, 2000))
+            .ToListAsync();
+
+        var ids = predictions.Select(p => p.VehiculeId).Distinct().ToList();
+        var vehicules = await context.Vehicules.AsNoTracking()
+            .Where(v => ids.Contains(v.IdVehicule))
+            .ToDictionaryAsync(v => v.IdVehicule);
+
+        return predictions.Select(p => Mapper(p, vehicules.GetValueOrDefault(p.VehiculeId)));
+    }
+
+    public async Task<bool> SupprimerAsync(long idPrediction)
+    {
+        var p = await context.Predictions.FindAsync(idPrediction);
+        if (p is null) return false;
+        context.Predictions.Remove(p);
+        await context.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>Liste vide = purge complète de l'historique.</summary>
+    public async Task<int> SupprimerLotAsync(IEnumerable<long> ids)
+    {
+        var liste = ids?.ToList() ?? [];
+        var aSupprimer = liste.Count == 0
+            ? await context.Predictions.ToListAsync()
+            : await context.Predictions.Where(p => liste.Contains(p.IdPrediction)).ToListAsync();
+
+        if (aSupprimer.Count == 0) return 0;
+        context.Predictions.RemoveRange(aSupprimer);
+        await context.SaveChangesAsync();
+        return aSupprimer.Count;
+    }
+
     public async Task<DashboardDto> GetDashboardAsync()
     {
         var sante = (await GetSanteFlotteAsync()).ToList();

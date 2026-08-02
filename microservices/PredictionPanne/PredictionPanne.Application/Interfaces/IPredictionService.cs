@@ -17,6 +17,18 @@ public interface IPredictionService
     /// <summary>Historique des prédictions d'un véhicule (les plus récentes d'abord).</summary>
     Task<IEnumerable<PredictionDto>> GetHistoriqueAsync(long vehiculeId, int limite = 50);
 
+    /// <summary>Historique de TOUT le parc (les plus récentes d'abord) — écran d'historique.</summary>
+    Task<IEnumerable<PredictionDto>> GetHistoriqueGlobalAsync(int limite = 500);
+
+    /// <summary>Supprime une prédiction de l'historique. False si elle n'existe pas.</summary>
+    Task<bool> SupprimerAsync(long idPrediction);
+
+    /// <summary>
+    /// Supprime plusieurs prédictions ; liste vide = tout l'historique.
+    /// Renvoie le nombre de lignes réellement supprimées.
+    /// </summary>
+    Task<int> SupprimerLotAsync(IEnumerable<long> ids);
+
     /// <summary>
     /// Relance le moteur sur tout le parc et persiste les résultats.
     /// Idempotent par jour : deux appels le même jour remplacent les prédictions

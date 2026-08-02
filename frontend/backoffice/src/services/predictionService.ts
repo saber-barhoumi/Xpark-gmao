@@ -28,6 +28,23 @@ const predictionService = {
     },
 
     /** Historique des prédictions d'un véhicule. */
+    /** Historique de tout le parc — écran « Historique des alertes ». */
+    getHistoriqueGlobal: async (limite = 500): Promise<Prediction[]> => {
+        const res = await api.get('/predictions/historique', { params: { limite } })
+        return res.data ?? []
+    },
+
+    /** Supprime une entrée de l'historique. */
+    supprimerPrediction: async (id: number): Promise<void> => {
+        await api.delete(`/predictions/historique/${id}`)
+    },
+
+    /** Supprime un lot ; liste vide = purge complète de l'historique. */
+    supprimerLot: async (ids: number[] = []): Promise<number> => {
+        const res = await api.post('/predictions/historique/supprimer', { ids })
+        return res.data?.supprimes ?? 0
+    },
+
     getHistorique: async (vehiculeId: number, limite = 50): Promise<Prediction[]> => {
         const res = await api.get(`/predictions/historique/${vehiculeId}`, { params: { limite } })
         return res.data ?? []
