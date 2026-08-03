@@ -106,8 +106,6 @@ export type EmailOffcanvasStatesType = {
 }
 
 export type ChatContextType = {
-    activeChat?: UserType
-    changeActiveChat: (userId: UserType['id']) => Promise<void>
     chatList: OffcanvasControlType
     chatProfile: OffcanvasControlType
     chatSetting: OffcanvasControlType

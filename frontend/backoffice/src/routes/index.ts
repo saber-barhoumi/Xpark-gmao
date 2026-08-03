@@ -35,7 +35,6 @@ const Alertes          = lazy(() => import('@/app/(admin)/alertes/page'))
 // Apps
 const Chat             = lazy(() => import('@/app/(admin)/apps/chat/page'))
 const Calendar         = lazy(() => import('@/app/(admin)/apps/calendar/page'))
-const Email            = lazy(() => import('@/app/(admin)/apps/email/page'))
 const FileManager      = lazy(() => import('@/app/(admin)/apps/file-manager/page'))
 const Projects         = lazy(() => import('@/app/(admin)/apps/Projects/page'))
 
@@ -116,7 +115,6 @@ export const APP_ROUTES: AppRoute[] = [
   // Apps
   { name: 'chat',         path: '/apps/chat',          element: createElement(Chat) },
   { name: 'calendar',     path: '/apps/calendar',      element: createElement(Calendar) },
-  { name: 'email',        path: '/apps/email',         element: createElement(Email) },
   { name: 'file-manager', path: '/apps/file-manager',  element: createElement(FileManager) },
   { name: 'projects',     path: '/apps/Projects',      element: createElement(Projects) },
 

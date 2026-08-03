@@ -1,10 +1,16 @@
-
-import { createContext, useContext, useEffect, useState } from 'react'
-import { getUserById } from '@/helpers/data'
+import { createContext, useContext, useState } from 'react'
 import type { ChildrenType } from '@/types/component-props'
-import type { UserType } from '@/types/data'
 import { ChatContextType, ChatOffcanvasStatesType, OffcanvasControlType } from '@/types/layout'
 
+/**
+ * Contexte d'affichage de la messagerie : il ne gère que l'ouverture des
+ * panneaux latéraux (liste des conversations, profil, réglages).
+ *
+ * Il portait aussi un `activeChat` alimenté par `getUserById('101')` — un
+ * utilisateur de DÉMONSTRATION chargé à chaque montage, qu'aucun composant
+ * ne consommait. Les conversations réelles viennent de chatService/SignalR ;
+ * ce résidu a donc été retiré.
+ */
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 export const useChatContext = () => {
@@ -16,17 +22,11 @@ export const useChatContext = () => {
 }
 
 export const ChatProvider = ({ children }: ChildrenType) => {
-  const [activeChat, setActiveChat] = useState<UserType>()
   const [offcanvasStates, setOffcanvasStates] = useState<ChatOffcanvasStatesType>({
     showChatList: true,
     showUserSetting: false,
     showUserProfile: false,
   })
-
-  const changeActiveChat = async (userId: UserType['id']) => {
-    const user = await getUserById(userId)
-    if (user) setActiveChat(user)
-  }
 
   const toggleChatList: OffcanvasControlType['toggle'] = () => {
     setOffcanvasStates({ ...offcanvasStates, showChatList: !offcanvasStates.showChatList })
@@ -55,19 +55,8 @@ export const ChatProvider = ({ children }: ChildrenType) => {
     toggle: toggleUserSetting,
   }
 
-  useEffect(() => {
-    changeActiveChat('101')
-  }, [])
-
   return (
-    <ChatContext.Provider
-      value={{
-        chatSetting,
-        activeChat,
-        changeActiveChat,
-        chatList,
-        chatProfile,
-      }}>
+    <ChatContext.Provider value={{ chatSetting, chatList, chatProfile }}>
       {children}
     </ChatContext.Provider>
   )

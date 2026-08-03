@@ -186,12 +186,6 @@ export const MENU_ITEMS: MenuItemType[] = [
     icon: 'ri:shield-keyhole-line',
     url: '/security',
   },
-  {
-    key: 'email',
-    label: 'Email',
-    icon: 'tabler:mailbox',
-    url: '/apps/email',
-  },
 
   // ── Pages complémentaires (existantes, usage occasionnel) ───
   // Items directs (comme le reste du menu) plutôt qu'un sous-menu déroulant :
