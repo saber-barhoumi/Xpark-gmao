@@ -1,0 +1,20 @@
+# Contexte de build du service Python.
+# L'image installe ses dépendances depuis requirements.txt : le venv et les
+# caches du poste de travail n'ont rien à y faire (et un venv Windows est
+# inutilisable sous Linux).
+
+.venv/
+venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+.git/
+.gitignore

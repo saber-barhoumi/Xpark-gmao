@@ -1,0 +1,26 @@
+# Contexte de build de l'assistant Ayshaa.
+#
+# Sans ce fichier, 140 Mo sur 158 étaient transférés au démon Docker à chaque
+# build pour rien : l'environnement virtuel Python du poste de travail et les
+# caches. L'image installe ses propres dépendances depuis requirements.txt, et
+# un .venv construit sous Windows est de toute façon inutilisable sous Linux.
+
+.venv/
+venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Secrets ─────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Non nécessaire à l'exécution ────────────────────────────────────────────
+tests/
+docs/
+requirements-dev.txt
+.git/
+.gitignore

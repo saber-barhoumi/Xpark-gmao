@@ -1,0 +1,32 @@
+# Contexte de build des 8 microservices .NET.
+#
+# Sans ce fichier, `docker compose build` transférait au démon l'intégralité du
+# dossier microservices/ — mesuré à 629 Mo, dont 628 Mo (soit 100 %) de bin/ et
+# obj/ produits par les compilations locales. À chaque build. Pour chacun des
+# 8 services.
+#
+# Ces artefacts sont non seulement inutiles — le Dockerfile lance son propre
+# `dotnet restore` puis `dotnet publish` dans le conteneur — mais nuisibles :
+# des obj/ issus d'un autre système d'exploitation peuvent perturber la
+# restauration dans l'image.
+
+# ── Artefacts de compilation ────────────────────────────────────────────────
+**/bin/
+**/obj/
+
+# ── Fichiers d'environnement de développement ───────────────────────────────
+**/.vs/
+**/.vscode/
+**/*.user
+**/*.suo
+
+# ── Secrets : ne doivent jamais entrer dans une image ───────────────────────
+**/.env
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# ── Divers ──────────────────────────────────────────────────────────────────
+**/.git/
+**/.gitignore
+**/*.md
+**/TestResults/
