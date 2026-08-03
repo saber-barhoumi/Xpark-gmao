@@ -373,6 +373,22 @@ d'une image Linux.
 excluent aussi les fichiers `.env`, qui n'ont rien à faire dans une image. Les
 deux contextes frontend en avaient déjà un.
 
+### Effet mesuré
+
+Relevé dans les journaux de build, à cache BuildKit déjà chaud :
+
+| Service | Contexte transféré |
+|---|---|
+| `iam-api` (avant) | 17,56 Mo |
+| `mission-api` (après) | **32,83 ko** |
+
+À retenir sur la portée : BuildKit ne renvoie que le différentiel entre deux
+builds successifs, ces 17,56 Mo sont donc déjà un reliquat — le premier build
+d'une session transférait bien la totalité. C'est précisément la situation
+d'une **chaîne d'intégration**, où chaque exécution part d'un agent vierge :
+là, ce sont les 628 Mo complets qui étaient envoyés, pour chacun des
+8 services.
+
 ---
 
 ## Avant la première mise en ligne
