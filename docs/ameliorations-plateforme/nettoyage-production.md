@@ -218,6 +218,44 @@ un message qui renvoie vers `.env.example`.
 
 ---
 
+## 8. Dernier passage : orphelins et traces de débogage
+
+### Fichiers orphelins (337 lignes)
+
+Recherche systématique des services, hooks et contextes qu'aucun autre fichier
+n'importe :
+
+- `geminiOCRService.ts` (239 lignes) : version antérieure de `groqOCRService`,
+  restée en place après la bascule vers Grok. Son en-tête annonce d'ailleurs
+  « VERSION GROK ONLY » — les deux fichiers appelaient la même API, seul
+  `groqOCRService` était branché (4 écrans l'utilisent).
+- `hooks/useModal.ts` et `hooks/useRangeSlider.ts` : résidus du gabarit, ce
+  dernier pilotant `nouislider`, paquet retiré au § 2.
+
+Côté microservices, la même recherche sur les DTO n'a **rien remonté** : le
+backend avait déjà été nettoyé.
+
+### Traces de débogage
+
+13 `console.log` / `console.info` s'affichaient dans la console de
+l'utilisateur final. Deux étaient de simples oublis (une bannière
+« SignalR Service Version: 3.0 » au chargement du module, un `console.log` du
+titre de page) ; les autres traçaient le temps réel et l'extraction OCR —
+utiles en développement, mais **ceux de l'OCR recopiaient dans la console le
+contenu des documents analysés** (carte grise, attestation d'assurance).
+
+Nouvel utilitaire `helpers/journal.ts` : `trace()` n'écrit que si
+`import.meta.env.DEV`. Vite remplaçant cette valeur par une constante à la
+compilation, les appels **disparaissent du bundle de production**.
+`console.error` reste inchangé : les vraies erreurs doivent rester visibles
+partout.
+
+Un effet a été corrigé au passage : dans la barre supérieure, `title` figurait
+dans les dépendances de l'effet qui le met à jour, qui se redéclenchait donc à
+chaque changement de titre.
+
+---
+
 ## Tests effectués
 
 - `tsc` sans erreur et build de production réussi après **chaque** étape.

@@ -17,6 +17,10 @@ Correction de 7 anomalies et ajout de fonctionnalités, réalisés sur la branch
 
 > **Seconde série de correctifs** (projets, tableaux analytiques, alertes,
 > IBOA, historiques) : voir [correctifs-aout-2026.md](correctifs-aout-2026.md).
+>
+> **Nettoyage final et préparation à la production** (code mort, contenu
+> factice, secrets, sondes de santé, CORS, panne de passerelle) : voir
+> [nettoyage-production.md](nettoyage-production.md).
 
 ## Principes suivis
 
