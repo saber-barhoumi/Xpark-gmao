@@ -20,7 +20,16 @@ builder.Host.UseSerilog();
 builder.Services.AddPredictionPanneInfrastructure(builder.Configuration);
 
 // JWT — même clé partagée que les autres services du système
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+// La clé de signature ne figure plus dans appsettings.json (fichier versionné) :
+// elle vient de l'environnement. Sans elle, on échouait sur une
+// NullReferenceException opaque au démarrage — d'où ce contrôle explicite.
+// 32 caractères est le minimum imposé par HMAC-SHA256.
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+    throw new InvalidOperationException(
+        "Configuration manquante : Jwt__Key doit être défini et faire au moins " +
+        "32 caractères. Renseignez JWT_KEY dans le fichier .env " +
+        "(voir .env.example).");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt => opt.TokenValidationParameters = new TokenValidationParameters
     {
@@ -34,8 +43,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddCors(opt => opt.AddPolicy("AllowAll", p =>
-    p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+// ─── CORS ───────────────────────────────────────────────────────────
+// En production, définir CORS_ORIGINS (domaines séparés par des virgules) pour
+// n'autoriser que le back-office et le portail client. Sans cette variable — le
+// cas sur un poste de développement — toutes les origines restent acceptées.
+var originesCors = (builder.Configuration["CORS_ORIGINS"] ?? string.Empty)
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+builder.Services.AddCors(opt => opt.AddPolicy("XparkCors", p =>
+{
+    if (originesCors.Length == 0)
+        p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    else
+        p.WithOrigins(originesCors).AllowAnyMethod().AllowAnyHeader();
+}));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -96,7 +117,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseSerilogRequestLogging();
-app.UseCors("AllowAll");
+app.UseCors("XparkCors");
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthentication();

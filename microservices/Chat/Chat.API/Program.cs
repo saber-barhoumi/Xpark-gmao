@@ -26,7 +26,16 @@ builder.Host.UseSerilog();
 builder.Services.AddChatInfrastructure(builder.Configuration);
 
 // ─── JWT Authentication (with SignalR query-string support) ───────────────────
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+// La clé de signature ne figure plus dans appsettings.json (fichier versionné) :
+// elle vient de l'environnement. Sans elle, on échouait sur une
+// NullReferenceException opaque au démarrage — d'où ce contrôle explicite.
+// 32 caractères est le minimum imposé par HMAC-SHA256.
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+    throw new InvalidOperationException(
+        "Configuration manquante : Jwt__Key doit être défini et faire au moins " +
+        "32 caractères. Renseignez JWT_KEY dans le fichier .env " +
+        "(voir .env.example).");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
@@ -64,12 +73,20 @@ builder.Services.AddSignalR(opt =>
     opt.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
 });
 
-// ─── CORS (AllowCredentials required for SignalR WebSocket) ───────────────────
-builder.Services.AddCors(opt => opt.AddPolicy("AllowAll", p =>
-    p.SetIsOriginAllowed(_ => true)
-     .AllowAnyMethod()
-     .AllowAnyHeader()
-     .AllowCredentials()));
+// ─── CORS ───────────────────────────────────────────────────────────
+// En production, définir CORS_ORIGINS (domaines séparés par des virgules) pour
+// n'autoriser que le back-office et le portail client. Sans cette variable — le
+// cas sur un poste de développement — toutes les origines restent acceptées.
+var originesCors = (builder.Configuration["CORS_ORIGINS"] ?? string.Empty)
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+builder.Services.AddCors(opt => opt.AddPolicy("XparkCors", p =>
+{
+    if (originesCors.Length == 0)
+        p.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    else
+        p.WithOrigins(originesCors).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+}));
 
 // ─── MassTransit / RabbitMQ ───────────────────────────────────────────────────
 builder.Services.AddMassTransit(x =>
@@ -116,7 +133,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
-app.UseCors("AllowAll");
+app.UseCors("XparkCors");
 
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {

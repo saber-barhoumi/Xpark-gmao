@@ -59,6 +59,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       # ── Envoi d'emails REEL (confirmation, reset, OTP MFA) ──────────
@@ -103,6 +104,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
@@ -136,6 +138,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
@@ -169,6 +172,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
@@ -204,6 +208,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
@@ -237,6 +242,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
@@ -270,6 +276,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
     ports:
@@ -298,6 +305,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
