@@ -13,7 +13,7 @@ services:
     container_name: xpark-postgres
     environment:
       POSTGRES_USER: xpark_user
-      POSTGRES_PASSWORD: xpark_password_2026
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-xpark_password_2026}
       POSTGRES_DB: xpark_gmao
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -33,7 +33,7 @@ services:
     container_name: xpark-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: xpark
-      RABBITMQ_DEFAULT_PASS: xpark_secret
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -57,8 +57,8 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       # ── Envoi d'emails REEL (confirmation, reset, OTP MFA) ──────────
@@ -72,7 +72,7 @@ services:
       - Email__From=${EMAIL_FROM:-XPARK GMAO <noreply@xpark.tn>}
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5001:80"
     volumes:
@@ -82,6 +82,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -95,13 +101,13 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5002:80"
     depends_on:
@@ -109,6 +115,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -122,13 +134,13 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5003:80"
     depends_on:
@@ -136,6 +148,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -149,13 +167,13 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5004:80"
     volumes:
@@ -165,6 +183,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -178,13 +202,13 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5005:80"
     depends_on:
@@ -192,6 +216,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -205,13 +235,13 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5006:80"
     depends_on:
@@ -219,6 +249,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -232,8 +268,8 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
     ports:
@@ -241,6 +277,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -254,13 +296,13 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
-      - Jwt__Key=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
       - Jwt__Issuer=XparkGMAO
       - Jwt__Audience=XparkGMAO
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=xpark
-      - RabbitMQ__Password=xpark_secret
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5007:80"
     volumes:
@@ -270,6 +312,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - xpark-network
     restart: unless-stopped
@@ -283,7 +331,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=xpark_password_2026
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=xpark_gmao;Username=xpark_user;Password=${POSTGRES_PASSWORD:-xpark_password_2026}
       - JwtSettings__Secret=XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!
       - JwtSettings__Issuer=XparkGMAO
       - JwtSettings__Audience=XparkGMAO
