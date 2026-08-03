@@ -1,22 +1,18 @@
-type CurrencyType = '₹' | '$' | '€'
+/**
+ * Constantes d'application.
+ *
+ * Ce fichier ne conserve que ce qui est réellement consommé. Il portait
+ * jusqu'ici neuf autres exports hérités du gabarit Adminto — devise en dollars,
+ * adresse de contact de l'éditeur du gabarit, liens « développé par » et
+ * « acheter », palette de variantes Bootstrap — qu'aucun écran n'importait.
+ */
 
-export const currency: CurrencyType = '$'
+/**
+ * Titre de repli de l'onglet, affiché tant qu'un écran n'a pas défini le sien.
+ * Il valait « Adminto - Responsive Bootstrap 5 Admin Dashboard » : le nom
+ * commercial du gabarit s'affichait donc à l'utilisateur.
+ */
+export const DEFAULT_PAGE_TITLE = 'XPARK GMAO - Gestion de Flotte'
 
-export const currentYear = new Date().getFullYear()
-
-export const developedByLink = ''
-
-export const developedBy = ''
-
-export const contactUs = 'techzaastudio@gmail.com'
-
-export const buyLink = ''
-
+/** Préfixe d'URL du routeur. Application servie à la racine du domaine. */
 export const basePath = '/'
-
-export const DEFAULT_PAGE_TITLE = 'Adminto - Responsive Bootstrap 5 Admin Dashboard'
-
-// Replace the URL's value in env with your backend's URL or if you're using nextjs's API, add the server's origin URL
-export const API_BASE_PATH = ''
-
-export const colorVariants = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark', 'purple', 'pink', 'orange', 'light', 'link']
