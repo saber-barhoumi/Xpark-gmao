@@ -336,6 +336,25 @@ Trois options :
 - Pile Docker complète reconstruite et redémarrée ; `docker compose config`
   valide ; les 8 conteneurs applicatifs remontent `healthy`.
 
+### Validation finale, sur images reconstruites
+
+Les **13 images** ont été reconstruites depuis le code corrigé, puis la pile
+entière redéployée. Contrôles rejoués sur cet état :
+
+| Contrôle | Résultat |
+|---|---|
+| Conteneurs applicatifs | 8/8 `healthy` |
+| Suite de non-régression | 27 OK / 0 échec |
+| Routes API via le back-office | 34 OK / 0 échec |
+| Pages parcourues au navigateur | 33 OK / 0 échec, aucune erreur console |
+| Compilation Vite du back-office | 893 modules, sans erreur |
+
+**La correction de la passerelle a été validée par un cas réel** : la relance
+de la pile a réattribué à `xpark-nginx` une nouvelle adresse
+(172.18.0.18 → 172.18.0.20). Avant le correctif, cela suffisait à faire
+répondre 404 à toute l'API ; la connexion au back-office renvoie désormais 200
+sans qu'aucun autre conteneur ait eu besoin d'être redémarré.
+
 ## 10. Derniers restes de gabarit
 
 ### Back-office — `context/constants.ts`
