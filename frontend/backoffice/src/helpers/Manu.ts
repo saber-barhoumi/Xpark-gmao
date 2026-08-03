@@ -1,11 +1,21 @@
-import { HORIZONTAL_MENU_ITEM, MENU_ITEMS } from '@/assets/data/menu-items'
+import { MENU_ITEMS } from '@/assets/data/menu-items'
 import { MenuItemType } from '@/types/layout'
 
 export const getMenuItems = (): MenuItemType[] => {
   return MENU_ITEMS
 }
+
+/**
+ * Le menu horizontal servait auparavant une SECONDE liste (héritée du
+ * template) qui dupliquait la navigation et pointait très majoritairement
+ * vers des pages de démonstration aujourd'hui supprimées : basculer en
+ * disposition horizontale exposait une navigation cassée.
+ *
+ * Les deux dispositions partagent désormais la MÊME définition de menu :
+ * une seule source de vérité, aucune divergence possible.
+ */
 export const getHorizontalMenuItems = (): MenuItemType[] => {
-  return HORIZONTAL_MENU_ITEM
+  return MENU_ITEMS
 }
 
 export const findAllParent = (menuItems: MenuItemType[], menuItem: MenuItemType): string[] => {

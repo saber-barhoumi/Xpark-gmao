@@ -79,102 +79,7 @@ const ViewDetails      = lazy(() => import('@/app/(admin)/tasks/view-details/pag
 
 // Static pages
 const FAQ              = lazy(() => import('@/app/(admin)/pages/faq/page'))
-const Pricing          = lazy(() => import('@/app/(admin)/pages/pricing/page'))
-const StarterPage      = lazy(() => import('@/app/(admin)/pages/starter-page/page'))
-const Timeline         = lazy(() => import('@/app/(admin)/pages/timeline/page'))
 const Error404Alt      = lazy(() => import('@/app/(admin)/pages/error-404-alt/page'))
-
-// Layouts
-const Horizontal       = lazy(() => import('@/app/(admin)/(layout)/horizontal/page'))
-const Detached         = lazy(() => import('@/app/(admin)/(layout)/detached/page'))
-const FullView         = lazy(() => import('@/app/(admin)/(layout)/full-view/page'))
-const FullscreenView   = lazy(() => import('@/app/(admin)/(layout)/fullscreen-view/page'))
-const HoverMenu        = lazy(() => import('@/app/(admin)/(layout)/hover-menu/page'))
-const Compact          = lazy(() => import('@/app/(admin)/(layout)/compact/page'))
-const IconView         = lazy(() => import('@/app/(admin)/(layout)/icon-view/page'))
-const DarkMode         = lazy(() => import('@/app/(admin)/(layout)/dark-mode/page'))
-
-// Charts
-const AreaChart        = lazy(() => import('@/app/(admin)/charts/area/page'))
-const BarChart         = lazy(() => import('@/app/(admin)/charts/bar/page'))
-const BoxplotChart     = lazy(() => import('@/app/(admin)/charts/boxplot/page'))
-const BubbleChart      = lazy(() => import('@/app/(admin)/charts/bubble/page'))
-const CandlestickChart = lazy(() => import('@/app/(admin)/charts/candlestick/page'))
-const ColumnChart      = lazy(() => import('@/app/(admin)/charts/column/page'))
-const FunnelChart      = lazy(() => import('@/app/(admin)/charts/funnel/page'))
-const HeatmapChart     = lazy(() => import('@/app/(admin)/charts/heatmap/page'))
-const LineChart        = lazy(() => import('@/app/(admin)/charts/line/page'))
-const MixedChart       = lazy(() => import('@/app/(admin)/charts/mixed/page'))
-const PieChart         = lazy(() => import('@/app/(admin)/charts/pie/page'))
-const PolarChart       = lazy(() => import('@/app/(admin)/charts/polar/page'))
-const RadarChart       = lazy(() => import('@/app/(admin)/charts/radar/page'))
-const RadialBarChart   = lazy(() => import('@/app/(admin)/charts/radialBar/page'))
-const ScatterChart     = lazy(() => import('@/app/(admin)/charts/scatter/page'))
-const SlopeChart       = lazy(() => import('@/app/(admin)/charts/slope/page'))
-const SparklinesChart  = lazy(() => import('@/app/(admin)/charts/sparklines/page'))
-const TimelineChart    = lazy(() => import('@/app/(admin)/charts/timeline/page'))
-const TreemapChart     = lazy(() => import('@/app/(admin)/charts/treemap/page'))
-
-// Forms
-const FormsBasic       = lazy(() => import('@/app/(admin)/forms/basic/page'))
-const FormsEditors     = lazy(() => import('@/app/(admin)/forms/editors/page'))
-const FormsFileUploads = lazy(() => import('@/app/(admin)/forms/file-uploads/page'))
-const FormsInputmask   = lazy(() => import('@/app/(admin)/forms/inputmask/page'))
-const FormsLayouts     = lazy(() => import('@/app/(admin)/forms/layouts/page'))
-const FormsPicker      = lazy(() => import('@/app/(admin)/forms/picker/page'))
-const FormsSelect      = lazy(() => import('@/app/(admin)/forms/select/page'))
-const FormsSlider      = lazy(() => import('@/app/(admin)/forms/slider/page'))
-const FormsValidation  = lazy(() => import('@/app/(admin)/forms/validation/page'))
-const FormsWizard      = lazy(() => import('@/app/(admin)/forms/wizard/page'))
-
-// Tables
-const TablesBasic      = lazy(() => import('@/app/(admin)/tables/basic/page'))
-const TablesDatatable  = lazy(() => import('@/app/(admin)/tables/datatable-tables/page'))
-const TablesGridJs     = lazy(() => import('@/app/(admin)/tables/gridJs/page'))
-
-// Maps
-const MapsGoogle       = lazy(() => import('@/app/(admin)/maps/google/page'))
-const MapsLeaflet      = lazy(() => import('@/app/(admin)/maps/leaflet/page'))
-const MapsVector       = lazy(() => import('@/app/(admin)/maps/vector/page'))
-
-// UI
-const UIAccordions     = lazy(() => import('@/app/(admin)/ui/accordions/page'))
-const UIAlerts         = lazy(() => import('@/app/(admin)/ui/alerts/page'))
-const UIAvatars        = lazy(() => import('@/app/(admin)/ui/avatars/page'))
-const UIBadges         = lazy(() => import('@/app/(admin)/ui/badges/page'))
-const UIBreadcrumb     = lazy(() => import('@/app/(admin)/ui/breadcrumb/page'))
-const UIButtons        = lazy(() => import('@/app/(admin)/ui/buttons/page'))
-const UICards          = lazy(() => import('@/app/(admin)/ui/cards/page'))
-const UICarousel       = lazy(() => import('@/app/(admin)/ui/carousel/page'))
-const UICollapse       = lazy(() => import('@/app/(admin)/ui/collapse/page'))
-const UIDropdowns      = lazy(() => import('@/app/(admin)/ui/dropdowns/page'))
-const UIGrid           = lazy(() => import('@/app/(admin)/ui/grid/page'))
-const UILinks          = lazy(() => import('@/app/(admin)/ui/links/page'))
-const UIListGroup      = lazy(() => import('@/app/(admin)/ui/list-group/page'))
-const UIModals         = lazy(() => import('@/app/(admin)/ui/modals/page'))
-const UINotifications  = lazy(() => import('@/app/(admin)/ui/notifications/page'))
-const UIOffcanvas      = lazy(() => import('@/app/(admin)/ui/offcanvas/page'))
-const UIPagination     = lazy(() => import('@/app/(admin)/ui/pagination/page'))
-const UIPlaceholders   = lazy(() => import('@/app/(admin)/ui/placeholders/page'))
-const UIPopovers       = lazy(() => import('@/app/(admin)/ui/popovers/page'))
-const UIProgress       = lazy(() => import('@/app/(admin)/ui/progress/page'))
-const UIRatio          = lazy(() => import('@/app/(admin)/ui/ratio/page'))
-const UISpinners       = lazy(() => import('@/app/(admin)/ui/spinners/page'))
-const UITabs           = lazy(() => import('@/app/(admin)/ui/tabs/page'))
-const UITooltips       = lazy(() => import('@/app/(admin)/ui/tooltips/page'))
-const UITypography     = lazy(() => import('@/app/(admin)/ui/typography/page'))
-const UIUtilities      = lazy(() => import('@/app/(admin)/ui/utilities/page'))
-
-// Extended
-const Dragula          = lazy(() => import('@/app/(admin)/extended/dragula/page'))
-const Ratings          = lazy(() => import('@/app/(admin)/extended/ratings/page'))
-const Scrollbar        = lazy(() => import('@/app/(admin)/extended/scrollbar/page'))
-const SweetAlert       = lazy(() => import('@/app/(admin)/extended/sweet-alert/page'))
-
-// Icons
-const IconsRemix       = lazy(() => import('@/app/(admin)/icons/remix/page'))
-const IconsSolar       = lazy(() => import('@/app/(admin)/icons/solar/page'))
-const IconsTabler      = lazy(() => import('@/app/(admin)/icons/tabler/page'))
 
 // ─── PUBLIC ROUTES (no auth required) ────────────────────────────────────────
 import { createElement } from 'react'
@@ -255,100 +160,21 @@ export const APP_ROUTES: AppRoute[] = [
 
   // Pages
   { name: 'faq',          path: '/pages/faq',           element: createElement(FAQ) },
-  { name: 'pricing',      path: '/pages/pricing',       element: createElement(Pricing) },
-  { name: 'starter-page', path: '/pages/starter-page',  element: createElement(StarterPage) },
-  { name: 'timeline',     path: '/pages/timeline',      element: createElement(Timeline) },
   { name: 'error-404-alt',path: '/pages/error-404-alt', element: createElement(Error404Alt) },
 
   // Layouts
-  { name: 'horizontal',     path: '/horizontal',      element: createElement(Horizontal) },
-  { name: 'detached',       path: '/detached',        element: createElement(Detached) },
-  { name: 'full-view',      path: '/full-view',       element: createElement(FullView) },
-  { name: 'fullscreen-view',path: '/fullscreen-view', element: createElement(FullscreenView) },
-  { name: 'hover-menu',     path: '/hover-menu',      element: createElement(HoverMenu) },
-  { name: 'compact',        path: '/compact',         element: createElement(Compact) },
-  { name: 'icon-view',      path: '/icon-view',       element: createElement(IconView) },
-  { name: 'dark-mode',      path: '/dark-mode',       element: createElement(DarkMode) },
 
   // Charts
-  { name: 'chart-area',       path: '/charts/area',        element: createElement(AreaChart) },
-  { name: 'chart-bar',        path: '/charts/bar',         element: createElement(BarChart) },
-  { name: 'chart-boxplot',    path: '/charts/boxplot',     element: createElement(BoxplotChart) },
-  { name: 'chart-bubble',     path: '/charts/bubble',      element: createElement(BubbleChart) },
-  { name: 'chart-candlestick',path: '/charts/candlestick', element: createElement(CandlestickChart) },
-  { name: 'chart-column',     path: '/charts/column',      element: createElement(ColumnChart) },
-  { name: 'chart-funnel',     path: '/charts/funnel',      element: createElement(FunnelChart) },
-  { name: 'chart-heatmap',    path: '/charts/heatmap',     element: createElement(HeatmapChart) },
-  { name: 'chart-line',       path: '/charts/line',        element: createElement(LineChart) },
-  { name: 'chart-mixed',      path: '/charts/mixed',       element: createElement(MixedChart) },
-  { name: 'chart-pie',        path: '/charts/pie',         element: createElement(PieChart) },
-  { name: 'chart-polar',      path: '/charts/polar',       element: createElement(PolarChart) },
-  { name: 'chart-radar',      path: '/charts/radar',       element: createElement(RadarChart) },
-  { name: 'chart-radialBar',  path: '/charts/radialBar',   element: createElement(RadialBarChart) },
-  { name: 'chart-scatter',    path: '/charts/scatter',     element: createElement(ScatterChart) },
-  { name: 'chart-slope',      path: '/charts/slope',       element: createElement(SlopeChart) },
-  { name: 'chart-sparklines', path: '/charts/sparklines',  element: createElement(SparklinesChart) },
-  { name: 'chart-timeline',   path: '/charts/timeline',    element: createElement(TimelineChart) },
-  { name: 'chart-treemap',    path: '/charts/treemap',     element: createElement(TreemapChart) },
 
   // Forms
-  { name: 'forms-basic',        path: '/forms/basic',        element: createElement(FormsBasic) },
-  { name: 'forms-editors',      path: '/forms/editors',      element: createElement(FormsEditors) },
-  { name: 'forms-file-uploads', path: '/forms/file-uploads', element: createElement(FormsFileUploads) },
-  { name: 'forms-inputmask',    path: '/forms/inputmask',    element: createElement(FormsInputmask) },
-  { name: 'forms-layouts',      path: '/forms/layouts',      element: createElement(FormsLayouts) },
-  { name: 'forms-picker',       path: '/forms/picker',       element: createElement(FormsPicker) },
-  { name: 'forms-select',       path: '/forms/select',       element: createElement(FormsSelect) },
-  { name: 'forms-slider',       path: '/forms/slider',       element: createElement(FormsSlider) },
-  { name: 'forms-validation',   path: '/forms/validation',   element: createElement(FormsValidation) },
-  { name: 'forms-wizard',       path: '/forms/wizard',       element: createElement(FormsWizard) },
 
   // Tables
-  { name: 'tables-basic',     path: '/tables/basic',            element: createElement(TablesBasic) },
-  { name: 'tables-datatable', path: '/tables/datatable-tables', element: createElement(TablesDatatable) },
-  { name: 'tables-gridjs',    path: '/tables/gridJs',           element: createElement(TablesGridJs) },
 
   // Maps
-  { name: 'maps-google',  path: '/maps/google',  element: createElement(MapsGoogle) },
-  { name: 'maps-leaflet', path: '/maps/leaflet', element: createElement(MapsLeaflet) },
-  { name: 'maps-vector',  path: '/maps/vector',  element: createElement(MapsVector) },
 
   // UI
-  { name: 'ui-accordions',   path: '/ui/accordions',   element: createElement(UIAccordions) },
-  { name: 'ui-alerts',       path: '/ui/alerts',       element: createElement(UIAlerts) },
-  { name: 'ui-avatars',      path: '/ui/avatars',      element: createElement(UIAvatars) },
-  { name: 'ui-badges',       path: '/ui/badges',       element: createElement(UIBadges) },
-  { name: 'ui-breadcrumb',   path: '/ui/breadcrumb',   element: createElement(UIBreadcrumb) },
-  { name: 'ui-buttons',      path: '/ui/buttons',      element: createElement(UIButtons) },
-  { name: 'ui-cards',        path: '/ui/cards',        element: createElement(UICards) },
-  { name: 'ui-carousel',     path: '/ui/carousel',     element: createElement(UICarousel) },
-  { name: 'ui-collapse',     path: '/ui/collapse',     element: createElement(UICollapse) },
-  { name: 'ui-dropdowns',    path: '/ui/dropdowns',    element: createElement(UIDropdowns) },
-  { name: 'ui-grid',         path: '/ui/grid',         element: createElement(UIGrid) },
-  { name: 'ui-links',        path: '/ui/links',        element: createElement(UILinks) },
-  { name: 'ui-list-group',   path: '/ui/list-group',   element: createElement(UIListGroup) },
-  { name: 'ui-modals',       path: '/ui/modals',       element: createElement(UIModals) },
-  { name: 'ui-notifications',path: '/ui/notifications',element: createElement(UINotifications) },
-  { name: 'ui-offcanvas',    path: '/ui/offcanvas',    element: createElement(UIOffcanvas) },
-  { name: 'ui-pagination',   path: '/ui/pagination',   element: createElement(UIPagination) },
-  { name: 'ui-placeholders', path: '/ui/placeholders', element: createElement(UIPlaceholders) },
-  { name: 'ui-popovers',     path: '/ui/popovers',     element: createElement(UIPopovers) },
-  { name: 'ui-progress',     path: '/ui/progress',     element: createElement(UIProgress) },
-  { name: 'ui-ratio',        path: '/ui/ratio',        element: createElement(UIRatio) },
-  { name: 'ui-spinners',     path: '/ui/spinners',     element: createElement(UISpinners) },
-  { name: 'ui-tabs',         path: '/ui/tabs',         element: createElement(UITabs) },
-  { name: 'ui-tooltips',     path: '/ui/tooltips',     element: createElement(UITooltips) },
-  { name: 'ui-typography',   path: '/ui/typography',   element: createElement(UITypography) },
-  { name: 'ui-utilities',    path: '/ui/utilities',    element: createElement(UIUtilities) },
 
   // Extended
-  { name: 'dragula',     path: '/extended/dragula',     element: createElement(Dragula) },
-  { name: 'ratings',     path: '/extended/ratings',     element: createElement(Ratings) },
-  { name: 'scrollbar',   path: '/extended/scrollbar',   element: createElement(Scrollbar) },
-  { name: 'sweet-alert', path: '/extended/sweet-alert', element: createElement(SweetAlert) },
 
   // Icons
-  { name: 'icons-remix',  path: '/icons/remix',  element: createElement(IconsRemix) },
-  { name: 'icons-solar',  path: '/icons/solar',  element: createElement(IconsSolar) },
-  { name: 'icons-tabler', path: '/icons/tabler', element: createElement(IconsTabler) },
 ]
