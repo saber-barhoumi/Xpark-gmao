@@ -4,6 +4,26 @@ Revue complète de la plateforme avant déploiement. Aucune fonctionnalité
 nouvelle : uniquement suppression de code mort, retrait de contenu factice,
 correction d'anomalies découvertes et durcissement de la configuration.
 
+## En un coup d'œil
+
+| § | Sujet | Effet |
+|---|---|---|
+| 1 | Pages de démonstration du gabarit | 281 fichiers, 79 routes ; menu horizontal dédoublonné |
+| 2 | Dépendances et composants morts | 12 paquets retirés ; `npm install` réparé |
+| 3 | Contenu factice | 1 105 lignes de fausses données |
+| 4 | Module Email | retiré : plantait, sans backend |
+| 5 | Secrets et sondes de santé | 26 secrets externalisés, 8 sondes ajoutées |
+| 6 | **Panne bloquante de la passerelle** | **toute l'API répondait 404** |
+| 7 | Sécurité applicative | CORS restreignable, 0 secret versionné |
+| 8 | Orphelins et traces de débogage | 337 lignes ; l'OCR ne fuite plus les documents |
+| 9 | Dépendances vulnérables | 2 failles corrigées, 1 arbitrage à rendre |
+| 10 | Derniers restes de gabarit | titre d'onglet, pied de page, FAQ |
+| 11 | Contexte de build | 768 Mo d'artefacts sortis du contexte |
+
+Deux points demandent une décision avant la mise en ligne : la
+**rotation de la clé JWT** exposée dans l'historique git, et le
+**choix de licence AutoMapper** (§ 9).
+
 ---
 
 ## 1. Pages de démonstration du template
