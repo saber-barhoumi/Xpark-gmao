@@ -256,6 +256,50 @@ chaque changement de titre.
 
 ---
 
+## 9. Dépendances vulnérables
+
+Le journal de compilation Docker signalait trois paquets NuGet vulnérables,
+avertissements jusque-là noyés dans la sortie.
+
+### Corrigé — MailKit et MimeKit (envoi des courriels)
+
+| Paquet | Version | Faille | Corrigé dans |
+|---|---|---|---|
+| MailKit | 4.8.0 | Injection de réponse STARTTLS permettant de forcer un mécanisme SASL plus faible | 4.16.0 |
+| MimeKit | 4.8.0 (transitif) | Injection CRLF permettant d'injecter des commandes SMTP et de falsifier des courriels | 4.15.1 |
+
+Ces deux failles sont **exploitables dans la configuration réelle du projet** :
+IAM envoie les confirmations de compte et les codes à usage unique via SMTP
+avec STARTTLS (port 587). MailKit est passé en **4.17.0**, ce qui entraîne
+MimeKit 4.17.0. Aucune adaptation de code n'a été nécessaire ; IAM compile et
+les deux avertissements ont disparu.
+
+### À arbitrer — AutoMapper (décision de licence, pas technique)
+
+`AutoMapper` 13.0.1, utilisé par 6 services, porte une faille **de gravité
+élevée** : déni de service par récursion non maîtrisée
+([GHSA-rvv3-g6hj-g44x](https://github.com/advisories/GHSA-rvv3-g6hj-g44x)).
+
+Elle **n'est corrigée qu'à partir de la version 15.1.1**. Vérifié : la 14.0.0
+reste vulnérable, et il n'existe aucun correctif dans la branche 13.x.
+
+Or **AutoMapper est passé à une licence commerciale à partir de la v15**.
+Monter de version engage donc l'entreprise financièrement : c'est un choix qui
+appartient au propriétaire du projet, pas une correction technique à appliquer
+au passage. Le paquet est donc **laissé en 13.0.1**.
+
+Éléments pour décider — l'exposition réelle est faible : la faille se déclenche
+sur des structures récursives, or le mappage ne porte ici que sur des entités
+issues de la base vers des DTO, jamais sur des données envoyées par un client.
+Trois options :
+
+1. acquérir une licence AutoMapper 15+ ;
+2. remplacer AutoMapper par du mappage écrit à la main — les profils sont peu
+   nombreux (un par service) et la conversion est mécanique ;
+3. accepter le risque en connaissance de cause et le consigner.
+
+---
+
 ## Tests effectués
 
 - `tsc` sans erreur et build de production réussi après **chaque** étape.

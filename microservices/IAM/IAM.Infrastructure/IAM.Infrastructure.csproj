@@ -23,7 +23,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
-    <PackageReference Include="MailKit" Version="4.8.0" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IAM.Application\IAM.Application.csproj" />
