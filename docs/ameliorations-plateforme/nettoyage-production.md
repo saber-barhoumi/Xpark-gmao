@@ -316,6 +316,65 @@ Trois options :
 - Pile Docker complète reconstruite et redémarrée ; `docker compose config`
   valide ; les 8 conteneurs applicatifs remontent `healthy`.
 
+## 10. Derniers restes de gabarit
+
+### Back-office — `context/constants.ts`
+
+Onze constantes, dont **neuf qu'aucun écran n'importait** : devise en dollars
+(le projet facture en dinars), adresse de contact de l'éditeur du gabarit,
+liens « développé par » et « acheter » laissés vides, chemin d'API inutilisé,
+palette de variantes Bootstrap.
+
+La plus gênante était bien utilisée : `DEFAULT_PAGE_TITLE`, **titre de repli de
+l'onglet** affiché tant qu'un écran n'a pas défini le sien, valait
+« Adminto - Responsive Bootstrap 5 Admin Dashboard ». Le nom commercial du
+gabarit s'affichait donc à l'utilisateur. Il devient
+« XPARK GMAO - Gestion de Flotte ».
+
+### Site vitrine
+
+Deux écrans montraient encore du texte de gabarit à des visiteurs :
+
+- **Pied de page secondaire** (`Footer2`, page `/index-2`), jamais repris
+  contrairement à `Footer1` : adresse américaine « 3891 Ranchview Dr.
+  Richardson », deux numéros de téléphone fictifs, mention
+  « © Yoursitename 2024 », faux-texte de présentation et cinq intitulés de
+  services en anglais ne correspondant plus aux pages réelles. Le tout est
+  aligné sur `Footer1`, qui porte les coordonnées exactes.
+- **Page FAQ** : les trois questions étaient en anglais et partageaient la
+  **même réponse**, un faux-texte recopié trois fois. Questions traduites et
+  trois réponses distinctes rédigées (suivi d'expédition, délais par région,
+  transport sur mesure).
+
+---
+
+## 11. Contexte de build : 768 Mo transférés pour rien
+
+Constat fait en observant les builds ramper : ils restaient bloqués plusieurs
+minutes sur l'étape « load build context », **avant même de compiler**.
+
+| Contexte déclaré | Total | Dont artefacts locaux |
+|---|---|---|
+| `microservices/` | 629 Mo | **628 Mo (100 %)** |
+| `AyshaaRAG/` | 158 Mo | 140 Mo (88 %) |
+| `CalculateurPrixTrajetIA/` | 21 Mo | — |
+
+Le dossier `microservices/` n'avait **aucun `.dockerignore`** : chacun des
+8 services faisait transférer au démon Docker l'intégralité des `bin/` et
+`obj/` produits par les compilations locales — 628 Mo, huit fois. AyshaaRAG
+envoyait de même le `.venv` du poste de travail.
+
+Ces fichiers sont non seulement inutiles (chaque Dockerfile lance son propre
+`dotnet restore` / `pip install` dans le conteneur) mais **nuisibles** : des
+`obj/` ou un `.venv` produits sous Windows peuvent perturber la construction
+d'une image Linux.
+
+`.dockerignore` ajoutés pour `microservices/` et les 4 services Python ; ils
+excluent aussi les fichiers `.env`, qui n'ont rien à faire dans une image. Les
+deux contextes frontend en avaient déjà un.
+
+---
+
 ## Avant la première mise en ligne
 
 1. Copier `.env.example` vers `.env` et **renseigner les quatre secrets**
@@ -346,6 +405,5 @@ message explicite plutôt que de tomber en marche dégradée.
 - **Services Python** (Ayshaa, calcul de prix, optimiseur, IBOA) : non
   audités en profondeur dans cette passe, faute de couverture de tests
   automatisés côté Python.
-- **Front office et application chauffeur** : le nettoyage a porté sur le
-  back-office et les microservices. Le site vitrine conserve des textes de
-  gabarit (coordonnées, mentions « Yoursitename ») à reprendre.
+- **Application chauffeur** (Expo React Native) : hors périmètre de cette
+  passe, non auditée.
