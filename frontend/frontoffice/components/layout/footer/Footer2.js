@@ -88,7 +88,7 @@ export default function Footer2() {
                         </div>
                         <ul className="footer-widget-two__services-list list-unstyled">
                             <li>
-                            <Link href="/express-freight-solutions">
+                            <Link href="/transport-de-marchandises">
                                 <span className="icon-angle-left" />
                                 Express Freight Solutions
                             </Link>
@@ -134,8 +134,8 @@ export default function Footer2() {
                                 <span className="icon-envolop email-icon" />
                             </div>
                             <p>
-                                <Link href="mailto:debra.holt@example.com,">
-                                debra.holt@example.com,
+                                <Link href="mailto:contact@xpark.tn">
+                                contact@xpark.tn
                                 </Link>
                             </p>
                             </li>
