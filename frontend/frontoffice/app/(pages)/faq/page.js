@@ -47,14 +47,12 @@ export default function Home() {
                                             >
                                             <div className={isActive.key == 1 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(1)}>
                                                 <div className="accrodion-title">
-                                                <h4>How can I track my shipment?</h4>
+                                                <h4>Comment suivre mon expédition ?</h4>
                                                 </div>
                                                 <div className={isActive.key == 1 ? "accrodion-content current" : "accrodion-content"}>
                                                     <div className="inner">
                                                     <p>
-                                                    It is a long established fact that a reader will be distr
-                                                    acted bioiiy the real ism dablea content of a page when
-                                                    looking at its layout{" "}
+                                                    Chaque expédition dispose d’un espace de suivi dans votre portail client : position du véhicule, étapes franchies et heure d’arrivée estimée, mis à jour en continu.{" "}
                                                     </p>
                                                 </div>
                                                 </div>
@@ -62,14 +60,12 @@ export default function Home() {
                                             </div>
                                             <div className={isActive.key == 2 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(2)}>
                                                 <div className="accrodion-title">
-                                                <h4>What is the average delivery time?</h4>
+                                                <h4>Quel est le délai de livraison moyen ?</h4>
                                                 </div>
                                                 <div className={isActive.key == 2 ? "accrodion-content current" : "accrodion-content"}>
                                                     <div className="inner">
                                                         <p>
-                                                        It is a long established fact that a reader will be distr
-                                                        acted bioiiy the real ism dablea content of a page when
-                                                        looking at its layout{" "}
+                                                        Comptez 24 à 48 heures pour le Grand Tunis et 48 à 72 heures vers les autres gouvernorats. Le délai exact vous est confirmé sur le devis, avant validation.{" "}
                                                         </p>
                                                 </div>
                                                 </div>
@@ -77,14 +73,12 @@ export default function Home() {
                                             </div>
                                             <div className={isActive.key == 3 ? "accrodion active" : "accrodion"} onClick={() => handleToggle(3)}>
                                                 <div className="accrodion-title">
-                                                <h4>Do you offer Smooth Running Supply?</h4>
+                                                <h4>Proposez-vous un transport sur mesure ?</h4>
                                                 </div>
                                                 <div className={isActive.key == 3 ? "accrodion-content current" : "accrodion-content"}>
                                                     <div className="inner">
                                                         <p>
-                                                        It is a long established fact that a reader will be distr
-                                                        acted bioiiy the real ism dablea content of a page when
-                                                        looking at its layout{" "}
+                                                        Oui. Volumes, fréquences et contraintes d’accès sont étudiés au cas par cas ; décrivez votre besoin depuis la page Contact et nous revenons vers vous avec une proposition chiffrée.{" "}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -187,7 +181,7 @@ export default function Home() {
                             <div
                             className="cta-one__bg-img"
                             style={{
-                                backgroundImage: "url(assets/images/resources/cta-one-bg-img.jpg)"
+                                backgroundImage: "url(/assets/images/resources/cta-one-bg-img.png)"
                             }}
                             />
                             <div className="cta-one__content-box">

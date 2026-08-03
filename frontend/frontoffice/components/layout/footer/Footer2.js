@@ -14,7 +14,7 @@ export default function Footer2() {
                     <div className="col-xl-4">
                         <div className="site-footer-two__top-left">
                         <h3 className="site-footer-two__top-title">
-                            Have a <span>project</span> in mind?
+                            Un <span>transport</span> à organiser ?
                         </h3>
                         </div>
                     </div>
@@ -28,14 +28,14 @@ export default function Footer2() {
                             <div className="footer-widget-two__newsletter-form-input-box">
                             <input
                                 type="email"
-                                placeholder="Enter Your Email"
+                                placeholder="Votre adresse e-mail"
                                 name="EMAIL"
                             />
                             <button
                                 type="submit"
                                 className="footer-widget-two__newsletter-btn thm-btn"
                             >
-                                Subscribe Now
+                                S'abonner
                                 <span />
                             </button>
                             </div>
@@ -58,9 +58,9 @@ export default function Footer2() {
                             </Link>
                         </div>
                         <p className="footer-widget-two__text">
-                            It is a long established fact that a reader
+                            Transport et logistique en Tunisie :
                             <br />
-                            will be distracted Empowering{" "}
+                            une flotte suivie, des délais tenus.{" "}
                         </p>
                         <div className="footer-widget-two__social">
                             <Link href="#">
@@ -90,31 +90,31 @@ export default function Footer2() {
                             <li>
                             <Link href="/transport-de-marchandises">
                                 <span className="icon-angle-left" />
-                                Express Freight Solutions
+                                Transport de marchandises
                             </Link>
                             </li>
                             <li>
                             <Link href="/quick-move-logistics">
                                 <span className="icon-angle-left" />
-                                Rapid Delivery Services
+                                Gestion de flotte
                             </Link>
                             </li>
                             <li>
                             <Link href="/speedy-dispatch">
                                 <span className="icon-angle-left" />
-                                Speedy Haulage
+                                Livraison et distribution
                             </Link>
                             </li>
                             <li>
                             <Link href="/on-point-distribution">
                                 <span className="icon-angle-left" />
-                                Reliable Transporters
+                                Transport personnalisé
                             </Link>
                             </li>
                             <li>
                             <Link href="/swift-supply-chain">
                                 <span className="icon-angle-left" />
-                                Swift Ship Solutions
+                                Transport local et régional
                             </Link>
                             </li>
                         </ul>
@@ -143,15 +143,14 @@ export default function Footer2() {
                             <div className="icon">
                                 <span className="icon-location location-icon" />
                             </div>
-                            <p>3891 Ranchview Dr. Richardson</p>
+                            <p>Zone industrielle, Tunis, Tunisie</p>
                             </li>
                             <li>
                             <div className="icon">
                                 <span className="icon-call phone-call" />
                             </div>
                             <p>
-                                <Link href="tel:01245789321">01245789321,</Link>{" "}
-                                <Link href="tel:012457895146">012457895146</Link>
+                                <Link href="tel:+21670000000">+216 70 000 000</Link>
                             </p>
                             </li>
                         </ul>
@@ -164,17 +163,17 @@ export default function Footer2() {
                 <div className="container">
                     <div className="site-footer-two__bottom-inner">
                     <p className="site-footer-two__bottom-text">
-                        © Yoursitename 2024 | All Rights Reserved
+                        © XPARK 2026 | Tous droits réservés
                     </p>
                     <ul className="list-unstyled site-footer-two__bottom-menu">
                         <li>
-                        <Link href="/about">Trams &amp; Condition</Link>
+                        <Link href="/about">Conditions générales</Link>
                         </li>
                         <li>
-                        <Link href="/about">Privacy Policy</Link>
+                        <Link href="/about">Confidentialité</Link>
                         </li>
                         <li>
-                        <Link href="/contact">Contact Us</Link>
+                        <Link href="/contact">Nous contacter</Link>
                         </li>
                     </ul>
                     </div>
