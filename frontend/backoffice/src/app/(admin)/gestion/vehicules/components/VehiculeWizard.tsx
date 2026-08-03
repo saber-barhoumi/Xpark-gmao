@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react'
+import { trace } from '@/helpers/journal'
 import { Button, Col, Form, Modal, Row, Spinner, Table, Badge, Card } from 'react-bootstrap'
 import StepWizard from 'react-step-wizard'
 import Select from 'react-select'
@@ -640,7 +641,7 @@ export default function VehiculeWizard({ show, onHide, vehiculeToEdit, reloadLis
             set('typeVehicule', mapped)
         }
 
-        console.log('[OCR] Extracted fields:', updates)
+        trace('[OCR] Champs extraits :', updates)
         setForm((prev: any) => ({ ...prev, ...updates }))
         setOcrFields(newOcrFields)
     }, [])

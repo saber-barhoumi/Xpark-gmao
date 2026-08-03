@@ -5,6 +5,7 @@ import React, {
 import { DropResult } from '@hello-pangea/dnd'
 import * as signalR from '@microsoft/signalr'
 import ConfirmModal from '@/components/ConfirmModal'
+import { trace } from '@/helpers/journal'
 import kanbanService, {
   KanbanCard, KANBAN_SECTIONS,
 } from '@/services/kanbanService'
@@ -101,7 +102,7 @@ export const KanbanProvider = ({ children }: { children: ReactNode }) => {
     if (connection) {
       connection.start()
         .then(() => {
-          console.log('SignalR connected to KanbanHub')
+          trace('[Kanban] Connexion temps réel établie')
           connection.invoke('JoinKanban')
           
           connection.on('CardMoved', ({ id, statut }) => {

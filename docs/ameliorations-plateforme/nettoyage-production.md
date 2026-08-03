@@ -144,17 +144,108 @@ back-office ont tous une route `location` correspondante dans nginx.
 
 ---
 
+## 6. Panne bloquante découverte pendant la validation
+
+**Symptôme** : impossible de se connecter au back-office.
+`POST /api/auth/login` répondait **404**, et avec lui toute l'API.
+
+### Cause
+
+Le nginx du back-office écrivait `proxy_pass http://nginx:80/…`, avec un nom
+d'hôte littéral. **nginx ne résout ce nom qu'une fois, au démarrage**, puis fige
+l'adresse IP. L'ajout des sondes de santé (§ 5) avait recréé la passerelle
+`xpark-nginx`, qui a donc changé d'IP. Le back-office continuait d'interroger
+l'ancienne adresse — entre-temps réattribuée à un autre conteneur, lequel
+répondait 404 sur ces chemins.
+
+C'est **exactement la panne déjà corrigée sur la passerelle elle-même**
+(`microservices/nginx/nginx.conf`) ; le correctif n'avait jamais été appliqué à
+cette seconde couche. La gravité dépasse l'incident : **toute recréation de la
+passerelle cassait le back-office** jusqu'à redémarrer aussi son conteneur — or
+en production les conteneurs sont recréés à chaque déploiement.
+
+### Correctif
+
+Résolveur interne de Docker (`127.0.0.11`, cache 10 s) et variable dans
+`proxy_pass`, ce qui force une résolution à chaque requête.
+
+Une variable dans `proxy_pass` désactive la réécriture automatique du préfixe de
+`location` : les **24 blocs de routage** (22 routes `/api/*` et les 2 canaux
+temps réel `chatHub` / `kanbanHub`) portent donc un `rewrite … break` explicite.
+
+---
+
+## 7. Sécurité applicative
+
+### CORS restreignable
+
+Les 8 services acceptaient **toute origine**, en dur. Le plus exposé était la
+messagerie : `SetIsOriginAllowed(_ => true)` **combiné à** `AllowCredentials()`,
+c'est-à-dire que n'importe quel site pouvait ouvrir une connexion temps réel
+authentifiée au nom de l'utilisateur connecté.
+
+Les origines viennent désormais de `CORS_ORIGINS`. Variable absente — le cas
+d'un poste de développement — le comportement permissif est conservé, donc rien
+ne change en local. La politique a été renommée `XparkCors` : « AllowAll »
+serait devenu un nom trompeur.
+
+### Secrets retirés des `appsettings.json`
+
+Les 8 fichiers, **tous versionnés**, contenaient clé JWT, mot de passe
+PostgreSQL et mot de passe du bus de messages en clair. Ils étaient de surcroît
+incohérents entre eux :
+
+| Élément | Valeurs distinctes trouvées |
+|---|---|
+| Clé JWT | 3 |
+| Identifiants base | 4 |
+| Nom de base | 3 (`xpark_gmao`, `xpark_iam`, `xpark_fleet`) |
+| Hôte base | 2 (`postgres`, `localhost`) |
+| Audience JWT | 2 (divergente sur 2 services) |
+
+`docker-compose` surchargeant intégralement ces valeurs, **elles n'étaient
+jamais utilisées** : uniquement des secrets exposés, et un piège latent — un
+service privé de sa surcharge se serait connecté silencieusement à une base
+inexistante, ou aurait signé ses jetons avec une autre clé, jetons alors rejetés
+par les 7 autres services.
+
+### Démarrage en échec explicite
+
+`builder.Configuration["Jwt:Key"]!` masquait l'absence de configuration derrière
+une `NullReferenceException` illisible. Le contrôle est maintenant explicite et
+vérifie aussi la longueur minimale de 32 caractères qu'impose HMAC-SHA256, avec
+un message qui renvoie vers `.env.example`.
+
+---
+
 ## Tests effectués
 
 - `tsc` sans erreur et build de production réussi après **chaque** étape.
 - `npm install` propre, sans `--legacy-peer-deps` (27 paquets élagués).
-- Parcours navigateur des écrans métier (dashboard, analyses, missions,
-  véhicules, prédiction, factures, alertes, utilisateurs, projets, calendrier,
-  kanban, sécurité, carburant, IBOA, FAQ, trésorerie, fichiers, contacts) :
-  aucune page vide, aucune erreur console.
+- Compilation des **8 microservices** après chaque modification backend.
+- **Parcours navigateur des 40 pages** atteignables depuis le menu : aucune page
+  vide, aucune erreur console, et les routes inconnues tombent bien sur la
+  page 404 (vérifié avec une URL inexistante).
+- **Routes API** : les 36 chemins réellement appelés par le front répondent 200
+  à travers le port 3000. Les 4 exceptions renvoient 405 sur un `GET` — ce sont
+  des routes `POST`/`DELETE`, comportement attendu.
 - Suite de non-régression : **27 contrôles OK / 0 échec** (8 services en
   santé, RBAC, 13 endpoints métier, 4 nouveautés).
-- Pile Docker complète redémarrée et validée (`docker compose config`).
+- Pile Docker complète reconstruite et redémarrée ; `docker compose config`
+  valide ; les 8 conteneurs applicatifs remontent `healthy`.
+
+## Avant la première mise en ligne
+
+1. Copier `.env.example` vers `.env` et **renseigner les quatre secrets**
+   (`JWT_KEY`, `POSTGRES_PASSWORD`, `RABBITMQ_PASSWORD`, `AYSHAA_ADMIN_API_KEY`).
+   Générer la clé JWT avec `openssl rand -base64 48`.
+2. Renseigner `CORS_ORIGINS` avec les domaines réels du back-office et du
+   portail client, séparés par des virgules et sans barre oblique finale.
+3. Configurer le SMTP (`EMAIL_*`) : sans lui, ni confirmation de compte, ni
+   réinitialisation de mot de passe, ni code à usage unique.
+
+Un service démarré sans `Jwt__Key` s'arrête désormais immédiatement avec un
+message explicite plutôt que de tomber en marche dégradée.
 
 ## Limites connues et suites possibles
 
@@ -163,9 +254,16 @@ back-office ont tous une route `location` correspondante dans nginx.
 - **Taille des bundles** : Vite signale des morceaux > 500 ko. Un
   découpage (`manualChunks`) améliorerait le premier chargement — non traité
   ici pour ne pas modifier le comportement à la veille d'un déploiement.
-- **Secrets** : externalisés mais les valeurs de repli restent en clair dans
-  `docker-compose.yml` pour le confort du développement local. En production,
-  définir impérativement `.env` — ou mieux, un gestionnaire de secrets.
+- **Secrets** : les valeurs de repli restent en clair dans `docker-compose.yml`
+  pour le confort du développement local. Elles ne sont plus dupliquées dans les
+  `appsettings.json`, mais en production il faut impérativement définir `.env` —
+  ou mieux, brancher un gestionnaire de secrets.
+- **Rotation de la clé JWT** : la clé exposée dans l'historique git doit être
+  considérée comme compromise. En générer une nouvelle avant toute mise en
+  ligne ; l'ancienne reste lisible dans les commits antérieurs.
 - **Services Python** (Ayshaa, calcul de prix, optimiseur, IBOA) : non
   audités en profondeur dans cette passe, faute de couverture de tests
   automatisés côté Python.
+- **Front office et application chauffeur** : le nettoyage a porté sur le
+  back-office et les microservices. Le site vitrine conserve des textes de
+  gabarit (coordonnées, mentions « Yoursitename ») à reprendre.

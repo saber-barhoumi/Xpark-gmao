@@ -1,6 +1,5 @@
 import * as signalR from '@microsoft/signalr';
-
-console.log('SignalR Service Version: 3.0 (Defensive + StrictMode Safe)');
+import { trace } from '@/helpers/journal';
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -47,25 +46,25 @@ class SignalRService {
 
       // Reconnection handlers
       this.connection.onreconnecting(() => {
-        console.log('[SignalR] Reconnecting...');
+        trace('[SignalR] Reconnecting...');
       });
 
       this.connection.onreconnected(() => {
-        console.log('[SignalR] Reconnected ✓');
+        trace('[SignalR] Reconnected ✓');
         this.setupEventHandlers();
       });
 
       this.connection.onclose(() => {
-        console.log('[SignalR] Connection closed');
+        trace('[SignalR] Connection closed');
       });
 
       await this.connection.start();
-      console.info('[SignalR] Connected ✓');
+      trace('[SignalR] Connected ✓');
       this.setupEventHandlers();
     } catch (err) {
       // Ignore if stop() was called while connecting
       if (this.isStopping) {
-        console.info('[SignalR] Connection cancelled (component unmounted)');
+        trace('[SignalR] Connection cancelled (component unmounted)');
         return;
       }
       console.error('[SignalR] Connection error:', err);

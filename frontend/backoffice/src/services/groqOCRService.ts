@@ -1,5 +1,7 @@
 // src/services/groqOCRService.ts
 
+import { trace } from '@/helpers/journal'
+
 // ── Types ────────────────────────────────────────────────────
 export type DocumentType =
   | 'CARTE_GRISE'
@@ -111,7 +113,7 @@ const groqOCRService = {
     const useVision = isImageFile(file)
     const model = useVision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL
 
-    console.info(`[Groq OCR] 🔄 Extraction avec ${model} (vision: ${useVision}) pour type: ${docType}`)
+    trace(`[Groq OCR] 🔄 Extraction avec ${model} (vision: ${useVision}) pour type: ${docType}`)
 
     const systemPrompt = `Tu es le module OCR avancé de XPARK GMAO.
 Tu dois analyser l'image du document fourni et extraire TOUTES les données visibles.
@@ -142,7 +144,7 @@ RÈGLES STRICTES :
       if (useVision) {
         // ── VISION: Send image as base64 to the vision model ──
         const base64Url = await fileToBase64(file)
-        console.info(`[Groq OCR] 📷 Image convertie en base64 (${(base64Url.length / 1024).toFixed(0)} Ko)`)
+        trace(`[Groq OCR] 📷 Image convertie en base64 (${(base64Url.length / 1024).toFixed(0)} Ko)`)
 
         messages = [
           { role: 'system', content: systemPrompt },
@@ -191,9 +193,9 @@ RÈGLES STRICTES :
         const result = await res.json()
         const text = result.choices?.[0]?.message?.content
         if (text) {
-          console.info(`[Groq OCR] ✅ Réponse brute:`, text)
+          trace(`[Groq OCR] ✅ Réponse brute:`, text)
           const parsed = cleanJson(text)
-          console.info(`[Groq OCR] ✅ Données extraites:`, parsed)
+          trace(`[Groq OCR] ✅ Données extraites:`, parsed)
           return parsed
         }
       }

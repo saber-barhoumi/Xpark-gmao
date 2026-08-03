@@ -31,11 +31,12 @@ const TopBar = () => {
 
   const [title, setTitle] = useState<string>('Welcome')
 
+  // `title` figurait dans les dépendances de l'effet qui le met à jour :
+  // l'effet se redéclenchait à chaque changement de titre. Seul le changement
+  // de page doit le relire.
   useEffect(() => {
-    setTitle(document.title.split("|")[0])
-    console.log(title)
-
-  }, [title, location])
+    setTitle(document.title.split('|')[0])
+  }, [location])
 
   return (
     <>
