@@ -1,0 +1,64 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Infrastructure - Architecture PostgreSQL
+
+skinparam componentStyle rectangle
+
+database "postgres:16-alpine\nconteneur xpark-postgres\n:5432" as PG #FFF8E1 {
+  frame "base **xpark_gmao** (partagee)" as DB {
+    card "Tables de IAM\n8 entites mappees" as IAM
+    card "Tables de Fleet\n6 entites mappees" as Fleet
+    card "Tables de Mission\n4 entites mappees" as Mission
+    card "Tables de Maintenance\n7 entites mappees" as Maintenance
+    card "Tables de Finance\n3 entites mappees" as Finance
+    card "Tables de Alerts\n1 entites mappees" as Alerts
+    card "Tables de Chat\n7 entites mappees" as Chat
+    card "Tables de PredictionPanne\n3 entites mappees" as PredictionPanne
+  }
+}
+
+component "iam-api\nIamDbContext\n8 DbSet" as cIAM #E8F5E9
+component "fleet-api\nFleetDbContext\n6 DbSet" as cFleet #E8F5E9
+component "mission-api\nMissionDbContext\n5 DbSet" as cMission #E8F5E9
+component "maintenance-api\nMaintenanceDbContext\n8 DbSet" as cMaintenance #E8F5E9
+component "finance-api\nFinanceDbContext\n4 DbSet" as cFinance #E8F5E9
+component "alerts-api\nAlertsDbContext\n2 DbSet" as cAlerts #E8F5E9
+component "chat-api\nChatDbContext\n6 DbSet" as cChat #E8F5E9
+component "prediction-api\nPredictionDbContext\n3 DbSet" as cPredictionPanne #E8F5E9
+component "iboa\npsycopg2" as IB #FCE4EC
+
+cIAM --> IAM : ecriture (EF Core)
+cFleet --> Fleet : ecriture (EF Core)
+cMission --> Mission : ecriture (EF Core)
+cMaintenance --> Maintenance : ecriture (EF Core)
+cFinance --> Finance : ecriture (EF Core)
+cAlerts --> Alerts : ecriture (EF Core)
+cChat --> Chat : ecriture (EF Core)
+cPredictionPanne --> PredictionPanne : ecriture (EF Core)
+IB --> DB : lecture / ecriture du journal
+
+note bottom of DB
+  Chaque service ne possede en ecriture que ses propres tables.
+  Les donnees des autres domaines sont lues en SQL direct, d'ou
+  des entites redeclarees en lecture seule (Vehicule, Utilisateur,
+  Mission apparaissent dans plusieurs Domain).
+end note
+
+legend right
+Volume persistant postgres-data. Sonde pg_isready.
+Chaine de connexion fournie par ConnectionStrings__DefaultConnection ;
+les appsettings.json versionnes ne contiennent plus aucun mot de passe.
+endlegend
+
+@enduml

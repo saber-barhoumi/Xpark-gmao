@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Infrastructure - Topologie SignalR
+
+skinparam componentStyle rectangle
+
+component "backoffice\nsignalRService.ts\n@microsoft/signalr" as BO #E1F5FE
+component "nginx back-office\nlocation /chatHub\n(Upgrade + Connection)" as N1 #ECEFF1
+component "nginx passerelle\nlocation /chat/" as N2 #ECEFF1
+component "chat-api" as CH #EDE7F6 {
+  component "ChatHub\nmappe sur /chatHub" as HUB
+}
+database "postgres" as PG #FFF8E1
+
+BO --> N1 : WebSocket
+N1 --> N2 : proxy_read_timeout 86400s
+N2 --> HUB
+HUB --> PG : ChatDbContext
+
+
+component "backoffice\nuseKanbanContext" as KB #E1F5FE
+component "location /kanbanHub\n-> /backend/kanbanHub" as KN #FFEBEE
+KB --> KN : WebSocket
+
+legend right
+Un seul hub SignalR existe dans le code : ChatHub
+(Chat.Infrastructure/SignalR/ChatHub.cs).
+
+La route /kanbanHub est bien declaree dans le nginx du back-office et
+pointe vers /backend/kanbanHub, c'est-a-dire l'ancien monolithe : le
+code source de ce service ne figure plus dans le depot (backend/src ne
+contient qu'un dossier wwwroot/uploads vide).
+endlegend
+
+@enduml

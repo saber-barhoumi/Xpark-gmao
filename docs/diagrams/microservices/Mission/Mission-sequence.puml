@@ -1,0 +1,77 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Demande de transport, devis puis mission
+
+autonumber
+
+actor "CLIENT" as C
+participant "frontoffice" as FO
+participant "TransportRequestsController" as TRC
+participant "ai-predictor" as AIP
+database "postgres" as PG
+actor "GESTIONNAIRE" as G
+participant "backoffice" as BO
+participant "MissionsController" as MC
+participant "MissionService" as MS
+participant "OptimizerEventBus" as EB
+queue "rabbitmq" as MQ
+participant "TrackingController" as TC
+actor "CHAUFFEUR" as D
+
+C -> FO : formulaire de reservation
+FO -> AIP : POST /predict (estimation)
+AIP --> FO : fourchette de prix
+FO -> TRC : POST /api/missions/demandes
+activate TRC
+TRC -> PG : INSERT TransportRequests (EN_ATTENTE)
+TRC --> FO : 200 demande enregistree
+deactivate TRC
+
+G -> BO : ouvre /gestion/demandes-transport
+BO -> TRC : GET /api/missions/demandes
+TRC --> BO : demandes en attente
+G -> BO : etablit un devis
+BO -> TRC : mise a jour du devis
+
+alt Devis accepte par le client
+  BO -> MC : POST /api/missions
+  activate MC
+  MC -> MS : CreateAsync(dto)
+  MS -> PG : INSERT Missions (EN_ATTENTE)\nvehicule + chauffeur affectes
+  MS -> EB : xpark.mission.client-request
+  EB -> MQ : exchange xpark.ai
+  MS --> MC : MissionDto
+  MC --> BO : 200
+  deactivate MC
+else Devis refuse
+  BO -> TRC : demande ANNULEE
+end
+
+D -> TC : POST /api/tracking (position GPS)
+activate TC
+TC -> PG : INSERT LivePosition
+TC --> D : 200
+deactivate TC
+BO -> TC : GET /api/tracking (carte Leaflet)
+
+G -> MC : mission TERMINEE
+MC -> EB : xpark.mission.task-completed
+
+
+legend right
+La reservation est un devis : TransportRequest precede toujours
+Mission, qui n'est creee qu'a l'acceptation.
+endlegend
+
+@enduml

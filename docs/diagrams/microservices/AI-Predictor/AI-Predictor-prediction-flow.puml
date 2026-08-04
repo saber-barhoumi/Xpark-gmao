@@ -1,0 +1,39 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Predictor - Flux de prediction
+
+autonumber
+
+participant "Appelant\n(frontoffice ou mission-api)" as C
+participant "FastAPI /predict" as A
+participant "distance_matrix.json" as DM
+participant "model_xgboost" as MD
+
+C -> A : POST /predict
+ activate A
+A -> A : validation Pydantic
+A -> DM : distance entre les villes
+DM --> A : km
+A -> A : assemblage des caracteristiques
+A -> MD : predict(features)
+MD --> A : prix
+A -> A : construction de la fourchette
+A --> C : { prix, fourchette }
+deactivate A
+
+legend right
+Endpoints reels : GET /health, GET /cities, GET /distance, POST /predict.
+endlegend
+
+@enduml

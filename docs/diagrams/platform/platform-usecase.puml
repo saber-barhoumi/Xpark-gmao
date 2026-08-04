@@ -1,0 +1,102 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Cas d'utilisation de la plateforme
+
+left to right direction
+
+:ADMIN: as Admin
+:GESTIONNAIRE: as Gest
+:TECHNICIEN: as Tech
+:CHAUFFEUR: as Chauf
+:CLIENT: as Cli
+
+rectangle "Plateforme XPARK GMAO" {
+  package "Identites & acces" {
+    usecase "S'inscrire" as UC_S_inscrire
+    usecase "Se connecter" as UC_Se_connecter
+    usecase "Valider un second facteur" as UC_Valider_un_second_facteur
+    usecase "Approuver un compte" as UC_Approuver_un_compte
+    usecase "Archiver / restaurer un compte" as UC_Archiver___restaurer_un_co
+    usecase "Consulter l'historique de connexion" as UC_Consulter_l_historique_de_
+  }
+  package "Flotte" {
+    usecase "Gerer les vehicules" as UC_Gerer_les_vehicules
+    usecase "Gerer les equipements" as UC_Gerer_les_equipements
+    usecase "Suivre les echeances (assurance, documents)" as UC_Suivre_les_echeances__assu
+    usecase "Saisir les pleins de carburant" as UC_Saisir_les_pleins_de_carbu
+  }
+  package "Operations" {
+    usecase "Deposer une demande de transport" as UC_Deposer_une_demande_de_tra
+    usecase "Etablir un devis" as UC_Etablir_un_devis
+    usecase "Creer une mission" as UC_Creer_une_mission
+    usecase "Affecter vehicule et chauffeur" as UC_Affecter_vehicule_et_chauf
+    usecase "Suivre une mission en direct" as UC_Suivre_une_mission_en_dire
+    usecase "Optimiser une tournee" as UC_Optimiser_une_tournee
+  }
+  package "Maintenance" {
+    usecase "Declarer une intervention" as UC_Declarer_une_intervention
+    usecase "Gerer les ordres de travail" as UC_Gerer_les_ordres_de_travai
+    usecase "Gerer les pieces de rechange" as UC_Gerer_les_pieces_de_rechan
+    usecase "Consulter les predictions de panne" as UC_Consulter_les_predictions_
+  }
+  package "Finance" {
+    usecase "Emettre une facture" as UC_Emettre_une_facture
+    usecase "Suivre les impayes" as UC_Suivre_les_impayes
+  }
+  package "Pilotage" {
+    usecase "Consulter les alertes" as UC_Consulter_les_alertes
+    usecase "Consulter les analyses" as UC_Consulter_les_analyses
+    usecase "Consulter le journal metier IBOA" as UC_Consulter_le_journal_metie
+    usecase "Echanger par messagerie" as UC_Echanger_par_messagerie
+  }
+}
+
+Cli --> UC_S_inscrire
+Cli --> UC_Se_connecter
+Cli --> UC_Deposer_une_demande_de_tra
+Cli --> UC_Suivre_une_mission_en_dire
+Chauf --> UC_Se_connecter
+Chauf --> UC_Suivre_une_mission_en_dire
+Chauf --> UC_Echanger_par_messagerie
+Tech --> UC_Se_connecter
+Tech --> UC_Declarer_une_intervention
+Tech --> UC_Gerer_les_ordres_de_travai
+Tech --> UC_Gerer_les_pieces_de_rechan
+Gest --> UC_Creer_une_mission
+Gest --> UC_Affecter_vehicule_et_chauf
+Gest --> UC_Etablir_un_devis
+Gest --> UC_Gerer_les_vehicules
+Gest --> UC_Emettre_une_facture
+Gest --> UC_Consulter_les_alertes
+Gest --> UC_Consulter_les_analyses
+Gest --> UC_Optimiser_une_tournee
+Gest --> UC_Consulter_les_predictions_
+Admin --> UC_Approuver_un_compte
+Admin --> UC_Archiver___restaurer_un_co
+Admin --> UC_Consulter_l_historique_de_
+Admin --> UC_Consulter_le_journal_metie
+Admin --> UC_Gerer_les_equipements
+Admin --> UC_Suivre_les_echeances__assu
+Admin --> UC_Saisir_les_pleins_de_carbu
+Admin --> UC_Suivre_les_impayes
+Admin --> UC_Valider_un_second_facteur
+
+legend right
+Roles releves dans les attributs [Authorize(Roles=...)]
+des controleurs : ADMIN, ADMINISTRATEUR, CHAUFFEUR, GESTIONNAIRE, TECHNICIEN.
+Enumeration Role (XparkGMAO.Shared) : CLIENT, CHAUFFEUR,
+TECHNICIEN, GESTIONNAIRE, ADMINISTRATEUR, ADMIN.
+endlegend
+
+@enduml

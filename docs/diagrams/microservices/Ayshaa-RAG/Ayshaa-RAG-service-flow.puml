@@ -1,0 +1,36 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Chaine interne (couches)
+
+skinparam componentStyle rectangle
+
+rectangle "api/routes_chat.py" as A #FCE4EC
+rectangle "agent/language.py\ndetection de langue" as B #FCE4EC
+rectangle "agent/router.py\nsmalltalk / outil / RAG" as C #FCE4EC
+rectangle "agent/orchestrator.py" as D #FCE4EC
+rectangle "retrieval\nfastembed + BM25 + Qdrant" as E #FFF8E1
+rectangle "llm/providers.py\nOllama ou repli extractif" as F #FCE4EC
+rectangle "memory/store.py\nSQLite" as G #FFF8E1
+A --> B
+B --> C
+C --> D
+D --> E
+D --> F
+D --> G
+
+legend right
+Modules reellement presents sous AyshaaRAG/app/.
+endlegend
+
+@enduml

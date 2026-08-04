@@ -1,0 +1,117 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Back-office - Routage (react-router-dom)
+
+skinparam componentStyle rectangle
+left to right direction
+
+package "/alertes (1)" #E8F5E9 {
+  card "/alertes\nAlertes" as r_alertes
+}
+package "/analytics (1)" #E8F5E9 {
+  card "/analytics\nAnalytics" as r_analytics
+}
+package "/apps (4)" #E8F5E9 {
+  card "/apps/chat\nChat" as r_apps_chat
+  card "/apps/calendar\nCalendar" as r_apps_calendar
+  card "/apps/file-manager\nFileManager" as r_apps_file_manager
+  card "/apps/Projects\nProjects" as r_apps_Projects
+}
+package "/auth (8)" #E1F5FE {
+  card "/auth/login\nLogin" as r_auth_login
+  card "/auth/register\nRegister" as r_auth_register
+  card "/auth/logout\nLogout" as r_auth_logout
+  card "/auth/recover-password\nRecoverPassword" as r_auth_recover_password
+  card "/auth/create-password\nCreatePassword" as r_auth_create_password
+  card "/auth/lock-screen\nLockScreen" as r_auth_lock_screen
+  card "/auth/confirm-mail\nConfirmMail" as r_auth_confirm_mail
+  card "/auth/login-pin\nLoginPin" as r_auth_login_pin
+}
+package "/coming-soon (1)" #E8F5E9 {
+  card "/coming-soon\nComingSoon" as r_coming_soon
+}
+package "/dashboard (1)" #E8F5E9 {
+  card "/dashboard\nDashboard" as r_dashboard
+}
+package "/errors (6)" #E1F5FE {
+  card "/errors/error-400\nError400" as r_errors_error_400
+  card "/errors/error-401\nError401" as r_errors_error_401
+  card "/errors/error-403\nError403" as r_errors_error_403
+  card "/errors/error-404\nError404" as r_errors_error_404
+  card "/errors/error-500\nError500" as r_errors_error_500
+  card "/errors/service-unavailable\nServiceUnavail" as r_errors_service_unavailable
+}
+package "/gestion (7)" #E8F5E9 {
+  card "/gestion/vehicules\nVehicules" as r_gestion_vehicules
+  card "/gestion/missions\nMissions" as r_gestion_missions
+  card "/gestion/demandes-transport\nDemandesTransport" as r_gestion_demandes_transport
+  card "/gestion/suivi\nSuivi" as r_gestion_suivi
+  card "/gestion/optimisateur\nOptimisateur" as r_gestion_optimisateur
+  card "/gestion/equipements\nEquipements" as r_gestion_equipements
+  card "/gestion/equipements/:id\nEquipementDetail" as r_gestion_equipements__id
+}
+package "/hr (1)" #E8F5E9 {
+  card "/hr/employees\nEmployees" as r_hr_employees
+}
+package "/invoices (3)" #E8F5E9 {
+  card "/invoices\nInvoices" as r_invoices
+  card "/invoices/view-invoice\nViewInvoice" as r_invoices_view_invoice
+  card "/invoices/create-invoice\nCreateInvoice" as r_invoices_create_invoice
+}
+package "/maintenance (5)" #E8F5E9 {
+  card "/maintenance\nMaintenancePage" as r_maintenance
+  card "/maintenance/ordres-travail\nOrdresTravail" as r_maintenance_ordres_travail
+  card "/maintenance/interventions\nInterventions" as r_maintenance_interventions
+  card "/maintenance/pieces-rechange\nPiecesRechange" as r_maintenance_pieces_rechange
+  card "/maintenance/prediction-pannes\nPredictionPannes" as r_maintenance_prediction_pannes
+}
+package "/monitoring (1)" #E8F5E9 {
+  card "/monitoring/iboa\nIboaAssistant" as r_monitoring_iboa
+}
+package "/operations (2)" #E8F5E9 {
+  card "/operations/sources\nSources" as r_operations_sources
+  card "/operations/carburant\nCarburant" as r_operations_carburant
+}
+package "/pages (2)" #E8F5E9 {
+  card "/pages/faq\nFAQ" as r_pages_faq
+  card "/pages/error-404-alt\nError404Alt" as r_pages_error_404_alt
+}
+package "/security (1)" #E8F5E9 {
+  card "/security\nSecurityPage" as r_security
+}
+package "/tasks (2)" #E8F5E9 {
+  card "/tasks/kanban\nKanban" as r_tasks_kanban
+  card "/tasks/view-details\nViewDetails" as r_tasks_view_details
+}
+package "/users (6)" #E8F5E9 {
+  card "/users/pending\nPendingUsers" as r_users_pending
+  card "/users/archives\nUserArchives" as r_users_archives
+  card "/users\nUsersAccounts" as r_users
+  card "/users/contacts\nContacts" as r_users_contacts
+  card "/users/profile\nProfile" as r_users_profile
+  card "/users/profile/edit\nProfileEdit" as r_users_profile_edit
+}
+package "/wallet (1)" #E8F5E9 {
+  card "/wallet\nWallet" as r_wallet
+}
+
+legend right
+53 routes declarees dans src/routes/index.ts.
+Les routes /auth/* et /errors/* sont publiques ; toutes les autres
+passent par ProtectedRoute, qui redirige vers /auth/login si aucun
+jeton n'est present et vers /errors/error-403 si le role ne convient pas.
+Toute URL inconnue tombe sur la page 404.
+endlegend
+
+@enduml

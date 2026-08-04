@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Alerts - Persistance
+
+skinparam linetype ortho
+hide circle
+
+database "postgres : xpark_gmao" {
+  package "Accede par AlertsDbContext" #FFF8E1 {
+    entity "Alertes" as Alerte {
+      IdAlerte : long
+      Message : string
+      DateCreation : DateTime
+      DateExpiration : DateTime?
+      UtilisateurId : long?
+      VehiculeId : long?
+      ChauffeurId : long?
+      EntiteReference : string?
+      EntiteReferenceId : long?
+      EquipementId : long?
+      MissionId : long?
+      Titre : string
+      DateLecture : DateTime?
+    }
+    entity "_set" as T {
+    }
+  }
+}
+
+note as N
+  DbContext : AlertsDbContext
+  2 DbSet declares.
+  Fournisseur : Npgsql (PostgreSQL 16).
+end note
+
+legend right
+Base unique partagee : ce service ecrit dans ses tables et lit
+celles des autres domaines en SQL direct lorsque necessaire.
+endlegend
+
+@enduml

@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Shared - Dependances entre couches et bibliotheques
+
+skinparam componentStyle rectangle
+
+package "Service type (les 8 sont identiques)" #E8F5E9 {
+  component "X.API\ncontroleurs, Program.cs" as API
+  component "X.Application\ninterfaces, DTO, profils" as APP
+  component "X.Domain\nentites, enums" as DOM
+  component "X.Infrastructure\nDbContext, services, messagerie" as INF
+}
+component "XparkGMAO.Shared" as SH #ECEFF1
+
+package "Paquets NuGet principaux" #FFF8E1 {
+  component "Npgsql.EntityFrameworkCore.PostgreSQL" as NPG
+  component "AutoMapper 13.0.1" as AM
+  component "MassTransit + RabbitMQ" as MT
+  component "Microsoft.AspNetCore.Authentication.JwtBearer" as JWT
+  component "Serilog.AspNetCore" as SER
+  component "MailKit 4.17.0 (IAM)" as MK
+  component "BCrypt.Net (IAM)" as BC
+  component "Microsoft.AspNetCore.SignalR (Chat)" as SR
+}
+
+API --> APP
+API --> INF
+INF --> APP
+INF --> DOM
+APP --> DOM
+DOM --> SH
+INF --> NPG
+APP --> AM
+INF --> MT
+API --> JWT
+API --> SER
+INF --> MK
+INF --> BC
+API --> SR
+
+legend right
+La regle de dependance de la Clean Architecture est respectee :
+rien ne pointe vers l'exterieur depuis Domain.
+
+Point de vigilance : AutoMapper 13.0.1 porte une faille de gravite
+elevee (GHSA-rvv3-g6hj-g44x), corrigee seulement a partir de la
+version 15.1.1, laquelle est sous licence commerciale.
+endlegend
+
+@enduml

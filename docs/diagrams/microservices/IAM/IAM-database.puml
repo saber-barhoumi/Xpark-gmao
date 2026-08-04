@@ -1,0 +1,121 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IAM - Persistance
+
+skinparam linetype ortho
+hide circle
+
+database "postgres : xpark_gmao" {
+  package "Accede par IamDbContext" #FFF8E1 {
+    entity "AuthAuditLogs" as AuthAuditLog {
+      Id : long
+      UserId : long?
+      Action : string
+      Description : string?
+      IpAddress : string?
+      CreatedAt : DateTime
+    }
+    entity "Chauffeurs" as Chauffeur {
+      NumeroPermis : string
+      DateExpirationPermis : DateTime
+      Evaluation : double
+      NombreMissionsEffectuees : int
+      KilometrageTotal : double
+      DateDerniereFormation : DateTime?
+    }
+    entity "Clients" as Client {
+      NomSociete : string?
+      SecteurActivite : string?
+      Adresse : string?
+      Ville : string?
+      CodePostal : string?
+      Pays : string?
+      NumeroFiscal : string?
+      SiteWeb : string?
+      EstEntreprise : bool
+    }
+    entity "EmailOtps" as EmailOtp {
+      Id : long
+      UserId : long
+      CodeHash : string
+      ExpiryTime : DateTime
+      IsUsed : bool
+      UsedAt : DateTime?
+      Attempts : int
+      CreatedAt : DateTime
+    }
+    entity "Employees" as Employee {
+      IdEmployee : long
+      Name : string
+      Prenom : string
+      NumeroMatricule : string
+      Telephone : string
+      DateEmbauche : DateTime
+      Activ : bool
+      NumeroPermis : string?
+      DateExpirationPermis : DateTime?
+    }
+    entity "LoginHistory" as LoginHistoryEntry {
+      Id : long
+      UserId : long
+      LoginMethod : string
+      MfaMethod : string?
+      IpAddress : string?
+      UserAgent : string?
+      IsSuccessful : bool
+      FailureReason : string?
+      LoggedInAt : DateTime
+    }
+    entity "MfaSettings" as UserMfaSettings {
+      Id : long
+      UserId : long
+      AuthenticatorEnabled : bool
+      AuthenticatorSecret : string?
+      EmailOtpEnabled : bool
+      DefaultMethod : string
+      CreatedAt : DateTime
+      UpdatedAt : DateTime
+    }
+    entity "Utilisateurs" as Utilisateur {
+      IdUtilisateur : long
+      Nom : string
+      Prenom : string
+      Email : string
+      MotDePasse : string
+      Telephone : string
+      Actif : bool
+      DateCreation : DateTime
+      Photo : string?
+      EmailConfirmed : bool
+      EmailConfirmationToken : string?
+      EmailConfirmationTokenExpiry : DateTime?
+      PasswordResetToken : string?
+      PasswordResetTokenExpiry : DateTime?
+      Pin : string?
+    }
+  }
+}
+
+note as N
+  DbContext : IamDbContext
+  8 DbSet declares.
+  Fournisseur : Npgsql (PostgreSQL 16).
+end note
+
+legend right
+Base unique partagee : ce service ecrit dans ses tables et lit
+celles des autres domaines en SQL direct lorsque necessaire.
+endlegend
+
+@enduml

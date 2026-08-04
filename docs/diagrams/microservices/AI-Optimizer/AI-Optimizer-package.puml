@@ -1,0 +1,43 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Organisation en paquets
+
+skinparam componentStyle rectangle
+
+package "(racine)" #FCE4EC {
+  component "constraints.py" as constraints_py
+  component "main.py\n2 endpoints" as main_py
+  component "models.py" as models_py
+  component "optimizer.py" as optimizer_py
+  component "rabbitmq_consumer.py" as rabbitmq_consumer_py
+  component "scoring.py" as scoring_py
+}
+
+constraints_py ..> models_py
+main_py ..> models_py
+main_py ..> optimizer_py
+main_py ..> rabbitmq_consumer_py
+optimizer_py ..> constraints_py
+optimizer_py ..> models_py
+optimizer_py ..> scoring_py
+rabbitmq_consumer_py ..> models_py
+rabbitmq_consumer_py ..> optimizer_py
+scoring_py ..> constraints_py
+scoring_py ..> models_py
+
+legend right
+6 modules Python, 11 dependances internes relevees dans les imports.
+endlegend
+
+@enduml

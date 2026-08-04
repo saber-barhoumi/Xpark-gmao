@@ -1,0 +1,42 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Finance - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> BROUILLON : creation
+BROUILLON --> EMISE : emission
+EMISE --> PAYEE : reglement recu
+EMISE --> EN_RETARD : echeance depassee
+EN_RETARD --> PAYEE : reglement tardif
+BROUILLON --> ANNULEE
+EMISE --> ANNULEE
+EN_RETARD --> ANNULEE
+PAYEE --> [*]
+ANNULEE --> [*]
+
+note right of ANNULEE
+  Une facture ANNULEE ne compte plus :
+  la mission redevient facturable
+  (garde anti-doublon).
+end note
+
+legend right
+Enumeration StatutFacture.
+endlegend
+
+@enduml

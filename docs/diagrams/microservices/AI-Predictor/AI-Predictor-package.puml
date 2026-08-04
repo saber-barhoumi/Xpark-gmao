@@ -1,0 +1,27 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Predictor - Organisation en paquets
+
+skinparam componentStyle rectangle
+
+package "(racine)" #FCE4EC {
+  component "main.py\n4 endpoints" as main_py
+}
+
+
+legend right
+1 modules Python, 0 dependances internes relevees dans les imports.
+endlegend
+
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Predictor - Traitement d'une estimation
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Demarrage : chargement de\nmodel_xgboost.pkl (joblib);
+:Chargement de distance_matrix.json;
+:Reception POST /predict;
+:Validation du corps (Pydantic);
+if (Villes connues de la matrice ?) then (non)
+  :Erreur de validation;
+  stop
+endif
+:Lecture de la distance;
+:Construction du vecteur de caracteristiques;
+:model.predict(features);
+:Prix estime;
+:Construction de la fourchette;
+:Reponse JSON;
+stop
+
+
+legend right
+Aucun reentrainement a l'execution : le modele est charge une fois.
+endlegend
+
+@enduml

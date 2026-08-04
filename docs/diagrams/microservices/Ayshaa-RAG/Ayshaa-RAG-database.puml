@@ -1,0 +1,30 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Persistance
+
+database "Qdrant\n:6333" as QD #FFF8E1
+database "SQLite\nmemoire de conversation" as SQ #FFF8E1
+component "retrieval\nfastembed + BM25" as RT #FCE4EC
+component "memory/store.py\nSqliteStore" as MS #FCE4EC
+RT --> QD : recherche vectorielle
+MS --> SQ : fenetre glissante
+
+legend right
+Deux stockages : Qdrant pour les vecteurs, SQLite pour l'historique
+de conversation. Aucune base relationnelle partagee.
+La limitation de debit est en memoire (defaultdict), pas Redis :
+Redis n'est mentionne que comme evolution possible en commentaire.
+endlegend
+
+@enduml

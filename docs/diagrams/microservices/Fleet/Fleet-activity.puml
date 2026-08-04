@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Fleet - Suivi d'un vehicule et de ses echeances
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Creation du vehicule\n(statut DISPONIBLE);
+:Publication xpark.fleet.vehicle-added;
+fork
+  :Rattachement des documents\n(carte grise, vignette, visite technique);
+fork again
+  :Rattachement des assurances;
+fork again
+  :Saisie des pleins de carburant;
+end fork
+repeat
+  :Calcul des echeances\n(EcheanceService, 2 requetes SQL);
+  :JoursRestants par echeance;
+  if (Echeance depassee ou proche ?) then (oui)
+    :Remontee dans le calendrier;
+    :Le service Alertes cree une alerte;
+  endif
+repeat while (Vehicule en service ?) is (oui)
+if (Etat du vehicule) then (EN_MAINTENANCE)
+  :Immobilise, ordre de travail ouvert;
+elseif (HORS_SERVICE) then
+  :Publication xpark.fleet.vehicle-breakdown\n(criticite HIGH);
+elseif (BESOIN_MAINTENANCE) then
+  :Publication xpark.fleet.maintenance-due;
+endif
+stop
+
+
+legend right
+Les trois routing keys correspondent aux appels
+PublishFleetEventAsync reellement presents dans VehiculeService.
+endlegend
+
+@enduml

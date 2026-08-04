@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Flux d'optimisation
+
+skinparam ActivityBackgroundColor #FCE4EC
+
+start
+:Demande recue (AMQP ou HTTP);
+:Deserialisation (Pydantic);
+partition "constraints.py" {
+  :Capacite des vehicules;
+  :Disponibilite des chauffeurs;
+  :Categorie de permis requise;
+  :Compatibilite mission / vehicule;
+}
+if (Candidats restants ?) then (aucun)
+  :Plan vide + motif;
+  stop
+endif
+partition "scoring.py" {
+  :Notation de chaque couple\n(mission, ressource);
+}
+partition "optimizer.py" {
+  while (Mission non affectee ?) is (oui)
+    :Meilleur candidat;
+    :Retrait des ressources mobilisees;
+  endwhile (non)
+}
+:Plan d'affectation;
+if (Origine) then (AMQP)
+  :xpark.optimization.plan-generated;
+else (HTTP)
+  :Reponse directe;
+endif
+stop
+
+legend right
+Modules reels : constraints.py, scoring.py, optimizer.py.
+endlegend
+
+@enduml

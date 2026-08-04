@@ -1,0 +1,68 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Calcul des predictions de panne
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "backoffice" as BO
+participant "PredictionsController" as PC
+participant "IPredictionService" as IPS
+participant "PredictionService" as PS
+participant "RuleBasedPredictionEngine" as EN
+participant "OrganeClassifier" as OC
+database "postgres" as PG
+
+G -> BO : ouvre /maintenance/prediction-pannes
+BO -> PC : GET /api/predictions/dashboard
+activate PC
+PC -> IPS : GetDashboardAsync()
+IPS -> PS : implementation
+PS -> PG : SELECT PredictionsPanne
+PS --> BO : synthese par niveau de risque
+deactivate PC
+
+G -> BO : relance le calcul
+BO -> PC : POST /api/predictions/recalculer
+activate PC
+PC -> PS : RecalculerAsync()
+activate PS
+PS -> PG : lecture des vehicules,\nkilometrages et interventions passees
+loop pour chaque vehicule
+  PS -> EN : Evaluer(vehicule, historique)
+  activate EN
+  EN -> EN : regles metier\n(kilometrage, anciennete,\ndelai depuis la derniere intervention)
+  EN -> OC : classification de l'organe
+  OC --> EN : TypePanne
+  EN --> PS : NiveauRisque + score
+  deactivate EN
+end
+PS -> PG : INSERT / UPDATE PredictionsPanne
+PS --> PC : nombre de predictions
+deactivate PS
+PC --> BO : 200
+deactivate PC
+
+G -> BO : supprime une entree de l'historique
+BO -> PC : POST /api/predictions/historique/supprimer
+PC -> PG : DELETE
+
+
+legend right
+Le moteur est deterministe (RuleBasedPredictionEngine).
+L'enumeration SourcePrediction prevoit MODELE_ML, non implemente :
+IPredictionEngine permet d'y basculer sans toucher au reste.
+endlegend
+
+@enduml

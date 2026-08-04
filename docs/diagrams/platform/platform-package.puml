@@ -1,0 +1,82 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Organisation en paquets (Clean Architecture)
+
+package "XparkGMAO.Shared" as Sh #ECEFF1 {
+  class Events
+  class Enums
+  class Common
+}
+package "XparkGMAO.Shared.AiTelemetry" as Ai #FCE4EC {
+  class AiTripTrainingData
+  class IFinanceServiceClient
+  class IFleetServiceClient
+}
+
+note as N
+  Les 8 services .NET partagent le meme decoupage
+  en 4 couches. Exemple developpe : IAM.
+end note
+
+package "IAM.API" as API #E1F5FE {
+  class AuthController
+  class ClientsController
+  class EmployeesController
+  class UserManagementController
+  class UsersController
+}
+package "IAM.Application" as Application #FFF3E0 {
+  interface IAuthService
+  interface IClientService
+  interface IEmailService
+  interface IEmployeeService
+  interface IJwtService
+  interface IMfaService
+  interface IUserArchiveService
+  interface IUserService
+}
+package "IAM.Domain" as Domain #E8F5E9 {
+  class Chauffeur
+  class Client
+  class Employee
+  class UserMfaSettings
+  class EmailOtp
+  class LoginHistoryEntry
+  class AuthAuditLog
+  class Utilisateur
+}
+package "IAM.Infrastructure" as Infrastructure #FFF8E1 {
+  class AuthService
+  class ClientService
+  class EmailService
+  class EmployeeService
+  class JwtService
+  class MfaService
+  class TotpService
+  class UserArchiveService
+  class IamDbContext
+}
+
+API ..> Application : depend de
+Infrastructure ..> Application : implemente
+Application ..> Domain : depend de
+Infrastructure ..> Domain : persiste
+Domain ..> Sh : reutilise enums et evenements
+API ..> Infrastructure : injection de dependances
+
+legend right
+Le sens des dependances est celui impose par les references de projet (.csproj).
+endlegend
+
+@enduml

@@ -1,0 +1,71 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur mission-api (:5003)" #E8F5E9 {
+  package "API" {
+    component "DataMigrationController" as DataMigrationController
+    component "MissionsController" as MissionsController
+    component "SupportController" as SupportController
+    component "TrackingController" as TrackingController
+    component "TransportRequestsController" as TransportRequestsController
+  }
+  package "Application (ports)" {
+    interface "IHistoricalMigrationService" as IHistoricalMigrationService
+    interface "IMissionService" as IMissionService
+    interface "IOptimizationService" as IOptimizationService
+    interface "IOptimizerEventBus" as IOptimizerEventBus
+    interface "IGenericRepository" as IGenericRepository
+    interface "IMissionRepository" as IMissionRepository
+  }
+  package "Infrastructure (adaptateurs)" {
+    component "OptimizerEventBus" as OptimizerEventBus
+    component "HistoricalMigrationService" as HistoricalMigrationService
+    component "MissionService" as MissionService
+    component "OptimizationService" as OptimizationService
+    component "MissionDbContext" as MissionDbContext
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> GWc
+GWc --> DataMigrationController
+GWc --> DataMigrationController
+GWc --> MissionsController
+GWc --> SupportController
+GWc --> TrackingController
+GWc --> TransportRequestsController
+OptimizerEventBus ..|> IOptimizerEventBus
+HistoricalMigrationService ..|> IHistoricalMigrationService
+MissionService ..|> IMissionService
+OptimizationService ..|> IOptimizationService
+MissionDbContext --> PG
+OptimizerEventBus --> MissionDbContext
+HistoricalMigrationService --> MissionDbContext
+MissionService --> MissionDbContext
+OptimizationService --> MissionDbContext
+OptimizerEventBus --> MQ
+
+legend right
+Port publie : 5003 (le processus ecoute sur le port 80 dans le reseau Docker).
+endlegend
+
+@enduml

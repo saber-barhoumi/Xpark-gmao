@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Chaine RAG
+
+skinparam componentStyle rectangle
+
+package "Indexation (POST /reindex)" #FCE4EC {
+  component "Base documentaire\n(knowledge/, CleanData/)" as KB
+  component "Decoupage en passages" as CH
+  component "fastembed\n(vecteurs)" as EMB
+  database "Qdrant" as QD
+}
+package "Interrogation (POST /chat)" #E1F5FE {
+  component "Question" as Q
+  component "Detection de langue" as LG
+  component "Routage d'intention" as RT
+  component "Recherche vectorielle" as VS
+  component "BM25 (rank_bm25)" as BM
+  component "Fusion hybride" as FU
+  component "Assemblage du contexte" as CX
+  component "Generation (Ollama)\nou repli extractif" as GEN
+  component "Reponse + sources" as RE
+}
+
+KB --> CH
+CH --> EMB
+EMB --> QD
+Q --> LG
+LG --> RT
+RT --> VS
+VS --> QD
+QD --> VS
+RT --> BM
+VS --> FU
+BM --> FU
+FU --> CX
+CX --> GEN
+GEN --> RE
+
+legend right
+Recherche hybride : vecteurs (fastembed + Qdrant) ET lexicale
+(rank_bm25). La reindexation est protegee par AYSHAA_ADMIN_API_KEY.
+endlegend
+
+@enduml

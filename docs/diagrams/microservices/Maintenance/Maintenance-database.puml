@@ -1,0 +1,121 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Persistance
+
+skinparam linetype ortho
+hide circle
+
+database "postgres : xpark_gmao" {
+  package "Accede par MaintenanceDbContext" #FFF8E1 {
+    entity "Attachments" as Attachment {
+      Id : long
+      OrdreId : long
+      Nom : string
+      Url : string
+      Taille : long
+      Type : string
+      CreatedAt : DateTime
+    }
+    entity "Commentaires" as Commentaire {
+      Id : long
+      OrdreId : long
+      Contenu : string
+      AuteurId : long
+      CreatedAt : DateTime
+    }
+    entity "HistoriqueStatutsOT" as HistoriqueStatutOT {
+      Id : long
+      OrdreTravailId : long
+      AncienStatut : string
+      NouveauStatut : string
+      Commentaire : string?
+      UtilisateurId : long?
+      DateChangement : DateTime
+    }
+    entity "Interventions" as Intervention {
+      IdIntervention : long
+      DateIntervention : DateTime
+      DateFinIntervention : DateTime?
+      TypeIntervention : TypeIntervention
+      Description : string
+      Cout : double
+      CoutMainOeuvre : double?
+      CoutPieces : double?
+      Statut : StatutIntervention
+      KilometrageIntervention : double
+      Observations : string?
+      Prestataire : string?
+      DureeMinutes : int?
+      TypePeriodicite : string?
+      VehiculeId : long
+      TechnicienId : long?
+    }
+    entity "InterventionPieces" as InterventionPiece {
+      IdInterventionPiece : long
+      InterventionId : long
+      PieceId : long
+      Quantite : int
+      PrixUnitaire : double
+    }
+    entity "OrdresTravail" as OrdreTravail {
+      IdOrdreTravail : long
+      Reference : string
+      DateCreation : DateTime
+      DateDebut : DateTime?
+      DateFin : DateTime?
+      Description : string
+      Statut : StatutOrdreTravail
+      Priorite : PrioriteOrdreTravail
+      CoutReel : double?
+      Observations : string?
+      MotifAnnulation : string?
+      ValideParId : long?
+      DateValidation : DateTime?
+      VehiculeId : long
+      TechnicienId : long?
+    }
+    entity "PiecesRechange" as PieceRechange {
+      IdPiece : long
+      Reference : string
+      Designation : string
+      Categorie : CategoriePiece
+      StockActuel : int
+      StockMinimum : int
+      StockMaximum : int
+      PrixUnitaire : double
+      Fournisseur : string?
+      Emplacement : string?
+      Description : string?
+      ImageUrl : string?
+      Actif : bool
+      DateCreation : DateTime
+      DateDernierApprovisionnement : DateTime?
+    }
+    entity "_dbSet" as T {
+    }
+  }
+}
+
+note as N
+  DbContext : MaintenanceDbContext
+  8 DbSet declares.
+  Fournisseur : Npgsql (PostgreSQL 16).
+end note
+
+legend right
+Base unique partagee : ce service ecrit dans ses tables et lit
+celles des autres domaines en SQL direct lorsque necessaire.
+endlegend
+
+@enduml

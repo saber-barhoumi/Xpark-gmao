@@ -1,0 +1,65 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Alerts - Execution des controles metier
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "backoffice" as BO
+participant "AlertesController" as AC
+participant "AlerteService" as AS
+database "postgres" as PG
+
+G -> BO : ouvre /alertes
+BO -> AC : GET /api/alertes
+AC --> BO : alertes existantes
+BO -> AC : GET /api/alertes/count-unread
+AC --> BO : compteur de la pastille
+
+G -> BO : relance les controles
+BO -> AC : POST /api/alertes/run-checks
+activate AC
+AC -> AS : RunChecksAsync()
+activate AS
+AS -> PG : demandes en attente de devis
+AS -> PG : missions livrees non facturees
+AS -> PG : vehicules hors service
+AS -> PG : stock de pieces sous le minimum
+AS -> PG : equipements hors service
+AS -> PG : comptes en attente d'approbation
+AS -> PG : predictions de panne critiques
+loop pour chaque anomalie
+  AS -> AS : ExisteDejaAsync(...)
+  alt alerte absente
+    AS -> PG : INSERT Alertes
+  else deja presente
+    AS -> AS : ignoree (anti-doublon)
+  end
+end
+AS --> AC : nombre d'alertes creees
+deactivate AS
+AC --> BO : 200
+deactivate AC
+
+G -> BO : marque une alerte comme traitee
+BO -> AC : PUT /api/alertes/{id}/traitee
+AC -> PG : UPDATE Statut = TRAITEE
+
+
+legend right
+Les 7 controles correspondent aux methodes Check*Async presentes
+dans AlerteService.cs.
+endlegend
+
+@enduml

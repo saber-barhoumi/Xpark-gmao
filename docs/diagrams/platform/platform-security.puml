@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Vue securite
+
+skinparam componentStyle rectangle
+
+package "1. Transport et exposition" #ECEFF1 {
+  card "nginx : en-tetes X-Frame-Options,\nX-Content-Type-Options,\nX-XSS-Protection, Referrer-Policy" as H1
+  card "CORS : origines limitees par CORS_ORIGINS\n(permissif seulement si la variable est vide)" as H2
+}
+package "2. Authentification" #E3F2FD {
+  card "Mots de passe : BCrypt" as A1
+  card "JWT HMAC-SHA256\ncle >= 32 caracteres, controlee au demarrage" as A2
+  card "MFA : TOTP + code par courriel" as A3
+  card "Refresh token + code PIN + verrouillage ecran" as A4
+}
+package "3. Autorisation" #FFF3E0 {
+  card "[Authorize(Roles=...)] sur les endpoints" as R1
+  card "ProtectedRoute cote interface" as R2
+}
+package "4. Tracabilite" #E8F5E9 {
+  card "LoginHistory (connexions)" as T1
+  card "AuthAuditLogs (evenements de securite)" as T2
+  card "Journal metier IBOA" as T3
+}
+package "5. Secrets" #FFF8E1 {
+  card "Variables d'environnement (.env)\nJWT_KEY, POSTGRES_PASSWORD,\nRABBITMQ_PASSWORD, CORS_ORIGINS" as S1
+  card "appsettings.json versionnes :\naucune valeur sensible" as S2
+}
+
+H1 -[hidden]- H2
+A1 -[hidden]- A2
+R1 -[hidden]- R2
+T1 -[hidden]- T2
+S1 -[hidden]- S2
+
+legend right
+Points restant a traiter avant mise en production (voir
+docs/ameliorations-plateforme/nettoyage-production.md) :
+- rotation de la cle JWT exposee dans l'historique git
+- AutoMapper 13.0.1 : faille de gravite elevee, corrigee seulement
+  en 15.1.1+, version sous licence commerciale (arbitrage a rendre)
+endlegend
+
+@enduml

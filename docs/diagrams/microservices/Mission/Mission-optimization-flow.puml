@@ -1,0 +1,53 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Declenchement d'une optimisation
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "MissionsController" as MC
+participant "IOptimizationService" as IOS
+participant "OptimizerEventBus" as EB
+queue "exchange xpark.ai" as MQ
+participant "ai-optimizer" as OP
+
+G -> MC : POST /api/missions/optimize
+activate MC
+MC -> IOS : demande d'optimisation
+IOS -> EB : PublishOptimizationRequestedAsync(json)
+EB -> MQ : xpark.missions.ready-for-optimization
+IOS --> MC : batchId
+MC --> G : 202 batchId
+deactivate MC
+
+MQ -> OP : file optimizer.ready-for-optimization
+OP -> MQ : xpark.optimization.plan-generated
+MQ -> IOS : reception du plan
+
+loop interrogation
+  G -> MC : GET du plan (batchId)
+  alt plan disponible
+    MC --> G : plan
+  else en cours
+    MC --> G : en attente
+  end
+end
+
+legend right
+Constantes reelles de OptimizerEventBus :
+Exchange = "xpark.ai", RkRequest = "xpark.missions.ready-for-optimization",
+RkPlan = "xpark.optimization.plan-generated".
+endlegend
+
+@enduml

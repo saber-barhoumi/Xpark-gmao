@@ -1,0 +1,161 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Shared - Evenements d'integration
+
+hide empty members
+
+package "Evenements IAM" #E8F5E9 {
+  class "UserRegisteredEvent <<publie>>" as UserRegisteredEvent {
+    long UserId
+    string Email
+    string Nom
+    string Prenom
+    string Role
+  }
+  class "UserApprovedEvent <<publie>>" as UserApprovedEvent {
+    long UserId
+    string Email
+  }
+  class "UserStatusChangedEvent <<publie>>" as UserStatusChangedEvent {
+    long UserId
+    string NewStatus
+  }
+  class "EmployeeCreatedEvent <<publie>>" as EmployeeCreatedEvent {
+    long EmployeeId
+    string Name
+    string Prenom
+    string Post
+    string Service
+  }
+  class "EmployeeStatusChangedEvent <<non utilise>>" as EmployeeStatusChangedEvent {
+    long EmployeeId
+    string NewStatus
+  }
+  class "ClientCreatedEvent <<publie>>" as ClientCreatedEvent {
+    long ClientId
+    string Nom
+    string Email
+  }
+}
+package "Evenements Fleet" #E8F5E9 {
+  class "VehiculeStatusChangedEvent <<non utilise>>" as VehiculeStatusChangedEvent {
+    long VehiculeId
+    string Immatriculation
+    string NewStatus
+  }
+  class "VehiculeCreatedEvent <<non utilise>>" as VehiculeCreatedEvent {
+    long VehiculeId
+    string Immatriculation
+    string Marque
+    string Modele
+  }
+  class "AssuranceExpiringEvent <<non utilise>>" as AssuranceExpiringEvent {
+    long AssuranceId
+    long VehiculeId
+    string Immatriculation
+    DateTime DateFin
+  }
+  class "DocumentExpiringEvent <<non utilise>>" as DocumentExpiringEvent {
+    long DocumentId
+    long VehiculeId
+    string Immatriculation
+    string TypeDocument
+    DateTime DateExpiration
+  }
+}
+package "Evenements Mission" #E8F5E9 {
+  class "MissionCreatedEvent <<non utilise>>" as MissionCreatedEvent {
+    long MissionId
+    long VehiculeId
+    long EmployeeId
+    DateTime DateDepart
+  }
+  class "MissionStatusChangedEvent <<non utilise>>" as MissionStatusChangedEvent {
+    long MissionId
+    string NewStatus
+    long VehiculeId
+    long EmployeeId
+  }
+  class "MissionCompletedEvent <<non utilise>>" as MissionCompletedEvent {
+    long MissionId
+    long VehiculeId
+    double KilometrageRetour
+  }
+}
+package "Evenements Maintenance" #E8F5E9 {
+  class "InterventionCreatedEvent <<non utilise>>" as InterventionCreatedEvent {
+    long InterventionId
+    long VehiculeId
+    string Type
+    double Cout
+  }
+  class "InterventionCompletedEvent <<non utilise>>" as InterventionCompletedEvent {
+    long InterventionId
+    long VehiculeId
+  }
+  class "StockFaibleEvent <<non utilise>>" as StockFaibleEvent {
+    long PieceId
+    string Reference
+    string Designation
+    int StockActuel
+    int StockMinimum
+  }
+  class "OTStatusChangedEvent <<non utilise>>" as OTStatusChangedEvent {
+    long OTId
+    string NewStatus
+    long VehiculeId
+  }
+}
+package "Evenements Finance" #E8F5E9 {
+  class "FactureCreatedEvent <<non utilise>>" as FactureCreatedEvent {
+    long FactureId
+    long? ClientId
+    double MontantTTC
+    string NumeroFacture
+  }
+  class "FacturePayeeEvent <<non utilise>>" as FacturePayeeEvent {
+    long FactureId
+    string NumeroFacture
+    double MontantTTC
+  }
+  class "FactureRetardEvent <<non utilise>>" as FactureRetardEvent {
+    long FactureId
+    string NumeroFacture
+    long? ClientId
+    DateTime DateEcheance
+  }
+}
+package "Evenements Alerts" #E8F5E9 {
+  class "AlerteCreatedEvent <<non utilise>>" as AlerteCreatedEvent {
+    long AlerteId
+    string TypeAlerte
+    string Message
+    string Priorite
+    long? UtilisateurId
+  }
+  class "NotificationEmailEvent <<non utilise>>" as NotificationEmailEvent {
+    string ToEmail
+    string Subject
+    string Body
+  }
+}
+
+legend right
+22 evenements declares dans IntegrationEvents.cs.
+5 sont publies (tous par IAM), 1 consomme (par Chat).
+17 ne sont ni publies ni consommes : ils decrivent une integration
+prevue mais pas encore branchee.
+endlegend
+
+@enduml

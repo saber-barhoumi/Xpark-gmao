@@ -1,0 +1,57 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IAM - Cycle de vie d'un compte
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Inscription (POST /api/auth/register);
+:Hachage BCrypt du mot de passe;
+:Compte cree au statut EN_ATTENTE;
+:Courriel de confirmation (MailKit);
+if (Compte approuve par un ADMIN ?) then (oui)
+  :Statut ACTIF;
+  :Publication UserApprovedEvent;
+else (non)
+  :Reste EN_ATTENTE;
+  stop
+endif
+while (Compte utilise ?) is (oui)
+  :Connexion + trace LoginHistory;
+  if (Second facteur active ?) then (oui)
+    :Verification TOTP ou code par courriel;
+  endif
+endwhile (non)
+if (Action administrative) then (suspension)
+  :Statut SUSPENDU;
+  :Publication UserStatusChangedEvent;
+elseif (suppression demandee) then
+  :Recherche des dependances metier\n(24 tables scannees);
+  if (Historique metier existant ?) then (oui)
+    :Statut ARCHIVE\n(compte conserve, retire des ecrans);
+    note right: restaurable vers SUSPENDU
+  else (non)
+    :Purge definitive autorisee;
+  endif
+endif
+stop
+
+
+legend right
+UserArchiveService parcourt 24 tables metier et exclut les tables
+purement techniques (journaux, OTP, reglages MFA).
+endlegend
+
+@enduml

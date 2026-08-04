@@ -1,0 +1,39 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Alerts - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> ACTIVE : anomalie detectee
+ACTIVE --> LUE : consultee
+LUE --> TRAITEE : action menee
+ACTIVE --> TRAITEE : traitement direct
+ACTIVE --> IGNOREE : jugee non pertinente
+LUE --> IGNOREE
+TRAITEE --> [*] : suppression
+IGNOREE --> [*] : suppression
+
+note right of ACTIVE
+  Une alerte identique deja ACTIVE n'est pas
+  recreee au cycle suivant (ExisteDejaAsync).
+end note
+
+legend right
+Enumeration StatutAlerte.
+endlegend
+
+@enduml

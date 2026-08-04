@@ -1,0 +1,57 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Cheminement d'un appel API
+
+autonumber
+
+actor Client as U
+participant "backoffice" as BO #E1F5FE
+participant "nginx back-office" as N1
+participant "nginx passerelle" as N2
+participant "ChatController\napi/chat" as C #E8F5E9
+participant "IService" as I
+participant "Service" as S
+participant "ChatDbContext" as DB
+database "postgres" as PG #FFF8E1
+
+U -> BO : action dans l'interface
+BO -> N1 : GET /api/...
+N1 -> N2 : rewrite vers /chat/
+N2 -> C : GET conversations
+activate C
+C -> C : validation du jeton JWT\n(middleware Authentication)
+C -> I : GetConversations(...)
+activate I
+I -> S : implementation
+activate S
+S -> DB : requete LINQ / SQL
+DB -> PG : SELECT / INSERT / UPDATE
+PG --> DB : lignes
+DB --> S : entites
+S --> I : DTO
+deactivate S
+I --> C : DTO
+deactivate I
+C --> N2 : 200 ApiResponse<T>
+deactivate C
+N2 --> N1 : reponse
+N1 --> BO : JSON
+BO -> U : rendu
+
+legend right
+Exemple : GET conversations -> ChatController.GetConversations
+Le chemin nginx a deux couches est celui reellement configure.
+endlegend
+
+@enduml

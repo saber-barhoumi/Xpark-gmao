@@ -1,0 +1,135 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IAM - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+:CLIENT: as CLIENT
+:CHAUFFEUR: as CHAUFFEUR
+
+rectangle "IAM" {
+  package "Auth" {
+    usecase "VerifyMfa\nPOST mfa/verify" as AuthControllerVerifyMfaPOST
+    usecase "ResendMfaEmail\nPOST mfa/email/resend" as AuthControllerResendMfaEmailPOST
+    usecase "GetMfaSettings\nGET mfa/settings" as AuthControllerGetMfaSettingsGET
+    usecase "SetupAuthenticator\nPOST mfa/authenticator/setup" as AuthControllerSetupAuthenticatorPOST
+    usecase "ConfirmAuthenticator\nPOST mfa/authenticator/confirm" as AuthControllerConfirmAuthenticatorPOST
+    usecase "DisableAuthenticator\nPOST mfa/authenticator/disable" as AuthControllerDisableAuthenticatorPOST
+    usecase "ToggleEmailOtp\nPOST mfa/email/toggle" as AuthControllerToggleEmailOtpPOST
+    usecase "GetLoginHistory\nGET security/login-history" as AuthControllerGetLoginHistoryGET
+    usecase "DeleteLoginHistory\nDELETE security/login-history/{id:long}" as AuthControllerDeleteLoginHistoryDELETE
+    usecase "ClearLoginHistory\nDELETE security/login-history" as AuthControllerClearLoginHistoryDELETE
+    usecase "Login\nPOST login" as AuthControllerLoginPOST
+    usecase "Register\nPOST register" as AuthControllerRegisterPOST
+    usecase "... 16 autres actions" as AuthControllerreste
+  }
+  package "Clients" {
+    usecase "GetAll\nGET /" as ClientsControllerGetAllGET
+    usecase "GetById\nGET {id}" as ClientsControllerGetByIdGET
+    usecase "Create\nPOST /" as ClientsControllerCreatePOST
+    usecase "Update\nPUT {id}" as ClientsControllerUpdatePUT
+    usecase "Delete\nDELETE {id}" as ClientsControllerDeleteDELETE
+  }
+  package "Employees" {
+    usecase "GetAll\nGET /" as EmployeesControllerGetAllGET
+    usecase "GetById\nGET {id}" as EmployeesControllerGetByIdGET
+    usecase "GetByPost\nGET by-post/{post}" as EmployeesControllerGetByPostGET
+    usecase "GetByStatut\nGET by-statut/{statut}" as EmployeesControllerGetByStatutGET
+    usecase "Create\nPOST /" as EmployeesControllerCreatePOST
+    usecase "Update\nPUT {id}" as EmployeesControllerUpdatePUT
+    usecase "Delete\nDELETE {id}" as EmployeesControllerDeleteDELETE
+  }
+  package "UserManagement" {
+    usecase "GetAll\nGET /" as UserManagementControllerGetAllGET
+    usecase "GetPending\nGET pending" as UserManagementControllerGetPendingGET
+    usecase "ApproveById\nPOST {id}/approve" as UserManagementControllerApproveByIdPOST
+    usecase "RejectById\nPOST {id}/reject" as UserManagementControllerRejectByIdPOST
+    usecase "ChangeRoleById\nPOST {id}/role" as UserManagementControllerChangeRoleByIdPOST
+    usecase "Approve\nPOST approve" as UserManagementControllerApprovePOST
+    usecase "Reject\nPOST reject" as UserManagementControllerRejectPOST
+    usecase "ChangeRole\nPOST change-role" as UserManagementControllerChangeRolePOST
+    usecase "UpdateUser\nPUT {id}" as UserManagementControllerUpdateUserPUT
+    usecase "DeleteUser\nDELETE {id}" as UserManagementControllerDeleteUserDELETE
+    usecase "GetDependencies\nGET {id}/dependencies" as UserManagementControllerGetDependenciesGET
+    usecase "GetArchives\nGET archives" as UserManagementControllerGetArchivesGET
+    usecase "... 5 autres actions" as UserManagementControllerreste
+  }
+  package "Users" {
+    usecase "GetProfile\nGET profile" as UsersControllerGetProfileGET
+    usecase "UpdateProfile\nPUT profile" as UsersControllerUpdateProfilePUT
+    usecase "ChangePassword\nPOST change-password" as UsersControllerChangePasswordPOST
+    usecase "GetDetails\nGET {id}/details" as UsersControllerGetDetailsGET
+    usecase "GetStats\nGET {id}/stats" as UsersControllerGetStatsGET
+    usecase "UploadAvatar\nPOST {id}/upload-avatar" as UsersControllerUploadAvatarPOST
+    usecase "UpdateProfileById\nPUT {id}/profile" as UsersControllerUpdateProfileByIdPUT
+  }
+}
+
+ADMIN --> AuthControllerVerifyMfaPOST
+ADMIN --> AuthControllerResendMfaEmailPOST
+ADMIN --> AuthControllerGetMfaSettingsGET
+ADMIN --> AuthControllerSetupAuthenticatorPOST
+ADMIN --> AuthControllerConfirmAuthenticatorPOST
+ADMIN --> AuthControllerDisableAuthenticatorPOST
+ADMIN --> AuthControllerToggleEmailOtpPOST
+ADMIN --> AuthControllerGetLoginHistoryGET
+ADMIN --> AuthControllerDeleteLoginHistoryDELETE
+ADMIN --> AuthControllerClearLoginHistoryDELETE
+ADMIN --> AuthControllerLoginPOST
+ADMIN --> AuthControllerRegisterPOST
+ADMIN --> ClientsControllerGetAllGET
+GESTIONNAIRE --> ClientsControllerGetAllGET
+ADMIN --> ClientsControllerGetByIdGET
+GESTIONNAIRE --> ClientsControllerGetByIdGET
+ADMIN --> ClientsControllerCreatePOST
+GESTIONNAIRE --> ClientsControllerCreatePOST
+ADMIN --> ClientsControllerUpdatePUT
+ADMIN --> ClientsControllerDeleteDELETE
+ADMIN --> EmployeesControllerGetAllGET
+ADMIN --> EmployeesControllerGetByIdGET
+ADMIN --> EmployeesControllerGetByPostGET
+ADMIN --> EmployeesControllerGetByStatutGET
+GESTIONNAIRE --> EmployeesControllerGetByStatutGET
+ADMIN --> EmployeesControllerCreatePOST
+GESTIONNAIRE --> EmployeesControllerCreatePOST
+ADMIN --> EmployeesControllerUpdatePUT
+ADMIN --> EmployeesControllerDeleteDELETE
+ADMIN --> UserManagementControllerGetAllGET
+ADMIN --> UserManagementControllerGetPendingGET
+ADMIN --> UserManagementControllerApproveByIdPOST
+ADMIN --> UserManagementControllerRejectByIdPOST
+ADMIN --> UserManagementControllerChangeRoleByIdPOST
+ADMIN --> UserManagementControllerApprovePOST
+ADMIN --> UserManagementControllerRejectPOST
+ADMIN --> UserManagementControllerChangeRolePOST
+ADMIN --> UserManagementControllerUpdateUserPUT
+ADMIN --> UserManagementControllerDeleteUserDELETE
+ADMIN --> UserManagementControllerGetDependenciesGET
+ADMIN --> UserManagementControllerGetArchivesGET
+ADMIN --> UsersControllerGetProfileGET
+ADMIN --> UsersControllerUpdateProfilePUT
+ADMIN --> UsersControllerChangePasswordPOST
+ADMIN --> UsersControllerGetDetailsGET
+ADMIN --> UsersControllerGetStatsGET
+ADMIN --> UsersControllerUploadAvatarPOST
+ADMIN --> UsersControllerUpdateProfileByIdPUT
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml

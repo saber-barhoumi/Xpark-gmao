@@ -1,0 +1,65 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Sondes de sante
+
+skinparam componentStyle rectangle
+
+component "Orchestrateur / docker compose" as Orch #ECEFF1
+
+package "Avec sonde (10)" #E8F5E9 {
+  component "alerts-api" as alerts_api
+  component "chat-api" as chat_api
+  component "finance-api" as finance_api
+  component "fleet-api" as fleet_api
+  component "iam-api" as iam_api
+  component "maintenance-api" as maintenance_api
+  component "mission-api" as mission_api
+  component "postgres" as postgres
+  component "prediction-api" as prediction_api
+  component "rabbitmq" as rabbitmq
+}
+package "Sans sonde (10)" #FFEBEE {
+  component "ai-optimizer" as ai_optimizer
+  component "ai-predictor" as ai_predictor
+  component "ayshaa-rag" as ayshaa_rag
+  component "backend" as backend
+  component "backoffice" as backoffice
+  component "frontoffice" as frontoffice
+  component "iboa" as iboa
+  component "nginx" as nginx
+  component "ollama" as ollama
+  component "qdrant" as qdrant
+}
+
+Orch --> alerts_api : test toutes les 30 s
+Orch --> chat_api : test toutes les 30 s
+Orch --> finance_api : test toutes les 30 s
+Orch --> fleet_api : test toutes les 30 s
+Orch --> iam_api : test toutes les 30 s
+Orch --> maintenance_api : test toutes les 30 s
+Orch --> mission_api : test toutes les 30 s
+Orch --> postgres : test toutes les 30 s
+Orch --> prediction_api : test toutes les 30 s
+Orch --> rabbitmq : test toutes les 30 s
+
+legend right
+Les 8 services .NET exposent /health (AddHealthChecks + MapHealthChecks)
+et leur sonde interroge http://localhost:80/health avec curl, ajoute
+dans l'etage runtime du Dockerfile (l'image aspnet:8.0 ne contient
+ni curl ni wget). Parametres : interval 30s, timeout 5s, retries 3,
+start_period 40s.
+postgres et rabbitmq utilisent pg_isready et rabbitmq-diagnostics.
+endlegend
+
+@enduml

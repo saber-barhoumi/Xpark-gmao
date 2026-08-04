@@ -1,0 +1,85 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Fleet - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur fleet-api (:5002)" #E8F5E9 {
+  package "API" {
+    component "AssurancesController" as AssurancesController
+    component "CarburantsController" as CarburantsController
+    component "DocumentsController" as DocumentsController
+    component "EcheancesController" as EcheancesController
+    component "EquipementsController" as EquipementsController
+    component "SourcesController" as SourcesController
+    component "VehiculesController" as VehiculesController
+  }
+  package "Application (ports)" {
+    interface "IAssuranceService" as IAssuranceService
+    interface "ICarburantService" as ICarburantService
+    interface "IDocumentService" as IDocumentService
+    interface "IEcheanceService" as IEcheanceService
+    interface "ISourceService" as ISourceService
+    interface "IVehiculeService" as IVehiculeService
+    interface "IXparkEventBus" as IXparkEventBus
+  }
+  package "Infrastructure (adaptateurs)" {
+    component "XparkEventBus" as XparkEventBus
+    component "AssuranceService" as AssuranceService
+    component "CarburantService" as CarburantService
+    component "DocumentService" as DocumentService
+    component "EcheanceService" as EcheanceService
+    component "SourceService" as SourceService
+    component "VehiculeService" as VehiculeService
+    component "FleetDbContext" as FleetDbContext
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> GWc
+GWc --> AssurancesController
+GWc --> AssurancesController
+GWc --> CarburantsController
+GWc --> DocumentsController
+GWc --> EcheancesController
+GWc --> EquipementsController
+GWc --> SourcesController
+GWc --> VehiculesController
+XparkEventBus ..|> IXparkEventBus
+AssuranceService ..|> IAssuranceService
+CarburantService ..|> ICarburantService
+DocumentService ..|> IDocumentService
+EcheanceService ..|> IEcheanceService
+SourceService ..|> ISourceService
+VehiculeService ..|> IVehiculeService
+FleetDbContext --> PG
+XparkEventBus --> FleetDbContext
+AssuranceService --> FleetDbContext
+CarburantService --> FleetDbContext
+DocumentService --> FleetDbContext
+EcheanceService --> FleetDbContext
+SourceService --> FleetDbContext
+VehiculeService --> FleetDbContext
+XparkEventBus --> MQ
+
+legend right
+Port publie : 5002 (le processus ecoute sur le port 80 dans le reseau Docker).
+endlegend
+
+@enduml

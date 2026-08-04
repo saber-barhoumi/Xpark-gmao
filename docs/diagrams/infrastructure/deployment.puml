@@ -1,0 +1,75 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Infrastructure - Deploiement
+
+node "Machine hote (Docker Engine)" as Hote {
+  component "docker compose" as DC #ECEFF1
+  node "xpark-network (bridge)" as Net {
+    frame "Socle" {
+      node "postgres\n5432:5432" as postgres
+      node "rabbitmq\n5672:5672, 15672:15672" as rabbitmq
+      node "qdrant\n6333:6333" as qdrant
+      node "ollama\n11434:11434" as ollama
+    }
+    frame "Metier .NET" {
+      node "iam-api\n5001:80" as iam_api
+      node "fleet-api\n5002:80" as fleet_api
+      node "mission-api\n5003:80" as mission_api
+      node "maintenance-api\n5004:80" as maintenance_api
+      node "finance-api\n5005:80" as finance_api
+      node "alerts-api\n5006:80" as alerts_api
+      node "chat-api\n5007:80" as chat_api
+      node "prediction-api\n5009:80" as prediction_api
+    }
+    frame "IA Python" {
+      node "ai-predictor\n8000:8000" as ai_predictor
+      node "ai-optimizer\n8001:8000" as ai_optimizer
+      node "iboa\n5008:8000" as iboa
+      node "ayshaa-rag\n8010:8010" as ayshaa_rag
+    }
+    frame "Front" {
+      node "nginx\n8080:80" as nginx
+      node "backoffice\n3000:80" as backoffice
+      node "frontoffice\n3001:3000" as frontoffice
+      node "backend\n5000:80" as backend
+    }
+  }
+  storage "Volumes nommes" as V {
+    artifact "postgres-data" as postgres_data
+    artifact "rabbitmq-data" as rabbitmq_data
+    artifact "qdrant-data" as qdrant_data
+    artifact "ayshaa-data" as ayshaa_data
+    artifact "ollama-data" as ollama_data
+  }
+  storage "Montage hote ./data/uploads" as UP
+}
+
+DC --> Net : cree et supervise
+postgres --> postgres_data
+rabbitmq --> rabbitmq_data
+qdrant --> qdrant_data
+ayshaa_rag --> ayshaa_data
+ollama --> ollama_data
+iam_api --> UP : avatars
+chat_api --> UP : pieces jointes
+backoffice --> UP : /uploads
+
+legend right
+Sequence de demarrage imposee par depends_on + condition service_healthy :
+postgres et rabbitmq d'abord, puis les services metier, puis nginx.
+Les fichiers televerses transitent par un volume partage entre les
+services producteurs et le nginx qui les sert (location /uploads/).
+endlegend
+
+@enduml

@@ -1,0 +1,69 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Ordre de travail et consommation de pieces
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+actor "TECHNICIEN" as T
+participant "backoffice" as BO
+participant "OrdreTravailController" as OTC
+participant "InterventionsController" as IC
+participant "PiecesRechangeController" as PC
+participant "MaintenanceService" as MS
+database "postgres" as PG
+
+G -> BO : cree un ordre de travail
+BO -> OTC : POST /api/ordres-travail
+activate OTC
+OTC -> MS : creation
+MS -> PG : INSERT OrdresTravail (PLANIFIE)
+MS -> PG : INSERT HistoriqueStatutOT
+OTC --> BO : 200
+deactivate OTC
+
+T -> BO : tableau Kanban
+BO -> OTC : GET /api/ordres-travail/kanban/metadata
+T -> BO : deplace la carte vers EN_COURS
+BO -> OTC : mise a jour du statut
+OTC -> PG : UPDATE + INSERT HistoriqueStatutOT
+
+T -> BO : declare une intervention
+BO -> IC : POST /api/interventions
+activate IC
+IC -> PG : INSERT Interventions
+IC -> PG : INSERT InterventionPieces
+IC -> PC : decrement du stock
+PC -> PG : UPDATE PiecesRechange.StockActuel
+deactivate IC
+
+alt StockActuel < StockMinimum
+  note over PC : le service Alertes detectera\nla rupture a son prochain controle
+end
+
+T -> BO : ajoute un commentaire / une piece jointe
+BO -> OTC : POST commentaire / attachment
+OTC -> PG : INSERT Commentaires / Attachments
+
+G -> BO : nettoie une colonne du Kanban
+BO -> OTC : DELETE /api/ordres-travail/kanban/clear/{statut}
+note right of OTC : reservee a ADMIN ; detache les\ninterventions au lieu de les supprimer
+
+
+legend right
+Le nettoyage de colonne a son propre endpoint : la contrainte de
+route {id:long} ne pouvait pas capturer le segment "kanban".
+endlegend
+
+@enduml

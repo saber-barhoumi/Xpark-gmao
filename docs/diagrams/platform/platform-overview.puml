@@ -1,0 +1,107 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Vue d'ensemble de la plateforme
+
+skinparam rectangle {
+  BorderColor #90A4AE
+}
+
+actor "Personnel interne\n(back-office)" as Interne
+actor "Client / Visiteur\n(portail public)" as Client
+actor "Chauffeur\n(application mobile)" as Chauffeur
+
+rectangle "Interfaces" as UI #E1F5FE {
+  component "Back-office\nReact 18 + Vite\n:3000" as BOff
+  component "Portail client\nNext.js 14\n:3001" as FOff
+  component "XPARK Driver\nExpo React Native" as Drv
+}
+
+rectangle "Passerelle" as GWr #ECEFF1 {
+  component "nginx 1.25\n:8080" as Nginx
+}
+
+rectangle "Microservices metier (.NET 8)" as Metier #E8F5E9 {
+  component "iam-api\n:5001" as IAM
+  component "fleet-api\n:5002" as Fleet
+  component "mission-api\n:5003" as Mission
+  component "maintenance-api\n:5004" as Maintenance
+  component "finance-api\n:5005" as Finance
+  component "alerts-api\n:5006" as Alerts
+  component "chat-api\n:5007" as Chat
+  component "prediction-api\n:5009" as PredictionPanne
+}
+
+rectangle "Services IA (Python)" as IA #FCE4EC {
+  component "ai-predictor\n:8000" as AI_Predictor
+  component "ai-optimizer\n:8001" as AI_Optimizer
+  component "ayshaa-rag\n:8010" as Ayshaa_RAG
+  component "iboa\n:5008" as IBOA
+}
+
+rectangle "Socle technique" as Socle #FFF8E1 {
+  database "PostgreSQL 16\nxpark_gmao\n:5432" as PG
+  queue "RabbitMQ 3.13\n:5672" as MQ
+  database "Qdrant 1.12\n:6333" as QD
+  component "Ollama\n:11434" as OL
+}
+
+Interne --> BOff
+Client --> FOff
+Chauffeur --> Drv
+
+BOff --> Nginx : HTTP /api/*
+FOff --> IAM : HTTP direct :5001
+FOff --> Mission : HTTP direct :5003
+FOff --> AI_Predictor : HTTP direct :8000
+Drv --> Mission : HTTP direct :5003
+
+Nginx --> IAM
+Nginx --> Fleet
+Nginx --> Mission
+Nginx --> Maintenance
+Nginx --> Finance
+Nginx --> Alerts
+Nginx --> Chat
+Nginx --> PredictionPanne
+
+IAM --> PG
+Fleet --> PG
+Mission --> PG
+Maintenance --> PG
+Finance --> PG
+Alerts --> PG
+Chat --> PG
+PredictionPanne --> PG
+
+IAM --> MQ : publie (MassTransit)
+Chat --> MQ : consomme (MassTransit)
+Fleet --> MQ : publie (exchange xpark.ai)
+Mission --> MQ : publie / consomme (xpark.ai)
+MQ --> IBOA : consomme xpark.#
+MQ --> AI_Optimizer : consomme les demandes d'optimisation
+Mission --> AI_Predictor : HTTP (estimation de prix)
+Ayshaa_RAG --> QD : recherche vectorielle
+Ayshaa_RAG --> OL : generation (repli extractif si absent)
+Ayshaa_RAG --> IAM : HTTP
+Ayshaa_RAG --> Fleet : HTTP
+Ayshaa_RAG --> Mission : HTTP
+IBOA --> PG
+
+legend right
+Genere depuis le code source du depot.
+Toute boite correspond a un artefact reel (conteneur, controleur,
+entite, exchange...) verifie a la generation.
+endlegend
+
+@enduml

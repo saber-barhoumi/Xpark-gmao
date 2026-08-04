@@ -1,0 +1,95 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Persistance
+
+skinparam linetype ortho
+hide circle
+
+database "postgres : xpark_gmao" {
+  package "Accede par ChatDbContext" #FFF8E1 {
+    entity "Utilisateurs" as ChatUtilisateur {
+      IdUtilisateur : long
+      Nom : string
+      Prenom : string
+      Email : string
+      Photo : string?
+      Actif : bool
+    }
+    entity "Conversations" as Conversation {
+      IdConversation : long
+      Titre : string?
+      TypeConversation : TypeConversation
+      DateCreation : DateTime
+      DernierMessageDate : DateTime?
+      CreatedByUserId : long
+      ImageGroupe : string?
+      EstArchivee : bool
+    }
+    entity "ConversationParticipants" as ConversationParticipant {
+      IdParticipant : long
+      ConversationId : long
+      UtilisateurId : long
+      DateAjout : DateTime
+      EstAdmin : bool
+      EstEpingle : bool
+      DerniereLecture : DateTime?
+      NotificationsActivees : bool
+      Pseudonyme : string?
+    }
+    entity "ChatMessages" as Message {
+      IdMessage : long
+      Contenu : string
+      DateEnvoi : DateTime
+      TypeMessage : TypeMessage
+      ExpediteurId : long
+      ConversationId : long
+      EstLu : bool
+      DateLecture : DateTime?
+      EstSupprime : bool
+      EstModifie : bool
+      DateModification : DateTime?
+      Epingle : bool
+      CheminFichier : string?
+      NomFichier : string?
+    }
+    entity "MessageReactions" as MessageReaction {
+      IdReaction : long
+      MessageId : long
+      UtilisateurId : long
+      TypeReaction : string
+      DateReaction : DateTime
+    }
+    entity "UtilisateurStatuts" as UtilisateurStatut {
+      IdStatut : long
+      UtilisateurId : long
+      Statut : StatutEnLigne
+      DerniereActivite : DateTime
+      MessageCustom : string?
+      ConnectionId : string?
+    }
+  }
+}
+
+note as N
+  DbContext : ChatDbContext
+  6 DbSet declares.
+  Fournisseur : Npgsql (PostgreSQL 16).
+end note
+
+legend right
+Base unique partagee : ce service ecrit dans ses tables et lit
+celles des autres domaines en SQL direct lorsque necessaire.
+endlegend
+
+@enduml

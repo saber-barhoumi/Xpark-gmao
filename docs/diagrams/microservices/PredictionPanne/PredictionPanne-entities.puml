@@ -1,0 +1,90 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Entites du domaine
+
+hide empty methods
+skinparam linetype ortho
+
+entity "Prediction" as Prediction {
+  IdPrediction : long <<PK>>
+  VehiculeId : long <<FK>>
+  TypePanne : TypePanne
+  NiveauRisque : NiveauRisque
+  Probabilite : double
+  ScoreConfiance : double
+  DatePanneEstimee : DateTime?
+  DateMaintenanceRecommandee : DateTime?
+  DureeVieRestanteJours : int?
+  KilometrageRestant : double?
+  PieceARemplacer : string?
+  Explication : string
+  Recommandation : string
+  Source : SourcePrediction
+  VersionModele : string
+  DateCalcul : DateTime
+  Realisee : bool?
+  DateVerification : DateTime?
+}
+entity "VehiculeRef" as VehiculeRef {
+  IdVehicule : long
+  Immatriculation : string
+  Marque : string
+  Modele : string
+  AnneeConstruction : int
+  Kilometrage : double
+  Actif : bool
+  DateDerniereRevision : DateTime?
+  DateProchaineRevision : DateTime?
+}
+entity "InterventionRef" as InterventionRef {
+  IdIntervention : long
+  DateIntervention : DateTime
+  TypeIntervention : string
+  Description : string
+  Cout : double
+  KilometrageIntervention : double
+  Statut : string
+  VehiculeId : long <<FK>>
+}
+enum NiveauRisque {
+  FAIBLE
+  MODERE
+  ELEVE
+  CRITIQUE
+}
+enum TypePanne {
+  MOTEUR
+  FREINS
+  PNEUMATIQUES
+  TRANSMISSION
+  SUSPENSION
+  ELECTRIQUE
+  REFROIDISSEMENT
+  CLIMATISATION
+  AUTRE
+}
+enum SourcePrediction {
+  REGLES
+  MODELE_ML
+}
+
+
+legend right
+3 entites mappees, 3 enumerations locales.
+Certaines entites (Vehicule, Utilisateur, Mission...) sont des
+projections en LECTURE SEULE de tables appartenant a un autre
+service : la base xpark_gmao est partagee.
+endlegend
+
+@enduml

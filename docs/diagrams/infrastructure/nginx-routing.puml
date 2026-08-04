@@ -1,0 +1,86 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Infrastructure - Routage nginx (deux couches)
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+component "Navigateur" as Nav #E1F5FE
+
+package "Couche 1 : conteneur xpark-backoffice (:3000)\nfrontend/backoffice/nginx.conf" as C1 #E1F5FE {
+  card "/api/auth/\n-> /iam/api/auth/$1" as bo_api_auth_
+  card "/api/user-management/\n-> /iam/api/user-management/$1" as bo_api_user_management_
+  card "/api/users/\n-> /iam/api/users/$1" as bo_api_users_
+  card "/api/employees/\n-> /iam/api/employees/$1" as bo_api_employees_
+  card "/api/clients/\n-> /iam/api/clients/$1" as bo_api_clients_
+  card "/api/kpi/\n-> /iam/api/kpi/$1" as bo_api_kpi_
+  card "/api/vehicules/\n-> /fleet/api/vehicules/$1" as bo_api_vehicules_
+  card "/api/equipements/\n-> /fleet/api/equipements/$1" as bo_api_equipements_
+  card "/api/carburants/\n-> /fleet/api/carburants/$1" as bo_api_carburants_
+  card "/api/sources/\n-> /fleet/api/sources/$1" as bo_api_sources_
+  card "/api/documents-administratifs/\n-> /fleet/api/documents/$1" as bo_api_documents_administratifs_
+  card "/api/assurances/\n-> /fleet/api/assurances/$1" as bo_api_assurances_
+  card "/api/echeances/\n-> /fleet/api/echeances/$1" as bo_api_echeances_
+  card "/api/predictions/\n-> /prediction/api/predictions/$1" as bo_api_predictions_
+  card "/api/missions/\n-> /mission/api/missions/$1" as bo_api_missions_
+  card "/api/interventions/\n-> /maintenance/api/interventions/$1" as bo_api_interventions_
+  card "/api/ordres-travail/\n-> /maintenance/api/ordres-travail/$1" as bo_api_ordres_travail_
+  card "/api/pieces-rechange/\n-> /maintenance/api/pieces-rechange/$1" as bo_api_pieces_rechange_
+  card "/api/piecesrechange/\n-> /maintenance/api/pieces-rechange/$1" as bo_api_piecesrechange_
+  card "/api/factures/\n-> /finance/api/factures/$1" as bo_api_factures_
+  card "/api/alertes/\n-> /alerts/api/alertes/$1" as bo_api_alertes_
+  card "/api/chat/\n-> /chat/api/chat/$1" as bo_api_chat_
+  card "/chatHub\n-> /chat/chatHub$1" as bo_chatHub
+  card "/kanbanHub\n-> /backend/kanbanHub$1" as bo_kanbanHub
+  card "/uploads/\n(servi localement)" as bo_uploads_
+  card "/assets\n(servi localement)" as bo_assets
+  card "/health\n(servi localement)" as bo_health
+  card "/\n(servi localement)" as bo_
+}
+
+package "Couche 2 : conteneur xpark-nginx (:8080)\nmicroservices/nginx/nginx.conf" as C2 #ECEFF1 {
+  card "/iam/ -> iam-api" as gw_iam_
+  card "/fleet/ -> fleet-api" as gw_fleet_
+  card "/mission/ -> mission-api" as gw_mission_
+  card "/maintenance/ -> maintenance-api" as gw_maintenance_
+  card "/finance/ -> finance-api" as gw_finance_
+  card "/alerts/ -> alerts-api" as gw_alerts_
+  card "/prediction/ -> prediction-api" as gw_prediction_
+  card "/chat/ -> chat-api" as gw_chat_
+  card "/backend/ -> backend" as gw_backend_
+  card "/health -> " as gw_health
+}
+
+Nav --> C1
+C1 --> C2
+gw_iam_ --> [iam-api]
+gw_fleet_ --> [fleet-api]
+gw_mission_ --> [mission-api]
+gw_maintenance_ --> [maintenance-api]
+gw_finance_ --> [finance-api]
+gw_alerts_ --> [alerts-api]
+gw_prediction_ --> [prediction-api]
+gw_chat_ --> [chat-api]
+gw_backend_ --> [backend]
+
+legend right
+28 blocs location cote back-office (24 proxifies, 4 servis localement),
+10 cote passerelle.
+Les deux couches emploient resolver 127.0.0.11 valid=10s et une
+variable dans proxy_pass : le nom du conteneur est re-resolu a chaque
+requete. Sans cela, recreer la passerelle figeait une IP obsolete et
+toute l'API repondait 404.
+endlegend
+
+@enduml

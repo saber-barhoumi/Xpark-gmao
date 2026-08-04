@@ -1,0 +1,43 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Alerts - Chaine interne (couches)
+
+skinparam componentStyle rectangle
+
+rectangle "Requete HTTP" as R #E1F5FE
+rectangle "Controleur (API)\nAlertesController" as C #E1F5FE
+rectangle "Interface (Application)\nIAlertService, IGenericRepository, IAlertRepository" as I #FFF3E0
+rectangle "Implementation (Infrastructure)\nAlerteService" as S #FFF8E1
+rectangle "Entites (Domain)\nAlerte" as E #E8F5E9
+database "postgres" as PG #FFF8E1
+rectangle "ApiResponse<T>" as RESP #E1F5FE
+
+R --> C : routage ASP.NET
+C --> I : appel du port
+I --> S : injection de l'adaptateur
+S --> E : manipulation du domaine
+S --> PG : AlertsDbContext
+S --> RESP : DTO
+RESP --> R
+
+note bottom of I
+  L'interface appartient a la couche Application :
+  c'est elle qui inverse la dependance vers l'Infrastructure.
+end note
+
+legend right
+Chaine identique pour les 8 services .NET (Clean Architecture).
+endlegend
+
+@enduml

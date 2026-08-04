@@ -1,0 +1,48 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Diagramme de contexte (niveau systeme)
+
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+}
+
+actor "Personnel XPARK\n(admin, gestionnaire,\ntechnicien)" as Staff
+actor "Client transporteur" as Client
+actor "Chauffeur" as Driver
+
+rectangle "**XPARK GMAO**\nGestion de flotte et de transport" as Systeme #E8F5E9
+
+rectangle "Serveur SMTP\n(confirmation de compte, OTP,\nrapports IBOA)" as SMTP #ECEFF1
+rectangle "xAI Grok\n(OCR des documents vehicule)" as Grok #FCE4EC
+rectangle "API Twilio\n(WhatsApp, optionnel)" as Twilio #ECEFF1
+rectangle "Ollama\n(generation de reponses)" as Ollama #FCE4EC
+
+Staff --> Systeme : pilote la flotte,\nles missions et la facturation
+Client --> Systeme : demande un transport,\nsuit ses expeditions
+Driver --> Systeme : remonte sa position GPS,\nconsulte ses missions
+Systeme --> SMTP : envoie les courriels\n(MailKit et smtplib)
+Systeme --> Grok : extraction OCR\n(appel depuis le navigateur)
+Systeme --> Twilio : notifications WhatsApp\n(si TWILIO_SID configure)
+Systeme --> Ollama : generation de texte\n(assistant Ayshaa)
+
+legend right
+Dependances externes reellement referencees dans le code :
+- MailKit/MimeKit vers un SMTP (IAM.Infrastructure)
+- smtplib vers un SMTP (IBOA, delivery.py)
+- api.twilio.com pour WhatsApp (IBOA, canal optionnel)
+- api.x.ai (Grok) appele par le back-office (groqOCRService.ts)
+- Ollama, conteneur local, avec repli extractif si indisponible
+endlegend
+
+@enduml

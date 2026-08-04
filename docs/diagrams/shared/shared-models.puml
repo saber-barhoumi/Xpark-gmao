@@ -1,0 +1,275 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Shared - Enumerations communes
+
+hide empty members
+left to right direction
+
+package "Utilisateurs / IAM" #E8F5E9 {
+  enum Role {
+    CLIENT
+    CHAUFFEUR
+    TECHNICIEN
+    GESTIONNAIRE
+    ADMINISTRATEUR
+    ADMIN
+  }
+  enum StatutUtilisateur {
+    EN_ATTENTE
+    ACTIF
+    SUSPENDU
+    DESACTIVE
+    ARCHIVE
+  }
+  enum StatutChauffeur {
+    DISPONIBLE
+    EN_MISSION
+    EN_CONGE
+    SUSPENDU
+    INACTIF
+  }
+  enum CategoriePermis {
+    A
+    B
+    C
+    D
+    E
+    BE
+    CE
+  }
+  enum PostEmployee {
+    CHAUFFEUR
+    TECHNICIEN
+    ADMINISTRATEUR
+    GESTIONNAIRE
+    DIRECTEUR
+    RESPONSABLE_MAINTENANCE
+  }
+  enum ServiceEmployee {
+    TRANSPORT
+    MAINTENANCE
+    ADMINISTRATION
+    DIRECTION
+  }
+  enum StatutEmployee {
+    DISPONIBLE
+    EN_MISSION
+    EN_CONGE
+    INACTIF
+  }
+  enum SpecialtyTechnician {
+    MECANIQUE
+    ELECTRICITE
+    PNEUMATIQUE
+    HYDRAULIQUE
+  }
+  enum LevelTechnician {
+    JUNIOR
+    SENIOR
+    EXPERT
+  }
+}
+package "Flotte" #E8F5E9 {
+  enum TypeCarburant {
+    ESSENCE
+    DIESEL
+    HYBRIDE
+    ELECTRIQUE
+    GPL
+  }
+  enum TypeVehicule {
+    BERLINE
+    SUV
+    UTILITAIRE
+    CAMION
+    MINIBUS
+    MOTO
+    VAN
+    BUS
+    AUTRE
+  }
+  enum StatutVehicule {
+    DISPONIBLE
+    EN_MISSION
+    EN_MAINTENANCE
+    HORS_SERVICE
+    BESOIN_MAINTENANCE
+    INDISPONIBLE
+  }
+  enum TypeSource {
+    STATION_EXTERNE
+    DAC_INTERNE
+    CARTE_CARBURANT
+    CITERE_MOBILE
+    STOCKAGE_PRIVE
+  }
+  enum TypeDocument {
+    CARTE_GRISE
+    VIGNETTE
+    VISITE_TECHNIQUE
+    PERMIS_CIRCULER
+    CERTIFICAT_CONFORMITE
+    ASSURANCE
+    AUTRE
+  }
+  enum TypeEquipement {
+    Fixe
+    Mobile
+    Obligatoire
+  }
+  enum CategorieEquipement {
+    Securite
+    Mecanique
+    Electronique
+    Outillage
+    Informatique
+    Autre
+  }
+  enum EtatEquipement {
+    Neuf
+    Bon
+    Use
+    ARemplacer
+    HorsService
+  }
+}
+package "Missions" #E8F5E9 {
+  enum StatutMission {
+    EN_ATTENTE
+    EN_COURS
+    TERMINEE
+    ANNULEE
+  }
+  enum StatutReservation {
+    EN_ATTENTE
+    CONFIRMEE
+    ANNULEE
+    TERMINEE
+  }
+}
+package "Maintenance" #E8F5E9 {
+  enum TypeIntervention {
+    PREVENTIVE
+    CURATIVE
+  }
+  enum StatutIntervention {
+    EN_ATTENTE
+    PLANIFIEE
+    EN_COURS
+    TERMINEE
+    ANNULEE
+  }
+  enum StatutOrdreTravail {
+    PLANIFIE
+    EN_COURS
+    TERMINE
+    ANNULE
+  }
+  enum PrioriteOrdreTravail {
+    BASSE
+    MOYENNE
+    HAUTE
+    URGENT
+  }
+  enum CategoriePiece {
+    MOTEUR
+    TRANSMISSION
+    FREINAGE
+    SUSPENSION
+    ELECTRICITE
+    CARROSSERIE
+    PNEUMATIQUE
+    FILTRATION
+    ECLAIRAGE
+    AUTRE
+  }
+}
+package "Finance" #E8F5E9 {
+  enum StatutFacture {
+    BROUILLON
+    EMISE
+    PAYEE
+    ANNULEE
+    EN_RETARD
+  }
+  enum StatutDevis {
+    BROUILLON
+    ENVOYE
+    ACCEPTE
+    REFUSE
+    EXPIRE
+  }
+}
+package "Alertes" #E8F5E9 {
+  enum TypeAlerte {
+    ASSURANCE
+    VISITE_TECHNIQUE
+    VIGNETTE
+    PERMIS_CONDUIRE
+    MAINTENANCE
+    STOCK_FAIBLE
+    DOCUMENT_EXPIRE
+    MISSION_EN_RETARD
+    EQUIPEMENT_HORS_SERVICE
+    KILOMETRAGE_REVISON
+    AUTRE
+  }
+  enum Priorite {
+    BASSE
+    MOYENNE
+    HAUTE
+    CRITIQUE
+  }
+  enum StatutAlerte {
+    ACTIVE
+    LUE
+    TRAITEE
+    IGNOREE
+  }
+}
+package "Messagerie" #E8F5E9 {
+  enum TypeConversation {
+    PRIVEE
+    GROUPE
+  }
+  enum TypeMessage {
+    TEXTE
+    FICHIER
+    IMAGE
+    VIDEO
+  }
+}
+package "Indicateurs" #E8F5E9 {
+  enum CategorieKPI {
+    MISSIONS
+    FLOTTE
+    FINANCE
+    MAINTENANCE
+    CARBURANT
+    EQUIPEMENTS
+  }
+  enum TendanceKPI {
+    HAUSSE
+    BAISSE
+    STABLE
+  }
+}
+
+legend right
+33 enumerations partagees (XparkGMAO.Shared/Enums/SharedEnums.cs).
+Elles sont persistees en base sous forme de chaines pour la plupart
+des services ; StatutUtilisateur est stocke en entier.
+endlegend
+
+@enduml

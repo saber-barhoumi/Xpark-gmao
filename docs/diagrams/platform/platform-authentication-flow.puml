@@ -1,0 +1,66 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Flux d'authentification
+
+skinparam ActivityBackgroundColor #E3F2FD
+
+start
+:POST /api/auth/login\n{ email, password };
+:IAM.AuthService recherche l'utilisateur;
+if (Utilisateur trouve ?) then (non)
+  :401 Identifiants invalides;
+  stop
+endif
+:Verification BCrypt du mot de passe;
+if (Mot de passe correct ?) then (non)
+  :Trace dans LoginHistory (echec);
+  :401 Identifiants invalides;
+  stop
+endif
+if (Statut du compte) then (EN_ATTENTE)
+  :403 Compte en attente d'approbation;
+  stop
+elseif (SUSPENDU / DESACTIVE / ARCHIVE) then
+  :403 Compte indisponible;
+  stop
+else (ACTIF)
+endif
+if (MFA active sur le compte ?) then (oui)
+  :Emission d'un mfaToken temporaire;
+  if (Methode) then (TOTP)
+    :L'utilisateur saisit le code\nde son application d'authentification;
+  else (Email OTP)
+    :Envoi du code par MailKit (SMTP);
+    :Enregistrement dans EmailOtps;
+  endif
+  :POST /api/auth/mfa/verify;
+  if (Code valide ?) then (non)
+    :401 Code invalide;
+    stop
+  endif
+endif
+:Generation du jeton JWT (HMAC-SHA256)\nclaims : sub, email, role, userId, nom, prenom;
+:Generation du refresh token;
+:Trace dans LoginHistory (succes)\net AuthAuditLogs;
+:200 { token, refreshToken, role, photoUrl... };
+stop
+
+legend right
+Reconstitue depuis IAM.API/Controllers/AuthController.cs et
+IAM.Infrastructure/Services/AuthService.cs.
+Cle de signature : configuration Jwt__Key (>= 32 caracteres,
+controle explicite au demarrage).
+endlegend
+
+@enduml

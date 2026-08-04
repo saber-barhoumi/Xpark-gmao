@@ -1,0 +1,79 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Composition Docker
+
+skinparam componentStyle rectangle
+
+package "Socle (images publiques)" #FFF8E1 {
+  component "postgres\npostgres:16-alpine\nsonde de sante" as postgres
+  component "rabbitmq\nrabbitmq:3.13-management-alpine\nsonde de sante" as rabbitmq
+  component "qdrant\nqdrant/qdrant:v1.12.4" as qdrant
+  component "ollama\nollama/ollama:latest" as ollama
+}
+package "Construits depuis le depot" #E8F5E9 {
+  component "ai-optimizer\ncontexte ./OptimisateurFlotteIA" as ai_optimizer
+  component "ai-predictor\ncontexte ./CalculateurPrixTrajetIA" as ai_predictor
+  component "alerts-api\ncontexte ./microservices\nsonde de sante" as alerts_api
+  component "ayshaa-rag\ncontexte ./AyshaaRAG" as ayshaa_rag
+  component "backend\ncontexte ./backend/src" as backend
+  component "backoffice\ncontexte ./frontend/backoffice" as backoffice
+  component "chat-api\ncontexte ./microservices\nsonde de sante" as chat_api
+  component "finance-api\ncontexte ./microservices\nsonde de sante" as finance_api
+  component "fleet-api\ncontexte ./microservices\nsonde de sante" as fleet_api
+  component "frontoffice\ncontexte ./frontend/frontoffice" as frontoffice
+  component "iam-api\ncontexte ./microservices\nsonde de sante" as iam_api
+  component "iboa\ncontexte ./IntelligentBusinessOwnerAssistant" as iboa
+  component "maintenance-api\ncontexte ./microservices\nsonde de sante" as maintenance_api
+  component "mission-api\ncontexte ./microservices\nsonde de sante" as mission_api
+  component "prediction-api\ncontexte ./microservices\nsonde de sante" as prediction_api
+}
+component "nginx\nnginx:1.25-alpine" as nginx #ECEFF1
+
+ai_optimizer ..> rabbitmq : depends_on
+alerts_api ..> postgres : depends_on
+alerts_api ..> rabbitmq : depends_on
+ayshaa_rag ..> qdrant : depends_on
+backend ..> postgres : depends_on
+backoffice ..> nginx : depends_on
+chat_api ..> postgres : depends_on
+chat_api ..> rabbitmq : depends_on
+finance_api ..> postgres : depends_on
+finance_api ..> rabbitmq : depends_on
+fleet_api ..> postgres : depends_on
+fleet_api ..> rabbitmq : depends_on
+iam_api ..> postgres : depends_on
+iam_api ..> rabbitmq : depends_on
+iboa ..> postgres : depends_on
+iboa ..> rabbitmq : depends_on
+maintenance_api ..> postgres : depends_on
+maintenance_api ..> rabbitmq : depends_on
+mission_api ..> postgres : depends_on
+mission_api ..> rabbitmq : depends_on
+nginx ..> iam_api : depends_on
+nginx ..> fleet_api : depends_on
+nginx ..> mission_api : depends_on
+nginx ..> maintenance_api : depends_on
+nginx ..> finance_api : depends_on
+nginx ..> alerts_api : depends_on
+nginx ..> chat_api : depends_on
+nginx ..> backend : depends_on
+prediction_api ..> postgres : depends_on
+
+legend right
+Contextes de build allleges par des .dockerignore : sans eux, le
+contexte microservices/ transferait 628 Mo de bin/ et obj/ a chaque
+construction, pour chacun des 8 services.
+endlegend
+
+@enduml

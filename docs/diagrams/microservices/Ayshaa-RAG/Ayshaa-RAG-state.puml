@@ -1,0 +1,35 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> Demarrage
+Demarrage --> Pret : index Qdrant accessible
+Pret --> Traitement : POST /chat
+Traitement --> Generation : Ollama disponible
+Traitement --> Extraction : Ollama indisponible
+Generation --> Pret : reponse + sources
+Extraction --> Pret : passages restitues
+Pret --> Reindexation : POST /reindex (cle admin)
+Reindexation --> Pret
+
+legend right
+Le seul etat persistant est la memoire de conversation (SQLite).
+endlegend
+
+@enduml

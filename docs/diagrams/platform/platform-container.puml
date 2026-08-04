@@ -1,0 +1,87 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Diagramme de conteneurs
+
+actor Utilisateur as U
+
+package "Presentation" #E1F5FE {
+  component "backoffice\nReact 18 + Vite + nginx\n:3000" as BO
+  component "frontoffice\nNext.js 14\n:3001" as FO
+}
+package "Passerelle" #ECEFF1 {
+  component "nginx\n:8080" as GWc
+}
+package "Applicatif .NET 8" #E8F5E9 {
+  component "iam-api\n:5001\n5 controleurs / 64 endpoints" as IAM
+  component "fleet-api\n:5002\n7 controleurs / 47 endpoints" as Fleet
+  component "mission-api\n:5003\n5 controleurs / 34 endpoints" as Mission
+  component "maintenance-api\n:5004\n3 controleurs / 32 endpoints" as Maintenance
+  component "finance-api\n:5005\n3 controleurs / 9 endpoints" as Finance
+  component "alerts-api\n:5006\n1 controleurs / 18 endpoints" as Alerts
+  component "chat-api\n:5007\n1 controleurs / 16 endpoints" as Chat
+  component "prediction-api\n:5009\n1 controleurs / 8 endpoints" as PredictionPanne
+}
+package "Applicatif Python" #FCE4EC {
+  component "ai-predictor\n:8000\n4 endpoints FastAPI" as AI_Predictor
+  component "ai-optimizer\n:8001\n2 endpoints FastAPI" as AI_Optimizer
+  component "ayshaa-rag\n:8010\n8 endpoints FastAPI" as Ayshaa_RAG
+  component "iboa\n:5008\n14 endpoints FastAPI" as IBOA
+}
+package "Donnees" #FFF8E1 {
+  database "postgres\nxpark_gmao" as PG
+  queue "rabbitmq" as MQ
+  database "qdrant" as QD
+  component "ollama" as OL
+}
+
+U --> BO : HTTPS
+U --> FO : HTTPS
+BO --> GWc : /api/*
+GWc --> IAM
+IAM --> PG : Npgsql
+GWc --> Fleet
+Fleet --> PG : Npgsql
+GWc --> Mission
+Mission --> PG : Npgsql
+GWc --> Maintenance
+Maintenance --> PG : Npgsql
+GWc --> Finance
+Finance --> PG : Npgsql
+GWc --> Alerts
+Alerts --> PG : Npgsql
+GWc --> Chat
+Chat --> PG : Npgsql
+GWc --> PredictionPanne
+PredictionPanne --> PG : Npgsql
+FO --> IAM
+FO --> Mission
+FO --> AI_Predictor
+FO --> Ayshaa_RAG
+IAM --> MQ
+Chat --> MQ
+Fleet --> MQ
+Mission --> MQ
+MQ --> IBOA
+MQ --> AI_Optimizer
+AI_Optimizer --> MQ
+IBOA --> PG
+Ayshaa_RAG --> QD
+Ayshaa_RAG --> OL
+Mission --> AI_Predictor : HTTP
+
+legend right
+Comptages issus de l'analyse du code (controleurs, endpoints).
+endlegend
+
+@enduml

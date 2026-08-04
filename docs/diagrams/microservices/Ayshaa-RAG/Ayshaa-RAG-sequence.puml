@@ -1,0 +1,74 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Reponse de l'assistant conversationnel
+
+autonumber
+
+actor "Visiteur" as V
+participant "frontoffice" as FO
+participant "routes_chat.py" as RC
+participant "language.py" as LG
+participant "router.py" as RT
+participant "orchestrator.py" as OR
+database "Qdrant" as QD
+participant "fastembed + BM25" as RET
+participant "providers.py" as LLM
+participant "ollama" as OL
+database "SQLite\n(memoire)" as SQ
+participant "iam-api / fleet-api\nmission-api" as API
+
+V -> FO : pose une question
+FO -> RC : POST /chat { message }
+activate RC
+RC -> LG : detection de la langue (fr / ar / en)
+RC -> SQ : lecture de la fenetre de conversation
+RC -> RT : routage de l'intention
+activate RT
+alt Salutation ou bavardage
+  RT -> RT : smalltalk.py
+  RT --> RC : reponse courte
+else Question metier outillee
+  RT -> API : appel HTTP de l'outil
+  API --> RT : donnees
+  RT --> RC : reponse construite
+else Question documentaire
+  RT -> OR : orchestration RAG
+  activate OR
+  OR -> RET : encodage de la question
+  RET -> QD : recherche vectorielle
+  QD --> RET : passages candidats
+  RET -> RET : reclassement BM25 (hybride)
+  RET --> OR : contexte retenu
+  OR -> LLM : generation avec contexte
+  alt Ollama disponible
+    LLM -> OL : requete de generation
+    OL --> LLM : reponse
+  else Ollama indisponible
+    LLM -> LLM : repli extractif\n(restitution des passages)
+  end
+  LLM --> OR : reponse
+  OR --> RC : reponse + sources
+  deactivate OR
+end
+deactivate RT
+RC -> SQ : memorisation du tour de parole
+RC --> FO : reponse + sources
+deactivate RC
+
+
+legend right
+Le repli extractif garantit une reponse meme sans Ollama.
+endlegend
+
+@enduml

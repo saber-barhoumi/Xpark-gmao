@@ -1,0 +1,36 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Predictor - Cheminement d'un appel API
+
+autonumber
+
+actor Client as U
+participant "backoffice" as BO #E1F5FE
+participant "nginx back-office" as N1
+participant "nginx passerelle" as N2
+participant "ai-predictor\nFastAPI" as A #FCE4EC
+
+U -> BO : action
+BO -> A : POST /predict { depart, arrivee, ... }
+activate A
+A -> A : lecture distance_matrix.json
+A -> A : model_xgboost.predict(features)
+A --> BO : { prix estime, fourchette }
+deactivate A
+
+legend right
+4 endpoints FastAPI exposes par ce service.
+endlegend
+
+@enduml

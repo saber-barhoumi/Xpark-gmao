@@ -1,0 +1,42 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+state "Conversation" as C {
+  [*] --> Active : creation
+  Active --> Archivee : archivage
+  Archivee --> Active : reactivation
+  Archivee --> [*] : suppression
+}
+state "Presence" as P {
+  [*] --> HORSLIGNE
+  HORSLIGNE --> ENLIGNE : connexion au hub
+  ENLIGNE --> ABSENT : inactivite
+  ENLIGNE --> OCCUPE : statut choisi
+  ABSENT --> ENLIGNE
+  OCCUPE --> ENLIGNE
+  ENLIGNE --> HORSLIGNE : deconnexion
+}
+
+legend right
+Enumeration StatutEnLigne pour la presence ; l'archivage des
+conversations est porte par l'API (endpoints archive).
+endlegend
+
+@enduml

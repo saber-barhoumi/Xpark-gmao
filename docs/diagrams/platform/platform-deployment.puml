@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Diagramme de deploiement
+
+node "Hote Docker" as Hote {
+  node "Reseau bridge xpark-network" as Net {
+    artifact "ai-optimizer \n8001:8000\nbuild ./OptimisateurFlotteIA" as ai_optimizer
+    artifact "ai-predictor \n8000:8000\nbuild ./CalculateurPrixTrajetIA" as ai_predictor
+    artifact "alerts-api \n5006:80\nbuild ./microservices" as alerts_api
+    artifact "ayshaa-rag \n8010:8010\nbuild ./AyshaaRAG" as ayshaa_rag
+    artifact "backend \n5000:80\nbuild ./backend/src" as backend
+    artifact "backoffice \n3000:80\nbuild ./frontend/backoffice" as backoffice
+    artifact "chat-api \n5007:80\nbuild ./microservices" as chat_api
+    artifact "finance-api \n5005:80\nbuild ./microservices" as finance_api
+    artifact "fleet-api \n5002:80\nbuild ./microservices" as fleet_api
+    artifact "frontoffice \n3001:3000\nbuild ./frontend/frontoffice" as frontoffice
+    artifact "iam-api \n5001:80\nbuild ./microservices" as iam_api
+    artifact "iboa \n5008:8000\nbuild ./IntelligentBusinessOwnerAssistant" as iboa
+    artifact "maintenance-api \n5004:80\nbuild ./microservices" as maintenance_api
+    artifact "mission-api \n5003:80\nbuild ./microservices" as mission_api
+    artifact "nginx \n8080:80\nnginx:1.25-alpine" as nginx
+    artifact "ollama \n11434:11434\nollama/ollama:latest" as ollama
+    artifact "postgres \n5432:5432\npostgres:16-alpine" as postgres
+    artifact "prediction-api \n5009:80\nbuild ./microservices" as prediction_api
+    artifact "qdrant \n6333:6333\nqdrant/qdrant:v1.12.4" as qdrant
+    artifact "rabbitmq \n5672:5672, 15672:15672\nrabbitmq:3.13-management-alpine" as rabbitmq
+  }
+  folder "Volumes" as Vol {
+    artifact "postgres-data" as VPG
+    artifact "rabbitmq-data" as VMQ
+    artifact "qdrant-data" as VQD
+    artifact "ayshaa-data" as VAY
+    artifact "ollama-data" as VOL
+    artifact "./data/uploads" as VUP
+  }
+}
+
+postgres --> VPG
+rabbitmq --> VMQ
+qdrant --> VQD
+ayshaa_rag --> VAY
+ollama --> VOL
+iam_api --> VUP
+backoffice --> VUP
+
+legend right
+Services, images, ports et volumes releves dans docker-compose.yml.
+endlegend
+
+@enduml

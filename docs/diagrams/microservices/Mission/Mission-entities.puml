@@ -1,0 +1,150 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Entites du domaine
+
+hide empty methods
+skinparam linetype ortho
+
+entity "LivePosition" as LivePosition {
+  IdPosition : long
+  MissionId : long <<FK>>
+  DriverId : long <<FK>>
+  VehiculeId : long? <<FK>>
+  Latitude : double
+  Longitude : double
+  SpeedKmh : double?
+  Heading : double?
+  Accuracy : double?
+  RecordedAt : DateTime
+  ReceivedAt : DateTime
+}
+entity "Mission" as Mission {
+  IdMission : long <<PK>>
+  DateDepart : DateTime
+  DateRetour : DateTime?
+  Destination : string
+  KilometrageDepart : double
+  KilometrageRetour : double
+  Statut : StatutMission
+  ObjetMission : string
+  CoutTotal : double
+  EmployeeId : long? <<FK>>
+  VehiculeId : long? <<FK>>
+  ClientIdUtilisateur : long?
+  ClientNom : string?
+  DateCreation : DateTime
+  BonCarburantAccorde : bool
+  NumeroBonCarburant : string?
+  VerificationDocuments : bool
+  CarteAutorouteRemise : bool
+  VehiculeImmatriculation : string?
+  ChauffeurNom : string?
+  VilleDepart : string?
+  VilleArrivee : string?
+  DistanceKm : double
+  CoutEstimeAI : double
+  AiVehiculeTypeUsed : string?
+}
+entity "SupportTicket" as SupportTicket {
+  IdTicket : long
+  ClientIdUtilisateur : long
+  ClientNom : string?
+  Sujet : string
+  Categorie : string
+  Message : string
+  Statut : string
+  Reponse : string?
+  MissionId : long? <<FK>>
+  DateCreation : DateTime
+  DateMaj : DateTime
+}
+entity "TransportRequest" as TransportRequest {
+  IdTransportRequest : long <<PK>>
+  ClientIdUtilisateur : long
+  ClientNom : string?
+  DateSouhaitee : DateTime
+  VilleDepart : string
+  VilleArrivee : string
+  CargoDescription : string
+  CargoWeightKg : double
+  PassengerCount : int
+  VehicleTypeRequested : string?
+  DistanceKm : double
+  AiEstimatedPrice : double
+  AiPriceRangeMin : double
+  AiPriceRangeMax : double
+  AiVehicleTypeRecommended : string?
+  Statut : StatutDemandeTransport
+  FinalPrice : double?
+  PricingMethod : MethodePrix?
+  AdminNote : string?
+  QuotedByUserId : long? <<FK>>
+  QuotedByName : string?
+  DateQuotationEnvoyee : DateTime?
+  ClientCancelReason : string?
+  ClientRejectionReason : string?
+  DateClientReponse : DateTime?
+  MissionId : long? <<FK>>
+  DateCreation : DateTime
+  DateMaj : DateTime
+}
+enum StatutMission {
+  EN_ATTENTE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}
+enum StatutVehicule {
+  DISPONIBLE
+  EN_MAINTENANCE
+  EN_MISSION
+  HORS_SERVICE
+  BESOIN_MAINTENANCE
+}
+enum PostEmployee {
+  CHAUFFEUR
+  TECHNICIEN
+  ADMINISTRATEUR
+  GESTIONNAIRE
+  DIRECTEUR
+  RESPONSABLE_MAINTENANCE
+}
+enum StatutEmployee {
+  DISPONIBLE
+  EN_MISSION
+  EN_CONGE
+  INACTIF
+}
+enum StatutDemandeTransport {
+  PENDING_QUOTATION
+  QUOTATION_SENT
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+enum MethodePrix {
+  AI_PRICE
+  MODIFIED
+  MANUAL
+}
+
+
+legend right
+4 entites mappees, 6 enumerations locales.
+Certaines entites (Vehicule, Utilisateur, Mission...) sont des
+projections en LECTURE SEULE de tables appartenant a un autre
+service : la base xpark_gmao est partagee.
+endlegend
+
+@enduml

@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Flux d'inference
+
+skinparam ActivityBackgroundColor #FCE4EC
+
+start
+:Reception de la demande;
+:Construction des candidats;
+:Filtrage par contraintes;
+:Notation heuristique;
+:Selection gloutonne;
+:Plan d'affectation;
+stop
+
+legend right
+Optimisation heuristique (contraintes + notation), pas un
+modele appris.
+endlegend
+
+@enduml

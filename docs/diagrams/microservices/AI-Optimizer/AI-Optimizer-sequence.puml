@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Optimisation d'une tournee
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "backoffice" as BO
+participant "mission-api" as MS
+participant "OptimizerEventBus" as EB
+queue "rabbitmq\nexchange xpark.ai" as MQ
+participant "ai-optimizer\nrabbitmq_consumer" as OP
+participant "optimizer.py" as OPT
+
+G -> BO : lance l'optimisation
+BO -> MS : POST /api/missions/optimize
+activate MS
+MS -> EB : PublishOptimizationRequestedAsync(payload)
+EB -> MQ : routing key\nxpark.missions.ready-for-optimization
+MS --> BO : batchId (a interroger)
+deactivate MS
+
+MQ -> OP : file optimizer.ready-for-optimization
+activate OP
+OP -> OPT : resolution
+activate OPT
+OPT -> OPT : constraints.py\n(capacite, disponibilite, permis)
+OPT -> OPT : scoring.py\n(notation des candidats)
+OPT -> OPT : choix de l'affectation
+OPT --> OP : plan
+deactivate OPT
+OP -> MQ : xpark.optimization.plan-generated
+deactivate OP
+
+MQ -> MS : plan recu
+loop tant que le plan n'est pas pret
+  BO -> MS : GET du plan (batchId)
+  MS --> BO : en attente
+end
+BO -> MS : GET du plan (batchId)
+MS --> BO : plan d'affectation
+BO -> G : proposition affichee
+
+
+legend right
+Echange asynchrone : Mission publie et interroge ensuite le
+resultat par batchId. Une route HTTP POST /optimize existe aussi
+pour un appel direct.
+endlegend
+
+@enduml

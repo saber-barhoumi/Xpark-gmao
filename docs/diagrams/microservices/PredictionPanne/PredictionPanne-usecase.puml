@@ -1,0 +1,53 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+:TECHNICIEN: as TECHNICIEN
+
+rectangle "PredictionPanne" {
+  package "Predictions" {
+    usecase "GetDashboard\nGET dashboard" as PredictionsControllerGetDashboardGET
+    usecase "GetSanteFlotte\nGET sante" as PredictionsControllerGetSanteFlotteGET
+    usecase "GetSanteVehicule\nGET sante/{vehiculeId:long}" as PredictionsControllerGetSanteVehiculeGET
+    usecase "GetHistorique\nGET historique/{vehiculeId:long}" as PredictionsControllerGetHistoriqueGET
+    usecase "GetHistoriqueGlobal\nGET historique" as PredictionsControllerGetHistoriqueGlobalGET
+    usecase "SupprimerPrediction\nDELETE historique/{id:long}" as PredictionsControllerSupprimerPredictionDELETE
+    usecase "SupprimerLot\nPOST historique/supprimer" as PredictionsControllerSupprimerLotPOST
+    usecase "Recalculer\nPOST recalculer" as PredictionsControllerRecalculerPOST
+  }
+}
+
+ADMIN --> PredictionsControllerGetDashboardGET
+ADMIN --> PredictionsControllerGetSanteFlotteGET
+ADMIN --> PredictionsControllerGetSanteVehiculeGET
+ADMIN --> PredictionsControllerGetHistoriqueGET
+ADMIN --> PredictionsControllerGetHistoriqueGlobalGET
+GESTIONNAIRE --> PredictionsControllerGetHistoriqueGlobalGET
+ADMIN --> PredictionsControllerSupprimerPredictionDELETE
+GESTIONNAIRE --> PredictionsControllerSupprimerPredictionDELETE
+ADMIN --> PredictionsControllerSupprimerLotPOST
+GESTIONNAIRE --> PredictionsControllerSupprimerLotPOST
+ADMIN --> PredictionsControllerRecalculerPOST
+GESTIONNAIRE --> PredictionsControllerRecalculerPOST
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml

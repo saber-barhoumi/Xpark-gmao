@@ -1,0 +1,51 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Traitement d'une question
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Reception POST /chat;
+:Limitation de debit (en memoire);
+:Detection de la langue (fr / ar / en);
+:Lecture de la memoire de conversation\n(SQLite, fenetre glissante);
+:Routage de l'intention;
+if (Nature de la demande) then (bavardage)
+  :Reponse courte (smalltalk.py);
+elseif (question outillee) then
+  :Appel HTTP du service metier\n(IAM, Fleet, Mission, prix);
+  :Mise en forme de la reponse;
+else (question documentaire)
+  :Encodage de la question (fastembed);
+  :Recherche vectorielle dans Qdrant;
+  :Reclassement BM25 (recherche hybride);
+  :Selection du contexte;
+  if (Ollama disponible ?) then (oui)
+    :Generation avec contexte;
+  else (non)
+    :Repli extractif\n(restitution des passages retenus);
+  endif
+endif
+:Memorisation du tour de parole;
+:Reponse + sources;
+stop
+
+
+legend right
+Le repli extractif est un choix assume : le service reste utile
+sans modele de generation.
+endlegend
+
+@enduml

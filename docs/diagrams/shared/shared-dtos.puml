@@ -1,0 +1,119 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Shared - Contrat de reponse commun et DTO par service
+
+hide empty members
+
+package "XparkGMAO.Shared.Common" #ECEFF1 {
+  class ApiResponse
+  class PagedResult
+}
+
+note right
+  ApiResponse<T> enveloppe toutes les reponses REST :
+  success, message, data, errors.
+end note
+
+package "IAM.Application.DTOs (34)" #E8F5E9 {
+  class ApproveUserDto
+  class ArchivedUserDto
+  class AuthResponseDto
+  class AuthenticatorConfirmDto
+  class AuthenticatorSetupDto
+  class ChangePasswordDto
+  class ChangeRoleDto
+  class ChauffeurDto
+  class ClientDto
+  class ConfirmEmailDto
+  class CreateChauffeurDto
+  class CreateClientDto
+  class CreateEmployeeDto
+  class DeleteOrArchiveResultDto
+  class EmployeeDto
+  class LoginHistoryDto
+  class LoginPinDto
+  class LoginRequestDto
+  class "... 16 autres" as IAMreste
+}
+package "Fleet.Application.DTOs (19)" #E8F5E9 {
+  class AssuranceDto
+  class CarburantDto
+  class CoutParSourceDto
+  class CoutParVehiculeDto
+  class CreateAssuranceDto
+  class CreateCarburantDto
+  class CreateDocumentDto
+  class CreateEquipementDto
+  class CreateSourceDto
+  class CreateVehiculeDto
+  class DocumentDto
+  class EcheanceDto
+  class EquipementDto
+  class EvolutionMensuelleDto
+  class SourceDto
+  class StatistiquesCarburantDto
+  class UpdateSourceDto
+  class UpdateVehiculeDto
+  class "... 1 autres" as Fleetreste
+}
+package "Mission.Application.DTOs (6)" #E8F5E9 {
+  class AssignMissionDto
+  class ClientMissionRequestDto
+  class CloseMissionDto
+  class CreateMissionDto
+  class MissionResponseDto
+  class OptimizeRequestDto
+}
+package "Maintenance.Application.DTOs (4)" #E8F5E9 {
+  class CreateInterventionDto
+  class CreatePieceRechangeDto
+  class InterventionResponseDto
+  class PaginatedResponseDto
+}
+package "Finance.Application.DTOs (11)" #E8F5E9 {
+  class AnnulerFactureRequest
+  class CarburantResponseDto
+  class CoutParSourceDto
+  class CoutParVehiculeDto
+  class CreateCarburantDto
+  class CreateFactureDto
+  class EvolutionMensuelleDto
+  class FactureResponseDto
+  class MarquerPayeeRequest
+  class PaginatedResponseDto
+  class StatistiquesCarburantDto
+}
+package "Alerts.Application.DTOs (3)" #E8F5E9 {
+  class AlerteResponseDto
+  class GenererAlertesRequest
+  class VehiculeAlertDto
+}
+package "PredictionPanne.Application.DTOs (8)" #E8F5E9 {
+  class AlertePredictionDto
+  class DashboardDto
+  class PredictionCalculee
+  class PredictionDto
+  class RecalculResultatDto
+  class RepartitionDto
+  class SanteVehiculeDto
+  class VehiculeFeatures
+}
+
+legend right
+Total : 85 DTO repartis sur les 8 services.
+Les DTO ne sont pas mutualises : chaque service definit les siens
+dans sa couche Application.
+endlegend
+
+@enduml

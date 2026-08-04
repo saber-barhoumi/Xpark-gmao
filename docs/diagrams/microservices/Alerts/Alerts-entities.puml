@@ -1,0 +1,105 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Alerts - Entites du domaine
+
+hide empty methods
+skinparam linetype ortho
+
+entity "Alerte" as Alerte {
+  IdAlerte : long <<PK>>
+  Message : string
+  DateCreation : DateTime
+  DateExpiration : DateTime?
+  UtilisateurId : long? <<FK>>
+  VehiculeId : long? <<FK>>
+  ChauffeurId : long? <<FK>>
+  EntiteReference : string?
+  EntiteReferenceId : long? <<FK>>
+  EquipementId : long? <<FK>>
+  MissionId : long? <<FK>>
+  Titre : string
+  DateLecture : DateTime?
+  DateTraitement : DateTime?
+  Donnees : string?
+}
+enum TypeAlerte {
+  ASSURANCE
+  VISITE_TECHNIQUE
+  VIGNETTE
+  PERMIS_CONDUIRE
+  MAINTENANCE
+  MAINTENANCE_DUE
+  STOCK_FAIBLE
+  STOCK_RUPTURE
+  CARBURANT
+  DOCUMENT_EXPIRE
+  VEHICULE_VIGNETTE_PROCHE
+  VEHICULE_VIGNETTE_EXPIREE
+  VEHICULE_ASSURANCE_EXPIREE
+  VEHICULE_ASSURANCE_PROCHE
+  VEHICULE_VISITE_TECHNIQUE_EXPIREE
+  VEHICULE_VISITE_TECHNIQUE_PROCHE
+  VEHICULE_BESOIN_MAINTENANCE
+  OT_EN_RETARD
+  INTERVENTION_UPCOMING
+  EMPLOYE_PERMIS_EXPIRE
+  EQUIPEMENT_HORS_SERVICE
+  EQUIPEMENT_A_REMPLACER
+  GARANTIE_EXPIRANTE
+  GARANTIE_EXPIREE
+  CONTRAT_EXPIRANT
+  ROTATION_FAIBLE
+  MISSION_EN_RETARD
+  MISSION_SANS_EQUIPEMENTS
+  ASSURANCE_EXPIRATION
+  VIGNETTE_EXPIRATION
+  VISITE_TECHNIQUE_EXPIRATION
+  KILOMETRAGE_MAINTENANCE
+  MAINTENANCE_REQUISE
+  CARBURANT_BAS
+  MISSION_RETARD
+  PIECE_STOCK_FAIBLE
+  FACTURE_IMPAYEE
+  MISSION_SANS_AFFECTATION
+  AUTRE
+}
+enum Priorite {
+  BASSE
+  MOYENNE
+  HAUTE
+  CRITIQUE
+}
+enum StatutAlerte {
+  ACTIVE
+  LUE
+  TRAITEE
+  IGNOREE
+}
+enum StatutVehicule {
+  DISPONIBLE
+  EN_MISSION
+  EN_MAINTENANCE
+  HORS_SERVICE
+  BESOIN_MAINTENANCE
+}
+
+
+legend right
+1 entites mappees, 4 enumerations locales.
+Certaines entites (Vehicule, Utilisateur, Mission...) sont des
+projections en LECTURE SEULE de tables appartenant a un autre
+service : la base xpark_gmao est partagee.
+endlegend
+
+@enduml

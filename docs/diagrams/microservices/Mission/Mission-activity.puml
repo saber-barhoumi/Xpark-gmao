@@ -1,0 +1,55 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Du devis a la facturation
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Le client depose une demande;
+:TransportRequest au statut EN_ATTENTE;
+:Estimation de prix (ai-predictor);
+:Le gestionnaire etablit un devis;
+if (Devis accepte ?) then (non)
+  :Demande ANNULEE;
+  stop
+endif
+:Creation de la Mission (EN_ATTENTE);
+:Affectation vehicule + chauffeur;
+note right: peut s'appuyer sur\nl'optimiseur (ai-optimizer)
+:Publication xpark.mission.client-request;
+:Mission EN_COURS;
+repeat
+  :Le chauffeur envoie sa position;
+  :INSERT LivePosition;
+  :Mise a jour de la carte;
+repeat while (Mission en cours ?) is (oui)
+if (Issue) then (livree)
+  :Mission TERMINEE;
+  :Publication xpark.mission.task-completed;
+  :Devient facturable;
+else (abandonnee)
+  :Mission ANNULEE;
+  :Publication xpark.mission.task-cancelled;
+  stop
+endif
+stop
+
+
+legend right
+Statuts issus de l'enumeration StatutMission :
+EN_ATTENTE, EN_COURS, TERMINEE, ANNULEE.
+endlegend
+
+@enduml

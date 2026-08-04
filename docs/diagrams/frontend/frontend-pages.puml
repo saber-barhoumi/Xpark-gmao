@@ -1,0 +1,78 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Back-office - Pages et menu de navigation
+
+skinparam componentStyle rectangle
+left to right direction
+
+package "Pilotage" #E8F5E9 {
+  card "Dashboard\n/dashboard" as m_dashboard
+}
+package "Operations" #E8F5E9 {
+  card "Missions\n/gestion/missions" as m_gestion_missions
+  card "Suivi en Direct\n/gestion/suivi" as m_gestion_suivi
+  card "Planification\n/apps/calendar" as m_apps_calendar
+  card "Optimisateur IA\n/gestion/optimisateur" as m_gestion_optimisateur
+  card "Messagerie\n/apps/chat" as m_apps_chat
+  card "Kanban\n/tasks/kanban" as m_tasks_kanban
+  card "Vue detaillee\n/tasks/view-details" as m_tasks_view_details
+}
+package "Clients & Ventes" #E8F5E9 {
+  card "Demandes de Transport\n/gestion/demandes-transport" as m_gestion_demandes_transport
+  card "Contacts\n/users/contacts" as m_users_contacts
+}
+package "Gestion Flotte" #E8F5E9 {
+  card "Vehicules\n/gestion/vehicules" as m_gestion_vehicules
+  card "Employes & Chauffeurs\n/hr/employees" as m_hr_employees
+  card "Equipements\n/gestion/equipements" as m_gestion_equipements
+}
+package "Maintenance" #E8F5E9 {
+  card "Interventions\n/maintenance/interventions" as m_maintenance_interventions
+  card "Ordres de Travail\n/maintenance/ordres-travail" as m_maintenance_ordres_travail
+  card "Pieces de Rechange\n/maintenance/pieces-rechange" as m_maintenance_pieces_rechange
+  card "Prediction de Pannes\n/maintenance/prediction-pannes" as m_maintenance_prediction_pannes
+}
+package "Finance" #E8F5E9 {
+  card "Liste des factures\n/invoices" as m_invoices
+  card "Creer une facture\n/invoices/create-invoice" as m_invoices_create_invoice
+  card "Apercu facture\n/invoices/view-invoice" as m_invoices_view_invoice
+  card "Carburant\n/operations/carburant" as m_operations_carburant
+  card "Sources d'Approvisionnement\n/operations/sources" as m_operations_sources
+}
+package "Analyses" #E8F5E9 {
+  card "Analyses & KPIs\n/analytics" as m_analytics
+  card "Assistant IBOA\n/monitoring/iboa" as m_monitoring_iboa
+}
+package "Administration" #E8F5E9 {
+  card "Tous les comptes\n/users" as m_users
+  card "Admissions\n/users/pending" as m_users_pending
+  card "Archives\n/users/archives" as m_users_archives
+  card "Profil\n/users/profile" as m_users_profile
+  card "Alertes\n/alertes" as m_alertes
+  card "Securite (MFA)\n/security" as m_security
+}
+package "Autres" #E8F5E9 {
+  card "Projets\n/apps/Projects" as m_apps_Projects
+  card "Gestionnaire de fichiers\n/apps/file-manager" as m_apps_file_manager
+  card "Tresorerie\n/wallet" as m_wallet
+  card "FAQ / Support\n/pages/faq" as m_pages_faq
+}
+
+legend right
+Menu unique defini dans src/assets/data/menu-items.ts (MENU_ITEMS).
+Les dispositions verticale et horizontale partagent cette meme
+definition depuis la suppression de la seconde liste heritee du gabarit.
+endlegend
+
+@enduml

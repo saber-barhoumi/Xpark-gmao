@@ -1,0 +1,94 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Communications inter-composants
+
+skinparam componentStyle rectangle
+
+component "backoffice" as BO #E1F5FE
+component "frontoffice" as FO #E1F5FE
+component "xpark-driver" as DR #E1F5FE
+component "nginx" as GWc #ECEFF1
+component "iam-api" as IAM #E8F5E9
+component "fleet-api" as Fleet #E8F5E9
+component "mission-api" as Mission #E8F5E9
+component "maintenance-api" as Maintenance #E8F5E9
+component "finance-api" as Finance #E8F5E9
+component "alerts-api" as Alerts #E8F5E9
+component "chat-api" as Chat #E8F5E9
+component "prediction-api" as PredictionPanne #E8F5E9
+component "ai-predictor" as AI_Predictor #FCE4EC
+component "ai-optimizer" as AI_Optimizer #FCE4EC
+component "ayshaa-rag" as Ayshaa_RAG #FCE4EC
+component "iboa" as IBOA #FCE4EC
+database "postgres" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+database "qdrant" as QD #FFF8E1
+component "ollama" as OL #FCE4EC
+
+' --- HTTP synchrone ---
+BO -[#0066CC]-> GWc : HTTP/1.1 REST
+GWc -[#0066CC]-> IAM : HTTP proxy_pass
+GWc -[#0066CC]-> Fleet : HTTP proxy_pass
+GWc -[#0066CC]-> Mission : HTTP proxy_pass
+GWc -[#0066CC]-> Maintenance : HTTP proxy_pass
+GWc -[#0066CC]-> Finance : HTTP proxy_pass
+GWc -[#0066CC]-> Alerts : HTTP proxy_pass
+GWc -[#0066CC]-> Chat : HTTP proxy_pass
+GWc -[#0066CC]-> PredictionPanne : HTTP proxy_pass
+FO -[#0066CC]-> IAM : HTTP :5001
+FO -[#0066CC]-> Mission : HTTP :5003
+FO -[#0066CC]-> AI_Predictor : HTTP :8000
+DR -[#0066CC]-> Mission : HTTP :5003
+Mission -[#0066CC]-> Fleet : HTTP interne
+Mission -[#0066CC]-> Finance : HTTP interne
+Alerts -[#0066CC]-> Fleet : HTTP interne
+Ayshaa_RAG -[#0066CC]-> IAM : HTTP interne
+Ayshaa_RAG -[#0066CC]-> Fleet : HTTP interne
+Ayshaa_RAG -[#0066CC]-> Mission : HTTP interne
+Ayshaa_RAG -[#0066CC]-> AI_Predictor : HTTP interne
+
+' --- AMQP asynchrone ---
+IAM -[#CC6600]-> MQ : publie (MassTransit)
+MQ -[#CC6600]-> Chat : UserStatusChangedEvent
+Fleet -[#CC6600]-> MQ : 3 cles sous le prefixe xpark.fleet\n(exchange topic xpark.ai)
+Mission -[#CC6600]-> MQ : 3 cles xpark.mission +\nxpark.missions.ready-for-optimization
+MQ -[#CC6600]-> IBOA : xpark.# (file iboa.events)
+MQ -[#CC6600]-> AI_Optimizer : file optimizer.ready-for-optimization
+AI_Optimizer -[#CC6600]-> MQ : xpark.optimization.plan-generated
+MQ -[#CC6600]-> Mission : plan-generated
+
+' --- WebSocket ---
+BO -[#009900]-> Chat : WebSocket /chatHub (SignalR)
+
+' --- Bases de donnees ---
+IAM -[#666666]-> PG : Npgsql (TCP 5432)
+Fleet -[#666666]-> PG : Npgsql (TCP 5432)
+Mission -[#666666]-> PG : Npgsql (TCP 5432)
+Maintenance -[#666666]-> PG : Npgsql (TCP 5432)
+Finance -[#666666]-> PG : Npgsql (TCP 5432)
+Alerts -[#666666]-> PG : Npgsql (TCP 5432)
+Chat -[#666666]-> PG : Npgsql (TCP 5432)
+PredictionPanne -[#666666]-> PG : Npgsql (TCP 5432)
+IBOA -[#666666]-> PG : psycopg2
+Ayshaa_RAG -[#666666]-> QD : HTTP 6333
+Ayshaa_RAG -[#666666]-> OL : HTTP 11434
+
+legend right
+Bleu : HTTP/REST · Orange : AMQP (RabbitMQ) ·
+Vert : WebSocket (SignalR) · Gris : acces base de donnees.
+Aucune liaison Redis ni MinIO : ces briques ne figurent pas
+dans le depot (voir infrastructure/README).
+endlegend
+
+@enduml

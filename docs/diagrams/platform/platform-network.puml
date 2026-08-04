@@ -1,0 +1,80 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Topologie reseau
+
+skinparam componentStyle rectangle
+
+cloud "Poste utilisateur" as Poste {
+  component "Navigateur" as Nav
+}
+
+node "Hote Docker" {
+  frame "Ports publies sur l'hote" as Pub #E1F5FE {
+    card "8001:8000 -> ai-optimizer" as p8001_8000ai_optimizer
+    card "8000:8000 -> ai-predictor" as p8000_8000ai_predictor
+    card "5006:80 -> alerts-api" as p5006_80alerts_api
+    card "8010:8010 -> ayshaa-rag" as p8010_8010ayshaa_rag
+    card "5000:80 -> backend" as p5000_80backend
+    card "3000:80 -> backoffice" as p3000_80backoffice
+    card "5007:80 -> chat-api" as p5007_80chat_api
+    card "5005:80 -> finance-api" as p5005_80finance_api
+    card "5002:80 -> fleet-api" as p5002_80fleet_api
+    card "3001:3000 -> frontoffice" as p3001_3000frontoffice
+    card "5001:80 -> iam-api" as p5001_80iam_api
+    card "5008:8000 -> iboa" as p5008_8000iboa
+    card "5004:80 -> maintenance-api" as p5004_80maintenance_api
+    card "5003:80 -> mission-api" as p5003_80mission_api
+    card "8080:80 -> nginx" as p8080_80nginx
+    card "11434:11434 -> ollama" as p11434_11434ollama
+    card "5432:5432 -> postgres" as p5432_5432postgres
+    card "5009:80 -> prediction-api" as p5009_80prediction_api
+    card "6333:6333 -> qdrant" as p6333_6333qdrant
+    card "5672:5672 -> rabbitmq" as p5672_5672rabbitmq
+    card "15672:15672 -> rabbitmq" as p15672_15672rabbitmq
+  }
+  frame "Reseau bridge interne xpark-network\n(resolution DNS par nom de service)" as Net #ECEFF1 {
+    node "ai-optimizer" as nai_optimizer
+    node "ai-predictor" as nai_predictor
+    node "alerts-api" as nalerts_api
+    node "ayshaa-rag" as nayshaa_rag
+    node "backend" as nbackend
+    node "backoffice" as nbackoffice
+    node "chat-api" as nchat_api
+    node "finance-api" as nfinance_api
+    node "fleet-api" as nfleet_api
+    node "frontoffice" as nfrontoffice
+    node "iam-api" as niam_api
+    node "iboa" as niboa
+    node "maintenance-api" as nmaintenance_api
+    node "mission-api" as nmission_api
+    node "nginx" as nnginx
+    node "ollama" as nollama
+    node "postgres" as npostgres
+    node "prediction-api" as nprediction_api
+    node "qdrant" as nqdrant
+    node "rabbitmq" as nrabbitmq
+  }
+}
+
+Nav --> Pub : HTTP
+Pub --> Net
+
+legend right
+A l'interieur du reseau, les services .NET ecoutent sur le port 80
+et sont joints par leur nom de service (iam-api, fleet-api...).
+Les ports 5001-5009 ne sont que des publications vers l'hote ;
+le portail client et l'application chauffeur les utilisent en direct.
+endlegend
+
+@enduml

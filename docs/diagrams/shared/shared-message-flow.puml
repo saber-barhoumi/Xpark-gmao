@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Shared - Cheminement d'un message
+
+autonumber
+
+participant "iam-api\nUserService" as U #E3F2FD
+participant "IPublishEndpoint\n(MassTransit)" as PE
+queue "RabbitMQ" as MQ #ECEFF1
+participant "chat-api\nUserStatusChangedConsumer" as C #EDE7F6
+participant "fleet-api\nXparkEventBus" as F #E8F5E9
+participant "iboa\nrabbitmq_consumer" as I #FCE4EC
+
+group Bus type (MassTransit)
+  U -> U : suspension d'un compte
+  U -> PE : Publish(new UserStatusChangedEvent(userId, "SUSPENDU"))
+  PE -> MQ : enveloppe JSON MassTransit\n(exchange nomme d'apres le type)
+  MQ -> C : livraison sur la file du consommateur
+  C -> C : Consume(ConsumeContext<UserStatusChangedEvent>)
+end
+
+group Bus brut (exchange topic xpark.ai)
+  F -> F : ajout d'un vehicule
+  F -> MQ : basic_publish(exchange="xpark.ai",\nrouting_key="xpark.fleet.vehicle-added",\nJSON sans enveloppe)
+  MQ -> I : liaison xpark.# vers la file iboa.events
+  I -> I : scorer.py attribue une criticite
+  I -> I : pipeline -> agregation -> journal
+end
+
+legend right
+Deux formats de message coexistent : MassTransit ajoute une enveloppe
+(messageType, sentTime...) que les services Python ne savent pas lire ;
+le bus xpark.ai transporte donc du JSON brut, consommable par pika.
+endlegend
+
+@enduml

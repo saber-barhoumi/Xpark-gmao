@@ -1,0 +1,36 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IBOA - Flux d'inference
+
+skinparam ActivityBackgroundColor #FCE4EC
+
+start
+:Question recue;
+:Encodage (fastembed);
+:Recherche vectorielle (Qdrant);
+:Reclassement BM25;
+:Assemblage du contexte;
+if (Ollama joignable ?) then (oui)
+  :Generation par le modele;
+else (non)
+  :Repli extractif;
+endif
+:Reponse + sources;
+stop
+
+legend right
+Le repli extractif evite toute indisponibilite du service.
+endlegend
+
+@enduml

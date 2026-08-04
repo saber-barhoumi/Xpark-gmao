@@ -1,0 +1,86 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IAM - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur iam-api (:5001)" #E8F5E9 {
+  package "API" {
+    component "AuthController" as AuthController
+    component "ClientsController" as ClientsController
+    component "EmployeesController" as EmployeesController
+    component "UserManagementController" as UserManagementController
+    component "UsersController" as UsersController
+  }
+  package "Application (ports)" {
+    interface "IAuthService" as IAuthService
+    interface "IClientService" as IClientService
+    interface "IEmailService" as IEmailService
+    interface "IEmployeeService" as IEmployeeService
+    interface "IJwtService" as IJwtService
+    interface "IMfaService" as IMfaService
+    interface "IUserArchiveService" as IUserArchiveService
+    interface "IUserService" as IUserService
+  }
+  package "Infrastructure (adaptateurs)" {
+    component "AuthService" as AuthService
+    component "ClientService" as ClientService
+    component "EmailService" as EmailService
+    component "EmployeeService" as EmployeeService
+    component "JwtService" as JwtService
+    component "MfaService" as MfaService
+    component "TotpService" as TotpService
+    component "UserArchiveService" as UserArchiveService
+    component "UserService" as UserService
+    component "IamDbContext" as IamDbContext
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> GWc
+GWc --> AuthController
+GWc --> AuthController
+GWc --> ClientsController
+GWc --> EmployeesController
+GWc --> UserManagementController
+GWc --> UsersController
+AuthService ..|> IAuthService
+ClientService ..|> IClientService
+EmailService ..|> IEmailService
+EmployeeService ..|> IEmployeeService
+JwtService ..|> IJwtService
+MfaService ..|> IMfaService
+UserArchiveService ..|> IUserArchiveService
+UserService ..|> IUserService
+IamDbContext --> PG
+AuthService --> IamDbContext
+ClientService --> IamDbContext
+EmailService --> IamDbContext
+EmployeeService --> IamDbContext
+JwtService --> IamDbContext
+MfaService --> IamDbContext
+TotpService --> IamDbContext
+UserArchiveService --> IamDbContext
+UserService --> IamDbContext
+
+legend right
+Port publie : 5001 (le processus ecoute sur le port 80 dans le reseau Docker).
+endlegend
+
+@enduml

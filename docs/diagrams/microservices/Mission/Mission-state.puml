@@ -1,0 +1,41 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+state "Demande (TransportRequest)" as D {
+  [*] --> EN_ATTENTE : depot de la demande
+  EN_ATTENTE --> CONFIRMEE : devis accepte
+  EN_ATTENTE --> ANNULEE : devis refuse
+}
+state "Mission" as M {
+  [*] --> M_EN_ATTENTE : creation
+  M_EN_ATTENTE --> M_EN_COURS : depart
+  M_EN_COURS --> M_TERMINEE : livraison
+  M_EN_ATTENTE --> M_ANNULEE : annulation
+  M_EN_COURS --> M_ANNULEE : abandon
+}
+D --> M : la mission naît de l'acceptation
+M_TERMINEE --> [*] : facturable
+
+legend right
+StatutReservation pour la demande, StatutMission pour la mission.
+Aucune mission n'est creee avant acceptation du devis.
+endlegend
+
+@enduml

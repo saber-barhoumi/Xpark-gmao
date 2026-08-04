@@ -1,0 +1,57 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Alerts - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+
+rectangle "Alerts" {
+  package "Alertes" {
+    usecase "GetAll\nGET /" as AlertesControllerGetAllGET
+    usecase "GetNonLues\nGET non-lues" as AlertesControllerGetNonLuesGET
+    usecase "GetNonLues\nGET unread" as AlertesControllerGetNonLuesGET
+    usecase "CountNonLues\nGET count" as AlertesControllerCountNonLuesGET
+    usecase "CountNonLues\nGET count-unread" as AlertesControllerCountNonLuesGET
+    usecase "GetByType\nGET type/{type}" as AlertesControllerGetByTypeGET
+    usecase "MarquerLue\nPATCH {id:long}/lire" as AlertesControllerMarquerLuePATCH
+    usecase "MarquerLue\nPUT {id:long}/mark-as-read" as AlertesControllerMarquerLuePUT
+    usecase "MarquerToutesLues\nPATCH lire-toutes" as AlertesControllerMarquerToutesLuesPATCH
+    usecase "MarquerToutesLues\nPUT mark-all-read" as AlertesControllerMarquerToutesLuesPUT
+    usecase "MarquerTraitee\nPATCH {id:long}/traiter" as AlertesControllerMarquerTraiteePATCH
+    usecase "MarquerTraitee\nPOST {id:long}/traitee" as AlertesControllerMarquerTraiteePOST
+    usecase "... 6 autres actions" as AlertesControllerreste
+  }
+}
+
+ADMIN --> AlertesControllerGetAllGET
+ADMIN --> AlertesControllerGetByTypeGET
+ADMIN --> AlertesControllerMarquerLuePATCH
+ADMIN --> AlertesControllerMarquerLuePUT
+ADMIN --> AlertesControllerMarquerToutesLuesPATCH
+GESTIONNAIRE --> AlertesControllerMarquerToutesLuesPATCH
+ADMIN --> AlertesControllerMarquerToutesLuesPUT
+GESTIONNAIRE --> AlertesControllerMarquerToutesLuesPUT
+ADMIN --> AlertesControllerMarquerTraiteePATCH
+GESTIONNAIRE --> AlertesControllerMarquerTraiteePATCH
+ADMIN --> AlertesControllerMarquerTraiteePOST
+GESTIONNAIRE --> AlertesControllerMarquerTraiteePOST
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml

@@ -1,0 +1,54 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur maintenance-api (:5004)" #E8F5E9 {
+  package "API" {
+    component "InterventionsController" as InterventionsController
+    component "OrdreTravailController" as OrdreTravailController
+    component "PiecesRechangeController" as PiecesRechangeController
+  }
+  package "Application (ports)" {
+    interface "IMaintenanceService" as IMaintenanceService
+    interface "IGenericRepository" as IGenericRepository
+    interface "IInterventionRepository" as IInterventionRepository
+  }
+  package "Infrastructure (adaptateurs)" {
+    component "MaintenanceService" as MaintenanceService
+    component "MaintenanceDbContext" as MaintenanceDbContext
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> GWc
+GWc --> InterventionsController
+GWc --> InterventionsController
+GWc --> OrdreTravailController
+GWc --> PiecesRechangeController
+MaintenanceService ..|> IMaintenanceService
+MaintenanceDbContext --> PG
+MaintenanceService --> MaintenanceDbContext
+
+legend right
+Port publie : 5004 (le processus ecoute sur le port 80 dans le reseau Docker).
+endlegend
+
+@enduml

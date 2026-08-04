@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur ai-optimizer (:8001)" #E8F5E9 {
+  package "API FastAPI" {
+    component "2 endpoints" as EPS
+  }
+  package "Modules" {
+    component "constraints.py" as constraints_py
+    component "main.py" as main_py
+    component "models.py" as models_py
+    component "optimizer.py" as optimizer_py
+    component "rabbitmq_consumer.py" as rabbitmq_consumer_py
+    component "scoring.py" as scoring_py
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> EPS
+MQ --> EPS
+EPS --> MQ
+
+legend right
+Port publie : 8001 (uvicorn ecoute sur 8000 dans le conteneur).
+endlegend
+
+@enduml

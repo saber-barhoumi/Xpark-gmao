@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Resolution d'une affectation
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Reception d'une demande\n(AMQP ou POST /optimize);
+:Deserialisation (modeles Pydantic);
+:Construction de l'ensemble des candidats\n(vehicules x chauffeurs x missions);
+:Application des contraintes\n(constraints.py);
+if (Au moins une affectation possible ?) then (non)
+  :Plan vide + motif;
+  stop
+endif
+while (Mission a affecter ?) is (oui)
+  :Notation des candidats (scoring.py);
+  :Selection du meilleur candidat;
+  :Retrait des ressources mobilisees;
+endwhile (non)
+:Assemblage du plan;
+if (Origine de la demande) then (AMQP)
+  :Publication\nxpark.optimization.plan-generated;
+else (HTTP)
+  :Reponse directe;
+endif
+stop
+
+
+legend right
+Modules constraints.py, scoring.py et optimizer.py reellement
+presents dans le service.
+endlegend
+
+@enduml

@@ -1,0 +1,58 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Sequence de notification (alertes metier)
+
+autonumber
+
+actor "Gestionnaire" as G
+participant "backoffice" as BO #E1F5FE
+participant "alerts-api\nAlertesController" as AL #FFEBEE
+participant "AlerteService" as AS
+participant "fleet-api" as FL #E8F5E9
+database "postgres" as PG #FFF8E1
+
+G -> BO : ouvre /alertes
+BO -> AL : GET /api/alertes/
+AL -> AS : GetAllAsync()
+AS -> PG : SELECT Alertes
+PG --> AS : alertes
+AS --> BO : 200 liste des alertes
+
+G -> BO : clique "Relancer les controles"
+BO -> AL : POST /api/alertes/run-checks/
+AL -> AS : RunChecksAsync()
+group Controles metier (SQL transverse sur la base partagee)
+  AS -> PG : demandes de transport en attente de devis
+  AS -> PG : missions livrees non facturees
+  AS -> PG : vehicules hors service
+  AS -> PG : stock de pieces sous le minimum
+  AS -> PG : equipements hors service
+  AS -> PG : comptes en attente d'approbation
+  AS -> PG : predictions de panne critiques
+end
+AS -> AS : ExisteDejaAsync(...)\n(anti-doublon)
+AS -> PG : INSERT des nouvelles alertes
+AS --> BO : 200 { nombre d'alertes creees }
+BO -> AL : GET /api/alertes/count-unread/
+AL --> BO : compteur pour la pastille
+
+legend right
+Les 7 controles correspondent aux methodes Check*Async reellement
+presentes dans Alerts.Infrastructure/Services/AlerteService.cs.
+Aucune notification par courriel n'est declenchee ici :
+NotificationEmailEvent est declare dans Shared mais n'a
+aucun publieur ni consommateur dans le code.
+endlegend
+
+@enduml

@@ -1,0 +1,58 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Finance - Facturation d'une mission livree
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "backoffice" as BO
+participant "FacturesController" as FC
+participant "FacturationService" as FS
+database "postgres" as PG
+
+G -> BO : ouvre /invoices/create-invoice
+BO -> FC : GET /api/factures/missions-facturees
+activate FC
+FC -> FS : GetMissionsFactureesAsync()
+FS -> PG : SELECT MissionId FROM Factures\nWHERE Statut <> ANNULEE
+FS --> BO : missions deja facturees
+deactivate FC
+BO -> BO : ne propose que les missions\nlivrees et non encore facturees
+
+G -> BO : valide la facture
+BO -> FC : POST /api/factures
+activate FC
+FC -> FS : CreateAsync(dto)
+alt MissionId deja facture
+  FS -> PG : Factures.AnyAsync(MissionId, Statut <> ANNULEE)
+  FS --> FC : InvalidOperationException
+  FC --> BO : 400 doublon refuse
+else Mission facturable
+  FS -> PG : INSERT Factures (statut initial)
+  FS --> FC : FactureDto
+  FC --> BO : 200
+end
+deactivate FC
+
+G -> BO : consulte les impayes
+BO -> FC : GET /api/factures/impayees
+FC --> BO : factures en retard
+
+
+legend right
+La garde anti-doublon est appliquee cote serveur : l'interface ne
+fait que refleter la regle.
+endlegend
+
+@enduml

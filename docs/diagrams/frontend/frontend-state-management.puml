@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Back-office - Gestion de l'etat
+
+skinparam componentStyle rectangle
+
+package "Etat global (React Context)" #FFF3E0 {
+  component "useChatContext" as useChatContext
+  component "useKanbanContext" as useKanbanContext
+  component "useLayoutContext" as useLayoutContext
+}
+package "Etat persistant" #FFF8E1 {
+  database "localStorage\nxpark_token, xpark_user,\nreglages de mise en page" as LS
+}
+package "Etat serveur" #E8F5E9 {
+  component "services/*.ts\n(appels axios)" as SVCf
+  component "signalRService\n(temps reel)" as SR
+}
+package "Etat local reutilisable (hooks)" #E1F5FE {
+  component "useApiError" as useApiError
+  component "useBulkSelection" as useBulkSelection
+  component "useChat" as useChat
+  component "useCountdown" as useCountdown
+  component "useFileUploader" as useFileUploader
+  component "usePendingMissionsCount" as usePendingMissionsCount
+  component "useToggle" as useToggle
+  component "useViewPort" as useViewPort
+}
+package "Composants de page" #ECEFF1 {
+  component "useState / useEffect locaux" as Local
+}
+
+useLayoutContext --> LS : lit et ecrit les reglages
+useChatContext --> SR
+useKanbanContext --> SR
+Local --> SVCf : chargement des donnees
+SVCf --> LS : jeton injecte par l'intercepteur
+Local --> useApiError
+Local --> useBulkSelection
+Local --> usePendingMissionsCount
+
+legend right
+Aucune bibliotheque de gestion d'etat externe (ni Redux, ni Zustand,
+ni React Query) : l'etat serveur est charge dans le composant qui
+l'affiche, l'etat partage passe par trois contextes React.
+useLayoutContext valide les reglages relus du stockage local
+(assainirReglages) pour eviter une barre laterale cassee.
+endlegend
+
+@enduml

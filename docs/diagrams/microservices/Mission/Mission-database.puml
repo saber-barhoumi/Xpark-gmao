@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Persistance
+
+skinparam linetype ortho
+hide circle
+
+database "postgres : xpark_gmao" {
+  package "Accede par MissionDbContext" #FFF8E1 {
+    entity "LivePositions" as LivePosition {
+      IdPosition : long
+      MissionId : long
+      DriverId : long
+      VehiculeId : long?
+      Latitude : double
+      Longitude : double
+      SpeedKmh : double?
+      Heading : double?
+      Accuracy : double?
+      RecordedAt : DateTime
+      ReceivedAt : DateTime
+    }
+    entity "Missions" as MissionEntity {
+    }
+    entity "SupportTickets" as SupportTicket {
+      IdTicket : long
+      ClientIdUtilisateur : long
+      ClientNom : string?
+      Sujet : string
+      Categorie : string
+      Message : string
+      Statut : string
+      Reponse : string?
+      MissionId : long?
+      DateCreation : DateTime
+      DateMaj : DateTime
+    }
+    entity "_dbSet" as T {
+    }
+    entity "TransportRequests" as TransportRequest {
+      IdTransportRequest : long
+      ClientIdUtilisateur : long
+      ClientNom : string?
+      DateSouhaitee : DateTime
+      VilleDepart : string
+      VilleArrivee : string
+      CargoDescription : string
+      CargoWeightKg : double
+      PassengerCount : int
+      VehicleTypeRequested : string?
+      DistanceKm : double
+      AiEstimatedPrice : double
+      AiPriceRangeMin : double
+      AiPriceRangeMax : double
+      AiVehicleTypeRecommended : string?
+      Statut : StatutDemandeTransport
+    }
+  }
+}
+
+note as N
+  DbContext : MissionDbContext
+  5 DbSet declares.
+  Fournisseur : Npgsql (PostgreSQL 16).
+end note
+
+legend right
+Base unique partagee : ce service ecrit dans ses tables et lit
+celles des autres domaines en SQL direct lorsque necessaire.
+endlegend
+
+@enduml

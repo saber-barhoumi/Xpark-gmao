@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Flux d'inference
+
+skinparam ActivityBackgroundColor #FCE4EC
+
+start
+:Lecture des donnees du vehicule;
+:Evaluation par regles\n(aucun modele charge);
+:Classification de l'organe;
+:Niveau de risque;
+:Persistance;
+stop
+
+legend right
+Il n'y a pas d'inference au sens statistique : le moteur est
+un ensemble de regles. Ce diagramme documente la chaine de
+decision equivalente.
+endlegend
+
+@enduml

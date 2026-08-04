@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Calcul d'une prediction
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Declenchement du recalcul;
+:Lecture du parc de vehicules;
+while (Vehicule a evaluer ?) is (oui)
+  :Lecture du kilometrage,\nde l'anciennete et de l'historique\ndes interventions;
+  :RuleBasedPredictionEngine.Evaluer();
+  :Application des regles metier;
+  :OrganeClassifier determine\nl'organe le plus expose (TypePanne);
+  :Score et NiveauRisque;
+  if (Niveau) then (CRITIQUE)
+    :Enregistrement + remontee\nvers le service Alertes;
+  elseif (ELEVE) then
+    :Enregistrement, mise en avant;
+  else (FAIBLE ou MODERE)
+    :Enregistrement simple;
+  endif
+  :SourcePrediction = REGLES;
+endwhile (non)
+:Mise a jour de PredictionsPanne;
+stop
+
+
+legend right
+SourcePrediction prevoit aussi MODELE_ML : la bascule se fait en
+changeant l'implementation de IPredictionEngine, sans toucher au reste.
+endlegend
+
+@enduml

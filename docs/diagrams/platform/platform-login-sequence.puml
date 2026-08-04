@@ -1,0 +1,68 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Sequence de connexion au back-office
+
+autonumber
+
+actor Utilisateur as U
+participant "backoffice\n(React)" as BO #E1F5FE
+participant "nginx back-office\n:3000" as NBO
+participant "nginx passerelle\n:8080" as GWc
+participant "iam-api\nAuthController" as IAMc #E3F2FD
+participant "AuthService" as AS
+database "postgres\nxpark_gmao" as PG #FFF8E1
+participant "SMTP" as SMTP
+
+U -> BO : saisit email + mot de passe
+BO -> NBO : POST /api/auth/login/
+note right of NBO
+  rewrite ^/api/auth/(.*)$ /iam/api/auth/$1
+  proxy_pass http://$passerelle
+end note
+NBO -> GWc : POST /iam/api/auth/login
+GWc -> IAMc : POST /api/auth/login
+IAMc -> AS : LoginAsync(dto)
+AS -> PG : SELECT Utilisateurs WHERE Email = @email
+PG --> AS : utilisateur
+AS -> AS : BCrypt.Verify(motDePasse, hash)
+
+alt Compte non ACTIF
+  AS --> IAMc : echec (statut)
+  IAMc --> BO : 403 ApiResponse.Fail
+else MFA activee
+  AS -> PG : lecture UserMfaSettings
+  opt Methode Email OTP
+    AS -> PG : INSERT EmailOtps
+    AS -> SMTP : envoi du code (MailKit)
+  end
+  AS --> BO : 200 { requiresMfa: true, mfaToken }
+  U -> BO : saisit le code
+  BO -> GWc : POST /api/auth/mfa/verify
+  GWc -> IAMc : verification du code
+  IAMc --> BO : 200 { token, refreshToken }
+else Authentification directe
+  AS -> AS : generation JWT (HMAC-SHA256)
+  AS -> PG : INSERT LoginHistory + AuthAuditLogs
+  AS --> IAMc : AuthResponse
+  IAMc --> BO : 200 { token, role, photoUrl... }
+end
+
+BO -> BO : localStorage.setItem("xpark_token")
+BO -> U : redirection /dashboard
+
+legend right
+Chaine nginx reelle : le back-office reecrit /api/* vers /<service>/api/*.
+endlegend
+
+@enduml

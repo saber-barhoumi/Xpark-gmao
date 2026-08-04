@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> Attente
+Attente --> Resolution : message AMQP\nou POST /optimize
+Resolution --> Publication : plan calcule
+Resolution --> Attente : aucune affectation possible
+Publication --> Attente : xpark.optimization.plan-generated
+Attente --> [*] : arret
+
+legend right
+Le service ne conserve aucun etat entre deux demandes.
+endlegend
+
+@enduml

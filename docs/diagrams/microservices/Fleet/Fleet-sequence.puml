@@ -1,0 +1,63 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Fleet - Ajout d'un vehicule et suivi des echeances
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "backoffice" as BO
+participant "VehiculesController" as VC
+participant "IVehiculeService" as IVS
+participant "VehiculeService" as VS
+participant "XparkEventBus" as EB
+database "postgres" as PG
+queue "rabbitmq (xpark.ai)" as MQ
+participant "EcheancesController" as EC
+participant "EcheanceService" as ES
+
+G -> BO : assistant de creation de vehicule
+note right of BO : l'OCR de la carte grise est\nrealise cote navigateur (Grok)
+BO -> VC : POST /api/vehicules
+activate VC
+VC -> IVS : CreateAsync(dto)
+IVS -> VS : implementation
+VS -> PG : INSERT Vehicules
+VS -> EB : PublishFleetEventAsync("xpark.fleet.vehicle-added", "LOW", ...)
+EB -> MQ : exchange topic xpark.ai
+VS --> VC : VehiculeDto
+VC --> BO : 200
+deactivate VC
+
+G -> BO : ouvre le calendrier
+BO -> EC : GET /api/echeances
+activate EC
+EC -> ES : GetAllAsync()
+ES -> PG : 2 requetes SQL\n(DocumentsAdministratifs + Assurances)
+ES -> ES : normalisation UTC + JoursRestants
+ES --> EC : liste unifiee d'echeances
+EC --> BO : 200
+deactivate EC
+
+alt Vehicule passe HORS_SERVICE
+  VS -> EB : xpark.fleet.vehicle-breakdown
+  EB -> MQ : criticite HIGH
+end
+
+
+legend right
+EcheanceDto unifie DocumentAdministratif et Assurance en deux
+requetes SQL, pour eviter le probleme N+1 du calendrier.
+endlegend
+
+@enduml

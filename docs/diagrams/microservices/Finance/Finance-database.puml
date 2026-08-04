@@ -1,0 +1,66 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Finance - Persistance
+
+skinparam linetype ortho
+hide circle
+
+database "postgres : xpark_gmao" {
+  package "Accede par FinanceDbContext" #FFF8E1 {
+    entity "Factures" as Facture {
+      IdFacture : long
+      NumeroFacture : string
+      DateFacture : DateTime
+      DateEcheance : DateTime?
+      Montant : double
+      MontantTVA : double
+      MontantTTC : double
+      TauxTVA : double
+      Description : string?
+      Statut : StatutFacture
+      DatePaiement : DateTime?
+      MotifAnnulation : string?
+      ClientId : long
+      MissionId : long?
+      DateCreation : DateTime
+    }
+    entity "MissionsRef" as MissionRef {
+      IdMission : long
+      VilleDepart : string?
+      VilleArrivee : string?
+      Destination : string?
+    }
+    entity "_set" as T {
+    }
+    entity "Utilisateurs" as UtilisateurRef {
+      IdUtilisateur : long
+      Nom : string?
+      Prenom : string?
+      Email : string?
+    }
+  }
+}
+
+note as N
+  DbContext : FinanceDbContext
+  4 DbSet declares.
+  Fournisseur : Npgsql (PostgreSQL 16).
+end note
+
+legend right
+Base unique partagee : ce service ecrit dans ses tables et lit
+celles des autres domaines en SQL direct lorsque necessaire.
+endlegend
+
+@enduml

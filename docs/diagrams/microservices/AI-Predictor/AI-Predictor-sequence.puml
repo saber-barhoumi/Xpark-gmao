@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Predictor - Estimation du prix d'un trajet
+
+autonumber
+
+actor "CLIENT" as C
+participant "frontoffice" as FO
+participant "ai-predictor\n(FastAPI)" as A
+participant "distance_matrix.json" as DM
+participant "model_xgboost.pkl" as MD
+
+C -> FO : choisit depart et arrivee
+FO -> A : GET /cities
+A --> FO : villes disponibles
+C -> FO : renseigne le trajet
+FO -> A : GET /distance?depart&arrivee
+A -> DM : lecture de la matrice
+A --> FO : distance en km
+FO -> A : POST /predict { distance, type, poids... }
+activate A
+A -> A : construction du vecteur de caracteristiques
+A -> MD : model.predict(features)
+MD --> A : prix estime
+A --> FO : { prix, fourchette }
+deactivate A
+FO -> C : affichage de l'estimation
+
+
+legend right
+Le modele est charge une fois au demarrage avec joblib.
+Aucun code d'entrainement n'est present dans le depot :
+seul l'artefact model_xgboost.pkl est versionne.
+endlegend
+
+@enduml

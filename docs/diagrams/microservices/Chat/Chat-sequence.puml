@@ -1,0 +1,63 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Envoi d'un message en temps reel
+
+autonumber
+
+actor "Expediteur" as A
+actor "Destinataire" as B
+participant "backoffice A" as BA
+participant "backoffice B" as BB
+participant "ChatController" as CC
+participant "ChatHub" as HUB
+database "postgres" as PG
+queue "rabbitmq" as MQ
+
+BA -> HUB : connexion WebSocket /chatHub\n(jeton JWT)
+BB -> HUB : connexion WebSocket /chatHub
+A -> BA : ouvre une conversation
+BA -> CC : GET /api/chat/conversations
+CC -> PG : SELECT Conversations + Participants
+CC --> BA : liste
+
+A -> BA : saisit un message
+BA -> CC : POST /api/chat/conversations/{id}/messages
+activate CC
+CC -> PG : INSERT Messages
+CC --> BA : 200 message enregistre
+deactivate CC
+BA -> HUB : notification via le hub
+HUB -> BB : diffusion aux participants connectes
+BB -> B : affichage immediat
+
+opt Piece jointe
+  A -> BA : depose un fichier
+  BA -> CC : POST upload
+  CC -> CC : ecriture dans wwwroot/uploads/chat
+  CC -> PG : INSERT Messages (CheminFichier)
+end
+
+note over MQ
+  UserStatusChangedConsumer ecoute RabbitMQ :
+  un compte suspendu cote IAM est repercute ici.
+end note
+MQ -> CC : UserStatusChangedEvent
+
+
+legend right
+Le hub est mappe sur /chatHub ; nginx conserve les en-tetes
+Upgrade/Connection et porte le delai a 86400 s.
+endlegend
+
+@enduml

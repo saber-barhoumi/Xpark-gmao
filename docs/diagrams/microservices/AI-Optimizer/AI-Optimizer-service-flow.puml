@@ -1,0 +1,33 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title AI-Optimizer - Chaine interne (couches)
+
+skinparam componentStyle rectangle
+
+rectangle "main.py / rabbitmq_consumer.py" as A #FCE4EC
+rectangle "models.py\nschemas Pydantic" as B #FCE4EC
+rectangle "constraints.py\ncontraintes d'affectation" as C #FCE4EC
+rectangle "scoring.py\nnotation des candidats" as D #FCE4EC
+rectangle "optimizer.py\nchoix final" as E #FCE4EC
+A --> B
+B --> C
+C --> D
+D --> E
+E --> A : plan publie
+
+legend right
+Modules reellement presents dans OptimisateurFlotteIA/.
+endlegend
+
+@enduml

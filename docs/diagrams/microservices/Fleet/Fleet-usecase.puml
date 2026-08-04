@@ -1,0 +1,151 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Fleet - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+:TECHNICIEN: as TECHNICIEN
+
+rectangle "Fleet" {
+  package "Assurances" {
+    usecase "GetByVehicule\nGET vehicule/{vehiculeId:long}" as AssurancesControllerGetByVehiculeGET
+    usecase "GetById\nGET {id:long}" as AssurancesControllerGetByIdGET
+    usecase "Create\nPOST /" as AssurancesControllerCreatePOST
+    usecase "Delete\nDELETE {id:long}" as AssurancesControllerDeleteDELETE
+  }
+  package "Carburants" {
+    usecase "GetAll\nGET /" as CarburantsControllerGetAllGET
+    usecase "GetStats\nGET stats" as CarburantsControllerGetStatsGET
+    usecase "GetById\nGET {id:long}" as CarburantsControllerGetByIdGET
+    usecase "Create\nPOST /" as CarburantsControllerCreatePOST
+    usecase "Delete\nDELETE {id:long}" as CarburantsControllerDeleteDELETE
+  }
+  package "Documents" {
+    usecase "GetByVehicule\nGET vehicule/{vehiculeId:long}" as DocumentsControllerGetByVehiculeGET
+    usecase "GetById\nGET {id:long}" as DocumentsControllerGetByIdGET
+    usecase "Create\nPOST /" as DocumentsControllerCreatePOST
+    usecase "Delete\nDELETE {id:long}" as DocumentsControllerDeleteDELETE
+  }
+  package "Echeances" {
+    usecase "GetAll\nGET /" as EcheancesControllerGetAllGET
+  }
+  package "Equipements" {
+    usecase "GetAll\nGET /" as EquipementsControllerGetAllGET
+    usecase "GetById\nGET {id:long}" as EquipementsControllerGetByIdGET
+    usecase "GetKpis\nGET kpis" as EquipementsControllerGetKpisGET
+    usecase "Create\nPOST /" as EquipementsControllerCreatePOST
+    usecase "Update\nPUT {id:long}" as EquipementsControllerUpdatePUT
+    usecase "Delete\nDELETE {id:long}" as EquipementsControllerDeleteDELETE
+    usecase "VerifierAvantMission\nGET vehicule/{vehiculeId:long}/verification-mission" as EquipementsControllerVerifierAvantMissionGET
+    usecase "CheckOut\nPOST checkout" as EquipementsControllerCheckOutPOST
+    usecase "CheckIn\nPOST checkin" as EquipementsControllerCheckInPOST
+    usecase "CreerInspection\nPOST {id:long}/inspections" as EquipementsControllerCreerInspectionPOST
+    usecase "UploadImage\nPOST upload" as EquipementsControllerUploadImagePOST
+    usecase "AjouterNote\nPOST notes" as EquipementsControllerAjouterNotePOST
+    usecase "... 5 autres actions" as EquipementsControllerreste
+  }
+  package "Sources" {
+    usecase "GetAll\nGET /" as SourcesControllerGetAllGET
+    usecase "GetActives\nGET actives" as SourcesControllerGetActivesGET
+    usecase "GetByType\nGET type/{type}" as SourcesControllerGetByTypeGET
+    usecase "GetById\nGET {id:long}" as SourcesControllerGetByIdGET
+    usecase "Create\nPOST /" as SourcesControllerCreatePOST
+    usecase "Update\nPUT {id:long}" as SourcesControllerUpdatePUT
+    usecase "Delete\nDELETE {id:long}" as SourcesControllerDeleteDELETE
+  }
+  package "Vehicules" {
+    usecase "GetAll\nGET /" as VehiculesControllerGetAllGET
+    usecase "GetById\nGET {id:long}" as VehiculesControllerGetByIdGET
+    usecase "GetByImmatriculation\nGET immatriculation/{immatriculation}" as VehiculesControllerGetByImmatriculationGET
+    usecase "GetLatestInfo\nGET {id:long}/latest-info" as VehiculesControllerGetLatestInfoGET
+    usecase "GetDisponibles\nGET disponibles" as VehiculesControllerGetDisponiblesGET
+    usecase "Create\nPOST /" as VehiculesControllerCreatePOST
+    usecase "Update\nPUT {id:long}" as VehiculesControllerUpdatePUT
+    usecase "Delete\nDELETE {id:long}" as VehiculesControllerDeleteDELETE
+    usecase "GetAlertData\nGET alert-data" as VehiculesControllerGetAlertDataGET
+  }
+}
+
+ADMIN --> AssurancesControllerGetByVehiculeGET
+ADMIN --> AssurancesControllerGetByIdGET
+GESTIONNAIRE --> AssurancesControllerGetByIdGET
+ADMIN --> AssurancesControllerCreatePOST
+GESTIONNAIRE --> AssurancesControllerCreatePOST
+ADMIN --> AssurancesControllerDeleteDELETE
+GESTIONNAIRE --> AssurancesControllerDeleteDELETE
+ADMIN --> CarburantsControllerGetAllGET
+ADMIN --> CarburantsControllerGetStatsGET
+ADMIN --> CarburantsControllerGetByIdGET
+GESTIONNAIRE --> CarburantsControllerGetByIdGET
+ADMIN --> CarburantsControllerCreatePOST
+GESTIONNAIRE --> CarburantsControllerCreatePOST
+ADMIN --> CarburantsControllerDeleteDELETE
+GESTIONNAIRE --> CarburantsControllerDeleteDELETE
+ADMIN --> DocumentsControllerGetByVehiculeGET
+ADMIN --> DocumentsControllerGetByIdGET
+GESTIONNAIRE --> DocumentsControllerGetByIdGET
+ADMIN --> DocumentsControllerCreatePOST
+GESTIONNAIRE --> DocumentsControllerCreatePOST
+ADMIN --> DocumentsControllerDeleteDELETE
+GESTIONNAIRE --> DocumentsControllerDeleteDELETE
+ADMIN --> EcheancesControllerGetAllGET
+ADMIN --> EquipementsControllerGetAllGET
+ADMIN --> EquipementsControllerGetByIdGET
+ADMIN --> EquipementsControllerGetKpisGET
+ADMIN --> EquipementsControllerCreatePOST
+GESTIONNAIRE --> EquipementsControllerCreatePOST
+ADMIN --> EquipementsControllerUpdatePUT
+GESTIONNAIRE --> EquipementsControllerUpdatePUT
+ADMIN --> EquipementsControllerDeleteDELETE
+GESTIONNAIRE --> EquipementsControllerDeleteDELETE
+ADMIN --> EquipementsControllerVerifierAvantMissionGET
+ADMIN --> EquipementsControllerCheckOutPOST
+ADMIN --> EquipementsControllerCheckInPOST
+GESTIONNAIRE --> EquipementsControllerCheckInPOST
+ADMIN --> EquipementsControllerCreerInspectionPOST
+GESTIONNAIRE --> EquipementsControllerCreerInspectionPOST
+ADMIN --> EquipementsControllerUploadImagePOST
+GESTIONNAIRE --> EquipementsControllerUploadImagePOST
+ADMIN --> EquipementsControllerAjouterNotePOST
+ADMIN --> SourcesControllerGetAllGET
+ADMIN --> SourcesControllerGetActivesGET
+ADMIN --> SourcesControllerGetByTypeGET
+GESTIONNAIRE --> SourcesControllerGetByTypeGET
+ADMIN --> SourcesControllerGetByIdGET
+GESTIONNAIRE --> SourcesControllerGetByIdGET
+ADMIN --> SourcesControllerCreatePOST
+GESTIONNAIRE --> SourcesControllerCreatePOST
+ADMIN --> SourcesControllerUpdatePUT
+GESTIONNAIRE --> SourcesControllerUpdatePUT
+ADMIN --> SourcesControllerDeleteDELETE
+ADMIN --> VehiculesControllerGetAllGET
+ADMIN --> VehiculesControllerGetByIdGET
+ADMIN --> VehiculesControllerGetByImmatriculationGET
+ADMIN --> VehiculesControllerGetLatestInfoGET
+ADMIN --> VehiculesControllerGetDisponiblesGET
+GESTIONNAIRE --> VehiculesControllerGetDisponiblesGET
+ADMIN --> VehiculesControllerCreatePOST
+GESTIONNAIRE --> VehiculesControllerCreatePOST
+ADMIN --> VehiculesControllerUpdatePUT
+GESTIONNAIRE --> VehiculesControllerUpdatePUT
+ADMIN --> VehiculesControllerDeleteDELETE
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml

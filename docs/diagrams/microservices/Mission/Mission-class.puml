@@ -1,0 +1,116 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Diagramme de classes
+
+hide empty members
+
+package "Mission.API" #E1F5FE {
+  class DataMigrationController {
+    <<Route api/ai-data>>
+    +MigrateHistorical() : POST migrate-historical
+    +GetDatasetStats() : GET dataset-stats
+  }
+  class MissionsController {
+    <<Route api/[controller]>>
+    +GetAll() : GET /
+    +GetMyMissions() : GET my
+    +GetDriverMissions() : GET driver
+    +CancelMyMission() : PUT my/{id:long}/cancel
+    +GetById() : GET {id:long}
+    +Create() : POST /
+    +Close() : PUT {id:long}/close
+    +RequestOptimization() : POST optimize
+    +GetOptimizationPlan() : GET optimize/{batchId}
+    +Assign() : PUT {id:long}/assign
+    +Cancel() : PUT {id:long}/cancel
+    +Delete() : DELETE {id:long}
+  }
+  class SupportController {
+    <<Route api/support>>
+    +GetMyTickets() : GET my
+    +Create() : POST /
+    +CloseMyTicket() : PUT my/{id:long}/close
+    +GetAll() : GET /
+    +Respond() : PUT {id:long}/respond
+  }
+  class TrackingController {
+    <<Route api/tracking>>
+    +Ping() : POST ping
+    +Live() : GET mission/{missionId:long}/live
+    +History() : GET mission/{missionId:long}/history
+  }
+  class TransportRequestsController {
+    <<Route api/missions/demandes>>
+    +Create() : POST /
+    +GetMyRequests() : GET my
+    +GetMyRequest() : GET my/{id:long}
+    +EditMyRequest() : PUT my/{id:long}
+    +CancelMyRequest() : PUT my/{id:long}/cancel
+    +AcceptQuotation() : PUT my/{id:long}/accept
+    +RejectQuotation() : PUT my/{id:long}/reject
+    +GetAll() : GET /
+    +GetById() : GET {id:long}
+    +Delete() : DELETE {id:long}
+    +DeleteMany() : POST supprimer
+    +SendQuotation() : PUT {id:long}/quote
+  }
+}
+package "Mission.Application" #FFF3E0 {
+  interface IHistoricalMigrationService
+  interface IMissionService
+  interface IOptimizationService
+  interface IOptimizerEventBus
+  interface IGenericRepository
+  interface IMissionRepository
+  class MissionProfile <<AutoMapper Profile>>
+}
+package "Mission.Domain" #E8F5E9 {
+  class LivePosition <<entite>>
+  class Mission <<entite>>
+  class SupportTicket <<entite>>
+  class TransportRequest <<entite>>
+}
+package "Mission.Infrastructure" #FFF8E1 {
+  class MissionDbContext <<DbContext>>
+  class OptimizerEventBus
+  class HistoricalMigrationService
+  class MissionService
+  class OptimizationService
+}
+
+OptimizerEventBus ..|> IOptimizerEventBus
+HistoricalMigrationService ..|> IHistoricalMigrationService
+MissionService ..|> IMissionService
+OptimizationService ..|> IOptimizationService
+DataMigrationController --> IHistoricalMigrationService : injection
+MissionsController --> IMissionService : injection
+MissionsController --> IOptimizationService : injection
+TransportRequestsController --> IMissionService : injection
+HistoricalMigrationService --> MissionDbContext
+MissionService --> IMissionRepository
+MissionService --> IOptimizerEventBus
+OptimizationService --> IMissionRepository
+OptimizationService --> IOptimizerEventBus
+MissionDbContext --> LivePosition : DbSet
+MissionDbContext --> Mission : DbSet
+MissionDbContext --> SupportTicket : DbSet
+MissionDbContext --> TransportRequest : DbSet
+
+legend right
+5 controleurs, 6 interfaces, 4 implementations, 4 entites.
+Les dependances proviennent des constructeurs primaires C# 12
+reellement declares dans le code.
+endlegend
+
+@enduml

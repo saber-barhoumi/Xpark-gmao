@@ -1,0 +1,50 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Cycle de vie d'une conversation
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Ouverture du module de messagerie;
+:Connexion WebSocket au hub /chatHub;
+if (Type de conversation) then (PRIVEE)
+  :Deux participants;
+else (GROUPE)
+  :N participants;
+endif
+:Chargement de l'historique\n(GET /api/chat/conversations/{id}/messages);
+while (Session ouverte ?) is (oui)
+  :Saisie d'un message;
+  if (Piece jointe ?) then (oui)
+    :Ecriture dans wwwroot/uploads/chat;
+    :Type IMAGE / FICHIER / VIDEO;
+  else (non)
+    :Type TEXTE;
+  endif
+  :INSERT Messages;
+  :Diffusion aux participants connectes;
+endwhile (non)
+if (Conversation archivee ?) then (oui)
+  :Retiree de la liste active;
+endif
+:Fermeture de la connexion WebSocket;
+stop
+
+
+legend right
+Types issus de l'enumeration TypeMessage du service.
+endlegend
+
+@enduml

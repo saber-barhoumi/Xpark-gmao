@@ -1,0 +1,516 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Modele physique de donnees (base partagee)
+
+hide circle
+skinparam linetype ortho
+
+package "Tables de IAM" #E3F2FD {
+  entity "Utilisateur" as IAMUtilisateur {
+    * IdUtilisateur : long <<PK>>
+    Nom : string
+    Prenom : string
+    Email : string
+    MotDePasse : string
+    Telephone : string
+    Actif : bool
+    DateCreation : DateTime
+    Photo : string?
+    EmailConfirmed : bool
+    EmailConfirmationToken : string?
+    EmailConfirmationTokenExpiry : DateTime?
+    PasswordResetToken : string?
+    PasswordResetTokenExpiry : DateTime?
+    Pin : string?
+    HasPin : bool
+    IsSessionLocked : bool
+    SessionLockedAt : DateTime?
+    RefreshToken : string?
+    RefreshTokenExpiry : DateTime?
+    LastLoginAt : DateTime?
+    LastLoginIp : string?
+    FailedLoginAttempts : int
+    AccountLockedUntil : DateTime?
+    DateApprobation : DateTime?
+    ApprouvePar : long?
+    RaisonRejet : string?
+    DateModification : DateTime?
+  }
+  entity "Client" as IAMClient {
+    NomSociete : string?
+    SecteurActivite : string?
+    Adresse : string?
+    Ville : string?
+    CodePostal : string?
+    Pays : string?
+    NumeroFiscal : string?
+    SiteWeb : string?
+    EstEntreprise : bool
+  }
+  entity "Employee" as IAMEmployee {
+    * IdEmployee : long <<PK>>
+    Name : string
+    Prenom : string
+    NumeroMatricule : string
+    Telephone : string
+    DateEmbauche : DateTime
+    Activ : bool
+    NumeroPermis : string?
+    DateExpirationPermis : DateTime?
+  }
+  entity "Chauffeur" as IAMChauffeur {
+    NumeroPermis : string
+    DateExpirationPermis : DateTime
+    Evaluation : double
+    NombreMissionsEffectuees : int
+    KilometrageTotal : double
+    DateDerniereFormation : DateTime?
+  }
+  entity "AuthAuditLog" as IAMAuthAuditLog {
+    * Id : long <<PK>>
+    UserId : long? <<FK>>
+    Action : string
+    Description : string?
+    IpAddress : string?
+    CreatedAt : DateTime
+  }
+  entity "EmailOtp" as IAMEmailOtp {
+    * Id : long <<PK>>
+    UserId : long <<FK>>
+    CodeHash : string
+    ExpiryTime : DateTime
+    IsUsed : bool
+    UsedAt : DateTime?
+    Attempts : int
+    CreatedAt : DateTime
+  }
+  entity "UserMfaSettings" as IAMUserMfaSettings {
+    * Id : long <<PK>>
+    UserId : long <<FK>>
+    AuthenticatorEnabled : bool
+    AuthenticatorSecret : string?
+    EmailOtpEnabled : bool
+    DefaultMethod : string
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+  }
+}
+package "Tables de Fleet" #E8F5E9 {
+  entity "Vehicule" as FleetVehicule {
+    * IdVehicule : long <<PK>>
+    Marque : string
+    Modele : string
+    NumeroChassis : string
+    Immatriculation : string
+    AnneeConstruction : int
+    Kilometrage : double
+    Couleur : string?
+    NombrePlaces : int
+    ConsommationMoyenne : double
+    DateAcquisition : DateTime
+    ValeurAcquisition : double
+    PuissanceFiscale : int
+    Photo : string?
+    DateDerniereRevision : DateTime?
+    DateProchaineRevision : DateTime?
+    KilometrageProchainRevision : double?
+    Actif : bool
+    DateCreation : DateTime
+    ChargeUtileKg : double
+  }
+  entity "Equipement" as FleetEquipement {
+    * IdEquipement : long <<PK>>
+    Nom : string
+    CodeInventaire : string
+    Marque : string?
+    Modele : string?
+    NumeroSerie : string?
+    Fournisseur : string?
+    ImageUrl : string?
+    DateAchat : DateTime?
+    PrixAchat : decimal?
+    DateFinGarantie : DateTime?
+    DureeVieTheoriqueEnMois : int
+    NombreUtilisations : int
+    HeuresUtilisation : decimal
+    SeuilUsureUtilisations : int?
+    SeuilRemplacementUtilisations : int?
+    VehiculeId : long? <<FK>>
+    NotesGenerales : string?
+    Actif : bool
+    DateCreation : DateTime
+    DateModification : DateTime
+  }
+  entity "Assurance" as FleetAssurance {
+    * IdAssurance : long <<PK>>
+    Compagnie : string
+    NumeroPolice : string
+    DateDebut : DateTime
+    DateFin : DateTime
+    Prime : double
+    TypeAssurance : string
+    ContactCompagnie : string?
+    Observations : string?
+    Actif : bool
+    VehiculeId : long <<FK>>
+    DateCreation : DateTime
+  }
+  entity "DocumentAdministratif" as FleetDocumentAdministratif {
+    * IdDocument : long <<PK>>
+    NumeroDocument : string
+    DateEmission : DateTime
+    DateExpiration : DateTime
+    Autorite : string?
+    FichierPath : string?
+    Observations : string?
+    VehiculeId : long <<FK>>
+    DateCreation : DateTime
+  }
+  entity "Source" as FleetSource {
+    * IdSource : long <<PK>>
+    NomSource : string
+    Adresse : string?
+    Ville : string?
+    Longitude : double?
+    Latitude : double?
+    PrixMoyen : double?
+    RemiseFiotte : double?
+    CodeCarte : string?
+    Actif : bool
+    DateCreation : DateTime
+  }
+  entity "Carburant" as FleetCarburant {
+    * IdCarburant : long <<PK>>
+    DateRemplissage : DateTime
+    Quantite : double
+    PrixUnitaire : double
+    MontantTotal : double
+    Kilometrage : double
+    Station : string?
+    NumeroBon : string?
+    TypeCarburant : string
+    VehiculeId : long <<FK>>
+    ChauffeurId : long? <<FK>>
+    SourceId : long? <<FK>>
+    JustificatifUrl : string?
+    DateCreation : DateTime
+  }
+}
+package "Tables de Mission" #ECEFF1 {
+  entity "Mission" as MissionMission {
+    * IdMission : long <<PK>>
+    DateDepart : DateTime
+    DateRetour : DateTime?
+    Destination : string
+    KilometrageDepart : double
+    KilometrageRetour : double
+    Statut : StatutMission
+    ObjetMission : string
+    CoutTotal : double
+    EmployeeId : long? <<FK>>
+    VehiculeId : long? <<FK>>
+    ClientIdUtilisateur : long?
+    ClientNom : string?
+    DateCreation : DateTime
+    BonCarburantAccorde : bool
+    NumeroBonCarburant : string?
+    VerificationDocuments : bool
+    CarteAutorouteRemise : bool
+    VehiculeImmatriculation : string?
+    ChauffeurNom : string?
+    VilleDepart : string?
+    VilleArrivee : string?
+    DistanceKm : double
+    CoutEstimeAI : double
+    AiVehiculeTypeUsed : string?
+  }
+  entity "TransportRequest" as MissionTransportRequest {
+    * IdTransportRequest : long <<PK>>
+    ClientIdUtilisateur : long
+    ClientNom : string?
+    DateSouhaitee : DateTime
+    VilleDepart : string
+    VilleArrivee : string
+    CargoDescription : string
+    CargoWeightKg : double
+    PassengerCount : int
+    VehicleTypeRequested : string?
+    DistanceKm : double
+    AiEstimatedPrice : double
+    AiPriceRangeMin : double
+    AiPriceRangeMax : double
+    AiVehicleTypeRecommended : string?
+    Statut : StatutDemandeTransport
+    FinalPrice : double?
+    PricingMethod : MethodePrix?
+    AdminNote : string?
+    QuotedByUserId : long? <<FK>>
+    QuotedByName : string?
+    DateQuotationEnvoyee : DateTime?
+    ClientCancelReason : string?
+    ClientRejectionReason : string?
+    DateClientReponse : DateTime?
+    MissionId : long? <<FK>>
+    DateCreation : DateTime
+    DateMaj : DateTime
+  }
+  entity "LivePosition" as MissionLivePosition {
+    * IdPosition : long <<PK>>
+    MissionId : long <<FK>>
+    DriverId : long <<FK>>
+    VehiculeId : long? <<FK>>
+    Latitude : double
+    Longitude : double
+    SpeedKmh : double?
+    Heading : double?
+    Accuracy : double?
+    RecordedAt : DateTime
+    ReceivedAt : DateTime
+  }
+  entity "SupportTicket" as MissionSupportTicket {
+    * IdTicket : long <<PK>>
+    ClientIdUtilisateur : long
+    ClientNom : string?
+    Sujet : string
+    Categorie : string
+    Message : string
+    Statut : string
+    Reponse : string?
+    MissionId : long? <<FK>>
+    DateCreation : DateTime
+    DateMaj : DateTime
+  }
+}
+package "Tables de Maintenance" #F3E5F5 {
+  entity "Intervention" as MaintenanceIntervention {
+    * IdIntervention : long <<PK>>
+    DateIntervention : DateTime
+    DateFinIntervention : DateTime?
+    TypeIntervention : TypeIntervention
+    Description : string
+    Cout : double
+    CoutMainOeuvre : double?
+    CoutPieces : double?
+    Statut : StatutIntervention
+    KilometrageIntervention : double
+    Observations : string?
+    Prestataire : string?
+    DureeMinutes : int?
+    TypePeriodicite : string?
+    VehiculeId : long <<FK>>
+    TechnicienId : long? <<FK>>
+    OrdreTravailId : long? <<FK>>
+    DateCreation : DateTime
+  }
+  entity "OrdreTravail" as MaintenanceOrdreTravail {
+    * IdOrdreTravail : long <<PK>>
+    Reference : string
+    DateCreation : DateTime
+    DateDebut : DateTime?
+    DateFin : DateTime?
+    Description : string
+    Statut : StatutOrdreTravail
+    Priorite : PrioriteOrdreTravail
+    CoutReel : double?
+    Observations : string?
+    MotifAnnulation : string?
+    ValideParId : long? <<FK>>
+    DateValidation : DateTime?
+    VehiculeId : long <<FK>>
+    TechnicienId : long? <<FK>>
+  }
+  entity "PieceRechange" as MaintenancePieceRechange {
+    * IdPiece : long <<PK>>
+    Reference : string
+    Designation : string
+    Categorie : CategoriePiece
+    StockActuel : int
+    StockMinimum : int
+    StockMaximum : int
+    PrixUnitaire : double
+    Fournisseur : string?
+    Emplacement : string?
+    Description : string?
+    ImageUrl : string?
+    Actif : bool
+    DateCreation : DateTime
+    DateDernierApprovisionnement : DateTime?
+  }
+  entity "InterventionPiece" as MaintenanceInterventionPiece {
+    * IdInterventionPiece : long <<PK>>
+    InterventionId : long <<FK>>
+    PieceId : long <<FK>>
+    Quantite : int
+    PrixUnitaire : double
+  }
+  entity "HistoriqueStatutOT" as MaintenanceHistoriqueStatutOT {
+    * Id : long <<PK>>
+    OrdreTravailId : long <<FK>>
+    AncienStatut : string
+    NouveauStatut : string
+    Commentaire : string?
+    UtilisateurId : long? <<FK>>
+    DateChangement : DateTime
+  }
+  entity "Commentaire" as MaintenanceCommentaire {
+    * Id : long <<PK>>
+    OrdreId : long <<FK>>
+    Contenu : string
+    AuteurId : long <<FK>>
+    CreatedAt : DateTime
+  }
+  entity "Attachment" as MaintenanceAttachment {
+    * Id : long <<PK>>
+    OrdreId : long <<FK>>
+    Nom : string
+    Url : string
+    Taille : long
+    Type : string
+    CreatedAt : DateTime
+  }
+}
+package "Tables de Finance" #ECEFF1 {
+  entity "Factures" as FinanceFacture {
+    * IdFacture : long <<PK>>
+    NumeroFacture : string
+    DateFacture : DateTime
+    DateEcheance : DateTime?
+    Montant : double
+    MontantTVA : double
+    MontantTTC : double
+    TauxTVA : double
+    Description : string?
+    Statut : StatutFacture
+    DatePaiement : DateTime?
+    MotifAnnulation : string?
+    ClientId : long <<FK>>
+    MissionId : long? <<FK>>
+    DateCreation : DateTime
+  }
+}
+package "Tables de Alerts" #ECEFF1 {
+  entity "Alertes" as AlertsAlerte {
+    * IdAlerte : long <<PK>>
+    Message : string
+    DateCreation : DateTime
+    DateExpiration : DateTime?
+    UtilisateurId : long? <<FK>>
+    VehiculeId : long? <<FK>>
+    ChauffeurId : long? <<FK>>
+    EntiteReference : string?
+    EntiteReferenceId : long? <<FK>>
+    EquipementId : long? <<FK>>
+    MissionId : long? <<FK>>
+    Titre : string
+    DateLecture : DateTime?
+    DateTraitement : DateTime?
+    Donnees : string?
+  }
+}
+package "Tables de Chat" #EDE7F6 {
+  entity "Conversation" as ChatConversation {
+    * IdConversation : long <<PK>>
+    Titre : string?
+    TypeConversation : TypeConversation
+    DateCreation : DateTime
+    DernierMessageDate : DateTime?
+    CreatedByUserId : long <<FK>>
+    ImageGroupe : string?
+    EstArchivee : bool
+  }
+  entity "Message" as ChatMessage {
+    * IdMessage : long <<PK>>
+    Contenu : string
+    DateEnvoi : DateTime
+    TypeMessage : TypeMessage
+    ExpediteurId : long <<FK>>
+    ConversationId : long <<FK>>
+    EstLu : bool
+    DateLecture : DateTime?
+    EstSupprime : bool
+    EstModifie : bool
+    DateModification : DateTime?
+    Epingle : bool
+    CheminFichier : string?
+    NomFichier : string?
+    TailleFichier : long?
+    ReponseAMessageId : long? <<FK>>
+  }
+  entity "ConversationParticipant" as ChatConversationParticipant {
+    * IdParticipant : long <<PK>>
+    ConversationId : long <<FK>>
+    UtilisateurId : long <<FK>>
+    DateAjout : DateTime
+    EstAdmin : bool
+    EstEpingle : bool
+    DerniereLecture : DateTime?
+    NotificationsActivees : bool
+    Pseudonyme : string?
+  }
+}
+package "Tables de PredictionPanne" #ECEFF1 {
+  entity "Prediction" as PredictionPannePrediction {
+    * IdPrediction : long <<PK>>
+    VehiculeId : long <<FK>>
+    TypePanne : TypePanne
+    NiveauRisque : NiveauRisque
+    Probabilite : double
+    ScoreConfiance : double
+    DatePanneEstimee : DateTime?
+    DateMaintenanceRecommandee : DateTime?
+    DureeVieRestanteJours : int?
+    KilometrageRestant : double?
+    PieceARemplacer : string?
+    Explication : string
+    Recommandation : string
+    Source : SourcePrediction
+    VersionModele : string
+    DateCalcul : DateTime
+    Realisee : bool?
+    DateVerification : DateTime?
+  }
+}
+
+FleetVehicule ||--o{ MissionMission
+FleetVehicule ||--o{ FleetAssurance
+FleetVehicule ||--o{ FleetDocumentAdministratif
+FleetVehicule ||--o{ MaintenanceIntervention
+FleetVehicule ||--o{ PredictionPannePrediction
+FleetVehicule ||--o{ FinanceFacture
+FleetSource ||--o{ FleetCarburant
+IAMUtilisateur ||--|| IAMClient
+IAMUtilisateur ||--|| IAMEmployee
+IAMEmployee ||--|| IAMChauffeur
+IAMUtilisateur ||--o{ IAMLoginHistory
+MissionMission ||--o{ MissionLivePosition
+MissionTransportRequest ||--o| MissionMission
+MaintenanceOrdreTravail ||--o{ MaintenanceIntervention
+MaintenanceIntervention ||--o{ MaintenanceInterventionPiece
+MaintenancePieceRechange ||--o{ MaintenanceInterventionPiece
+MaintenanceOrdreTravail ||--o{ MaintenanceHistoriqueStatutOT
+MaintenanceOrdreTravail ||--o{ MaintenanceCommentaire
+MaintenanceOrdreTravail ||--o{ MaintenanceAttachment
+ChatConversation ||--o{ ChatMessage
+ChatConversation ||--o{ ChatConversationParticipant
+
+legend right
+Une seule base PostgreSQL, xpark_gmao, partagee par les 8 services.
+Chaque service ne possede en ecriture que ses propres tables et lit
+les autres en SQL direct : c'est pourquoi Vehicule, Utilisateur ou
+Mission sont redeclares en lecture seule dans plusieurs Domain.
+Les cardinalites proviennent des proprietes de navigation et des
+cles etrangeres presentes dans les entites.
+endlegend
+
+@enduml

@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Finance - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+
+rectangle "Finance" {
+  package "Carburants" {
+  }
+  package "Factures" {
+    usecase "GetAll\nGET /" as FacturesControllerGetAllGET
+    usecase "GetById\nGET {id:long}" as FacturesControllerGetByIdGET
+    usecase "GetByClient\nGET client/{clientId:long}" as FacturesControllerGetByClientGET
+    usecase "GetMy\nGET my" as FacturesControllerGetMyGET
+    usecase "GetImpayees\nGET impayees" as FacturesControllerGetImpayeesGET
+    usecase "GetMissionsFacturees\nGET missions-facturees" as FacturesControllerGetMissionsFactureesGET
+    usecase "Create\nPOST /" as FacturesControllerCreatePOST
+    usecase "MarquerPayee\nPATCH {id:long}/payer" as FacturesControllerMarquerPayeePATCH
+    usecase "Annuler\nPATCH {id:long}/annuler" as FacturesControllerAnnulerPATCH
+  }
+  package "Sources" {
+  }
+}
+
+ADMIN --> FacturesControllerGetAllGET
+ADMIN --> FacturesControllerGetByIdGET
+GESTIONNAIRE --> FacturesControllerGetByIdGET
+ADMIN --> FacturesControllerGetByClientGET
+GESTIONNAIRE --> FacturesControllerGetByClientGET
+ADMIN --> FacturesControllerGetMyGET
+ADMIN --> FacturesControllerGetImpayeesGET
+GESTIONNAIRE --> FacturesControllerGetImpayeesGET
+ADMIN --> FacturesControllerGetMissionsFactureesGET
+GESTIONNAIRE --> FacturesControllerGetMissionsFactureesGET
+ADMIN --> FacturesControllerCreatePOST
+GESTIONNAIRE --> FacturesControllerCreatePOST
+ADMIN --> FacturesControllerMarquerPayeePATCH
+GESTIONNAIRE --> FacturesControllerMarquerPayeePATCH
+ADMIN --> FacturesControllerAnnulerPATCH
+GESTIONNAIRE --> FacturesControllerAnnulerPATCH
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Flux de donnees d'une demande de transport
+
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityBorderColor #66BB6A
+
+start
+:Le client depose une demande\n(portail Next.js);
+:POST /api/transport-requests\nMission.API;
+:Enregistrement TransportRequest\n(statut EN_ATTENTE);
+partition "Estimation de prix" {
+  :Appel HTTP ai-predictor\nPOST /predict;
+  :Modele XGBoost (model_xgboost.pkl)\n+ distance_matrix.json;
+  :Fourchette de prix retournee;
+}
+:Le gestionnaire etablit un devis\n(back-office React);
+if (Devis accepte par le client ?) then (oui)
+  :Creation de la Mission\n(vehicule + chauffeur affectes);
+  :Publication xpark.mission.client-request\n(exchange topic xpark.ai);
+  :IBOA note l'evenement\net alimente le journal metier;
+  partition "Execution" {
+    :Le chauffeur remonte sa position\n(app Expo -> POST tracking);
+    :Enregistrement LivePosition;
+    :Affichage sur la carte Leaflet\n(back-office et portail);
+  }
+  :Mission TERMINEE\npublication xpark.mission.task-completed;
+  :Facturation possible\n(Finance : mission livree et non facturee);
+else (non)
+  :Demande ANNULEE;
+endif
+stop
+
+legend right
+Flux reconstitue depuis TransportRequestsController, MissionsController,
+TrackingController (Mission.API), FacturationService (Finance) et
+OptimizerEventBus / XparkEventBus pour les publications AMQP.
+endlegend
+
+@enduml

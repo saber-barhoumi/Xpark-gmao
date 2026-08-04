@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Routage des API
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx du back-office\nconteneur xpark-backoffice :3000" as NBO #ECEFF1
+component "nginx passerelle\nconteneur xpark-nginx :8080" as GWc #ECEFF1
+
+BO --> NBO
+NBO --> GWc
+
+package "Couche 1 : /api/* -> /<service>/api/*" #E1F5FE {
+  card "28 blocs location\ndont 2 canaux temps reel" as L1
+}
+package "Couche 2 : /<service>/ -> conteneur" #E8F5E9 {
+  card "/iam/ -> iam-api" as gw_iam_
+  card "/fleet/ -> fleet-api" as gw_fleet_
+  card "/mission/ -> mission-api" as gw_mission_
+  card "/maintenance/ -> maintenance-api" as gw_maintenance_
+  card "/finance/ -> finance-api" as gw_finance_
+  card "/alerts/ -> alerts-api" as gw_alerts_
+  card "/prediction/ -> prediction-api" as gw_prediction_
+  card "/chat/ -> chat-api" as gw_chat_
+  card "/backend/ -> backend" as gw_backend_
+  card "/health -> " as gw_health
+}
+
+NBO ..> L1
+GWc ..> gw_iam_
+GWc ..> gw_fleet_
+GWc ..> gw_mission_
+GWc ..> gw_maintenance_
+GWc ..> gw_finance_
+GWc ..> gw_alerts_
+GWc ..> gw_prediction_
+GWc ..> gw_chat_
+GWc ..> gw_backend_
+GWc ..> gw_health
+
+legend right
+Les deux couches nginx utilisent desormais le resolveur Docker
+(127.0.0.11) et une variable dans proxy_pass : le nom du service est
+re-resolu a chaque requete, ce qui evite de figer une IP au demarrage.
+Une variable dans proxy_pass desactivant la reecriture automatique du
+prefixe, chaque bloc porte un rewrite ... break explicite.
+endlegend
+
+@enduml

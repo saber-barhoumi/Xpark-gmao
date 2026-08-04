@@ -1,0 +1,39 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> FAIBLE : premiere evaluation
+FAIBLE --> MODERE : usure constatee
+MODERE --> ELEVE : seuils franchis
+ELEVE --> CRITIQUE : risque imminent
+CRITIQUE --> ELEVE : intervention partielle
+ELEVE --> MODERE : intervention realisee
+MODERE --> FAIBLE : remise a neuf
+CRITIQUE --> [*] : vehicule immobilise
+
+note right of CRITIQUE
+  Remonte au service Alertes lors de son
+  controle "predictions de panne critiques".
+end note
+
+legend right
+Enumeration NiveauRisque : FAIBLE, MODERE, ELEVE, CRITIQUE.
+endlegend
+
+@enduml

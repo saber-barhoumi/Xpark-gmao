@@ -1,0 +1,44 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Chaine de classification
+
+skinparam ActivityBackgroundColor #FFF9C4
+
+start
+:Donnees du vehicule\n(kilometrage, anciennete, historique);
+:RuleBasedPredictionEngine;
+partition "Regles metier" {
+  :Seuil de kilometrage;
+  :Anciennete du vehicule;
+  :Delai depuis la derniere intervention;
+  :Frequence des pannes passees;
+}
+:Score agrege;
+:OrganeClassifier;
+partition "Organes candidats (TypePanne)" {
+  :MOTEUR / FREINS / PNEUMATIQUES\n/ TRANSMISSION / SUSPENSION\n/ ELECTRIQUE / REFROIDISSEMENT\n/ CLIMATISATION / AUTRE;
+}
+:NiveauRisque\nFAIBLE / MODERE / ELEVE / CRITIQUE;
+:SourcePrediction = REGLES;
+:Enregistrement;
+stop
+
+legend right
+Classification DETERMINISTE par regles, pas un modele appris.
+L'enumeration SourcePrediction prevoit MODELE_ML mais aucune
+implementation ML n'existe : IPredictionEngine est le point
+de bascule prevu.
+endlegend
+
+@enduml

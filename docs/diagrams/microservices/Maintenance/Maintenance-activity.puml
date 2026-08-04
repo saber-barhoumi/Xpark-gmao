@@ -1,0 +1,48 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Traitement d'un ordre de travail
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Creation de l'ordre de travail;
+:Statut PLANIFIE + priorite;
+:Trace dans HistoriqueStatutOT;
+:Affichage sur le tableau Kanban;
+if (Pris en charge par un technicien ?) then (oui)
+  :Statut EN_COURS;
+  :Nouvelle ligne d'historique;
+  while (Interventions a mener ?) is (oui)
+    :Declaration d'une intervention\n(PREVENTIVE ou CURATIVE);
+    :Consommation de pieces\n(InterventionPieces);
+    :Decrement de StockActuel;
+    if (StockActuel < StockMinimum ?) then (oui)
+      :Le service Alertes signalera\nla rupture au prochain controle;
+    endif
+    :Commentaires et pieces jointes;
+  endwhile (non)
+  :Statut TERMINE;
+else (non)
+  :Statut ANNULE;
+endif
+stop
+
+
+legend right
+Champs StockActuel et StockMinimum tels que nommes dans
+l'entite PieceRechange.
+endlegend
+
+@enduml

@@ -1,0 +1,59 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Chaine de construction et de deploiement
+
+skinparam ActivityBackgroundColor #ECEFF1
+
+start
+:git push sur la branche Saber;
+partition "Construction locale" {
+  :docker compose build;
+  note right
+    .dockerignore : le contexte passe
+    de 628 Mo a quelques dizaines de ko
+  end note
+  fork
+    :8 services .NET\ndotnet restore + publish (multi-etapes);
+  fork again
+    :backoffice\nnpm ci + vite build -> nginx;
+  fork again
+    :frontoffice\nnpm install + next build;
+  fork again
+    :4 services Python\npip install -r requirements.txt;
+  end fork
+}
+partition "Demarrage" {
+  :docker compose up -d;
+  :postgres et rabbitmq demarrent\net attendent leur sonde;
+  :les services .NET appliquent\nleurs migrations EF Core;
+  if (Jwt__Key defini et >= 32 caracteres ?) then (non)
+    :arret immediat avec message explicite;
+    stop
+  endif
+  :sondes /health -> etat healthy;
+}
+partition "Validation" {
+  :suite de non-regression (27 controles);
+  :verification des routes API;
+  :parcours navigateur des ecrans;
+}
+stop
+
+legend right
+Aucune chaine d'integration continue n'est definie dans le depot
+(pas de .github/workflows, .gitlab-ci.yml ni Jenkinsfile) :
+les etapes ci-dessus sont celles executees manuellement.
+endlegend
+
+@enduml

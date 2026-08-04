@@ -1,0 +1,45 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+state "Ordre de travail" as OT {
+  [*] --> PLANIFIE
+  PLANIFIE --> EN_COURS : prise en charge
+  EN_COURS --> TERMINE : cloture
+  PLANIFIE --> ANNULE
+  EN_COURS --> ANNULE
+}
+state "Intervention" as IT {
+  [*] --> I_EN_ATTENTE
+  I_EN_ATTENTE --> I_PLANIFIEE
+  I_PLANIFIEE --> I_EN_COURS
+  I_EN_COURS --> I_TERMINEE
+  I_EN_ATTENTE --> I_ANNULEE
+  I_PLANIFIEE --> I_ANNULEE
+  I_EN_COURS --> I_ANNULEE
+}
+OT --> IT : un OT porte plusieurs interventions
+TERMINE --> [*]
+
+legend right
+StatutOrdreTravail et StatutIntervention.
+Chaque changement de statut d'OT est trace dans HistoriqueStatutOT.
+endlegend
+
+@enduml

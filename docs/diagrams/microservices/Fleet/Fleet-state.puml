@@ -1,0 +1,37 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Fleet - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> DISPONIBLE : mise en service
+DISPONIBLE --> EN_MISSION : affectation
+EN_MISSION --> DISPONIBLE : mission terminee
+DISPONIBLE --> BESOIN_MAINTENANCE : seuil atteint
+BESOIN_MAINTENANCE --> EN_MAINTENANCE : ordre de travail ouvert
+EN_MAINTENANCE --> DISPONIBLE : remise en service
+DISPONIBLE --> HORS_SERVICE : panne
+EN_MISSION --> HORS_SERVICE : panne en mission
+HORS_SERVICE --> EN_MAINTENANCE : prise en charge
+HORS_SERVICE --> [*] : reforme
+
+legend right
+Enumeration StatutVehicule. Les transitions vers HORS_SERVICE et
+BESOIN_MAINTENANCE declenchent une publication sur xpark.ai.
+endlegend
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title PredictionPanne - Flux de prediction
+
+autonumber
+
+actor "GESTIONNAIRE" as G
+participant "PredictionsController" as PC
+participant "PredictionService" as PS
+participant "RuleBasedPredictionEngine" as EN
+participant "OrganeClassifier" as OC
+database "postgres" as PG
+
+G -> PC : POST /api/predictions/recalculer
+activate PC
+PC -> PS : RecalculerAsync()
+activate PS
+PS -> PG : vehicules + historique d'interventions
+loop pour chaque vehicule
+  PS -> EN : Evaluer(...)
+  EN -> OC : organe le plus expose
+  OC --> EN : TypePanne
+  EN --> PS : NiveauRisque + score
+end
+PS -> PG : INSERT / UPDATE PredictionsPanne
+PS --> PC : nombre de predictions
+deactivate PS
+PC --> G : 200
+deactivate PC
+
+legend right
+Endpoints reels : dashboard, historique, historique/supprimer,
+recalculer, sante.
+endlegend
+
+@enduml

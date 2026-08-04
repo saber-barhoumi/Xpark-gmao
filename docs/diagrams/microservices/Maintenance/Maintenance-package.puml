@@ -1,0 +1,50 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Organisation en paquets
+
+package "Maintenance.API" as API #E1F5FE {
+  [Controllers]
+  [Program.cs]
+}
+package "Maintenance.Application" as APP #FFF3E0 {
+  [Interfaces]
+  [DTOs]
+  [Mapping]
+}
+package "Maintenance.Domain" as DOM #E8F5E9 {
+  [Entities]
+}
+package "Maintenance.Infrastructure" as INF #FFF8E1 {
+  [Data]
+  [Services]
+  [DependencyInjection]
+}
+package "XparkGMAO.Shared" as SH #ECEFF1 {
+  [Enums]
+  [Events]
+  [Common]
+}
+
+API ..> APP
+API ..> INF
+INF ..> APP
+INF ..> DOM
+APP ..> DOM
+DOM ..> SH
+
+legend right
+Couches presentes : API, Application, Domain, Infrastructure.
+endlegend
+
+@enduml

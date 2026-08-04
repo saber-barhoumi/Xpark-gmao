@@ -1,0 +1,44 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IAM - Diagramme d'etats
+
+skinparam state {
+  BackgroundColor #F5F7FA
+  BorderColor #78909C
+}
+
+[*] --> EN_ATTENTE : inscription
+EN_ATTENTE --> ACTIF : approbation par un ADMIN
+ACTIF --> SUSPENDU : suspension
+SUSPENDU --> ACTIF : reactivation
+ACTIF --> DESACTIVE : desactivation
+DESACTIVE --> ACTIF : reactivation
+ACTIF --> ARCHIVE : suppression avec historique metier
+SUSPENDU --> ARCHIVE : suppression avec historique metier
+ARCHIVE --> SUSPENDU : restauration
+ARCHIVE --> [*] : purge (refusee si historique)
+EN_ATTENTE --> [*] : rejet
+
+note right of ARCHIVE
+  La restauration ramene deliberement le compte
+  a SUSPENDU, jamais directement a ACTIF :
+  la reactivation reste un geste explicite.
+end note
+
+legend right
+Enumeration StatutUtilisateur : EN_ATTENTE, ACTIF, SUSPENDU,
+DESACTIVE, ARCHIVE.
+endlegend
+
+@enduml

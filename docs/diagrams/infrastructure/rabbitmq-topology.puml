@@ -1,0 +1,66 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Infrastructure - Topologie RabbitMQ
+
+skinparam componentStyle rectangle
+
+package "Bus 1 : MassTransit (messages types)" #E3F2FD {
+  component "iam-api\nIPublishEndpoint" as IAMp
+  queue "exchanges fanout MassTransit\nun par type de message" as MTX
+  queue "file du consommateur Chat" as QCH
+  component "chat-api\nUserStatusChangedConsumer" as CH
+}
+
+IAMp --> MTX : ClientCreatedEvent
+IAMp --> MTX : EmployeeCreatedEvent
+IAMp --> MTX : UserApprovedEvent
+IAMp --> MTX : UserRegisteredEvent
+IAMp --> MTX : UserStatusChangedEvent
+MTX --> QCH : UserStatusChangedEvent
+QCH --> CH
+
+package "Bus 2 : exchange topic xpark.ai (JSON brut)" #FCE4EC {
+  component "fleet-api\nXparkEventBus" as FL
+  component "mission-api\nOptimizerEventBus" as MS
+  queue "exchange topic\nxpark.ai (durable)" as TX
+  queue "iboa.events" as QIB
+  queue "optimizer.ready-for-optimization" as QOP
+  component "iboa" as IB
+  component "ai-optimizer" as OP
+}
+
+FL --> TX : xpark.fleet.maintenance-due
+FL --> TX : xpark.fleet.vehicle-added
+FL --> TX : xpark.fleet.vehicle-breakdown
+MS --> TX : xpark.mission.client-request
+MS --> TX : xpark.mission.task-cancelled
+MS --> TX : xpark.mission.task-completed
+MS --> TX : xpark.missions.ready-for-optimization
+TX --> QIB : liaison xpark.#
+QIB --> IB
+TX --> QOP : xpark.missions.ready-for-optimization
+QOP --> OP
+OP --> TX : xpark.optimization.plan-generated
+TX --> MS
+
+legend right
+Deux mecanismes coexistent volontairement : MassTransit pour le typage
+entre services .NET, et un exchange topic brut pour que les services
+Python (pika) consomment sans enveloppe.
+
+IBOA sait noter 48 types d'evenements (table BASE_SCORES de scorer.py),
+mais seuls 8 sont reellement publies aujourd'hui.
+endlegend
+
+@enduml

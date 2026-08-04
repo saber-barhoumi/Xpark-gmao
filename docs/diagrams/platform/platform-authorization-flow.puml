@@ -1,0 +1,51 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title XPARK GMAO - Flux d'autorisation (RBAC)
+
+skinparam ActivityBackgroundColor #FFF3E0
+
+start
+:Requete HTTP avec en-tete\nAuthorization: Bearer <jwt>;
+:nginx relaie vers le microservice;
+partition "Middleware ASP.NET Core" {
+  :UseAuthentication()\nvalidation de la signature HMAC-SHA256;
+  if (Signature, issuer, audience,\nexpiration valides ?) then (non)
+    :401 Unauthorized;
+    stop
+  endif
+  :Construction du ClaimsPrincipal\n(role, userId...);
+  :UseAuthorization();
+  if (L'endpoint porte\n[Authorize(Roles=...)] ?) then (oui)
+    if (Le role du jeton\nfigure dans la liste ?) then (non)
+      :403 Forbidden;
+      stop
+    endif
+  elseif ([AllowAnonymous]) then
+    :Acces libre;
+  endif
+}
+:Execution de l'action du controleur;
+:Reponse ApiResponse<T>;
+stop
+
+legend right
+Sur les 228 endpoints releves dans les 8 services .NET :
+- 5 explicitement anonymes ([AllowAnonymous])
+- 92 portent une restriction de role explicite
+- les autres heritent du [Authorize] pose sur leur controleur.
+Cote interface, ProtectedRoute.tsx redirige vers /auth/login
+ou /errors/error-403 selon le cas.
+endlegend
+
+@enduml

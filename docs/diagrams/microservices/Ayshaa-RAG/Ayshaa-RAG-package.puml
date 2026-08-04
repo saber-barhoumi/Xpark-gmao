@@ -1,0 +1,82 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Organisation en paquets
+
+skinparam componentStyle rectangle
+
+package "app" #FCE4EC {
+  component "__init__.py" as app___init___py
+  component "__init__.py" as app_agent___init___py
+  component "language.py" as app_agent_language_py
+  component "orchestrator.py" as app_agent_orchestrator_py
+  component "router.py" as app_agent_router_py
+  component "smalltalk.py" as app_agent_smalltalk_py
+  component "__init__.py" as app_api___init___py
+  component "routes_admin.py\n2 endpoints" as app_api_routes_admin_py
+  component "routes_chat.py\n4 endpoints" as app_api_routes_chat_py
+  component "routes_system.py\n2 endpoints" as app_api_routes_system_py
+  component "config.py" as app_config_py
+  component "__init__.py" as app_core___init___py
+  component "errors.py" as app_core_errors_py
+  component "logging.py" as app_core_logging_py
+  component "metrics.py" as app_core_metrics_py
+  component "ratelimit.py" as app_core_ratelimit_py
+  component "security.py" as app_core_security_py
+  component "__init__.py" as app_llm___init___py
+  component "providers.py" as app_llm_providers_py
+  component "main.py" as app_main_py
+  component "__init__.py" as app_memory___init___py
+  component "store.py" as app_memory_store_py
+  component "__init__.py" as app_models___init___py
+  component "schemas.py" as app_models_schemas_py
+  component "__init__.py" as app_prompts___init___py
+  component "library.py" as app_prompts_library_py
+  component "tool_answers.py" as app_prompts_tool_answers_py
+  component "__init__.py" as app_rag___init___py
+  component "chunking.py" as app_rag_chunking_py
+  component "darija_lexicon.py" as app_rag_darija_lexicon_py
+  component "embeddings.py" as app_rag_embeddings_py
+  component "lexical.py" as app_rag_lexical_py
+  component "pipeline.py" as app_rag_pipeline_py
+  component "retriever.py" as app_rag_retriever_py
+  component "vectorstore.py" as app_rag_vectorstore_py
+  component "__init__.py" as app_speech___init___py
+  component "config.py" as app_speech_config_py
+  component "__init__.py" as app_tools___init___py
+  component "analytics.py" as app_tools_analytics_py
+  component "base.py" as app_tools_base_py
+  component "iam.py" as app_tools_iam_py
+  component "missions.py" as app_tools_missions_py
+  component "pricing.py" as app_tools_pricing_py
+  component "tracking.py" as app_tools_tracking_py
+}
+package "scripts" #FCE4EC {
+  component "build_darija_lexicon.py" as scripts_build_darija_lexicon_py
+}
+
+app_agent_orchestrator_py ..> app_core_logging_py
+app_agent_router_py ..> app_core_logging_py
+app_core_errors_py ..> app_core_logging_py
+app_llm_providers_py ..> app_core_logging_py
+app_main_py ..> app_core_logging_py
+app_rag_embeddings_py ..> app_core_logging_py
+app_rag_pipeline_py ..> app_core_logging_py
+app_rag_vectorstore_py ..> app_core_logging_py
+app_tools_base_py ..> app_core_logging_py
+
+legend right
+45 modules Python, 9 dependances internes relevees dans les imports.
+endlegend
+
+@enduml

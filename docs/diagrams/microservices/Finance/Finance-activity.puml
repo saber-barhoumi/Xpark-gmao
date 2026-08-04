@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Finance - Emission et suivi d'une facture
+
+skinparam ActivityBackgroundColor #F5F7FA
+skinparam ActivityBorderColor #78909C
+
+start
+:Ouverture de l'ecran de creation;
+:Chargement des missions deja facturees\n(GET /api/factures/missions-facturees);
+:Seules les missions livrees et non\nfacturees sont proposees;
+:Selection du client et de la mission;
+:Montant pre-rempli;
+if (Mission deja facturee\n(statut different d'ANNULEE) ?) then (oui)
+  :400 - creation refusee;
+  stop
+endif
+:INSERT Factures;
+:Statut initial de la facture;
+repeat
+  if (Reglement recu ?) then (oui)
+    :Statut PAYEE;
+    stop
+  elseif (Echeance depassee ?) then (oui)
+    :Statut EN_RETARD;
+    :Apparait dans /api/factures/impayees;
+  endif
+repeat while (Facture ouverte ?) is (oui)
+if (Annulation demandee) then (oui)
+  :Statut ANNULEE;
+  note right: libere la mission,\nqui redevient facturable
+endif
+stop
+
+
+legend right
+Statuts issus de StatutFacture. La garde anti-doublon exclut
+volontairement les factures ANNULEE.
+endlegend
+
+@enduml

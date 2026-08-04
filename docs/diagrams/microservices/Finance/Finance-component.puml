@@ -1,0 +1,55 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Finance - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur finance-api (:5005)" #E8F5E9 {
+  package "API" {
+    component "CarburantsController" as CarburantsController
+    component "FacturesController" as FacturesController
+    component "SourcesController" as SourcesController
+  }
+  package "Application (ports)" {
+    interface "ICarburantService" as ICarburantService
+    interface "IFacturationService" as IFacturationService
+    interface "IGenericRepository" as IGenericRepository
+    interface "IFactureRepository" as IFactureRepository
+  }
+  package "Infrastructure (adaptateurs)" {
+    component "FacturationService" as FacturationService
+    component "FinanceDbContext" as FinanceDbContext
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> GWc
+GWc --> CarburantsController
+GWc --> CarburantsController
+GWc --> FacturesController
+GWc --> SourcesController
+FacturationService ..|> IFacturationService
+FinanceDbContext --> PG
+FacturationService --> FinanceDbContext
+
+legend right
+Port publie : 5005 (le processus ecoute sur le port 80 dans le reseau Docker).
+endlegend
+
+@enduml

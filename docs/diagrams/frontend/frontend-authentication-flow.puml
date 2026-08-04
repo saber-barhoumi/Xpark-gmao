@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Back-office - Flux d'authentification cote interface
+
+skinparam ActivityBackgroundColor #E1F5FE
+
+start
+:L'utilisateur ouvre une URL protegee;
+:ProtectedRoute lit localStorage\n(cle xpark_token);
+if (Jeton present ?) then (non)
+  :<Navigate to="/auth/login" replace />;
+  :Formulaire de connexion;
+  :authService.login()\nPOST /auth/login;
+  if (requiresMfa ?) then (oui)
+    :Saisie du code (TOTP ou courriel);
+    :POST /auth/mfa/verify;
+  endif
+  :Stockage du jeton et du profil;
+endif
+if (Role suffisant pour la route ?) then (non)
+  :<Navigate to="/errors/error-403" />;
+  stop
+endif
+:Rendu de la page;
+partition "A chaque appel API" {
+  :Intercepteur de requete axios\najoute Authorization: Bearer;
+  :Ajoute une barre finale a l'URL\n(evite la redirection 301 qui\ntransformerait un POST en GET);
+  if (Reponse) then (401)
+    :Purge du stockage local\net retour a /auth/login;
+  elseif (403) then
+    :/errors/error-403;
+  elseif (pas de reponse) then
+    :/errors/service-unavailable;
+  else (2xx)
+    :Donnees transmises au composant;
+  endif
+}
+stop
+
+legend right
+Reconstitue depuis src/components/ProtectedRoute.tsx,
+src/lib/axiosConfig.ts et src/services/authService.ts.
+endlegend
+
+@enduml

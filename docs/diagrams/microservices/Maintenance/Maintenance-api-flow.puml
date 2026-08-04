@@ -1,0 +1,58 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Maintenance - Cheminement d'un appel API
+
+autonumber
+
+actor Client as U
+participant "backoffice" as BO #E1F5FE
+participant "nginx back-office" as N1
+participant "nginx passerelle" as N2
+participant "InterventionsController\napi/[controller]" as C #E8F5E9
+participant "IMaintenanceService" as I
+participant "MaintenanceService" as S
+participant "MaintenanceDbContext" as DB
+database "postgres" as PG #FFF8E1
+
+U -> BO : action dans l'interface
+BO -> N1 : GET /api/...
+N1 -> N2 : rewrite vers /maintenance/
+N2 -> C : GET /
+activate C
+C -> C : validation du jeton JWT\n(middleware Authentication)
+C -> I : GetAll(...)
+activate I
+I -> S : implementation
+activate S
+S -> DB : requete LINQ / SQL
+DB -> PG : SELECT / INSERT / UPDATE
+PG --> DB : lignes
+DB --> S : entites
+S -> S : mapping entite -> DTO (AutoMapper)
+S --> I : DTO
+deactivate S
+I --> C : DTO
+deactivate I
+C --> N2 : 200 ApiResponse<T>
+deactivate C
+N2 --> N1 : reponse
+N1 --> BO : JSON
+BO -> U : rendu
+
+legend right
+Exemple : GET / -> InterventionsController.GetAll
+Le chemin nginx a deux couches est celui reellement configure.
+endlegend
+
+@enduml

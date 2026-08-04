@@ -1,0 +1,89 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Back-office - Appels API par service
+
+skinparam componentStyle rectangle
+left to right direction
+
+package "Services du back-office" #E1F5FE {
+  component "alerteService\n10 chemins" as alerteService
+  component "calendarService\n1 chemins" as calendarService
+  component "carburantService\n3 chemins" as carburantService
+  component "chatService\n15 chemins" as chatService
+  component "clientService\n2 chemins" as clientService
+  component "disponibiliteService\n1 chemins" as disponibiliteService
+  component "documentAdministratifService\n3 chemins" as documentAdministratifService
+  component "employeeService\n2 chemins" as employeeService
+  component "equipmentService\n12 chemins" as equipmentService
+  component "factureService\n6 chemins" as factureService
+  component "interventionService\n5 chemins" as interventionService
+  component "kanbanService\n5 chemins" as kanbanService
+  component "kpiService\n3 chemins" as kpiService
+  component "missionService\n5 chemins" as missionService
+  component "optimizerService\n2 chemins" as optimizerService
+  component "ordreTravailService\n2 chemins" as ordreTravailService
+  component "pieceRechangeService\n4 chemins" as pieceRechangeService
+  component "predictionService\n8 chemins" as predictionService
+  component "profileService\n4 chemins" as profileService
+  component "projectService\n1 chemins" as projectService
+  component "sourceService\n4 chemins" as sourceService
+  component "transportRequestService\n4 chemins" as transportRequestService
+  component "userService\n13 chemins" as userService
+  component "vehiculeService\n4 chemins" as vehiculeService
+  component "viewDetailsService\n5 chemins" as viewDetailsService
+}
+package "Microservices" #E8F5E9 {
+  component "alerts-api" as alerts_api
+  component "chat-api" as chat_api
+  component "finance-api" as finance_api
+  component "fleet-api" as fleet_api
+  component "iam-api" as iam_api
+  component "maintenance-api" as maintenance_api
+  component "mission-api" as mission_api
+  component "prediction-api" as prediction_api
+}
+
+alerteService --> alerts_api
+calendarService --> fleet_api
+carburantService --> fleet_api
+chatService --> chat_api
+clientService --> iam_api
+disponibiliteService --> fleet_api
+documentAdministratifService --> fleet_api
+employeeService --> iam_api
+equipmentService --> fleet_api
+factureService --> finance_api
+interventionService --> maintenance_api
+kanbanService --> maintenance_api
+kpiService --> iam_api
+missionService --> mission_api
+optimizerService --> mission_api
+ordreTravailService --> maintenance_api
+pieceRechangeService --> maintenance_api
+predictionService --> prediction_api
+profileService --> iam_api
+projectService --> fleet_api
+sourceService --> fleet_api
+transportRequestService --> mission_api
+userService --> iam_api
+vehiculeService --> fleet_api
+viewDetailsService --> maintenance_api
+
+legend right
+25 services sur 33 effectuent des appels via l'instance axios commune.
+Les 8 autres n'en font pas (aiPricingService, authService, fileService, groqOCRService, iboaService, signalRService) : ils appellent une API externe,
+derivent leurs donnees d'autres services, ou pilotent le temps reel.
+endlegend
+
+@enduml

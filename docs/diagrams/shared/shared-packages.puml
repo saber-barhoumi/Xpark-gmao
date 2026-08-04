@@ -1,0 +1,59 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Shared - Bibliotheques partagees
+
+skinparam componentStyle rectangle
+
+package "XparkGMAO.Shared" #ECEFF1 {
+  component "Common\nApiResponse" as C1
+  component "Enums\n33 enumerations" as C2
+  component "Events\n22 evenements" as C3
+}
+package "XparkGMAO.Shared.AiTelemetry" #FCE4EC {
+  component "Entities\nAiTripTrainingData" as aientities
+  component "Data\nAiTelemetryDbContext, IAiDataCollector" as aidata
+  component "Clients\nIFinanceServiceClient, IFleetServiceClient" as aiclients
+  component "DTOs\nDriverAllowanceDto, VehicleInfoDto" as aidtos
+}
+
+component "IAM.Domain" as IAM #E8F5E9
+component "Fleet.Domain" as Fleet #E8F5E9
+component "Mission.Domain" as Mission #E8F5E9
+component "Maintenance.Domain" as Maintenance #E8F5E9
+component "Finance.Domain" as Finance #E8F5E9
+component "Alerts.Domain" as Alerts #E8F5E9
+component "Chat.Domain" as Chat #E8F5E9
+component "PredictionPanne.Domain" as PredictionPanne #E8F5E9
+
+IAM ..> C2 : ProjectReference
+Fleet ..> C2 : ProjectReference
+Mission ..> C2 : ProjectReference
+Maintenance ..> C2 : ProjectReference
+Finance ..> C2 : ProjectReference
+Alerts ..> C2 : ProjectReference
+Chat ..> C2 : ProjectReference
+PredictionPanne ..> C2 : ProjectReference
+
+note bottom
+  XparkGMAO.Shared est une bibliotheque de classes pure (net8.0,
+  sans FrameworkReference ASP.NET) : c'est ce qui permet aux couches
+  Domain de la referencer sans importer le framework web.
+end note
+
+legend right
+Les 8 projets *.Domain referencent XparkGMAO.Shared ; les couches
+superieures en heritent transitivement.
+endlegend
+
+@enduml

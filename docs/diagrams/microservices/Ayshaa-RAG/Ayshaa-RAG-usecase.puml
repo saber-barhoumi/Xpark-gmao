@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Ayshaa-RAG - Cas d'utilisation
+
+left to right direction
+
+:CLIENT: as CLIENT
+
+rectangle "Ayshaa-RAG" {
+  package "API FastAPI" {
+    usecase "reindex\nPOST /reindex" as reindexPOST
+    usecase "stats\nGET /stats" as statsGET
+    usecase "chat\nPOST /chat" as chatPOST
+    usecase "chat_stream\nPOST /chat/stream" as chat_streamPOST
+    usecase "greeting\nGET /greeting" as greetingGET
+    usecase "speech_config\nGET /speech/config" as speech_configGET
+    usecase "health\nGET /health" as healthGET
+    usecase "metrics\nGET /metrics" as metricsGET
+  }
+}
+
+CLIENT --> reindexPOST
+CLIENT --> statsGET
+CLIENT --> chatPOST
+CLIENT --> chat_streamPOST
+CLIENT --> greetingGET
+CLIENT --> speech_configGET
+CLIENT --> healthGET
+CLIENT --> metricsGET
+
+legend right
+Service interne : il n'expose pas de RBAC propre, l'acces est
+filtre en amont (passerelle ou service appelant).
+endlegend
+
+@enduml

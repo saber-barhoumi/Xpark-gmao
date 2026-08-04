@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Infrastructure - docker-compose
+
+skinparam componentStyle rectangle
+
+package "Donnees et messagerie" #FFF8E1 {
+  component "postgres\npostgres:16-alpine\n5432:5432\n[sonde de sante]" as postgres
+  component "rabbitmq\nrabbitmq:3.13-management-alpine\n5672:5672, 15672:15672\n[sonde de sante]" as rabbitmq
+  component "qdrant\nqdrant/qdrant:v1.12.4\n6333:6333" as qdrant
+  component "ollama\nollama/ollama:latest\n11434:11434" as ollama
+}
+package "Microservices .NET 8" #E8F5E9 {
+  component "iam-api\nbuild ./microservices\n5001:80\n[sonde de sante]" as iam_api
+  component "fleet-api\nbuild ./microservices\n5002:80\n[sonde de sante]" as fleet_api
+  component "mission-api\nbuild ./microservices\n5003:80\n[sonde de sante]" as mission_api
+  component "maintenance-api\nbuild ./microservices\n5004:80\n[sonde de sante]" as maintenance_api
+  component "finance-api\nbuild ./microservices\n5005:80\n[sonde de sante]" as finance_api
+  component "alerts-api\nbuild ./microservices\n5006:80\n[sonde de sante]" as alerts_api
+  component "chat-api\nbuild ./microservices\n5007:80\n[sonde de sante]" as chat_api
+  component "prediction-api\nbuild ./microservices\n5009:80\n[sonde de sante]" as prediction_api
+}
+package "Services Python" #FCE4EC {
+  component "ai-predictor\nbuild ./CalculateurPrixTrajetIA\n8000:8000" as ai_predictor
+  component "ai-optimizer\nbuild ./OptimisateurFlotteIA\n8001:8000" as ai_optimizer
+  component "iboa\nbuild ./IntelligentBusinessOwnerAssistant\n5008:8000" as iboa
+  component "ayshaa-rag\nbuild ./AyshaaRAG\n8010:8010" as ayshaa_rag
+}
+package "Interfaces et passerelle" #E1F5FE {
+  component "nginx\nnginx:1.25-alpine\n8080:80" as nginx
+  component "backoffice\nbuild ./frontend/backoffice\n3000:80" as backoffice
+  component "frontoffice\nbuild ./frontend/frontoffice\n3001:3000" as frontoffice
+  component "backend\nbuild ./backend/src\n5000:80" as backend
+}
+
+ai_optimizer ..> rabbitmq : depends_on
+alerts_api ..> postgres : depends_on
+alerts_api ..> rabbitmq : depends_on
+ayshaa_rag ..> qdrant : depends_on
+backend ..> postgres : depends_on
+backoffice ..> nginx : depends_on
+chat_api ..> postgres : depends_on
+chat_api ..> rabbitmq : depends_on
+finance_api ..> postgres : depends_on
+finance_api ..> rabbitmq : depends_on
+fleet_api ..> postgres : depends_on
+fleet_api ..> rabbitmq : depends_on
+iam_api ..> postgres : depends_on
+iam_api ..> rabbitmq : depends_on
+iboa ..> postgres : depends_on
+iboa ..> rabbitmq : depends_on
+maintenance_api ..> postgres : depends_on
+maintenance_api ..> rabbitmq : depends_on
+mission_api ..> postgres : depends_on
+mission_api ..> rabbitmq : depends_on
+nginx ..> iam_api : depends_on
+nginx ..> fleet_api : depends_on
+nginx ..> mission_api : depends_on
+nginx ..> maintenance_api : depends_on
+nginx ..> finance_api : depends_on
+nginx ..> alerts_api : depends_on
+nginx ..> chat_api : depends_on
+nginx ..> backend : depends_on
+prediction_api ..> postgres : depends_on
+
+legend right
+20 services declares dans docker-compose.yml.
+Secrets externalises : JWT_KEY, POSTGRES_PASSWORD, RABBITMQ_PASSWORD,
+CORS_ORIGINS, EMAIL_*, AYSHAA_ADMIN_API_KEY (voir .env.example).
+endlegend
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Diagramme de composants
+
+skinparam componentStyle rectangle
+
+component "backoffice (React)" as BO #E1F5FE
+component "nginx (passerelle)" as GWc #ECEFF1
+
+package "conteneur chat-api (:5007)" #E8F5E9 {
+  package "API" {
+    component "ChatController" as ChatController
+  }
+  package "Application (ports)" {
+  }
+  package "Infrastructure (adaptateurs)" {
+    component "ChatDbContext" as ChatDbContext
+    component "ChatHub" as ChatHub
+    component "UserStatusChangedConsumer" as UserStatusChangedConsumer
+  }
+}
+
+database "postgres\nxpark_gmao" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO --> GWc
+GWc --> ChatController
+GWc --> ChatController
+ChatDbContext --> PG
+MQ --> UserStatusChangedConsumer
+BO --> ChatHub : WebSocket
+
+legend right
+Port publie : 5007 (le processus ecoute sur le port 80 dans le reseau Docker).
+endlegend
+
+@enduml

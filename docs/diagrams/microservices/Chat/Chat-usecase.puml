@@ -1,0 +1,60 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Chat - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+:TECHNICIEN: as TECHNICIEN
+:CHAUFFEUR: as CHAUFFEUR
+:CLIENT: as CLIENT
+
+rectangle "Chat" {
+  package "Chat" {
+    usecase "GetConversations\nGET conversations" as ChatControllerGetConversationsGET
+    usecase "GetArchivedConversations\nGET conversations/archived" as ChatControllerGetArchivedConversationsGET
+    usecase "DeleteConversation\nDELETE conversations/{id:long}" as ChatControllerDeleteConversationDELETE
+    usecase "GetConversation\nGET conversations/{id:long}" as ChatControllerGetConversationGET
+    usecase "CreatePrivate\nPOST conversations/private" as ChatControllerCreatePrivatePOST
+    usecase "CreateGroup\nPOST conversations/group" as ChatControllerCreateGroupPOST
+    usecase "GetMessages\nGET conversations/{id:long}/messages" as ChatControllerGetMessagesGET
+    usecase "UploadFile\nPOST conversations/{id:long}/upload" as ChatControllerUploadFilePOST
+    usecase "DeleteMessage\nDELETE messages/{id:long}" as ChatControllerDeleteMessageDELETE
+    usecase "PinMessage\nPUT messages/{id:long}/epingler" as ChatControllerPinMessagePUT
+    usecase "ForwardMessage\nPOST messages/forward" as ChatControllerForwardMessagePOST
+    usecase "TogglePin\nPUT conversations/{id:long}/pin" as ChatControllerTogglePinPUT
+    usecase "... 4 autres actions" as ChatControllerreste
+  }
+}
+
+ADMIN --> ChatControllerGetConversationsGET
+ADMIN --> ChatControllerGetArchivedConversationsGET
+ADMIN --> ChatControllerDeleteConversationDELETE
+ADMIN --> ChatControllerGetConversationGET
+ADMIN --> ChatControllerCreatePrivatePOST
+ADMIN --> ChatControllerCreateGroupPOST
+ADMIN --> ChatControllerGetMessagesGET
+ADMIN --> ChatControllerUploadFilePOST
+ADMIN --> ChatControllerDeleteMessageDELETE
+ADMIN --> ChatControllerPinMessagePUT
+ADMIN --> ChatControllerForwardMessagePOST
+ADMIN --> ChatControllerTogglePinPUT
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml

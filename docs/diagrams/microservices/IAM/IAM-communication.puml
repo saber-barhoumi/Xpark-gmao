@@ -1,0 +1,34 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title IAM - Communications
+
+skinparam componentStyle rectangle
+
+component "**iam-api**" as ME #E8F5E9
+
+component "backoffice" as BO #E1F5FE
+component "nginx" as GWc #ECEFF1
+database "postgres" as PG #FFF8E1
+queue "rabbitmq" as MQ #ECEFF1
+
+BO -[#0066CC]-> GWc : HTTP
+GWc -[#0066CC]-> ME : proxy_pass /iam/
+ME -[#666666]-> PG : Npgsql
+ME -[#CC6600]-> MQ : MassTransit\nClientCreatedEvent, EmployeeCreatedEvent, UserApprovedEvent
+
+legend right
+Bleu : HTTP · Orange : AMQP · Vert : WebSocket · Gris : base de donnees.
+endlegend
+
+@enduml

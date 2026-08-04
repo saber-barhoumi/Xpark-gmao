@@ -1,0 +1,132 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam roundCorner 6
+skinparam ArrowColor #4A5568
+skinparam TitleFontSize 16
+skinparam TitleFontColor #1A202C
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #D6BF7A
+skinparam componentStyle rectangle
+
+title Mission - Cas d'utilisation
+
+left to right direction
+
+:ADMIN: as ADMIN
+:GESTIONNAIRE: as GESTIONNAIRE
+:CHAUFFEUR: as CHAUFFEUR
+:CLIENT: as CLIENT
+
+rectangle "Mission" {
+  package "DataMigration" {
+    usecase "MigrateHistorical\nPOST migrate-historical" as DataMigrationControllerMigrateHistoricalPOST
+    usecase "GetDatasetStats\nGET dataset-stats" as DataMigrationControllerGetDatasetStatsGET
+  }
+  package "Missions" {
+    usecase "GetAll\nGET /" as MissionsControllerGetAllGET
+    usecase "GetMyMissions\nGET my" as MissionsControllerGetMyMissionsGET
+    usecase "GetDriverMissions\nGET driver" as MissionsControllerGetDriverMissionsGET
+    usecase "CancelMyMission\nPUT my/{id:long}/cancel" as MissionsControllerCancelMyMissionPUT
+    usecase "GetById\nGET {id:long}" as MissionsControllerGetByIdGET
+    usecase "Create\nPOST /" as MissionsControllerCreatePOST
+    usecase "Close\nPUT {id:long}/close" as MissionsControllerClosePUT
+    usecase "RequestOptimization\nPOST optimize" as MissionsControllerRequestOptimizationPOST
+    usecase "GetOptimizationPlan\nGET optimize/{batchId}" as MissionsControllerGetOptimizationPlanGET
+    usecase "Assign\nPUT {id:long}/assign" as MissionsControllerAssignPUT
+    usecase "Cancel\nPUT {id:long}/cancel" as MissionsControllerCancelPUT
+    usecase "Delete\nDELETE {id:long}" as MissionsControllerDeleteDELETE
+  }
+  package "Support" {
+    usecase "GetMyTickets\nGET my" as SupportControllerGetMyTicketsGET
+    usecase "Create\nPOST /" as SupportControllerCreatePOST
+    usecase "CloseMyTicket\nPUT my/{id:long}/close" as SupportControllerCloseMyTicketPUT
+    usecase "GetAll\nGET /" as SupportControllerGetAllGET
+    usecase "Respond\nPUT {id:long}/respond" as SupportControllerRespondPUT
+  }
+  package "Tracking" {
+    usecase "Ping\nPOST ping" as TrackingControllerPingPOST
+    usecase "Live\nGET mission/{missionId:long}/live" as TrackingControllerLiveGET
+    usecase "History\nGET mission/{missionId:long}/history" as TrackingControllerHistoryGET
+  }
+  package "TransportRequests" {
+    usecase "Create\nPOST /" as TransportRequestsControllerCreatePOST
+    usecase "GetMyRequests\nGET my" as TransportRequestsControllerGetMyRequestsGET
+    usecase "GetMyRequest\nGET my/{id:long}" as TransportRequestsControllerGetMyRequestGET
+    usecase "EditMyRequest\nPUT my/{id:long}" as TransportRequestsControllerEditMyRequestPUT
+    usecase "CancelMyRequest\nPUT my/{id:long}/cancel" as TransportRequestsControllerCancelMyRequestPUT
+    usecase "AcceptQuotation\nPUT my/{id:long}/accept" as TransportRequestsControllerAcceptQuotationPUT
+    usecase "RejectQuotation\nPUT my/{id:long}/reject" as TransportRequestsControllerRejectQuotationPUT
+    usecase "GetAll\nGET /" as TransportRequestsControllerGetAllGET
+    usecase "GetById\nGET {id:long}" as TransportRequestsControllerGetByIdGET
+    usecase "Delete\nDELETE {id:long}" as TransportRequestsControllerDeleteDELETE
+    usecase "DeleteMany\nPOST supprimer" as TransportRequestsControllerDeleteManyPOST
+    usecase "SendQuotation\nPUT {id:long}/quote" as TransportRequestsControllerSendQuotationPUT
+  }
+}
+
+ADMIN --> DataMigrationControllerMigrateHistoricalPOST
+ADMIN --> DataMigrationControllerGetDatasetStatsGET
+ADMIN --> MissionsControllerGetAllGET
+GESTIONNAIRE --> MissionsControllerGetAllGET
+CHAUFFEUR --> MissionsControllerGetAllGET
+CHAUFFEUR --> MissionsControllerGetMyMissionsGET
+ADMIN --> MissionsControllerGetMyMissionsGET
+GESTIONNAIRE --> MissionsControllerGetMyMissionsGET
+CHAUFFEUR --> MissionsControllerGetDriverMissionsGET
+ADMIN --> MissionsControllerGetDriverMissionsGET
+GESTIONNAIRE --> MissionsControllerGetDriverMissionsGET
+ADMIN --> MissionsControllerCancelMyMissionPUT
+ADMIN --> MissionsControllerGetByIdGET
+GESTIONNAIRE --> MissionsControllerGetByIdGET
+CHAUFFEUR --> MissionsControllerGetByIdGET
+ADMIN --> MissionsControllerCreatePOST
+GESTIONNAIRE --> MissionsControllerCreatePOST
+ADMIN --> MissionsControllerClosePUT
+GESTIONNAIRE --> MissionsControllerClosePUT
+ADMIN --> MissionsControllerRequestOptimizationPOST
+GESTIONNAIRE --> MissionsControllerRequestOptimizationPOST
+ADMIN --> MissionsControllerGetOptimizationPlanGET
+GESTIONNAIRE --> MissionsControllerGetOptimizationPlanGET
+ADMIN --> MissionsControllerAssignPUT
+GESTIONNAIRE --> MissionsControllerAssignPUT
+ADMIN --> MissionsControllerCancelPUT
+GESTIONNAIRE --> MissionsControllerCancelPUT
+ADMIN --> MissionsControllerDeleteDELETE
+GESTIONNAIRE --> MissionsControllerDeleteDELETE
+ADMIN --> SupportControllerGetMyTicketsGET
+ADMIN --> SupportControllerCreatePOST
+ADMIN --> SupportControllerCloseMyTicketPUT
+ADMIN --> SupportControllerGetAllGET
+GESTIONNAIRE --> SupportControllerGetAllGET
+ADMIN --> SupportControllerRespondPUT
+GESTIONNAIRE --> SupportControllerRespondPUT
+ADMIN --> TrackingControllerPingPOST
+ADMIN --> TrackingControllerLiveGET
+ADMIN --> TrackingControllerHistoryGET
+ADMIN --> TransportRequestsControllerCreatePOST
+ADMIN --> TransportRequestsControllerGetMyRequestsGET
+ADMIN --> TransportRequestsControllerGetMyRequestGET
+ADMIN --> TransportRequestsControllerEditMyRequestPUT
+ADMIN --> TransportRequestsControllerCancelMyRequestPUT
+ADMIN --> TransportRequestsControllerAcceptQuotationPUT
+ADMIN --> TransportRequestsControllerRejectQuotationPUT
+ADMIN --> TransportRequestsControllerGetAllGET
+GESTIONNAIRE --> TransportRequestsControllerGetAllGET
+ADMIN --> TransportRequestsControllerGetByIdGET
+GESTIONNAIRE --> TransportRequestsControllerGetByIdGET
+ADMIN --> TransportRequestsControllerDeleteDELETE
+GESTIONNAIRE --> TransportRequestsControllerDeleteDELETE
+ADMIN --> TransportRequestsControllerDeleteManyPOST
+GESTIONNAIRE --> TransportRequestsControllerDeleteManyPOST
+ADMIN --> TransportRequestsControllerSendQuotationPUT
+GESTIONNAIRE --> TransportRequestsControllerSendQuotationPUT
+
+legend right
+Acteurs deduits des attributs [Authorize(Roles=...)] du service.
+Les cas sans role explicite heritent du [Authorize] du controleur.
+endlegend
+
+@enduml
