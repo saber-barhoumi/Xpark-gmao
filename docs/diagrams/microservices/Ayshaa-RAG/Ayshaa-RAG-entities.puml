@@ -1,32 +1,20 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Ayshaa-RAG - Entites du domaine
-
-hide empty methods
-skinparam linetype ortho
+title Ayshaa-RAG - Modele du domaine
 
 note as N
   Service Python : les structures de donnees sont des modeles
-  Pydantic, pas des entites persistees par un ORM.
+  Pydantic, c'est-a-dire des objets-valeurs de transfert et non
+  des entites persistees. Elles sont decrites dans
+  Ayshaa-RAG-class-domain.puml.
 end note
-
-class "ChatRequest" as ChatRequest <<Pydantic>>
-class "Source" as Source <<Pydantic>>
-class "ChatResponse" as ChatResponse <<Pydantic>>
-class "GreetingResponse" as GreetingResponse <<Pydantic>>
-class "HealthResponse" as HealthResponse <<Pydantic>>
-class "ReindexResponse" as ReindexResponse <<Pydantic>>
 
 @enduml

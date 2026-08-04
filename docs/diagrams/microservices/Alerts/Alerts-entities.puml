@@ -1,40 +1,27 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Alerts - Entites du domaine
+title Alerts - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
-
-entity "Alerte" as Alerte {
-  IdAlerte : long <<PK>>
-  Message : string
-  DateCreation : DateTime
-  DateExpiration : DateTime?
-  UtilisateurId : long? <<FK>>
-  VehiculeId : long? <<FK>>
-  ChauffeurId : long? <<FK>>
-  EntiteReference : string?
-  EntiteReferenceId : long? <<FK>>
-  EquipementId : long? <<FK>>
-  MissionId : long? <<FK>>
-  Titre : string
-  DateLecture : DateTime?
-  DateTraitement : DateTime?
-  Donnees : string?
+class Alerte <<entity>> {
+  -idAlerte : Long {id}
+  -message : String
+  -dateCreation : Date
+  -dateExpiration : Date
+  -entiteReference : String
+  -titre : String
+  -dateLecture : Date
+  -dateTraitement : Date
+  -donnees : String
 }
-enum TypeAlerte {
+enum TypeAlerte <<enumeration>> {
   ASSURANCE
   VISITE_TECHNIQUE
   VIGNETTE
@@ -75,24 +62,21 @@ enum TypeAlerte {
   MISSION_SANS_AFFECTATION
   AUTRE
 }
-enum Priorite {
+enum Priorite <<enumeration>> {
   BASSE
   MOYENNE
   HAUTE
   CRITIQUE
 }
-enum StatutAlerte {
+enum StatutAlerte <<enumeration>> {
   ACTIVE
   LUE
   TRAITEE
   IGNOREE
 }
-enum StatutVehicule {
-  DISPONIBLE
-  EN_MISSION
-  EN_MAINTENANCE
-  HORS_SERVICE
-  BESOIN_MAINTENANCE
-}
+
+Alerte ..> Priorite : << use >>
+Alerte ..> StatutAlerte : << use >>
+Alerte ..> TypeAlerte : << use >>
 
 @enduml

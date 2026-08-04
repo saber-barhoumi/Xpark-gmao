@@ -1,143 +1,101 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Mission - Entites du domaine
+title Mission - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
-
-entity "LivePosition" as LivePosition {
-  IdPosition : long
-  MissionId : long <<FK>>
-  DriverId : long <<FK>>
-  VehiculeId : long? <<FK>>
-  Latitude : double
-  Longitude : double
-  SpeedKmh : double?
-  Heading : double?
-  Accuracy : double?
-  RecordedAt : DateTime
-  ReceivedAt : DateTime
+class LivePosition <<entity>> {
+  -idPosition : Long {id}
+  -latitude : Double
+  -longitude : Double
+  -speedKmh : Double
+  -heading : Double
+  -accuracy : Double
+  -recordedAt : Date
+  -receivedAt : Date
 }
-entity "Mission" as Mission {
-  IdMission : long <<PK>>
-  DateDepart : DateTime
-  DateRetour : DateTime?
-  Destination : string
-  KilometrageDepart : double
-  KilometrageRetour : double
-  Statut : StatutMission
-  ObjetMission : string
-  CoutTotal : double
-  EmployeeId : long? <<FK>>
-  VehiculeId : long? <<FK>>
-  ClientIdUtilisateur : long?
-  ClientNom : string?
-  DateCreation : DateTime
-  BonCarburantAccorde : bool
-  NumeroBonCarburant : string?
-  VerificationDocuments : bool
-  CarteAutorouteRemise : bool
-  VehiculeImmatriculation : string?
-  ChauffeurNom : string?
-  VilleDepart : string?
-  VilleArrivee : string?
-  DistanceKm : double
-  CoutEstimeAI : double
-  AiVehiculeTypeUsed : string?
+class Mission <<entity>> {
+  -idMission : Long {id}
+  -dateDepart : Date
+  -dateRetour : Date
+  -destination : String
+  -kilometrageDepart : Double
+  -kilometrageRetour : Double
+  -statut : StatutMission
+  -objetMission : String
+  -coutTotal : Double
+  -clientIdUtilisateur : Long
+  -clientNom : String
+  -dateCreation : Date
+  -bonCarburantAccorde : Boolean
+  -numeroBonCarburant : String
+  -verificationDocuments : Boolean
+  -carteAutorouteRemise : Boolean
+  -vehiculeImmatriculation : String
+  -chauffeurNom : String
+  -villeDepart : String
+  -villeArrivee : String
+  -distanceKm : Double
+  -coutEstimeAI : Double
+  -aiVehiculeTypeUsed : String
 }
-entity "SupportTicket" as SupportTicket {
-  IdTicket : long
-  ClientIdUtilisateur : long
-  ClientNom : string?
-  Sujet : string
-  Categorie : string
-  Message : string
-  Statut : string
-  Reponse : string?
-  MissionId : long? <<FK>>
-  DateCreation : DateTime
-  DateMaj : DateTime
+class TransportRequest <<entity>> {
+  -idTransportRequest : Long {id}
+  -clientIdUtilisateur : Long
+  -clientNom : String
+  -dateSouhaitee : Date
+  -villeDepart : String
+  -villeArrivee : String
+  -cargoDescription : String
+  -cargoWeightKg : Double
+  -passengerCount : Integer
+  -vehicleTypeRequested : String
+  -distanceKm : Double
+  -aiEstimatedPrice : Double
+  -aiPriceRangeMin : Double
+  -aiPriceRangeMax : Double
+  -aiVehicleTypeRecommended : String
+  -statut : StatutDemandeTransport
+  -finalPrice : Double
+  -pricingMethod : MethodePrix
+  -adminNote : String
+  -quotedByName : String
+  -dateQuotationEnvoyee : Date
+  -clientCancelReason : String
+  -clientRejectionReason : String
+  -dateClientReponse : Date
+  -dateCreation : Date
+  -dateMaj : Date
 }
-entity "TransportRequest" as TransportRequest {
-  IdTransportRequest : long <<PK>>
-  ClientIdUtilisateur : long
-  ClientNom : string?
-  DateSouhaitee : DateTime
-  VilleDepart : string
-  VilleArrivee : string
-  CargoDescription : string
-  CargoWeightKg : double
-  PassengerCount : int
-  VehicleTypeRequested : string?
-  DistanceKm : double
-  AiEstimatedPrice : double
-  AiPriceRangeMin : double
-  AiPriceRangeMax : double
-  AiVehicleTypeRecommended : string?
-  Statut : StatutDemandeTransport
-  FinalPrice : double?
-  PricingMethod : MethodePrix?
-  AdminNote : string?
-  QuotedByUserId : long? <<FK>>
-  QuotedByName : string?
-  DateQuotationEnvoyee : DateTime?
-  ClientCancelReason : string?
-  ClientRejectionReason : string?
-  DateClientReponse : DateTime?
-  MissionId : long? <<FK>>
-  DateCreation : DateTime
-  DateMaj : DateTime
-}
-enum StatutMission {
+enum StatutMission <<enumeration>> {
   EN_ATTENTE
   EN_COURS
   TERMINEE
   ANNULEE
 }
-enum StatutVehicule {
-  DISPONIBLE
-  EN_MAINTENANCE
-  EN_MISSION
-  HORS_SERVICE
-  BESOIN_MAINTENANCE
-}
-enum PostEmployee {
-  CHAUFFEUR
-  TECHNICIEN
-  ADMINISTRATEUR
-  GESTIONNAIRE
-  DIRECTEUR
-  RESPONSABLE_MAINTENANCE
-}
-enum StatutEmployee {
-  DISPONIBLE
-  EN_MISSION
-  EN_CONGE
-  INACTIF
-}
-enum StatutDemandeTransport {
+enum StatutDemandeTransport <<enumeration>> {
   PENDING_QUOTATION
   QUOTATION_SENT
   ACCEPTED
   REJECTED
   CANCELLED
 }
-enum MethodePrix {
+enum MethodePrix <<enumeration>> {
   AI_PRICE
   MODIFIED
   MANUAL
 }
+
+TransportRequest "1" -- "0..1" Mission : devis accepte >
+Mission "1" *-- "0..*" LivePosition : trace >
+Mission ..> StatutMission : << use >>
+TransportRequest ..> MethodePrix : << use >>
+TransportRequest ..> StatutDemandeTransport : << use >>
 
 @enduml

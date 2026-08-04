@@ -1,52 +1,31 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Finance - Entites du domaine
+title Finance - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
-
-entity "Facture" as Facture {
-  IdFacture : long <<PK>>
-  NumeroFacture : string
-  DateFacture : DateTime
-  DateEcheance : DateTime?
-  Montant : double
-  MontantTVA : double
-  MontantTTC : double
-  TauxTVA : double
-  Description : string?
-  Statut : StatutFacture
-  DatePaiement : DateTime?
-  MotifAnnulation : string?
-  ClientId : long <<FK>>
-  MissionId : long? <<FK>>
-  DateCreation : DateTime
+class Facture <<entity>> {
+  -idFacture : Long {id}
+  -numeroFacture : String
+  -dateFacture : Date
+  -dateEcheance : Date
+  -montant : Double
+  -montantTVA : Double
+  -montantTTC : Double
+  -tauxTVA : Double
+  -description : String
+  -statut : StatutFacture
+  -datePaiement : Date
+  -motifAnnulation : String
+  -dateCreation : Date
 }
-entity "UtilisateurRef" as UtilisateurRef {
-  IdUtilisateur : long <<PK>>
-  Nom : string?
-  Prenom : string?
-  Email : string?
-}
-entity "MissionRef" as MissionRef {
-  IdMission : long <<PK>>
-  VilleDepart : string?
-  VilleArrivee : string?
-  Destination : string?
-}
-enum StatutFacture {
+enum StatutFacture <<enumeration>> {
   EN_ATTENTE
   BROUILLON
   EMISE
@@ -54,52 +33,7 @@ enum StatutFacture {
   ANNULEE
   EN_RETARD
 }
-enum TypeSource {
-  STATION_EXTERNE
-  DAC_INTERNE
-  CARTE_CARBURANT
-  CITERE_MOBILE
-  STOCKAGE_PRIVE
-}
-enum StatutVehicule {
-  DISPONIBLE
-  EN_MISSION
-  EN_MAINTENANCE
-  HORS_SERVICE
-  BESOIN_MAINTENANCE
-}
-enum TypeCarburant {
-  ESSENCE
-  DIESEL
-  HYBRIDE
-  ELECTRIQUE
-  GPL
-}
-enum TypeVehicule {
-  BERLINE
-  SUV
-  UTILITAIRE
-  CAMION
-  MINIBUS
-  MOTO
-  VOITURE
-  CAMIONNETTE
-  BUS
-  AUTRE
-}
-enum Role {
-  CLIENT
-  CHAUFFEUR
-  TECHNICIEN
-  GESTIONNAIRE
-  ADMINISTRATEUR
-  ADMIN
-}
-enum StatutUtilisateur {
-  EN_ATTENTE
-  ACTIF
-  SUSPENDU
-  DESACTIVE
-}
+
+Facture ..> StatutFacture : << use >>
 
 @enduml

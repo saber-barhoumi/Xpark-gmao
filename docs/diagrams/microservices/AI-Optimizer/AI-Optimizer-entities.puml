@@ -1,36 +1,20 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title AI-Optimizer - Entites du domaine
-
-hide empty methods
-skinparam linetype ortho
+title AI-Optimizer - Modele du domaine
 
 note as N
   Service Python : les structures de donnees sont des modeles
-  Pydantic, pas des entites persistees par un ORM.
+  Pydantic, c'est-a-dire des objets-valeurs de transfert et non
+  des entites persistees. Elles sont decrites dans
+  AI-Optimizer-class-domain.puml.
 end note
-
-class "MissionIn" as MissionIn <<Pydantic>>
-class "VehicleIn" as VehicleIn <<Pydantic>>
-class "DriverIn" as DriverIn <<Pydantic>>
-class "RecentMission" as RecentMission <<Pydantic>>
-class "OptimizationConstraints" as OptimizationConstraints <<Pydantic>>
-class "OptimizeRequest" as OptimizeRequest <<Pydantic>>
-class "AssignmentOut" as AssignmentOut <<Pydantic>>
-class "UnassignedOut" as UnassignedOut <<Pydantic>>
-class "MetricsOut" as MetricsOut <<Pydantic>>
-class "OptimizeResponse" as OptimizeResponse <<Pydantic>>
 
 @enduml

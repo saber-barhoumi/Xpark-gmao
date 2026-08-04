@@ -1,30 +1,34 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title AI-Optimizer - Chaine interne (couches)
+title AI-Optimizer - Chaine interne en couches
 
 skinparam componentStyle rectangle
 
-rectangle "main.py / rabbitmq_consumer.py" as A #FCE4EC
-rectangle "models.py\nschemas Pydantic" as B #FCE4EC
-rectangle "constraints.py\ncontraintes d'affectation" as C #FCE4EC
-rectangle "scoring.py\nnotation des candidats" as D #FCE4EC
-rectangle "optimizer.py\nchoix final" as E #FCE4EC
-A --> B
-B --> C
-C --> D
-D --> E
-E --> A : plan publie
+package "Presentation" {
+  component "Point d'entree du service" as ENTREE
+}
+package "Traitement" {
+  component "constraints.py" as constraints_py
+  component "main.py" as main_py
+  component "models.py" as models_py
+  component "optimizer.py" as optimizer_py
+  component "rabbitmq_consumer.py" as rabbitmq_consumer_py
+  component "scoring.py" as scoring_py
+}
+
+ENTREE --> constraints_py
+constraints_py --> main_py
+main_py --> models_py
+models_py --> optimizer_py
+optimizer_py --> rabbitmq_consumer_py
+rabbitmq_consumer_py --> scoring_py
 
 @enduml

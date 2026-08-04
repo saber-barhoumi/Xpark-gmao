@@ -1,33 +1,38 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title IBOA - Chaine interne (couches)
+title IBOA - Chaine interne en couches
 
 skinparam componentStyle rectangle
 
-rectangle "rabbitmq_consumer.py\nreception AMQP" as A #FCE4EC
-rectangle "pipeline.py\norchestration" as B #FCE4EC
-rectangle "scorer.py\ncriticite = base + modificateurs" as C #FCE4EC
-rectangle "aggregator.py\nregroupement" as D #FCE4EC
-rectangle "formatters.py\nmise en forme metier" as E #FCE4EC
-rectangle "delivery.py\ndiffusion" as F #FCE4EC
-rectangle "storage.py\njournal PostgreSQL" as G #FFF8E1
-A --> B
-B --> C
-C --> D
-D --> E
-E --> F
-B --> G
+package "Presentation" {
+  component "Point d'entree du service" as ENTREE
+}
+package "Traitement" {
+  component "aggregator.py" as aggregator_py
+  component "delivery.py" as delivery_py
+  component "formatters.py" as formatters_py
+  component "main.py" as main_py
+  component "models.py" as models_py
+  component "pipeline.py" as pipeline_py
+  component "rabbitmq_consumer.py" as rabbitmq_consumer_py
+  component "scorer.py" as scorer_py
+}
+
+ENTREE --> aggregator_py
+aggregator_py --> delivery_py
+delivery_py --> formatters_py
+formatters_py --> main_py
+main_py --> models_py
+models_py --> pipeline_py
+pipeline_py --> rabbitmq_consumer_py
+rabbitmq_consumer_py --> scorer_py
 
 @enduml

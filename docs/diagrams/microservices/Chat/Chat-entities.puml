@@ -1,105 +1,53 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Chat - Entites du domaine
+title Chat - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
-
-entity "ChatUtilisateur" as ChatUtilisateur {
-  IdUtilisateur : long
-  Nom : string
-  Prenom : string
-  Email : string
-  Photo : string?
-  Actif : bool
+class Conversation <<entity>> {
+  -idConversation : Long {id}
+  -titre : String
+  -typeConversation : TypeConversation
+  -dateCreation : Date
+  -dernierMessageDate : Date
+  -imageGroupe : String
+  -estArchivee : Boolean
 }
-entity "Conversation" as Conversation {
-  IdConversation : long <<PK>>
-  Titre : string?
-  TypeConversation : TypeConversation
-  DateCreation : DateTime
-  DernierMessageDate : DateTime?
-  CreatedByUserId : long <<FK>>
-  ImageGroupe : string?
-  EstArchivee : bool
+class ConversationParticipant <<entity>> {
+  -idParticipant : Long {id}
+  -dateAjout : Date
+  -estAdmin : Boolean
+  -estEpingle : Boolean
+  -derniereLecture : Date
+  -notificationsActivees : Boolean
+  -pseudonyme : String
 }
-entity "ConversationParticipant" as ConversationParticipant {
-  IdParticipant : long
-  ConversationId : long <<FK>>
-  UtilisateurId : long <<FK>>
-  DateAjout : DateTime
-  EstAdmin : bool
-  EstEpingle : bool
-  DerniereLecture : DateTime?
-  NotificationsActivees : bool
-  Pseudonyme : string?
+class Message <<entity>> {
+  -idMessage : Long {id}
+  -contenu : String
+  -dateEnvoi : Date
+  -typeMessage : TypeMessage
+  -estLu : Boolean
+  -dateLecture : Date
+  -estSupprime : Boolean
+  -estModifie : Boolean
+  -dateModification : Date
+  -epingle : Boolean
+  -cheminFichier : String
+  -nomFichier : String
+  -tailleFichier : Long
 }
-entity "Message" as Message {
-  IdMessage : long <<PK>>
-  Contenu : string
-  DateEnvoi : DateTime
-  TypeMessage : TypeMessage
-  ExpediteurId : long <<FK>>
-  ConversationId : long <<FK>>
-  EstLu : bool
-  DateLecture : DateTime?
-  EstSupprime : bool
-  EstModifie : bool
-  DateModification : DateTime?
-  Epingle : bool
-  CheminFichier : string?
-  NomFichier : string?
-  TailleFichier : long?
-  ReponseAMessageId : long? <<FK>>
-}
-entity "MessageReaction" as MessageReaction {
-  IdReaction : long
-  MessageId : long <<FK>>
-  UtilisateurId : long <<FK>>
-  TypeReaction : string
-  DateReaction : DateTime
-}
-entity "UtilisateurStatut" as UtilisateurStatut {
-  IdStatut : long
-  UtilisateurId : long <<FK>>
-  Statut : StatutEnLigne
-  DerniereActivite : DateTime
-  MessageCustom : string?
-  ConnectionId : string? <<FK>>
-}
-entity "MessageHubDto" as MessageHubDto {
-  IdMessage : long
-  ConversationId : long <<FK>>
-  ExpediteurId : long <<FK>>
-  NomExpediteur : string
-  Contenu : string
-  TypeMessage : string
-  EstLu : bool
-  DateEnvoi : string
-  CheminFichier : string?
-  NomFichier : string?
-  TailleFichier : long?
-  ReponseAMessageId : long? <<FK>>
-  AvatarUrl : string?
-  Epingle : bool
-}
-enum TypeConversation {
+enum TypeConversation <<enumeration>> {
   PRIVEE
   GROUPE
 }
-enum TypeMessage {
+enum TypeMessage <<enumeration>> {
   TEXTE
   IMAGE
   FICHIER
@@ -108,22 +56,10 @@ enum TypeMessage {
   SYSTEME
   APPEL
 }
-enum StatutEnLigne {
-  ENLIGNE
-  ABSENT
-  OCCUPE
-  HORSLIGNE
-}
 
-Conversation "1" *-- "0..*" Message : Messages
-Conversation "1" *-- "0..*" ConversationParticipant : Participants
-ConversationParticipant "0..*" --> "1" Conversation : Conversation
-ConversationParticipant "0..*" --> "1" ChatUtilisateur : Utilisateur
-Message "0..*" --> "1" ChatUtilisateur : Expediteur
-Message "0..*" --> "1" Conversation : Conversation
-Message "1" *-- "0..*" MessageReaction : Reactions
-MessageReaction "0..*" --> "1" Message : Message
-MessageReaction "0..*" --> "1" ChatUtilisateur : Utilisateur
-UtilisateurStatut "0..*" --> "1" ChatUtilisateur : Utilisateur
+Conversation "1" *-- "0..*" Message : echanges >
+Conversation "1" *-- "2..*" ConversationParticipant : participants >
+Conversation ..> TypeConversation : << use >>
+Message ..> TypeMessage : << use >>
 
 @enduml

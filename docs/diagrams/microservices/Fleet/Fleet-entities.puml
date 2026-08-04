@@ -1,131 +1,113 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Fleet - Entites du domaine
+title Fleet - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
-
-entity "Assurance" as Assurance {
-  IdAssurance : long <<PK>>
-  Compagnie : string
-  NumeroPolice : string
-  DateDebut : DateTime
-  DateFin : DateTime
-  Prime : double
-  TypeAssurance : string
-  ContactCompagnie : string?
-  Observations : string?
-  Actif : bool
-  VehiculeId : long <<FK>>
-  DateCreation : DateTime
+class Assurance <<entity>> {
+  -idAssurance : Long {id}
+  -compagnie : String
+  -numeroPolice : String
+  -dateDebut : Date
+  -dateFin : Date
+  -prime : Double
+  -typeAssurance : String
+  -contactCompagnie : String
+  -observations : String
+  -actif : Boolean
+  -dateCreation : Date
 }
-entity "Carburant" as Carburant {
-  IdCarburant : long <<PK>>
-  DateRemplissage : DateTime
-  Quantite : double
-  PrixUnitaire : double
-  MontantTotal : double
-  Kilometrage : double
-  Station : string?
-  NumeroBon : string?
-  TypeCarburant : string
-  VehiculeId : long <<FK>>
-  ChauffeurId : long? <<FK>>
-  SourceId : long? <<FK>>
-  JustificatifUrl : string?
-  DateCreation : DateTime
+class Carburant <<entity>> {
+  -idCarburant : Long {id}
+  -dateRemplissage : Date
+  -quantite : Double
+  -prixUnitaire : Double
+  -montantTotal : Double
+  -kilometrage : Double
+  -station : String
+  -numeroBon : String
+  -typeCarburant : String
+  -justificatifUrl : String
+  -dateCreation : Date
 }
-entity "DocumentAdministratif" as DocumentAdministratif {
-  IdDocument : long
-  NumeroDocument : string
-  DateEmission : DateTime
-  DateExpiration : DateTime
-  Autorite : string?
-  FichierPath : string?
-  Observations : string?
-  VehiculeId : long <<FK>>
-  DateCreation : DateTime
+class DocumentAdministratif <<entity>> {
+  -idDocument : Long {id}
+  -numeroDocument : String
+  -dateEmission : Date
+  -dateExpiration : Date
+  -autorite : String
+  -fichierPath : String
+  -observations : String
+  -dateCreation : Date
 }
-entity "Equipement" as Equipement {
-  IdEquipement : long <<PK>>
-  Nom : string
-  CodeInventaire : string
-  Marque : string?
-  Modele : string?
-  NumeroSerie : string?
-  Fournisseur : string?
-  ImageUrl : string?
-  DateAchat : DateTime?
-  PrixAchat : decimal?
-  DateFinGarantie : DateTime?
-  DureeVieTheoriqueEnMois : int
-  NombreUtilisations : int
-  HeuresUtilisation : decimal
-  SeuilUsureUtilisations : int?
-  SeuilRemplacementUtilisations : int?
-  VehiculeId : long? <<FK>>
-  NotesGenerales : string?
-  Actif : bool
-  DateCreation : DateTime
-  DateModification : DateTime
+class Equipement <<entity>> {
+  -idEquipement : Long {id}
+  -nom : String
+  -codeInventaire : String
+  -marque : String
+  -modele : String
+  -numeroSerie : String
+  -fournisseur : String
+  -imageUrl : String
+  -dateAchat : Date
+  -prixAchat : Decimal
+  -dateFinGarantie : Date
+  -dureeVieTheoriqueEnMois : Integer
+  -nombreUtilisations : Integer
+  -heuresUtilisation : Decimal
+  -seuilUsureUtilisations : Integer
+  -seuilRemplacementUtilisations : Integer
+  -notesGenerales : String
+  -actif : Boolean
+  -dateCreation : Date
+  -dateModification : Date
 }
-entity "Source" as Source {
-  IdSource : long <<PK>>
-  NomSource : string
-  Adresse : string?
-  Ville : string?
-  Longitude : double?
-  Latitude : double?
-  PrixMoyen : double?
-  RemiseFiotte : double?
-  CodeCarte : string?
-  Actif : bool
-  DateCreation : DateTime
+class Source <<entity>> {
+  -idSource : Long {id}
+  -nomSource : String
+  -adresse : String
+  -ville : String
+  -longitude : Double
+  -latitude : Double
+  -prixMoyen : Double
+  -remiseFiotte : Double
+  -codeCarte : String
+  -actif : Boolean
+  -dateCreation : Date
 }
-entity "Vehicule" as Vehicule {
-  IdVehicule : long <<PK>>
-  Marque : string
-  Modele : string
-  NumeroChassis : string
-  Immatriculation : string
-  AnneeConstruction : int
-  Kilometrage : double
-  Couleur : string?
-  NombrePlaces : int
-  ConsommationMoyenne : double
-  DateAcquisition : DateTime
-  ValeurAcquisition : double
-  PuissanceFiscale : int
-  Photo : string?
-  DateDerniereRevision : DateTime?
-  DateProchaineRevision : DateTime?
-  KilometrageProchainRevision : double?
-  Actif : bool
-  DateCreation : DateTime
-  ChargeUtileKg : double
+class Vehicule <<entity>> {
+  -idVehicule : Long {id}
+  -marque : String
+  -modele : String
+  -numeroChassis : String
+  -immatriculation : String
+  -anneeConstruction : Integer
+  -kilometrage : Double
+  -couleur : String
+  -nombrePlaces : Integer
+  -consommationMoyenne : Double
+  -dateAcquisition : Date
+  -valeurAcquisition : Double
+  -puissanceFiscale : Integer
+  -photo : String
+  -dateDerniereRevision : Date
+  -dateProchaineRevision : Date
+  -kilometrageProchainRevision : Double
+  -actif : Boolean
+  -dateCreation : Date
+  -chargeUtileKg : Double
 }
 
-Assurance "0..*" --> "1" Vehicule : Vehicule
-Carburant "0..*" --> "1" Vehicule : Vehicule
-Carburant "0..*" --> "1" Source : Source
-DocumentAdministratif "0..*" --> "1" Vehicule : Vehicule
-Equipement "0..*" --> "1" Vehicule : Vehicule
-Source "1" *-- "0..*" Carburant : ConsommationsCarburant
-Vehicule "1" *-- "0..*" Assurance : Assurances
-Vehicule "1" *-- "0..*" DocumentAdministratif : Documents
-Vehicule "1" *-- "0..*" Carburant : Carburants
-Vehicule "1" *-- "0..*" Equipement : Equipements
+Vehicule "1" *-- "0..*" Assurance : couvertures >
+Vehicule "1" *-- "0..*" DocumentAdministratif : documents >
+Vehicule "1" o-- "0..*" Carburant : pleins >
+Source "1" o-- "0..*" Carburant : approvisionnements >
+Vehicule "0..1" o-- "0..*" Equipement : dotation >
 
 @enduml

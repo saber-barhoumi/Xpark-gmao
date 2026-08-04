@@ -1,58 +1,135 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Fleet - Ajout d'un vehicule et suivi des echeances
+title Fleet - Immatriculation d'un vehicule et suivi des echeances
 
 autonumber
 
-actor "GESTIONNAIRE" as G
-participant "backoffice" as BO
-participant "VehiculesController" as VC
-participant "IVehiculeService" as IVS
-participant "VehiculeService" as VS
-participant "XparkEventBus" as EB
-database "postgres" as PG
-queue "rabbitmq (xpark.ai)" as MQ
-participant "EcheancesController" as EC
-participant "EcheanceService" as ES
+actor "Gestionnaire" as G
+participant "VehiculesController" as CTRL <<control>>
+participant "IVehiculeService" as IVS <<interface>>
+participant "VehiculeService" as VS <<service>>
+participant "IXparkEventBus" as IBUS <<interface>>
+participant "XparkEventBus" as BUS <<adapter>>
+participant "FleetDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+participant "EcheancesController" as ECTRL <<control>>
+participant "IEcheanceService" as IES <<interface>>
+participant "EcheanceService" as ES <<service>>
 
-G -> BO : assistant de creation de vehicule
-note right of BO : l'OCR de la carte grise est\nrealise cote navigateur (Grok)
-BO -> VC : POST /api/vehicules
-activate VC
-VC -> IVS : CreateAsync(dto)
-IVS -> VS : implementation
-VS -> PG : INSERT Vehicules
-VS -> EB : PublishFleetEventAsync("xpark.fleet.vehicle-added", "LOW", ...)
-EB -> MQ : exchange topic xpark.ai
-VS --> VC : VehiculeDto
-VC --> BO : 200
-deactivate VC
+== Immatriculation d'un vehicule ==
 
-G -> BO : ouvre le calendrier
-BO -> EC : GET /api/echeances
-activate EC
-EC -> ES : GetAllAsync()
-ES -> PG : 2 requetes SQL\n(DocumentsAdministratifs + Assurances)
-ES -> ES : normalisation UTC + JoursRestants
-ES --> EC : liste unifiee d'echeances
-EC --> BO : 200
-deactivate EC
+G -> CTRL : creerVehicule(vehiculeDto)
+activate CTRL
+CTRL -> IVS : creerAsync(vehiculeDto)
+activate IVS
+IVS -> VS : creerAsync(vehiculeDto)
+activate VS
+note right of VS
+  Les donnees du certificat d'immatriculation
+  sont saisies par le navigateur ; le service
+  ne recoit que le formulaire deja rempli.
+end note
+VS -> REPO : ajouter(vehicule)
+activate REPO
+REPO -> BD : enregistrer
+activate BD
+BD --> REPO : identifiant attribue
+deactivate BD
+REPO --> VS : vehicule
+deactivate REPO
+VS -> IBUS : publierEvenement("xpark.fleet.vehicle-added", "LOW", donnees)
+activate IBUS
+IBUS -> BUS : publierEvenement(...)
+activate BUS
+BUS --> IBUS : accuse de publication
+deactivate BUS
+IBUS --> VS : accuse de publication
+deactivate IBUS
+VS --> IVS : vehiculeDto
+deactivate VS
+IVS --> CTRL : vehiculeDto
+deactivate IVS
+CTRL --> G : vehiculeDto
+deactivate CTRL
 
-alt Vehicule passe HORS_SERVICE
-  VS -> EB : xpark.fleet.vehicle-breakdown
-  EB -> MQ : criticite HIGH
+== Suivi des echeances ==
+
+G -> ECTRL : obtenirEcheances()
+activate ECTRL
+ECTRL -> IES : obtenirToutesAsync()
+activate IES
+IES -> ES : obtenirToutesAsync()
+activate ES
+ES -> REPO : lireDocumentsAdministratifs()
+activate REPO
+REPO -> BD : selectionner
+BD --> REPO : documents
+REPO --> ES : documents
+deactivate REPO
+ES -> REPO : lireAssurances()
+activate REPO
+REPO -> BD : selectionner
+BD --> REPO : assurances
+REPO --> ES : assurances
+deactivate REPO
+ES -> ES : normaliserDates()
+ES -> ES : calculerJoursRestants()
+ES --> IES : listeEcheances
+deactivate ES
+IES --> ECTRL : listeEcheances
+deactivate IES
+ECTRL --> G : listeEcheances
+deactivate ECTRL
+
+== Changement d'etat du vehicule ==
+
+G -> CTRL : modifierVehicule(vehiculeDto)
+activate CTRL
+CTRL -> IVS : modifierAsync(vehiculeDto)
+activate IVS
+IVS -> VS : modifierAsync(vehiculeDto)
+activate VS
+VS -> REPO : mettreAJour(vehicule)
+activate REPO
+REPO -> BD : enregistrer
+REPO --> VS : vehicule
+deactivate REPO
+
+alt statut devenu HORS_SERVICE
+  VS -> IBUS : publierEvenement("xpark.fleet.vehicle-breakdown", "HIGH", donnees)
+  activate IBUS
+  IBUS -> BUS : publierEvenement(...)
+  activate BUS
+  BUS --> IBUS : accuse de publication
+  deactivate BUS
+  IBUS --> VS : accuse de publication
+  deactivate IBUS
+else statut devenu BESOIN_MAINTENANCE
+  VS -> IBUS : publierEvenement("xpark.fleet.maintenance-due", "MEDIUM", donnees)
+  activate IBUS
+  IBUS -> BUS : publierEvenement(...)
+  activate BUS
+  BUS --> IBUS : accuse de publication
+  deactivate BUS
+  IBUS --> VS : accuse de publication
+  deactivate IBUS
+else autre statut
+  VS -> VS : aucun evenement publie
 end
+
+VS --> IVS : vehiculeDto
+deactivate VS
+IVS --> CTRL : vehiculeDto
+deactivate IVS
+CTRL --> G : vehiculeDto
+deactivate CTRL
 
 @enduml

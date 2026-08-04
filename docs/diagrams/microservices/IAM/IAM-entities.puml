@@ -1,120 +1,106 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title IAM - Entites du domaine
+title IAM - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
+class Chauffeur <<entity>> {
+  -numeroPermis : String
+  -dateExpirationPermis : Date
+  -evaluation : Double
+  -nombreMissionsEffectuees : Integer
+  -kilometrageTotal : Double
+  -dateDerniereFormation : Date
+}
+class Client <<entity>> {
+  -nomSociete : String
+  -secteurActivite : String
+  -adresse : String
+  -ville : String
+  -codePostal : String
+  -pays : String
+  -numeroFiscal : String
+  -siteWeb : String
+  -estEntreprise : Boolean
+}
+class Employee <<entity>> {
+  -idEmployee : Long {id}
+  -name : String
+  -prenom : String
+  -numeroMatricule : String
+  -telephone : String
+  -dateEmbauche : Date
+  -activ : Boolean
+  -numeroPermis : String
+  -dateExpirationPermis : Date
+}
+class UserMfaSettings <<entity>> {
+  -id : Long {id}
+  -authenticatorEnabled : Boolean
+  -authenticatorSecret : String
+  -emailOtpEnabled : Boolean
+  -defaultMethod : String
+  -createdAt : Date
+  -updatedAt : Date
+}
+class EmailOtp <<entity>> {
+  -id : Long {id}
+  -codeHash : String
+  -expiryTime : Date
+  -isUsed : Boolean
+  -usedAt : Date
+  -attempts : Integer
+  -createdAt : Date
+}
+class AuthAuditLog <<entity>> {
+  -id : Long {id}
+  -action : String
+  -description : String
+  -ipAddress : String
+  -createdAt : Date
+}
+class Utilisateur <<entity>> {
+  -idUtilisateur : Long {id}
+  -nom : String
+  -prenom : String
+  -email : String
+  -motDePasse : String
+  -telephone : String
+  -actif : Boolean
+  -dateCreation : Date
+  -photo : String
+  -emailConfirmed : Boolean
+  -emailConfirmationToken : String
+  -emailConfirmationTokenExpiry : Date
+  -passwordResetToken : String
+  -passwordResetTokenExpiry : Date
+  -pin : String
+  -hasPin : Boolean
+  -isSessionLocked : Boolean
+  -sessionLockedAt : Date
+  -refreshToken : String
+  -refreshTokenExpiry : Date
+  -lastLoginAt : Date
+  -lastLoginIp : String
+  -failedLoginAttempts : Integer
+  -accountLockedUntil : Date
+  -dateApprobation : Date
+  -approuvePar : Long
+  -raisonRejet : String
+  -dateModification : Date
+}
 
-entity "Chauffeur" as Chauffeur {
-  NumeroPermis : string
-  DateExpirationPermis : DateTime
-  Evaluation : double
-  NombreMissionsEffectuees : int
-  KilometrageTotal : double
-  DateDerniereFormation : DateTime?
-}
-entity "Client" as Client {
-  NomSociete : string?
-  SecteurActivite : string?
-  Adresse : string?
-  Ville : string?
-  CodePostal : string?
-  Pays : string?
-  NumeroFiscal : string?
-  SiteWeb : string?
-  EstEntreprise : bool
-}
-entity "Employee" as Employee {
-  IdEmployee : long <<PK>>
-  Name : string
-  Prenom : string
-  NumeroMatricule : string
-  Telephone : string
-  DateEmbauche : DateTime
-  Activ : bool
-  NumeroPermis : string?
-  DateExpirationPermis : DateTime?
-}
-entity "UserMfaSettings" as UserMfaSettings {
-  Id : long <<PK>>
-  UserId : long <<FK>>
-  AuthenticatorEnabled : bool
-  AuthenticatorSecret : string?
-  EmailOtpEnabled : bool
-  DefaultMethod : string
-  CreatedAt : DateTime
-  UpdatedAt : DateTime
-}
-entity "EmailOtp" as EmailOtp {
-  Id : long <<PK>>
-  UserId : long <<FK>>
-  CodeHash : string
-  ExpiryTime : DateTime
-  IsUsed : bool
-  UsedAt : DateTime?
-  Attempts : int
-  CreatedAt : DateTime
-}
-entity "LoginHistoryEntry" as LoginHistoryEntry {
-  Id : long <<PK>>
-  UserId : long <<FK>>
-  LoginMethod : string
-  MfaMethod : string?
-  IpAddress : string?
-  UserAgent : string?
-  IsSuccessful : bool
-  FailureReason : string?
-  LoggedInAt : DateTime
-}
-entity "AuthAuditLog" as AuthAuditLog {
-  Id : long <<PK>>
-  UserId : long? <<FK>>
-  Action : string
-  Description : string?
-  IpAddress : string?
-  CreatedAt : DateTime
-}
-entity "Utilisateur" as Utilisateur {
-  IdUtilisateur : long <<PK>>
-  Nom : string
-  Prenom : string
-  Email : string
-  MotDePasse : string
-  Telephone : string
-  Actif : bool
-  DateCreation : DateTime
-  Photo : string?
-  EmailConfirmed : bool
-  EmailConfirmationToken : string?
-  EmailConfirmationTokenExpiry : DateTime?
-  PasswordResetToken : string?
-  PasswordResetTokenExpiry : DateTime?
-  Pin : string?
-  HasPin : bool
-  IsSessionLocked : bool
-  SessionLockedAt : DateTime?
-  RefreshToken : string?
-  RefreshTokenExpiry : DateTime?
-  LastLoginAt : DateTime?
-  LastLoginIp : string?
-  FailedLoginAttempts : int
-  AccountLockedUntil : DateTime?
-  DateApprobation : DateTime?
-  ApprouvePar : long?
-  RaisonRejet : string?
-  DateModification : DateTime?
-}
+Utilisateur <|-- Client
+Utilisateur <|-- Employee
+Employee <|-- Chauffeur
+Utilisateur "1" *-- "0..*" AuthAuditLog : journal >
+Utilisateur "1" *-- "0..*" EmailOtp : codes >
+Utilisateur "1" *-- "0..1" UserMfaSettings : second facteur >
 
 @enduml

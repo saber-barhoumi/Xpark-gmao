@@ -46,9 +46,9 @@ Files : `iboa.events`
 | Fichier | Contenu |
 |---|---|
 | `IBOA-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `IBOA-entities.puml` | Modele du domaine : entites, associations et cardinalites |
 | `IBOA-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
 | `IBOA-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `IBOA-entities.puml` | Entites persistees, cles et relations |
 | `IBOA-component.puml` | Diagramme de composants |
 | `IBOA-package.puml` | Diagramme de paquets et sens des dependances |
 | `IBOA-sequence.puml` | Diagramme de sequence d'un flux metier reel |
@@ -57,7 +57,7 @@ Files : `iboa.events`
 | `IBOA-state.puml` | Diagramme d'etats-transitions |
 | `IBOA-database.puml` | Persistance et tables accedees |
 | `IBOA-api-flow.puml` | Sequence complete d'un appel de service |
-| `IBOA-service-flow.puml` | Traversee des couches internes |
+| `IBOA-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
 | `IBOA-classifier-ia-pipeline.puml` | Chaine de classification |
 | `IBOA-inference-flow.puml` | Flux d'inference |
 
@@ -71,23 +71,6 @@ Conformement a la consigne « ne generer que ce qui existe » :
 - `IBOA-rag-flow.puml` : pas de recherche augmentee dans ce service.
 - `IBOA-optimization-flow.puml` : pas de logique d'optimisation dans ce service.
 - `IBOA-training-flow.puml` : aucun code d'entrainement dans le depot.
-
-## Conformite UML
-
-Les diagrammes de ce dossier suivent les conventions du cours :
-
-- **Cas d'utilisation** : association acteur / cas d'utilisation en trait continu
-  sans fleche, acteur secondaire porte par le stereotype `<< secondary >>`,
-  `<< include >>` pour une partie obligatoire et `<< extend >>` pour une partie
-  optionnelle, generalisation entre acteurs pour eviter les liens redondants.
-  Les systemes tiers sont des acteurs places hors de la frontiere du systeme.
-- **Classes** : deux diagrammes distincts, l'un pour l'architecture (couches,
-  interfaces, realisations), l'autre pour le domaine (entites, enumerations).
-  Syntaxe `[Vis] Nom : Type` pour les attributs et `[Vis] Nom(Arg) : TypeRetour`
-  pour les operations ; multiplicite indiquee aux deux extremites de chaque
-  association ; composition `*--` reservee aux cycles de vie possedes.
-- Aucune legende : chaque diagramme se lit seul. Les notes ne portent que sur
-  un choix d'architecture.
 
 ## Regeneration
 

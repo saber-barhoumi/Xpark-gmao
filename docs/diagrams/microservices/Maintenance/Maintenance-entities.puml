@@ -1,139 +1,112 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+hide empty members
 
-title Maintenance - Entites du domaine
+title Maintenance - Modele du domaine
 
-hide empty methods
-skinparam linetype ortho
-
-entity "Attachment" as Attachment {
-  Id : long <<PK>>
-  OrdreId : long <<FK>>
-  Nom : string
-  Url : string
-  Taille : long
-  Type : string
-  CreatedAt : DateTime
+class Attachment <<entity>> {
+  -id : Long {id}
+  -nom : String
+  -url : String
+  -taille : Long
+  -type : String
+  -createdAt : Date
 }
-entity "Commentaire" as Commentaire {
-  Id : long <<PK>>
-  OrdreId : long <<FK>>
-  Contenu : string
-  AuteurId : long <<FK>>
-  CreatedAt : DateTime
+class Commentaire <<entity>> {
+  -id : Long {id}
+  -contenu : String
+  -createdAt : Date
 }
-entity "HistoriqueStatutOT" as HistoriqueStatutOT {
-  Id : long <<PK>>
-  OrdreTravailId : long <<FK>>
-  AncienStatut : string
-  NouveauStatut : string
-  Commentaire : string?
-  UtilisateurId : long? <<FK>>
-  DateChangement : DateTime
+class HistoriqueStatutOT <<entity>> {
+  -id : Long {id}
+  -ancienStatut : String
+  -nouveauStatut : String
+  -commentaire : String
+  -dateChangement : Date
 }
-entity "Intervention" as Intervention {
-  IdIntervention : long <<PK>>
-  DateIntervention : DateTime
-  DateFinIntervention : DateTime?
-  TypeIntervention : TypeIntervention
-  Description : string
-  Cout : double
-  CoutMainOeuvre : double?
-  CoutPieces : double?
-  Statut : StatutIntervention
-  KilometrageIntervention : double
-  Observations : string?
-  Prestataire : string?
-  DureeMinutes : int?
-  TypePeriodicite : string?
-  VehiculeId : long <<FK>>
-  TechnicienId : long? <<FK>>
-  OrdreTravailId : long? <<FK>>
-  DateCreation : DateTime
+class Intervention <<entity>> {
+  -idIntervention : Long {id}
+  -dateIntervention : Date
+  -dateFinIntervention : Date
+  -typeIntervention : TypeIntervention
+  -description : String
+  -cout : Double
+  -coutMainOeuvre : Double
+  -coutPieces : Double
+  -statut : StatutIntervention
+  -kilometrageIntervention : Double
+  -observations : String
+  -prestataire : String
+  -dureeMinutes : Integer
+  -typePeriodicite : String
+  -dateCreation : Date
 }
-entity "InterventionPiece" as InterventionPiece {
-  IdInterventionPiece : long <<PK>>
-  InterventionId : long <<FK>>
-  PieceId : long <<FK>>
-  Quantite : int
-  PrixUnitaire : double
+class InterventionPiece <<entity>> {
+  -idInterventionPiece : Long {id}
+  -quantite : Integer
+  -prixUnitaire : Double
 }
-entity "OrdreTravail" as OrdreTravail {
-  IdOrdreTravail : long <<PK>>
-  Reference : string
-  DateCreation : DateTime
-  DateDebut : DateTime?
-  DateFin : DateTime?
-  Description : string
-  Statut : StatutOrdreTravail
-  Priorite : PrioriteOrdreTravail
-  CoutReel : double?
-  Observations : string?
-  MotifAnnulation : string?
-  ValideParId : long? <<FK>>
-  DateValidation : DateTime?
-  VehiculeId : long <<FK>>
-  TechnicienId : long? <<FK>>
+class OrdreTravail <<entity>> {
+  -idOrdreTravail : Long {id}
+  -reference : String
+  -dateCreation : Date
+  -dateDebut : Date
+  -dateFin : Date
+  -description : String
+  -statut : StatutOrdreTravail
+  -priorite : PrioriteOrdreTravail
+  -coutReel : Double
+  -observations : String
+  -motifAnnulation : String
+  -dateValidation : Date
 }
-entity "PieceRechange" as PieceRechange {
-  IdPiece : long
-  Reference : string
-  Designation : string
-  Categorie : CategoriePiece
-  StockActuel : int
-  StockMinimum : int
-  StockMaximum : int
-  PrixUnitaire : double
-  Fournisseur : string?
-  Emplacement : string?
-  Description : string?
-  ImageUrl : string?
-  Actif : bool
-  DateCreation : DateTime
-  DateDernierApprovisionnement : DateTime?
+class PieceRechange <<entity>> {
+  -idPiece : Long {id}
+  -reference : String
+  -designation : String
+  -categorie : CategoriePiece
+  -stockActuel : Integer
+  -stockMinimum : Integer
+  -stockMaximum : Integer
+  -prixUnitaire : Double
+  -fournisseur : String
+  -emplacement : String
+  -description : String
+  -imageUrl : String
+  -actif : Boolean
+  -dateCreation : Date
+  -dateDernierApprovisionnement : Date
 }
-enum TypeIntervention {
+enum TypeIntervention <<enumeration>> {
   PREVENTIVE
   CURATIVE
 }
-enum StatutIntervention {
+enum StatutIntervention <<enumeration>> {
   EN_ATTENTE
   PLANIFIEE
   EN_COURS
   TERMINEE
   ANNULEE
 }
-enum StatutOrdreTravail {
+enum StatutOrdreTravail <<enumeration>> {
   PLANIFIE
   EN_COURS
   TERMINE
   ANNULE
 }
-enum PrioriteOrdreTravail {
+enum PrioriteOrdreTravail <<enumeration>> {
   BASSE
   MOYENNE
   HAUTE
   URGENT
 }
-enum StatutVehicule {
-  DISPONIBLE
-  EN_MAINTENANCE
-  EN_MISSION
-  HORS_SERVICE
-  BESOIN_MAINTENANCE
-}
-enum CategoriePiece {
+enum CategoriePiece <<enumeration>> {
   MOTEUR
   TRANSMISSION
   FREINAGE
@@ -145,32 +118,17 @@ enum CategoriePiece {
   ECLAIRAGE
   AUTRE
 }
-enum Role {
-  ADMIN
-  ADMINISTRATEUR
-  GESTIONNAIRE
-  TECHNICIEN
-  CHAUFFEUR
-  CLIENT
-}
-enum StatutUtilisateur {
-  EN_ATTENTE
-  ACTIF
-  SUSPENDU
-  DESACTIVE
-}
 
-Attachment "0..*" --> "1" OrdreTravail : OrdreTravail
-Commentaire "0..*" --> "1" OrdreTravail : OrdreTravail
-HistoriqueStatutOT "0..*" --> "1" OrdreTravail : OrdreTravail
-Intervention "0..*" --> "1" OrdreTravail : OrdreTravail
-Intervention "1" *-- "0..*" InterventionPiece : InterventionPieces
-InterventionPiece "0..*" --> "1" Intervention : Intervention
-InterventionPiece "0..*" --> "1" PieceRechange : Piece
-OrdreTravail "1" *-- "0..*" Intervention : Interventions
-OrdreTravail "1" *-- "0..*" Attachment : Attachments
-OrdreTravail "1" *-- "0..*" Commentaire : Commentaires
-OrdreTravail "1" *-- "0..*" HistoriqueStatutOT : HistoriqueStatuts
-PieceRechange "1" *-- "0..*" InterventionPiece : InterventionPieces
+OrdreTravail "1" *-- "0..*" Intervention : travaux >
+OrdreTravail "1" *-- "1..*" HistoriqueStatutOT : historique >
+OrdreTravail "1" *-- "0..*" Commentaire : suivi >
+OrdreTravail "1" *-- "0..*" Attachment : pieces jointes >
+Intervention "1" *-- "0..*" InterventionPiece : consommations >
+PieceRechange "1" -- "0..*" InterventionPiece : sorties de stock >
+Intervention ..> StatutIntervention : << use >>
+Intervention ..> TypeIntervention : << use >>
+OrdreTravail ..> PrioriteOrdreTravail : << use >>
+OrdreTravail ..> StatutOrdreTravail : << use >>
+PieceRechange ..> CategoriePiece : << use >>
 
 @enduml

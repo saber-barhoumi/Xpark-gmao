@@ -14,71 +14,70 @@ actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
-actor "Technicien" as Technicien
 
 Utilisateur <|-- Responsable
 Responsable <|-- Administrateur
 Responsable <|-- Gestionnaire
-Utilisateur <|-- Technicien
 
 rectangle "Service Flotte" {
-  package "Parc roulant" {
+  package "Exploitation courante" {
     usecase "Consulter les vehicules" as UC_Consulter_les_vehicules
     usecase "Rechercher un vehicule disponible" as UC_Rechercher_un_vehicule_disponible
-    usecase "Immatriculer un vehicule" as UC_Immatriculer_un_vehicule
-    usecase "Modifier un vehicule" as UC_Modifier_un_vehicule
-    usecase "Retirer un vehicule du parc" as UC_Retirer_un_vehicule_du_parc
-  }
-  package "Documents et assurances" {
-    usecase "Consulter les documents administratifs" as UC_Consulter_les_documents_administra
-    usecase "Enregistrer un document administratif" as UC_Enregistrer_un_document_administra
-    usecase "Enregistrer une assurance" as UC_Enregistrer_une_assurance
-    usecase "Consulter les echeances" as UC_Consulter_les_echeances
-    usecase "Supprimer une piece justificative" as UC_Supprimer_une_piece_justificative
-  }
-  package "Equipements" {
     usecase "Consulter les equipements" as UC_Consulter_les_equipements
-    usecase "Ajouter un equipement" as UC_Ajouter_un_equipement
-    usecase "Modifier un equipement" as UC_Modifier_un_equipement
-    usecase "Retirer un equipement" as UC_Retirer_un_equipement
+    usecase "Consulter les indicateurs des equipements" as UC_Consulter_les_indicateurs_des_equi
+    usecase "Consulter les documents administratifs" as UC_Consulter_les_documents_administra
+    usecase "Consulter les echeances" as UC_Consulter_les_echeances
+    usecase "Consulter les sources de carburant" as UC_Consulter_les_sources_de_carburant
+    usecase "Consulter les statistiques de consommation" as UC_Consulter_les_statistiques_de_cons
+    usecase "Declarer un plein de carburant" as UC_Declarer_un_plein_de_carburant
+    usecase "Verifier les equipements avant mission" as UC_Verifier_les_equipements_avant_mis
     usecase "Affecter un equipement a une mission" as UC_Affecter_un_equipement_a_une_missi
     usecase "Restituer un equipement" as UC_Restituer_un_equipement
     usecase "Realiser une inspection" as UC_Realiser_une_inspection
-    usecase "Consulter les indicateurs des equipements" as UC_Consulter_les_indicateurs_des_equi
     usecase "Gerer les contrats de garantie" as UC_Gerer_les_contrats_de_garantie
   }
-  package "Approvisionnement" {
-    usecase "Consulter les sources de carburant" as UC_Consulter_les_sources_de_carburant
-    usecase "Declarer un plein de carburant" as UC_Declarer_un_plein_de_carburant
-    usecase "Consulter les statistiques de consommation" as UC_Consulter_les_statistiques_de_cons
+  package "Tenue du referentiel" {
+    usecase "Immatriculer un vehicule" as UC_Immatriculer_un_vehicule
+    usecase "Modifier un vehicule" as UC_Modifier_un_vehicule
+    usecase "Ajouter un equipement" as UC_Ajouter_un_equipement
+    usecase "Modifier un equipement" as UC_Modifier_un_equipement
+    usecase "Enregistrer un document administratif" as UC_Enregistrer_un_document_administra
+    usecase "Enregistrer une assurance" as UC_Enregistrer_une_assurance
+  }
+  package "Retrait definitif" {
+    usecase "Retirer un vehicule du parc" as UC_Retirer_un_vehicule_du_parc
+    usecase "Retirer un equipement" as UC_Retirer_un_equipement
+    usecase "Supprimer une piece justificative" as UC_Supprimer_une_piece_justificative
   }
 }
 
 ' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Affecter_un_equipement_a_une_missi
+Utilisateur -- UC_Consulter_les_documents_administra
+Utilisateur -- UC_Consulter_les_echeances
 Utilisateur -- UC_Consulter_les_equipements
+Utilisateur -- UC_Consulter_les_indicateurs_des_equi
+Utilisateur -- UC_Consulter_les_sources_de_carburant
+Utilisateur -- UC_Consulter_les_statistiques_de_cons
 Utilisateur -- UC_Consulter_les_vehicules
+Utilisateur -- UC_Declarer_un_plein_de_carburant
+Utilisateur -- UC_Gerer_les_contrats_de_garantie
+Utilisateur -- UC_Realiser_une_inspection
+Utilisateur -- UC_Rechercher_un_vehicule_disponible
+Utilisateur -- UC_Restituer_un_equipement
+Utilisateur -- UC_Verifier_les_equipements_avant_mis
 Responsable -- UC_Ajouter_un_equipement
-Responsable -- UC_Consulter_les_echeances
-Responsable -- UC_Consulter_les_indicateurs_des_equi
-Responsable -- UC_Consulter_les_sources_de_carburant
-Responsable -- UC_Consulter_les_statistiques_de_cons
-Responsable -- UC_Declarer_un_plein_de_carburant
 Responsable -- UC_Enregistrer_un_document_administra
 Responsable -- UC_Enregistrer_une_assurance
-Responsable -- UC_Gerer_les_contrats_de_garantie
+Responsable -- UC_Immatriculer_un_vehicule
 Responsable -- UC_Modifier_un_equipement
 Responsable -- UC_Modifier_un_vehicule
-Responsable -- UC_Rechercher_un_vehicule_disponible
-Administrateur -- UC_Immatriculer_un_vehicule
 Administrateur -- UC_Retirer_un_equipement
 Administrateur -- UC_Retirer_un_vehicule_du_parc
 Administrateur -- UC_Supprimer_une_piece_justificative
-Technicien -- UC_Affecter_un_equipement_a_une_missi
-Technicien -- UC_Consulter_les_documents_administra
-Technicien -- UC_Realiser_une_inspection
-Technicien -- UC_Restituer_un_equipement
 
-UC_Affecter_un_equipement_a_une_missi ..> UC_Realiser_une_inspection : << include >>
+UC_Affecter_un_equipement_a_une_missi ..> UC_Verifier_les_equipements_avant_mis : << include >>
+UC_Realiser_une_inspection ..> UC_Affecter_un_equipement_a_une_missi : << extend >>
 UC_Consulter_les_statistiques_de_cons ..> UC_Declarer_un_plein_de_carburant : << extend >>
 
 @enduml
