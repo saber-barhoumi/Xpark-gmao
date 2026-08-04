@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -22,10 +23,5 @@ note as N
 end note
 
 class "PredictRequest" as PredictRequest <<Pydantic>>
-
-legend right
-1 modeles Pydantic releves dans CalculateurPrixTrajetIA.
-Aucune persistance relationnelle propre a ce service.
-endlegend
 
 @enduml

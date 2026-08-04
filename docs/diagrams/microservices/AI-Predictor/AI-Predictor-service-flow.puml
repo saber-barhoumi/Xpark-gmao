@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -22,9 +23,5 @@ rectangle "reponse : prix estime" as D #FCE4EC
 A --> B : distance du trajet
 A --> C : inference
 C --> D
-
-legend right
-Service mono-fichier : toute la logique tient dans main.py.
-endlegend
 
 @enduml

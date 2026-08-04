@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -171,12 +172,5 @@ OrdreTravail "1" *-- "0..*" Attachment : Attachments
 OrdreTravail "1" *-- "0..*" Commentaire : Commentaires
 OrdreTravail "1" *-- "0..*" HistoriqueStatutOT : HistoriqueStatuts
 PieceRechange "1" *-- "0..*" InterventionPiece : InterventionPieces
-
-legend right
-7 entites mappees, 8 enumerations locales.
-Certaines entites (Vehicule, Utilisateur, Mission...) sont des
-projections en LECTURE SEULE de tables appartenant a un autre
-service : la base xpark_gmao est partagee.
-endlegend
 
 @enduml

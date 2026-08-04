@@ -43,17 +43,18 @@ Routing keys sur l'exchange topic `xpark.ai` : `xpark.fleet.maintenance-due`, `x
 
 | Fichier | Contenu |
 |---|---|
-| `Fleet-sequence.puml` | Sequence d'un flux metier reel du service |
-| `Fleet-usecase.puml` | Cas d'utilisation et acteurs (roles releves dans le code) |
-| `Fleet-communication.puml` | Echanges avec les autres composants et les protocoles employes |
+| `Fleet-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Fleet-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
+| `Fleet-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
 | `Fleet-entities.puml` | Entites persistees, cles et relations |
-| `Fleet-class.puml` | Classes des quatre couches et leurs dependances |
-| `Fleet-component.puml` | Composants internes et points d'entree |
-| `Fleet-package.puml` | Organisation en paquets et sens des dependances |
-| `Fleet-activity.puml` | Deroulement metier de bout en bout |
-| `Fleet-state.puml` | Etats et transitions des objets du domaine |
+| `Fleet-component.puml` | Diagramme de composants |
+| `Fleet-package.puml` | Diagramme de paquets et sens des dependances |
+| `Fleet-sequence.puml` | Diagramme de sequence d'un flux metier reel |
+| `Fleet-communication.puml` | Diagramme de communication entre composants |
+| `Fleet-activity.puml` | Diagramme d'activites du processus metier |
+| `Fleet-state.puml` | Diagramme d'etats-transitions |
 | `Fleet-database.puml` | Persistance et tables accedees |
-| `Fleet-api-flow.puml` | Cheminement complet d'un appel API |
+| `Fleet-api-flow.puml` | Sequence complete d'un appel de service |
 | `Fleet-service-flow.puml` | Traversee des couches internes |
 
 ## Diagrammes IA non generes
@@ -68,6 +69,23 @@ Conformement a la consigne « ne generer que ce qui existe » :
 - `Fleet-optimization-flow.puml` : pas de logique d'optimisation dans ce service.
 - `Fleet-training-flow.puml` : aucun code d'entrainement dans le depot.
 - `Fleet-inference-flow.puml` : pas d'inference dans ce service.
+
+## Conformite UML
+
+Les diagrammes de ce dossier suivent les conventions du cours :
+
+- **Cas d'utilisation** : association acteur / cas d'utilisation en trait continu
+  sans fleche, acteur secondaire porte par le stereotype `<< secondary >>`,
+  `<< include >>` pour une partie obligatoire et `<< extend >>` pour une partie
+  optionnelle, generalisation entre acteurs pour eviter les liens redondants.
+  Les systemes tiers sont des acteurs places hors de la frontiere du systeme.
+- **Classes** : deux diagrammes distincts, l'un pour l'architecture (couches,
+  interfaces, realisations), l'autre pour le domaine (entites, enumerations).
+  Syntaxe `[Vis] Nom : Type` pour les attributs et `[Vis] Nom(Arg) : TypeRetour`
+  pour les operations ; multiplicite indiquee aux deux extremites de chaque
+  association ; composition `*--` reservee aux cycles de vie possedes.
+- Aucune legende : chaque diagramme se lit seul. Les notes ne portent que sur
+  un choix d'architecture.
 
 ## Regeneration
 

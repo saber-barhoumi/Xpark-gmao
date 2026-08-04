@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -33,10 +34,5 @@ state "Presence" as P {
   OCCUPE --> ENLIGNE
   ENLIGNE --> HORSLIGNE : deconnexion
 }
-
-legend right
-Enumeration StatutEnLigne pour la presence ; l'archivage des
-conversations est porte par l'API (endpoints archive).
-endlegend
 
 @enduml

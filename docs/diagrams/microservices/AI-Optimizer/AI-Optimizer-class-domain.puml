@@ -1,0 +1,104 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - AI-Optimizer
+
+class MissionIn <<value object>> {
+  +missionId : int
+  +villeDepart : str
+  +villeArrivee : str
+  +distanceKm : float
+  +dateDepart : datetime
+  +dureeEstimeeMin : int
+  +requiredVehicleClass : str
+  +priorite : str
+  +objetMission : str
+}
+class VehicleIn <<value object>> {
+  +idVehicule : int
+  +immatriculation : str
+  +marque : str
+  +modele : str
+  +typeVehicule : str
+  +typeCarburant : str
+  +consommationMoyenne : float
+  +kilometrage : float
+  +nombrePlaces : int
+  +chargeUtileKg : float
+}
+class DriverIn <<value object>> {
+  +idEmployee : int
+  +nom : str
+  +numeroMatricule : str
+  +categoriePermis : str
+}
+class RecentMission <<value object>> {
+  +employeeId : int
+  +vehiculeId : int
+  +dateDepart : datetime
+  +dateRetour : datetime
+  +distanceKm : float
+  +statut : str
+}
+class OptimizationConstraints <<value object>> {
+  +driverMaxWorkHoursPerDay : float
+  +pauseBetweenMissionsMin : int
+  +averageSpeedKmh : float
+  +prioritizeMinFuelConsumption : bool
+  +balanceWorkloadEqually : bool
+}
+class OptimizeRequest <<value object>> {
+  +batchId : str
+}
+class AssignmentOut <<value object>> {
+  +missionId : int
+  +vehicleId : int
+  +driverId : int
+  +vehicleImmatriculation : str
+  +driverName : str
+  +estimatedDurationMin : int
+  +estimatedFuelCost : float
+  +estimatedDistance : float
+  +assignmentConfidence : float                    # 0..1
+  +assignmentReasoning : str
+}
+class UnassignedOut <<value object>> {
+  +missionId : int
+  +reason : str                                    # NO_FEASIBLE_VEHICLE | NO_FEASIBLE_DRIVER | …
+  +suggestedAction : str
+}
+class MetricsOut <<value object>> {
+  +totalFuelCostEstimated : float
+  +totalMissionsAssigned : int
+  +totalMissionsReceived : int
+  +assignmentSuccessRate : float
+  +averageDriverWorkloadHours : float
+  +workloadStdDevHours : float
+  +optimizationAlgorithm : str
+}
+class OptimizeResponse <<value object>> {
+  +optimizationId : str
+  +batchId : str
+  +timestamp : datetime
+  +executionTimeMs : int
+  +optimizationScore : float                       # 0..100 (FICHE §5.3)
+  +warnings : List[str
+}
+
+OptimizeRequest "1" *-- "0..*" DriverIn : drivers
+OptimizeRequest "1" *-- "0..*" MissionIn : missions
+OptimizeRequest "1" *-- "1" OptimizationConstraints : constraints
+OptimizeRequest "1" *-- "0..*" RecentMission : recentMissions
+OptimizeRequest "1" *-- "0..*" VehicleIn : vehicles
+OptimizeResponse "1" *-- "0..*" AssignmentOut : assignments
+OptimizeResponse "1" *-- "1" MetricsOut : metrics
+OptimizeResponse "1" *-- "0..*" UnassignedOut : unassignedMissions
+
+@enduml

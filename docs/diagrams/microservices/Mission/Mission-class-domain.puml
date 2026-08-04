@@ -1,0 +1,108 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - Mission
+
+class LivePosition <<entity>> {
+  +IdPosition : Long
+  +MissionId : Long
+  +DriverId : Long
+  +VehiculeId : Long
+  +Latitude : Double
+  +Longitude : Double
+  +SpeedKmh : Double
+  +Heading : Double
+  +Accuracy : Double
+  +RecordedAt : Date
+  +ReceivedAt : Date
+}
+class Mission <<entity>> {
+  +IdMission : Long {id}
+  +DateDepart : Date
+  +DateRetour : Date
+  +Destination : String
+  +KilometrageDepart : Double
+  +KilometrageRetour : Double
+  +Statut : StatutMission
+  +ObjetMission : String
+  +CoutTotal : Double
+  +EmployeeId : Long
+  +VehiculeId : Long
+  +ClientIdUtilisateur : Long
+  +ClientNom : String
+  +DateCreation : Date
+  +BonCarburantAccorde : Boolean
+  +NumeroBonCarburant : String
+  +VerificationDocuments : Boolean
+  +CarteAutorouteRemise : Boolean
+  +VehiculeImmatriculation : String
+  +ChauffeurNom : String
+  +VilleDepart : String
+  +VilleArrivee : String
+  +DistanceKm : Double
+  +CoutEstimeAI : Double
+  +AiVehiculeTypeUsed : String
+}
+class TransportRequest <<entity>> {
+  +IdTransportRequest : Long {id}
+  +ClientIdUtilisateur : Long
+  +ClientNom : String
+  +DateSouhaitee : Date
+  +VilleDepart : String
+  +VilleArrivee : String
+  +CargoDescription : String
+  +CargoWeightKg : Double
+  +PassengerCount : Integer
+  +VehicleTypeRequested : String
+  +DistanceKm : Double
+  +AiEstimatedPrice : Double
+  +AiPriceRangeMin : Double
+  +AiPriceRangeMax : Double
+  +AiVehicleTypeRecommended : String
+  +Statut : StatutDemandeTransport
+  +FinalPrice : Double
+  +PricingMethod : MethodePrix
+  +AdminNote : String
+  +QuotedByUserId : Long
+  +QuotedByName : String
+  +DateQuotationEnvoyee : Date
+  +ClientCancelReason : String
+  +ClientRejectionReason : String
+  +DateClientReponse : Date
+  +MissionId : Long
+  +DateCreation : Date
+  +DateMaj : Date
+}
+enum StatutMission <<enumeration>> {
+  EN_ATTENTE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}
+enum StatutDemandeTransport <<enumeration>> {
+  PENDING_QUOTATION
+  QUOTATION_SENT
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+enum MethodePrix <<enumeration>> {
+  AI_PRICE
+  MODIFIED
+  MANUAL
+}
+
+TransportRequest "1" -- "0..1" Mission : devis accepte
+Mission "1" *-- "0..*" LivePosition : trace
+Mission ..> StatutMission : << use >>
+TransportRequest ..> MethodePrix : << use >>
+TransportRequest ..> StatutDemandeTransport : << use >>
+
+@enduml

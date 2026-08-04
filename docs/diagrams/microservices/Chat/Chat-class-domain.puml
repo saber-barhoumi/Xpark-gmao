@@ -1,0 +1,71 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - Chat
+
+class Conversation <<entity>> {
+  +IdConversation : Long {id}
+  +Titre : String
+  +TypeConversation : TypeConversation
+  +DateCreation : Date
+  +DernierMessageDate : Date
+  +CreatedByUserId : Long
+  +ImageGroupe : String
+  +EstArchivee : Boolean
+}
+class ConversationParticipant <<entity>> {
+  +IdParticipant : Long
+  +ConversationId : Long
+  +UtilisateurId : Long
+  +DateAjout : Date
+  +EstAdmin : Boolean
+  +EstEpingle : Boolean
+  +DerniereLecture : Date
+  +NotificationsActivees : Boolean
+  +Pseudonyme : String
+}
+class Message <<entity>> {
+  +IdMessage : Long {id}
+  +Contenu : String
+  +DateEnvoi : Date
+  +TypeMessage : TypeMessage
+  +ExpediteurId : Long
+  +ConversationId : Long
+  +EstLu : Boolean
+  +DateLecture : Date
+  +EstSupprime : Boolean
+  +EstModifie : Boolean
+  +DateModification : Date
+  +Epingle : Boolean
+  +CheminFichier : String
+  +NomFichier : String
+  +TailleFichier : Long
+  +ReponseAMessageId : Long
+}
+enum TypeConversation <<enumeration>> {
+  PRIVEE
+  GROUPE
+}
+enum TypeMessage <<enumeration>> {
+  TEXTE
+  IMAGE
+  FICHIER
+  AUDIO
+  VIDEO
+  SYSTEME
+  APPEL
+}
+
+Conversation "1" *-- "0..*" Message : echanges
+Conversation "1" *-- "2..*" ConversationParticipant : participants
+Conversation ..> TypeConversation : << use >>
+Message ..> TypeMessage : << use >>
+
+@enduml

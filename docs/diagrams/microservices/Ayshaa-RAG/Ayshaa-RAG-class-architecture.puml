@@ -1,0 +1,185 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Ayshaa-RAG
+
+package "AyshaaRAG" {
+  class "language" as app_agent_language_py <<module>> {
+    +detect_language()
+    +normalize_arabic()
+    +expand_arabizi()
+  }
+  class "orchestrator" as app_agent_orchestrator_py <<module>> {
+    +build_registry()
+  }
+  class AyshaaAgent <<service>>
+  class "router" as app_agent_router_py <<module>> {
+    +route_message()
+  }
+  class Route <<service>>
+  class "smalltalk" as app_agent_smalltalk_py <<module>> {
+    +detect_intent()
+    +reply_smalltalk()
+    +strip_greeting_prefix()
+  }
+  class "routes_admin" as app_api_routes_admin_py <<module>> {
+    +reindex()
+    +stats()
+  }
+  class "routes_chat" as app_api_routes_chat_py <<module>> {
+    +chat()
+    +chat_stream()
+    +greeting()
+    +speech_config()
+  }
+  class "routes_system" as app_api_routes_system_py <<module>> {
+    +health()
+    +metrics()
+  }
+  class "config" as app_config_py <<module>> {
+    +get_settings()
+  }
+  class Settings <<service>>
+  class "errors" as app_core_errors_py <<module>> {
+    +register_error_handlers()
+  }
+  class DependencyUnavailable <<service>>
+  class "logging" as app_core_logging_py <<module>> {
+    +setup_logging()
+    +log_event()
+  }
+  class JsonFormatter <<service>>
+  class "ratelimit" as app_core_ratelimit_py <<module>> {
+  }
+  class RateLimitMiddleware <<service>>
+  class "security" as app_core_security_py <<module>> {
+    +require_admin_key()
+  }
+  class SecurityHeadersMiddleware <<service>>
+  class "providers" as app_llm_providers_py <<module>> {
+  }
+  class GenerationProvider <<service>>
+  class OllamaProvider <<service>>
+  class ExtractiveProvider <<service>>
+  class "main" as app_main_py <<module>> {
+    +lifespan()
+    +create_app()
+  }
+  class "store" as app_memory_store_py <<module>> {
+  }
+  class ConversationStore <<service>>
+  class SqliteStore <<service>>
+  class "library" as app_prompts_library_py <<module>> {
+    +build_llm_messages()
+  }
+  class "tool_answers" as app_prompts_tool_answers_py <<module>> {
+    +fmt_my_missions()
+    +fmt_my_quotations()
+    +fmt_where_is_my_truck()
+    +fmt_price_estimate()
+    +fmt_my_profile()
+    +fmt_password_reset()
+    +fmt_fleet_overview()
+  }
+  class "chunking" as app_rag_chunking_py <<module>> {
+    +parse_front_matter()
+    +chunk_document()
+    +load_knowledge_base()
+  }
+  class Chunk <<service>>
+  class "embeddings" as app_rag_embeddings_py <<module>> {
+  }
+  class EmbeddingService <<service>>
+  class "lexical" as app_rag_lexical_py <<module>> {
+    +tokenize()
+  }
+  class LexicalIndex <<service>>
+  class "pipeline" as app_rag_pipeline_py <<module>> {
+  }
+  class AyshaaPipeline <<service>>
+  class "retriever" as app_rag_retriever_py <<module>> {
+  }
+  class HybridRetriever <<service>>
+  class "vectorstore" as app_rag_vectorstore_py <<module>> {
+  }
+  class QdrantStore <<service>>
+  class "analytics" as app_tools_analytics_py <<module>> {
+  }
+  class FleetOverviewTool <<service>>
+  class "base" as app_tools_base_py <<module>> {
+    +api_get()
+    +api_post()
+  }
+  class ToolContext <<service>>
+  class ToolResult <<service>>
+  class Tool <<service>>
+  class ToolRegistry <<service>>
+  class "iam" as app_tools_iam_py <<module>> {
+  }
+  class MyProfileTool <<service>>
+  class PasswordResetTool <<service>>
+  class "missions" as app_tools_missions_py <<module>> {
+  }
+  class MyMissionsTool <<service>>
+  class MyQuotationsTool <<service>>
+  class "pricing" as app_tools_pricing_py <<module>> {
+    +known_cities()
+    +match_city()
+  }
+  class PriceEstimateTool <<service>>
+  class "tracking" as app_tools_tracking_py <<module>> {
+  }
+  class WhereIsMyTruckTool <<service>>
+  class "build_darija_lexicon" as scripts_build_darija_lexicon_py <<module>> {
+    +normalize_arabic()
+    +main()
+  }
+}
+
+app_agent_orchestrator_py ..> app_core_logging_py : << use >>
+app_agent_router_py ..> app_core_logging_py : << use >>
+app_core_errors_py ..> app_core_logging_py : << use >>
+app_llm_providers_py ..> app_core_logging_py : << use >>
+app_main_py ..> app_core_logging_py : << use >>
+app_rag_embeddings_py ..> app_core_logging_py : << use >>
+app_rag_pipeline_py ..> app_core_logging_py : << use >>
+app_rag_vectorstore_py ..> app_core_logging_py : << use >>
+app_tools_base_py ..> app_core_logging_py : << use >>
+app_config_py ..> Settings : << use >>
+app_agent_orchestrator_py ..> AyshaaAgent : << use >>
+app_agent_router_py ..> Route : << use >>
+app_core_errors_py ..> DependencyUnavailable : << use >>
+app_core_logging_py ..> JsonFormatter : << use >>
+app_core_ratelimit_py ..> RateLimitMiddleware : << use >>
+app_core_security_py ..> SecurityHeadersMiddleware : << use >>
+app_llm_providers_py ..> GenerationProvider : << use >>
+app_llm_providers_py ..> OllamaProvider : << use >>
+app_llm_providers_py ..> ExtractiveProvider : << use >>
+app_memory_store_py ..> ConversationStore : << use >>
+app_memory_store_py ..> SqliteStore : << use >>
+app_rag_chunking_py ..> Chunk : << use >>
+app_rag_embeddings_py ..> EmbeddingService : << use >>
+app_rag_lexical_py ..> LexicalIndex : << use >>
+app_rag_pipeline_py ..> AyshaaPipeline : << use >>
+app_rag_retriever_py ..> HybridRetriever : << use >>
+app_rag_vectorstore_py ..> QdrantStore : << use >>
+app_tools_analytics_py ..> FleetOverviewTool : << use >>
+app_tools_base_py ..> ToolContext : << use >>
+app_tools_base_py ..> ToolResult : << use >>
+app_tools_base_py ..> Tool : << use >>
+app_tools_base_py ..> ToolRegistry : << use >>
+app_tools_iam_py ..> MyProfileTool : << use >>
+app_tools_iam_py ..> PasswordResetTool : << use >>
+app_tools_missions_py ..> MyMissionsTool : << use >>
+app_tools_missions_py ..> MyQuotationsTool : << use >>
+app_tools_pricing_py ..> PriceEstimateTool : << use >>
+app_tools_tracking_py ..> WhereIsMyTruckTool : << use >>
+
+@enduml

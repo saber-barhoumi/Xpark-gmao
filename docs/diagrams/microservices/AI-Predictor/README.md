@@ -30,17 +30,18 @@
 
 | Fichier | Contenu |
 |---|---|
-| `AI-Predictor-sequence.puml` | Sequence d'un flux metier reel du service |
-| `AI-Predictor-usecase.puml` | Cas d'utilisation et acteurs (roles releves dans le code) |
-| `AI-Predictor-communication.puml` | Echanges avec les autres composants et les protocoles employes |
+| `AI-Predictor-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `AI-Predictor-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
+| `AI-Predictor-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
 | `AI-Predictor-entities.puml` | Entites persistees, cles et relations |
-| `AI-Predictor-class.puml` | Classes des quatre couches et leurs dependances |
-| `AI-Predictor-component.puml` | Composants internes et points d'entree |
-| `AI-Predictor-package.puml` | Organisation en paquets et sens des dependances |
-| `AI-Predictor-activity.puml` | Deroulement metier de bout en bout |
-| `AI-Predictor-state.puml` | Etats et transitions des objets du domaine |
+| `AI-Predictor-component.puml` | Diagramme de composants |
+| `AI-Predictor-package.puml` | Diagramme de paquets et sens des dependances |
+| `AI-Predictor-sequence.puml` | Diagramme de sequence d'un flux metier reel |
+| `AI-Predictor-communication.puml` | Diagramme de communication entre composants |
+| `AI-Predictor-activity.puml` | Diagramme d'activites du processus metier |
+| `AI-Predictor-state.puml` | Diagramme d'etats-transitions |
 | `AI-Predictor-database.puml` | Persistance et tables accedees |
-| `AI-Predictor-api-flow.puml` | Cheminement complet d'un appel API |
+| `AI-Predictor-api-flow.puml` | Sequence complete d'un appel de service |
 | `AI-Predictor-service-flow.puml` | Traversee des couches internes |
 | `AI-Predictor-ml-pipeline.puml` | Chaine d'apprentissage automatique |
 | `AI-Predictor-prediction-flow.puml` | Flux de prediction |
@@ -55,6 +56,23 @@ Conformement a la consigne « ne generer que ce qui existe » :
 - `AI-Predictor-rag-flow.puml` : pas de recherche augmentee dans ce service.
 - `AI-Predictor-optimization-flow.puml` : pas de logique d'optimisation dans ce service.
 - `AI-Predictor-training-flow.puml` : aucun code d'entrainement dans le depot.
+
+## Conformite UML
+
+Les diagrammes de ce dossier suivent les conventions du cours :
+
+- **Cas d'utilisation** : association acteur / cas d'utilisation en trait continu
+  sans fleche, acteur secondaire porte par le stereotype `<< secondary >>`,
+  `<< include >>` pour une partie obligatoire et `<< extend >>` pour une partie
+  optionnelle, generalisation entre acteurs pour eviter les liens redondants.
+  Les systemes tiers sont des acteurs places hors de la frontiere du systeme.
+- **Classes** : deux diagrammes distincts, l'un pour l'architecture (couches,
+  interfaces, realisations), l'autre pour le domaine (entites, enumerations).
+  Syntaxe `[Vis] Nom : Type` pour les attributs et `[Vis] Nom(Arg) : TypeRetour`
+  pour les operations ; multiplicite indiquee aux deux extremites de chaque
+  association ; composition `*--` reservee aux cycles de vie possedes.
+- Aucune legende : chaque diagramme se lit seul. Les notes ne portent que sur
+  un choix d'architecture.
 
 ## Regeneration
 

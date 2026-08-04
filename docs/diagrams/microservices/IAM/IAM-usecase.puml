@@ -1,135 +1,107 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title IAM - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
-:GESTIONNAIRE: as GESTIONNAIRE
-:CLIENT: as CLIENT
-:CHAUFFEUR: as CHAUFFEUR
+title Diagramme de cas d'utilisation - IAM
 
-rectangle "IAM" {
-  package "Auth" {
-    usecase "VerifyMfa\nPOST mfa/verify" as AuthControllerVerifyMfaPOST
-    usecase "ResendMfaEmail\nPOST mfa/email/resend" as AuthControllerResendMfaEmailPOST
-    usecase "GetMfaSettings\nGET mfa/settings" as AuthControllerGetMfaSettingsGET
-    usecase "SetupAuthenticator\nPOST mfa/authenticator/setup" as AuthControllerSetupAuthenticatorPOST
-    usecase "ConfirmAuthenticator\nPOST mfa/authenticator/confirm" as AuthControllerConfirmAuthenticatorPOST
-    usecase "DisableAuthenticator\nPOST mfa/authenticator/disable" as AuthControllerDisableAuthenticatorPOST
-    usecase "ToggleEmailOtp\nPOST mfa/email/toggle" as AuthControllerToggleEmailOtpPOST
-    usecase "GetLoginHistory\nGET security/login-history" as AuthControllerGetLoginHistoryGET
-    usecase "DeleteLoginHistory\nDELETE security/login-history/{id:long}" as AuthControllerDeleteLoginHistoryDELETE
-    usecase "ClearLoginHistory\nDELETE security/login-history" as AuthControllerClearLoginHistoryDELETE
-    usecase "Login\nPOST login" as AuthControllerLoginPOST
-    usecase "Register\nPOST register" as AuthControllerRegisterPOST
-    usecase "... 16 autres actions" as AuthControllerreste
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Responsable" as Responsable
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+actor "Chauffeur" as Chauffeur
+actor "Technicien" as Technicien
+actor "Client" as Client
+
+Utilisateur <|-- Responsable
+Responsable <|-- Administrateur
+Responsable <|-- Gestionnaire
+Utilisateur <|-- Chauffeur
+Utilisateur <|-- Technicien
+Utilisateur <|-- Client
+
+rectangle "Service Identites et Acces" {
+  package "Authentification" {
+    usecase "Se connecter" as UC_Se_connecter
+    usecase "Se deconnecter" as UC_Se_deconnecter
+    usecase "S'inscrire" as UC_S_inscrire
+    usecase "Valider un second facteur" as UC_Valider_un_second_facteur
+    usecase "Reinitialiser son mot de passe" as UC_Reinitialiser_son_mot_de_passe
+    usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
+    usecase "Se connecter par code PIN" as UC_Se_connecter_par_code_PIN
+    usecase "Verrouiller sa session" as UC_Verrouiller_sa_session
   }
-  package "Clients" {
-    usecase "GetAll\nGET /" as ClientsControllerGetAllGET
-    usecase "GetById\nGET {id}" as ClientsControllerGetByIdGET
-    usecase "Create\nPOST /" as ClientsControllerCreatePOST
-    usecase "Update\nPUT {id}" as ClientsControllerUpdatePUT
-    usecase "Delete\nDELETE {id}" as ClientsControllerDeleteDELETE
+  package "Profil" {
+    usecase "Consulter son profil" as UC_Consulter_son_profil
+    usecase "Modifier son profil" as UC_Modifier_son_profil
+    usecase "Changer son mot de passe" as UC_Changer_son_mot_de_passe
+    usecase "Deposer une photo de profil" as UC_Deposer_une_photo_de_profil
   }
-  package "Employees" {
-    usecase "GetAll\nGET /" as EmployeesControllerGetAllGET
-    usecase "GetById\nGET {id}" as EmployeesControllerGetByIdGET
-    usecase "GetByPost\nGET by-post/{post}" as EmployeesControllerGetByPostGET
-    usecase "GetByStatut\nGET by-statut/{statut}" as EmployeesControllerGetByStatutGET
-    usecase "Create\nPOST /" as EmployeesControllerCreatePOST
-    usecase "Update\nPUT {id}" as EmployeesControllerUpdatePUT
-    usecase "Delete\nDELETE {id}" as EmployeesControllerDeleteDELETE
+  package "Administration des comptes" {
+    usecase "Approuver un compte" as UC_Approuver_un_compte
+    usecase "Rejeter un compte" as UC_Rejeter_un_compte
+    usecase "Changer le role d'un compte" as UC_Changer_le_role_d_un_compte
+    usecase "Suspendre un compte" as UC_Suspendre_un_compte
+    usecase "Reactiver un compte" as UC_Reactiver_un_compte
+    usecase "Supprimer un compte" as UC_Supprimer_un_compte
+    usecase "Consulter les dependances metier" as UC_Consulter_les_dependances_metier
+    usecase "Archiver un compte" as UC_Archiver_un_compte
+    usecase "Restaurer un compte archive" as UC_Restaurer_un_compte_archive
+    usecase "Purger un compte archive" as UC_Purger_un_compte_archive
   }
-  package "UserManagement" {
-    usecase "GetAll\nGET /" as UserManagementControllerGetAllGET
-    usecase "GetPending\nGET pending" as UserManagementControllerGetPendingGET
-    usecase "ApproveById\nPOST {id}/approve" as UserManagementControllerApproveByIdPOST
-    usecase "RejectById\nPOST {id}/reject" as UserManagementControllerRejectByIdPOST
-    usecase "ChangeRoleById\nPOST {id}/role" as UserManagementControllerChangeRoleByIdPOST
-    usecase "Approve\nPOST approve" as UserManagementControllerApprovePOST
-    usecase "Reject\nPOST reject" as UserManagementControllerRejectPOST
-    usecase "ChangeRole\nPOST change-role" as UserManagementControllerChangeRolePOST
-    usecase "UpdateUser\nPUT {id}" as UserManagementControllerUpdateUserPUT
-    usecase "DeleteUser\nDELETE {id}" as UserManagementControllerDeleteUserDELETE
-    usecase "GetDependencies\nGET {id}/dependencies" as UserManagementControllerGetDependenciesGET
-    usecase "GetArchives\nGET archives" as UserManagementControllerGetArchivesGET
-    usecase "... 5 autres actions" as UserManagementControllerreste
+  package "Securite" {
+    usecase "Activer le second facteur" as UC_Activer_le_second_facteur
+    usecase "Desactiver le second facteur" as UC_Desactiver_le_second_facteur
+    usecase "Consulter l'historique des connexions" as UC_Consulter_l_historique_des_connexi
+    usecase "Effacer l'historique des connexions" as UC_Effacer_l_historique_des_connexion
   }
-  package "Users" {
-    usecase "GetProfile\nGET profile" as UsersControllerGetProfileGET
-    usecase "UpdateProfile\nPUT profile" as UsersControllerUpdateProfilePUT
-    usecase "ChangePassword\nPOST change-password" as UsersControllerChangePasswordPOST
-    usecase "GetDetails\nGET {id}/details" as UsersControllerGetDetailsGET
-    usecase "GetStats\nGET {id}/stats" as UsersControllerGetStatsGET
-    usecase "UploadAvatar\nPOST {id}/upload-avatar" as UsersControllerUploadAvatarPOST
-    usecase "UpdateProfileById\nPUT {id}/profile" as UsersControllerUpdateProfileByIdPUT
+  package "Referentiel" {
+    usecase "Gerer les clients" as UC_Gerer_les_clients
+    usecase "Gerer les employes" as UC_Gerer_les_employes
   }
 }
 
-ADMIN --> AuthControllerVerifyMfaPOST
-ADMIN --> AuthControllerResendMfaEmailPOST
-ADMIN --> AuthControllerGetMfaSettingsGET
-ADMIN --> AuthControllerSetupAuthenticatorPOST
-ADMIN --> AuthControllerConfirmAuthenticatorPOST
-ADMIN --> AuthControllerDisableAuthenticatorPOST
-ADMIN --> AuthControllerToggleEmailOtpPOST
-ADMIN --> AuthControllerGetLoginHistoryGET
-ADMIN --> AuthControllerDeleteLoginHistoryDELETE
-ADMIN --> AuthControllerClearLoginHistoryDELETE
-ADMIN --> AuthControllerLoginPOST
-ADMIN --> AuthControllerRegisterPOST
-ADMIN --> ClientsControllerGetAllGET
-GESTIONNAIRE --> ClientsControllerGetAllGET
-ADMIN --> ClientsControllerGetByIdGET
-GESTIONNAIRE --> ClientsControllerGetByIdGET
-ADMIN --> ClientsControllerCreatePOST
-GESTIONNAIRE --> ClientsControllerCreatePOST
-ADMIN --> ClientsControllerUpdatePUT
-ADMIN --> ClientsControllerDeleteDELETE
-ADMIN --> EmployeesControllerGetAllGET
-ADMIN --> EmployeesControllerGetByIdGET
-ADMIN --> EmployeesControllerGetByPostGET
-ADMIN --> EmployeesControllerGetByStatutGET
-GESTIONNAIRE --> EmployeesControllerGetByStatutGET
-ADMIN --> EmployeesControllerCreatePOST
-GESTIONNAIRE --> EmployeesControllerCreatePOST
-ADMIN --> EmployeesControllerUpdatePUT
-ADMIN --> EmployeesControllerDeleteDELETE
-ADMIN --> UserManagementControllerGetAllGET
-ADMIN --> UserManagementControllerGetPendingGET
-ADMIN --> UserManagementControllerApproveByIdPOST
-ADMIN --> UserManagementControllerRejectByIdPOST
-ADMIN --> UserManagementControllerChangeRoleByIdPOST
-ADMIN --> UserManagementControllerApprovePOST
-ADMIN --> UserManagementControllerRejectPOST
-ADMIN --> UserManagementControllerChangeRolePOST
-ADMIN --> UserManagementControllerUpdateUserPUT
-ADMIN --> UserManagementControllerDeleteUserDELETE
-ADMIN --> UserManagementControllerGetDependenciesGET
-ADMIN --> UserManagementControllerGetArchivesGET
-ADMIN --> UsersControllerGetProfileGET
-ADMIN --> UsersControllerUpdateProfilePUT
-ADMIN --> UsersControllerChangePasswordPOST
-ADMIN --> UsersControllerGetDetailsGET
-ADMIN --> UsersControllerGetStatsGET
-ADMIN --> UsersControllerUploadAvatarPOST
-ADMIN --> UsersControllerUpdateProfileByIdPUT
+' Acteurs secondaires (a droite, hors frontiere)
+actor "Serveur de messagerie" as SMTP
 
-legend right
-Acteurs deduits des attributs [Authorize(Roles=...)] du service.
-Les cas sans role explicite heritent du [Authorize] du controleur.
-endlegend
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Activer_le_second_facteur
+Utilisateur -- UC_Changer_son_mot_de_passe
+Utilisateur -- UC_Consulter_son_profil
+Utilisateur -- UC_Deposer_une_photo_de_profil
+Utilisateur -- UC_Desactiver_le_second_facteur
+Utilisateur -- UC_Modifier_son_profil
+Utilisateur -- UC_Reinitialiser_son_mot_de_passe
+Utilisateur -- UC_Se_connecter
+Utilisateur -- UC_Se_deconnecter
+Responsable -- UC_Changer_le_role_d_un_compte
+Responsable -- UC_Gerer_les_clients
+Responsable -- UC_Gerer_les_employes
+Responsable -- UC_Reactiver_un_compte
+Responsable -- UC_Suspendre_un_compte
+Administrateur -- UC_Approuver_un_compte
+Administrateur -- UC_Consulter_l_historique_des_connexi
+Administrateur -- UC_Effacer_l_historique_des_connexion
+Administrateur -- UC_Purger_un_compte_archive
+Administrateur -- UC_Rejeter_un_compte
+Administrateur -- UC_Restaurer_un_compte_archive
+Administrateur -- UC_Supprimer_un_compte
+Chauffeur -- UC_Se_connecter_par_code_PIN
+Chauffeur -- UC_Verrouiller_sa_session
+Client -- UC_Confirmer_son_adresse_electronique
+Client -- UC_S_inscrire
+
+SMTP -- UC_Valider_un_second_facteur : << secondary >>
+SMTP -- UC_Confirmer_son_adresse_electronique : << secondary >>
+SMTP -- UC_Reinitialiser_son_mot_de_passe : << secondary >>
+
+UC_Supprimer_un_compte ..> UC_Consulter_les_dependances_metier : << include >>
+UC_Valider_un_second_facteur ..> UC_Se_connecter : << extend >>
+UC_Archiver_un_compte ..> UC_Supprimer_un_compte : << extend >>
 
 @enduml

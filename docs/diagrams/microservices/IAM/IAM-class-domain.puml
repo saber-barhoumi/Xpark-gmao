@@ -1,0 +1,109 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - IAM
+
+class Chauffeur <<entity>> {
+  +NumeroPermis : String
+  +DateExpirationPermis : Date
+  +Evaluation : Double
+  +NombreMissionsEffectuees : Integer
+  +KilometrageTotal : Double
+  +DateDerniereFormation : Date
+}
+class Client <<entity>> {
+  +NomSociete : String
+  +SecteurActivite : String
+  +Adresse : String
+  +Ville : String
+  +CodePostal : String
+  +Pays : String
+  +NumeroFiscal : String
+  +SiteWeb : String
+  +EstEntreprise : Boolean
+}
+class Employee <<entity>> {
+  +IdEmployee : Long {id}
+  +Name : String
+  +Prenom : String
+  +NumeroMatricule : String
+  +Telephone : String
+  +DateEmbauche : Date
+  +Activ : Boolean
+  +NumeroPermis : String
+  +DateExpirationPermis : Date
+}
+class UserMfaSettings <<entity>> {
+  +Id : Long {id}
+  +UserId : Long
+  +AuthenticatorEnabled : Boolean
+  +AuthenticatorSecret : String
+  +EmailOtpEnabled : Boolean
+  +DefaultMethod : String
+  +CreatedAt : Date
+  +UpdatedAt : Date
+}
+class EmailOtp <<entity>> {
+  +Id : Long {id}
+  +UserId : Long
+  +CodeHash : String
+  +ExpiryTime : Date
+  +IsUsed : Boolean
+  +UsedAt : Date
+  +Attempts : Integer
+  +CreatedAt : Date
+}
+class AuthAuditLog <<entity>> {
+  +Id : Long {id}
+  +UserId : Long
+  +Action : String
+  +Description : String
+  +IpAddress : String
+  +CreatedAt : Date
+}
+class Utilisateur <<entity>> {
+  +IdUtilisateur : Long {id}
+  +Nom : String
+  +Prenom : String
+  +Email : String
+  +MotDePasse : String
+  +Telephone : String
+  +Actif : Boolean
+  +DateCreation : Date
+  +Photo : String
+  +EmailConfirmed : Boolean
+  +EmailConfirmationToken : String
+  +EmailConfirmationTokenExpiry : Date
+  +PasswordResetToken : String
+  +PasswordResetTokenExpiry : Date
+  +Pin : String
+  +HasPin : Boolean
+  +IsSessionLocked : Boolean
+  +SessionLockedAt : Date
+  +RefreshToken : String
+  +RefreshTokenExpiry : Date
+  +LastLoginAt : Date
+  +LastLoginIp : String
+  +FailedLoginAttempts : Integer
+  +AccountLockedUntil : Date
+  +DateApprobation : Date
+  +ApprouvePar : Long
+  +RaisonRejet : String
+  +DateModification : Date
+}
+
+Utilisateur <|-- Client
+Utilisateur <|-- Employee
+Employee <|-- Chauffeur
+Utilisateur "1" *-- "0..*" AuthAuditLog : journal
+Utilisateur "1" *-- "0..*" EmailOtp : codes
+Utilisateur "1" *-- "0..1" UserMfaSettings : second facteur
+
+@enduml

@@ -1,0 +1,147 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - Maintenance
+
+class Attachment <<entity>> {
+  +Id : Long {id}
+  +OrdreId : Long
+  +Nom : String
+  +Url : String
+  +Taille : Long
+  +Type : String
+  +CreatedAt : Date
+}
+class Commentaire <<entity>> {
+  +Id : Long {id}
+  +OrdreId : Long
+  +Contenu : String
+  +AuteurId : Long
+  +CreatedAt : Date
+}
+class HistoriqueStatutOT <<entity>> {
+  +Id : Long {id}
+  +OrdreTravailId : Long
+  +AncienStatut : String
+  +NouveauStatut : String
+  +Commentaire : String
+  +UtilisateurId : Long
+  +DateChangement : Date
+}
+class Intervention <<entity>> {
+  +IdIntervention : Long {id}
+  +DateIntervention : Date
+  +DateFinIntervention : Date
+  +TypeIntervention : TypeIntervention
+  +Description : String
+  +Cout : Double
+  +CoutMainOeuvre : Double
+  +CoutPieces : Double
+  +Statut : StatutIntervention
+  +KilometrageIntervention : Double
+  +Observations : String
+  +Prestataire : String
+  +DureeMinutes : Integer
+  +TypePeriodicite : String
+  +VehiculeId : Long
+  +TechnicienId : Long
+  +OrdreTravailId : Long
+  +DateCreation : Date
+}
+class InterventionPiece <<entity>> {
+  +IdInterventionPiece : Long {id}
+  +InterventionId : Long
+  +PieceId : Long
+  +Quantite : Integer
+  +PrixUnitaire : Double
+}
+class OrdreTravail <<entity>> {
+  +IdOrdreTravail : Long {id}
+  +Reference : String
+  +DateCreation : Date
+  +DateDebut : Date
+  +DateFin : Date
+  +Description : String
+  +Statut : StatutOrdreTravail
+  +Priorite : PrioriteOrdreTravail
+  +CoutReel : Double
+  +Observations : String
+  +MotifAnnulation : String
+  +ValideParId : Long
+  +DateValidation : Date
+  +VehiculeId : Long
+  +TechnicienId : Long
+}
+class PieceRechange <<entity>> {
+  +IdPiece : Long
+  +Reference : String
+  +Designation : String
+  +Categorie : CategoriePiece
+  +StockActuel : Integer
+  +StockMinimum : Integer
+  +StockMaximum : Integer
+  +PrixUnitaire : Double
+  +Fournisseur : String
+  +Emplacement : String
+  +Description : String
+  +ImageUrl : String
+  +Actif : Boolean
+  +DateCreation : Date
+  +DateDernierApprovisionnement : Date
+}
+enum TypeIntervention <<enumeration>> {
+  PREVENTIVE
+  CURATIVE
+}
+enum StatutIntervention <<enumeration>> {
+  EN_ATTENTE
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}
+enum StatutOrdreTravail <<enumeration>> {
+  PLANIFIE
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+enum PrioriteOrdreTravail <<enumeration>> {
+  BASSE
+  MOYENNE
+  HAUTE
+  URGENT
+}
+enum CategoriePiece <<enumeration>> {
+  MOTEUR
+  TRANSMISSION
+  FREINAGE
+  SUSPENSION
+  ELECTRICITE
+  CARROSSERIE
+  PNEUMATIQUE
+  FILTRATION
+  ECLAIRAGE
+  AUTRE
+}
+
+OrdreTravail "1" *-- "0..*" Intervention : travaux
+OrdreTravail "1" *-- "1..*" HistoriqueStatutOT : historique
+OrdreTravail "1" *-- "0..*" Commentaire : suivi
+OrdreTravail "1" *-- "0..*" Attachment : pieces jointes
+Intervention "1" *-- "0..*" InterventionPiece : consommations
+PieceRechange "1" -- "0..*" InterventionPiece : sorties de stock
+Intervention ..> StatutIntervention : << use >>
+Intervention ..> TypeIntervention : << use >>
+OrdreTravail ..> PrioriteOrdreTravail : << use >>
+OrdreTravail ..> StatutOrdreTravail : << use >>
+PieceRechange ..> CategoriePiece : << use >>
+
+@enduml

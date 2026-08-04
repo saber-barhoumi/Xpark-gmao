@@ -1,0 +1,30 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - Ayshaa-RAG
+
+class Source <<value object>> {
+  +title : str
+  +section : str
+  +topic : str
+}
+class ChatResponse <<value object>> {
+  +session_id : str
+  +answer : str
+  +lang : str
+  +provider : str
+  +intent : str
+  +tool : str | None
+  +suggestions : list[str
+}
+
+ChatResponse "1" *-- "1" Source : sources
+
+@enduml

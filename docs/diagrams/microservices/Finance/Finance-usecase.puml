@@ -1,61 +1,51 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title Finance - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
-:GESTIONNAIRE: as GESTIONNAIRE
+title Diagramme de cas d'utilisation - Finance
 
-rectangle "Finance" {
-  package "Carburants" {
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Responsable" as Responsable
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+actor "Client" as Client
+
+Utilisateur <|-- Responsable
+Responsable <|-- Administrateur
+Responsable <|-- Gestionnaire
+Utilisateur <|-- Client
+
+rectangle "Service Finance" {
+  package "Facturation" {
+    usecase "Consulter les factures" as UC_Consulter_les_factures
+    usecase "Consulter ses factures" as UC_Consulter_ses_factures
+    usecase "Etablir une facture" as UC_Etablir_une_facture
+    usecase "Verifier les missions facturables" as UC_Verifier_les_missions_facturables
+    usecase "Marquer une facture comme payee" as UC_Marquer_une_facture_comme_payee
+    usecase "Annuler une facture" as UC_Annuler_une_facture
   }
-  package "Factures" {
-    usecase "GetAll\nGET /" as FacturesControllerGetAllGET
-    usecase "GetById\nGET {id:long}" as FacturesControllerGetByIdGET
-    usecase "GetByClient\nGET client/{clientId:long}" as FacturesControllerGetByClientGET
-    usecase "GetMy\nGET my" as FacturesControllerGetMyGET
-    usecase "GetImpayees\nGET impayees" as FacturesControllerGetImpayeesGET
-    usecase "GetMissionsFacturees\nGET missions-facturees" as FacturesControllerGetMissionsFactureesGET
-    usecase "Create\nPOST /" as FacturesControllerCreatePOST
-    usecase "MarquerPayee\nPATCH {id:long}/payer" as FacturesControllerMarquerPayeePATCH
-    usecase "Annuler\nPATCH {id:long}/annuler" as FacturesControllerAnnulerPATCH
-  }
-  package "Sources" {
+  package "Recouvrement" {
+    usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
+    usecase "Consulter les factures d'un client" as UC_Consulter_les_factures_d_un_client
   }
 }
 
-ADMIN --> FacturesControllerGetAllGET
-ADMIN --> FacturesControllerGetByIdGET
-GESTIONNAIRE --> FacturesControllerGetByIdGET
-ADMIN --> FacturesControllerGetByClientGET
-GESTIONNAIRE --> FacturesControllerGetByClientGET
-ADMIN --> FacturesControllerGetMyGET
-ADMIN --> FacturesControllerGetImpayeesGET
-GESTIONNAIRE --> FacturesControllerGetImpayeesGET
-ADMIN --> FacturesControllerGetMissionsFactureesGET
-GESTIONNAIRE --> FacturesControllerGetMissionsFactureesGET
-ADMIN --> FacturesControllerCreatePOST
-GESTIONNAIRE --> FacturesControllerCreatePOST
-ADMIN --> FacturesControllerMarquerPayeePATCH
-GESTIONNAIRE --> FacturesControllerMarquerPayeePATCH
-ADMIN --> FacturesControllerAnnulerPATCH
-GESTIONNAIRE --> FacturesControllerAnnulerPATCH
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Consulter_les_factures
+Responsable -- UC_Annuler_une_facture
+Responsable -- UC_Consulter_les_factures_d_un_client
+Responsable -- UC_Consulter_les_factures_impayees
+Responsable -- UC_Etablir_une_facture
+Responsable -- UC_Marquer_une_facture_comme_payee
+Client -- UC_Consulter_ses_factures
 
-legend right
-Acteurs deduits des attributs [Authorize(Roles=...)] du service.
-Les cas sans role explicite heritent du [Authorize] du controleur.
-endlegend
+UC_Etablir_une_facture ..> UC_Verifier_les_missions_facturables : << include >>
+UC_Consulter_les_factures_impayees ..> UC_Consulter_les_factures : << extend >>
 
 @enduml

@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -27,9 +28,5 @@ Generation --> Pret : reponse + sources
 Extraction --> Pret : passages restitues
 Pret --> Reindexation : POST /reindex (cle admin)
 Reindexation --> Pret
-
-legend right
-Le seul etat persistant est la memoire de conversation (SQLite).
-endlegend
 
 @enduml

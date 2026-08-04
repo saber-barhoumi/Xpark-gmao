@@ -1,0 +1,73 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Finance
+
+package "Finance.API" {
+  class FacturesController <<control>> {
+    +GetAll(page : int, pageSize : int, statut : string?) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +GetByClient(clientId : long) : Task<IActionResult>
+    +GetMy() : Task<IActionResult>
+    +GetImpayees() : Task<IActionResult>
+    +GetMissionsFacturees() : Task<IActionResult>
+    +Create(dto : CreateFactureDto) : Task<IActionResult>
+    +MarquerPayee(id : long, req : MarquerPayeeRequest?) : Task<IActionResult>
+    +Annuler(id : long, req : AnnulerFactureRequest) : Task<IActionResult>
+  }
+}
+
+package "Finance.Application" as APP {
+  interface IFacturationService <<interface>> {
+    +GetAllAsync(page : int, pageSize : int, statut : string?) : Task<PaginatedResponseDto<FactureResponseDto>>
+    +GetByIdAsync(id : long) : Task<FactureResponseDto?>
+    +GetByClientAsync(clientId : long) : Task<IEnumerable<FactureResponseDto>>
+    +GetImpayeesAsync() : Task<IEnumerable<FactureResponseDto>>
+    +CreateAsync(dto : CreateFactureDto) : Task<FactureResponseDto>
+    +GetMissionsFactureesAsync() : Task<IEnumerable<long>>
+    +MarquerPayeeAsync(id : long, methodePaiement : string?) : Task<bool>
+    +AnnulerAsync(id : long, motif : string) : Task<bool>
+  }
+  interface IFactureRepository <<interface>> {
+    +GetByClientAsync(clientId : long) : Task<IEnumerable<Facture>>
+    +GetImpayeesAsync() : Task<IEnumerable<Facture>>
+    +GenerateNumeroFactureAsync() : Task<string>
+  }
+}
+
+package "Finance.Infrastructure" {
+  class FinanceDbContext <<repository>>
+  class FacturationService <<service>> {
+    +GetAllAsync(page : int, pageSize : int, statut : string?) : Task<PaginatedResponseDto<FactureResponseDto>>
+    +GetByIdAsync(id : long) : Task<FactureResponseDto?>
+    +GetByClientAsync(clientId : long) : Task<IEnumerable<FactureResponseDto>>
+    +GetImpayeesAsync() : Task<IEnumerable<FactureResponseDto>>
+    +GetMissionsFactureesAsync() : Task<IEnumerable<long>>
+    +CreateAsync(dto : CreateFactureDto) : Task<FactureResponseDto>
+    +MarquerPayeeAsync(id : long, methodePaiement : string?) : Task<bool>
+    +AnnulerAsync(id : long, motif : string) : Task<bool>
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+FacturationService ..|> IFacturationService
+
+' Dependance d'utilisation
+FacturationService ..> FinanceDbContext : << use >>
+FacturationService ..> IFactureRepository : << use >>
+FacturesController ..> IFacturationService : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

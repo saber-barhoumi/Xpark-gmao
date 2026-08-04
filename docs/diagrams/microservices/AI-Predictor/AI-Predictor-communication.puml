@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -26,9 +27,5 @@ component "frontoffice" as FO #E1F5FE
 component "mission-api" as MS #E8F5E9
 FO -[#0066CC]-> ME : POST /predict
 MS -[#0066CC]-> ME : POST /predict
-
-legend right
-Bleu : HTTP · Orange : AMQP · Vert : WebSocket · Gris : base de donnees.
-endlegend
 
 @enduml

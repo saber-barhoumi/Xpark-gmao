@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -37,10 +38,5 @@ endif
 :Agregation;
 :Journalisation;
 stop
-
-legend right
-Notation DETERMINISTE : une table de scores et des modificateurs,
-aucun modele entraine. Les seuils sont ceux ecrits dans scorer.py.
-endlegend
 
 @enduml

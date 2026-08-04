@@ -1,0 +1,119 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - Fleet
+
+class Assurance <<entity>> {
+  +IdAssurance : Long {id}
+  +Compagnie : String
+  +NumeroPolice : String
+  +DateDebut : Date
+  +DateFin : Date
+  +Prime : Double
+  +TypeAssurance : String
+  +ContactCompagnie : String
+  +Observations : String
+  +Actif : Boolean
+  +VehiculeId : Long
+  +DateCreation : Date
+}
+class Carburant <<entity>> {
+  +IdCarburant : Long {id}
+  +DateRemplissage : Date
+  +Quantite : Double
+  +PrixUnitaire : Double
+  +MontantTotal : Double
+  +Kilometrage : Double
+  +Station : String
+  +NumeroBon : String
+  +TypeCarburant : String
+  +VehiculeId : Long
+  +ChauffeurId : Long
+  +SourceId : Long
+  +JustificatifUrl : String
+  +DateCreation : Date
+}
+class DocumentAdministratif <<entity>> {
+  +IdDocument : Long
+  +NumeroDocument : String
+  +DateEmission : Date
+  +DateExpiration : Date
+  +Autorite : String
+  +FichierPath : String
+  +Observations : String
+  +VehiculeId : Long
+  +DateCreation : Date
+}
+class Equipement <<entity>> {
+  +IdEquipement : Long {id}
+  +Nom : String
+  +CodeInventaire : String
+  +Marque : String
+  +Modele : String
+  +NumeroSerie : String
+  +Fournisseur : String
+  +ImageUrl : String
+  +DateAchat : Date
+  +PrixAchat : Decimal
+  +DateFinGarantie : Date
+  +DureeVieTheoriqueEnMois : Integer
+  +NombreUtilisations : Integer
+  +HeuresUtilisation : Decimal
+  +SeuilUsureUtilisations : Integer
+  +SeuilRemplacementUtilisations : Integer
+  +VehiculeId : Long
+  +NotesGenerales : String
+  +Actif : Boolean
+  +DateCreation : Date
+  +DateModification : Date
+}
+class Source <<entity>> {
+  +IdSource : Long {id}
+  +NomSource : String
+  +Adresse : String
+  +Ville : String
+  +Longitude : Double
+  +Latitude : Double
+  +PrixMoyen : Double
+  +RemiseFiotte : Double
+  +CodeCarte : String
+  +Actif : Boolean
+  +DateCreation : Date
+}
+class Vehicule <<entity>> {
+  +IdVehicule : Long {id}
+  +Marque : String
+  +Modele : String
+  +NumeroChassis : String
+  +Immatriculation : String
+  +AnneeConstruction : Integer
+  +Kilometrage : Double
+  +Couleur : String
+  +NombrePlaces : Integer
+  +ConsommationMoyenne : Double
+  +DateAcquisition : Date
+  +ValeurAcquisition : Double
+  +PuissanceFiscale : Integer
+  +Photo : String
+  +DateDerniereRevision : Date
+  +DateProchaineRevision : Date
+  +KilometrageProchainRevision : Double
+  +Actif : Boolean
+  +DateCreation : Date
+  +ChargeUtileKg : Double
+}
+
+Vehicule "1" *-- "0..*" Assurance : couvertures
+Vehicule "1" *-- "0..*" DocumentAdministratif : documents
+Vehicule "1" o-- "0..*" Carburant : pleins
+Source "1" o-- "0..*" Carburant : approvisionnements
+Vehicule "0..1" o-- "0..*" Equipement : dotation
+
+@enduml

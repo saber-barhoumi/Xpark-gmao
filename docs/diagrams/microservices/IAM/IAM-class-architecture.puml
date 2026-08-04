@@ -1,0 +1,256 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - IAM
+
+package "IAM.API" {
+  class AuthController <<control>> {
+    +VerifyMfa(dto : MfaVerifyRequestDto) : Task<ActionResult<ApiResponse<AuthResponseDto>>>
+    +ResendMfaEmail(dto : MfaResendEmailDto) : Task<ActionResult<ApiResponse<string>>>
+    +GetMfaSettings() : Task<ActionResult<ApiResponse<MfaSettingsDto>>>
+    +SetupAuthenticator() : Task<ActionResult<ApiResponse<AuthenticatorSetupDto>>>
+    +ConfirmAuthenticator(dto : AuthenticatorConfirmDto) : Task<ActionResult<ApiResponse<MfaSettingsDto>>>
+    +DisableAuthenticator() : Task<ActionResult<ApiResponse<MfaSettingsDto>>>
+    +ToggleEmailOtp() : Task<ActionResult<ApiResponse<MfaSettingsDto>>>
+    +GetLoginHistory(limit : int) : Task<ActionResult<ApiResponse<List<LoginHistoryDto>>>>
+    +DeleteLoginHistory(id : long) : Task<ActionResult<ApiResponse<object>>>
+    +ClearLoginHistory() : Task<ActionResult<ApiResponse<object>>>
+    +... 17 autres operations
+  }
+  class ClientsController <<control>> {
+    +GetAll() : Task<ActionResult<ApiResponse<List<ClientDto>>>>
+    +GetById(id : long) : Task<ActionResult<ApiResponse<ClientDto>>>
+    +Create(dto : CreateClientDto) : Task<ActionResult<ApiResponse<ClientDto>>>
+    +Update(id : long, dto : UpdateClientDto) : Task<ActionResult<ApiResponse<ClientDto>>>
+    +Delete(id : long) : Task<ActionResult<ApiResponse<string>>>
+  }
+  class EmployeesController <<control>> {
+    +GetAll(statut : string?, post : string?) : Task<ActionResult<ApiResponse<List<EmployeeDto>>>>
+    +GetById(id : long) : Task<ActionResult<ApiResponse<EmployeeDto>>>
+    +GetByPost(post : PostEmployee) : Task<ActionResult<ApiResponse<List<EmployeeDto>>>>
+    +GetByStatut(statut : StatutEmployee) : Task<ActionResult<ApiResponse<List<EmployeeDto>>>>
+    +Create(dto : CreateEmployeeDto) : Task<ActionResult<ApiResponse<EmployeeDto>>>
+    +Update(id : long, dto : UpdateEmployeeDto) : Task<ActionResult<ApiResponse<EmployeeDto>>>
+    +Delete(id : long) : Task<ActionResult<ApiResponse<string>>>
+  }
+  class UserManagementController <<control>> {
+    +GetAll() : Task<ActionResult<ApiResponse<List<UserProfileDto>>>>
+    +GetPending() : Task<ActionResult>
+    +ApproveById(id : long) : Task<ActionResult<ApiResponse<string>>>
+    +RejectById(id : long, body : RejectByIdBody) : Task<ActionResult<ApiResponse<string>>>
+    +ChangeRoleById(id : long, body : RoleByIdBody) : Task<ActionResult<ApiResponse<string>>>
+    +Approve(dto : ApproveUserDto) : Task<ActionResult<ApiResponse<string>>>
+    +Reject(dto : RejectUserDto) : Task<ActionResult<ApiResponse<string>>>
+    +ChangeRole(dto : ChangeRoleDto) : Task<ActionResult<ApiResponse<string>>>
+    +UpdateUser(id : long, dto : UpdateProfileDto) : Task<ActionResult<ApiResponse<UserProfileDto>>>
+    +DeleteUser(id : long) : Task<ActionResult<ApiResponse<DeleteOrArchiveResultDto>>>
+    +... 7 autres operations
+  }
+  class UsersController <<control>> {
+    +GetProfile() : Task<ActionResult<ApiResponse<UserProfileDto>>>
+    +UpdateProfile(dto : UpdateProfileDto) : Task<ActionResult<ApiResponse<UserProfileDto>>>
+    +ChangePassword(dto : ChangePasswordDto) : Task<ActionResult<ApiResponse<string>>>
+    +GetDetails(id : long) : Task<ActionResult<ApiResponse<UserProfileDto>>>
+    +GetStats(id : long) : ActionResult<ApiResponse<object>>
+    +UploadAvatar(id : long, file : IFormFile?) : Task<ActionResult<ApiResponse<object>>>
+    +UpdateProfileById(id : long, dto : UpdateProfileDto) : Task<ActionResult<ApiResponse<UserProfileDto>>>
+  }
+}
+
+package "IAM.Application" as APP {
+  interface IAuthService <<interface>> {
+    +LoginAsync(dto : LoginRequestDto, ipAddress : string) : Task<AuthResponseDto>
+    +RegisterAsync(dto : RegisterRequestDto) : Task<AuthResponseDto>
+    +LogoutAsync(userId : long) : Task
+    +RefreshTokenAsync(refreshToken : string) : Task<AuthResponseDto>
+    +ConfirmEmailAsync(dto : ConfirmEmailDto) : Task
+    +RecoverPasswordAsync(dto : RecoverPasswordDto) : Task
+    +ResetPasswordAsync(dto : ResetPasswordDto) : Task
+    +SetPinAsync(userId : long, dto : SetPinDto) : Task
+    +LoginPinAsync(dto : LoginPinDto) : Task<AuthResponseDto>
+    +UnlockSessionAsync(userId : long, dto : UnlockSessionDto) : Task<AuthResponseDto>
+    +... 2 autres operations
+  }
+  interface IClientService <<interface>> {
+    +GetAllAsync() : Task<List<ClientDto>>
+    +GetByIdAsync(id : long) : Task<ClientDto>
+    +CreateAsync(dto : CreateClientDto) : Task<ClientDto>
+    +UpdateAsync(id : long, dto : UpdateClientDto) : Task<ClientDto>
+    +DeleteAsync(id : long) : Task
+  }
+  interface IEmailService <<interface>> {
+    +SendEmailConfirmationAsync(toEmail : string, token : string) : Task<bool>
+    +SendPasswordResetAsync(toEmail : string, token : string) : Task<bool>
+    +SendWelcomeAsync(toEmail : string, nom : string) : Task
+    +SendMfaOtpAsync(toEmail : string, otp : string) : Task<bool>
+  }
+  interface IEmployeeService <<interface>> {
+    +GetAllAsync() : Task<List<EmployeeDto>>
+    +GetByIdAsync(id : long) : Task<EmployeeDto>
+    +CreateAsync(dto : CreateEmployeeDto) : Task<EmployeeDto>
+    +UpdateAsync(id : long, dto : UpdateEmployeeDto) : Task<EmployeeDto>
+    +DeleteAsync(id : long) : Task
+    +GetByPostAsync(post : PostEmployee) : Task<List<EmployeeDto>>
+    +GetByStatutAsync(statut : StatutEmployee) : Task<List<EmployeeDto>>
+  }
+  interface IJwtService <<interface>> {
+    +GenerateToken(user : Utilisateur) : string
+    +GenerateRefreshToken() : string
+    +GenerateMfaPendingToken(user : Utilisateur) : string
+    +ValidateMfaPendingToken(token : string) : long?
+    +GetUserIdFromToken(token : string) : long?
+    +ValidateToken(token : string) : bool
+  }
+  interface IMfaService <<interface>> {
+    +GetSettingsAsync(userId : long) : Task<MfaSettingsDto>
+    +BeginAuthenticatorSetupAsync(userId : long, email : string, ip : string) : Task<AuthenticatorSetupDto>
+    +ConfirmAuthenticatorAsync(userId : long, code : string, ip : string) : Task<MfaSettingsDto>
+    +DisableAuthenticatorAsync(userId : long, ip : string) : Task<MfaSettingsDto>
+    +ToggleEmailOtpAsync(userId : long, ip : string) : Task<MfaSettingsDto>
+    +SendEmailOtpAsync(user : Utilisateur) : Task
+    +VerifyEmailOtpAsync(userId : long, code : string) : Task<bool>
+    +VerifyAuthenticatorCodeAsync(userId : long, code : string) : Task<bool>
+    +GetEnabledMethodsAsync(userId : long) : Task<List<string>>
+    +RecordLoginAsync(userId : long, loginMethod : string, mfaMethod : string?, ip : string?, userAgent : string?, success : bool, failureReason : string?) : Task
+    +... 4 autres operations
+  }
+  interface IUserArchiveService <<interface>> {
+    +GetDependenciesAsync(userId : long) : Task<UserDependenciesDto>
+    +DeleteOrArchiveAsync(adminId : long, userId : long) : Task<DeleteOrArchiveResultDto>
+    +GetArchivedAsync() : Task<IEnumerable<ArchivedUserDto>>
+    +RestoreAsync(userId : long) : Task
+    +PurgeAsync(userId : long) : Task
+  }
+  interface IUserService <<interface>> {
+    +GetProfileAsync(userId : long) : Task<UserProfileDto>
+    +UpdateProfileAsync(userId : long, dto : UpdateProfileDto) : Task<UserProfileDto>
+    +ChangePasswordAsync(userId : long, dto : ChangePasswordDto) : Task
+    +GetAllUsersAsync() : Task<List<UserProfileDto>>
+    +ApproveUserAsync(adminId : long, dto : ApproveUserDto) : Task
+    +RejectUserAsync(adminId : long, dto : RejectUserDto) : Task
+    +ChangeRoleAsync(adminId : long, dto : ChangeRoleDto) : Task
+    +SuspendUserAsync(adminId : long, userId : long) : Task
+    +DeleteUserAsync(adminId : long, userId : long) : Task
+    +ActivateUserAsync(adminId : long, userId : long) : Task
+  }
+}
+
+package "IAM.Infrastructure" {
+  class IamDbContext <<repository>>
+  class AuthService <<service>> {
+    +LoginAsync(dto : LoginRequestDto, ipAddress : string) : Task<AuthResponseDto>
+    +VerifyMfaAsync(dto : MfaVerifyRequestDto, ipAddress : string, userAgent : string?) : Task<AuthResponseDto>
+    +ResendMfaEmailOtpAsync(mfaToken : string) : Task
+    +RegisterAsync(dto : RegisterRequestDto) : Task<AuthResponseDto>
+    +LogoutAsync(userId : long) : Task
+    +RefreshTokenAsync(refreshToken : string) : Task<AuthResponseDto>
+    +ConfirmEmailAsync(dto : ConfirmEmailDto) : Task
+    +RecoverPasswordAsync(dto : RecoverPasswordDto) : Task
+    +... 4 autres operations
+  }
+  class ClientService <<service>> {
+    +GetAllAsync() : Task<List<ClientDto>>
+    +GetByIdAsync(id : long) : Task<ClientDto>
+    +CreateAsync(dto : CreateClientDto) : Task<ClientDto>
+    +UpdateAsync(id : long, dto : UpdateClientDto) : Task<ClientDto>
+    +DeleteAsync(id : long) : Task
+  }
+  class EmailService <<service>> {
+    +SendEmailConfirmationAsync(toEmail : string, token : string) : Task<bool>
+    +SendPasswordResetAsync(toEmail : string, token : string) : Task<bool>
+    +SendMfaOtpAsync(toEmail : string, otp : string) : Task<bool>
+    +SendWelcomeAsync(toEmail : string, nom : string) : Task
+  }
+  class EmployeeService <<service>> {
+    +GetAllAsync() : Task<List<EmployeeDto>>
+    +GetByIdAsync(id : long) : Task<EmployeeDto>
+    +CreateAsync(dto : CreateEmployeeDto) : Task<EmployeeDto>
+    +UpdateAsync(id : long, dto : UpdateEmployeeDto) : Task<EmployeeDto>
+    +DeleteAsync(id : long) : Task
+    +GetByPostAsync(post : PostEmployee) : Task<List<EmployeeDto>>
+    +GetByStatutAsync(statut : StatutEmployee) : Task<List<EmployeeDto>>
+  }
+  class JwtService <<service>> {
+    +GenerateToken(user : Utilisateur) : string
+    +GenerateRefreshToken() : string
+    +GenerateMfaPendingToken(user : Utilisateur) : string
+    +ValidateMfaPendingToken(token : string) : long?
+    +GetUserIdFromToken(token : string) : long?
+    +ValidateToken(token : string) : bool
+  }
+  class MfaService <<service>> {
+    +GetSettingsAsync(userId : long) : Task<MfaSettingsDto>
+    +GetEnabledMethodsAsync(userId : long) : Task<List<string>>
+    +BeginAuthenticatorSetupAsync(userId : long, email : string, ip : string) : Task<AuthenticatorSetupDto>
+    +ConfirmAuthenticatorAsync(userId : long, code : string, ip : string) : Task<MfaSettingsDto>
+    +DisableAuthenticatorAsync(userId : long, ip : string) : Task<MfaSettingsDto>
+    +VerifyAuthenticatorCodeAsync(userId : long, code : string) : Task<bool>
+    +ToggleEmailOtpAsync(userId : long, ip : string) : Task<MfaSettingsDto>
+    +SendEmailOtpAsync(user : Utilisateur) : Task
+    +... 6 autres operations
+  }
+  class UserArchiveService <<service>> {
+    +GetDependenciesAsync(userId : long) : Task<UserDependenciesDto>
+    +DeleteOrArchiveAsync(adminId : long, userId : long) : Task<DeleteOrArchiveResultDto>
+    +GetArchivedAsync() : Task<IEnumerable<ArchivedUserDto>>
+    +RestoreAsync(userId : long) : Task
+    +PurgeAsync(userId : long) : Task
+  }
+  class UserService <<service>> {
+    +GetProfileAsync(userId : long) : Task<UserProfileDto>
+    +UpdateProfileAsync(userId : long, dto : UpdateProfileDto) : Task<UserProfileDto>
+    +ChangePasswordAsync(userId : long, dto : ChangePasswordDto) : Task
+    +GetAllUsersAsync() : Task<List<UserProfileDto>>
+    +ApproveUserAsync(adminId : long, dto : ApproveUserDto) : Task
+    +RejectUserAsync(adminId : long, dto : RejectUserDto) : Task
+    +ChangeRoleAsync(adminId : long, dto : ChangeRoleDto) : Task
+    +SuspendUserAsync(adminId : long, userId : long) : Task
+    +... 2 autres operations
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+AuthService ..|> IAuthService
+ClientService ..|> IClientService
+EmailService ..|> IEmailService
+EmployeeService ..|> IEmployeeService
+JwtService ..|> IJwtService
+MfaService ..|> IMfaService
+UserArchiveService ..|> IUserArchiveService
+UserService ..|> IUserService
+
+' Dependance d'utilisation
+AuthController ..> IAuthService : << use >>
+AuthController ..> IEmailService : << use >>
+AuthController ..> IMfaService : << use >>
+AuthController ..> IUserService : << use >>
+AuthService ..> IEmailService : << use >>
+AuthService ..> IJwtService : << use >>
+AuthService ..> IMfaService : << use >>
+AuthService ..> IamDbContext : << use >>
+ClientService ..> IamDbContext : << use >>
+ClientsController ..> IClientService : << use >>
+EmployeeService ..> IamDbContext : << use >>
+EmployeesController ..> IEmployeeService : << use >>
+MfaService ..> IEmailService : << use >>
+MfaService ..> IamDbContext : << use >>
+UserArchiveService ..> IamDbContext : << use >>
+UserManagementController ..> IUserArchiveService : << use >>
+UserManagementController ..> IUserService : << use >>
+UserService ..> IamDbContext : << use >>
+UsersController ..> IUserService : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

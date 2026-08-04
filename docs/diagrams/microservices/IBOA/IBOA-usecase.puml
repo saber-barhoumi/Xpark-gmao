@@ -1,59 +1,54 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title IBOA - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
+title Diagramme de cas d'utilisation - IBOA
 
-rectangle "IBOA" {
-  package "API FastAPI" {
-    usecase "health\nGET /health" as healthGET
-    usecase "get_events\nGET /events" as get_eventsGET
-    usecase "delete_events\nPOST /events/delete" as delete_eventsPOST
-    usecase "delete_all_events\nDELETE /events" as delete_all_eventsDELETE
-    usecase "get_alerts\nGET /alerts" as get_alertsGET
-    usecase "delete_alerts\nPOST /alerts/delete" as delete_alertsPOST
-    usecase "delete_all_alerts\nDELETE /alerts" as delete_all_alertsDELETE
-    usecase "get_stats\nGET /stats" as get_statsGET
-    usecase "get_preferences\nGET /preferences" as get_preferencesGET
-    usecase "put_preferences\nPUT /preferences" as put_preferencesPUT
-    usecase "daily_pdf\nGET /reports/daily.pdf" as daily_pdfGET
-    usecase "daily_excel\nGET /reports/daily.xlsx" as daily_excelGET
-    usecase "force_flush_batch\nPOST /batch/flush" as force_flush_batchPOST
-    usecase "post_test_event\nPOST /test-event" as post_test_eventPOST
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Administrateur" as Administrateur
+
+Utilisateur <|-- Administrateur
+
+rectangle "Service Journal Metier" {
+  package "Traitement des evenements" {
+    usecase "Recevoir un evenement metier" as UC_Recevoir_un_evenement_metier
+    usecase "Evaluer la criticite" as UC_Evaluer_la_criticite
+    usecase "Regrouper les evenements lies" as UC_Regrouper_les_evenements_lies
+    usecase "Diffuser une alerte" as UC_Diffuser_une_alerte
+  }
+  package "Consultation" {
+    usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
+    usecase "Consulter les alertes metier" as UC_Consulter_les_alertes_metier
+    usecase "Consulter les statistiques" as UC_Consulter_les_statistiques
+  }
+  package "Pilotage" {
+    usecase "Definir ses preferences de diffusion" as UC_Definir_ses_preferences_de_diffusi
+    usecase "Editer un rapport quotidien" as UC_Editer_un_rapport_quotidien
+    usecase "Purger le journal" as UC_Purger_le_journal
+    usecase "Purger les alertes" as UC_Purger_les_alertes
   }
 }
 
-ADMIN --> healthGET
-ADMIN --> get_eventsGET
-ADMIN --> delete_eventsPOST
-ADMIN --> delete_all_eventsDELETE
-ADMIN --> get_alertsGET
-ADMIN --> delete_alertsPOST
-ADMIN --> delete_all_alertsDELETE
-ADMIN --> get_statsGET
-ADMIN --> get_preferencesGET
-ADMIN --> put_preferencesPUT
-ADMIN --> daily_pdfGET
-ADMIN --> daily_excelGET
-ADMIN --> force_flush_batchPOST
-ADMIN --> post_test_eventPOST
+' Acteurs secondaires (a droite, hors frontiere)
+actor "Bus de messages" as Bus
+actor "Serveur de messagerie" as SMTP
+actor "Passerelle de messagerie instantanee" as Twilio
 
-legend right
-Service interne : il n'expose pas de RBAC propre, l'acces est
-filtre en amont (passerelle ou service appelant).
-endlegend
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Consulter_le_journal_des_evenement
+
+Bus -- UC_Recevoir_un_evenement_metier : << secondary >>
+SMTP -- UC_Diffuser_une_alerte : << secondary >>
+Twilio -- UC_Diffuser_une_alerte : << secondary >>
+
+UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>
+UC_Evaluer_la_criticite ..> UC_Regrouper_les_evenements_lies : << include >>
+UC_Diffuser_une_alerte ..> UC_Evaluer_la_criticite : << extend >>
 
 @enduml

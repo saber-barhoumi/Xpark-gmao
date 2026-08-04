@@ -1,0 +1,68 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Maintenance
+
+package "Maintenance.API" {
+  class InterventionsController <<control>> {
+    +GetAll(page : int, pageSize : int, statut : string?, type : string?, vehiculeId : long?) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Create(dto : CreateInterventionDto) : Task<IActionResult>
+    +Update(id : long, dto : UpdateInterventionRequest) : Task<IActionResult>
+    +UpdateStatut(id : long, req : UpdateStatutRequest) : Task<IActionResult>
+    +AddPiece(id : long, dto : AddPieceRequest) : Task<IActionResult>
+    +RemovePiece(id : long, pieceId : long) : Task<IActionResult>
+    +Delete(id : long) : Task<IActionResult>
+  }
+}
+
+package "Maintenance.Application" as APP {
+  interface IMaintenanceService <<interface>> {
+    +GetAllAsync(page : int, pageSize : int) : Task<PaginatedResponseDto<InterventionResponseDto>>
+    +GetByIdAsync(id : long) : Task<InterventionResponseDto?>
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<InterventionResponseDto>>
+    +CreateAsync(dto : CreateInterventionDto) : Task<InterventionResponseDto>
+    +UpdateStatutAsync(id : long, statut : StatutIntervention) : Task<bool>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  interface IInterventionRepository <<interface>> {
+    +GetWithDetailsAsync(id : long) : Task<Intervention?>
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<Intervention>>
+    +GetConflictForTechnicienAsync(technicienId : long, date : DateTime) : Task<Intervention?>
+  }
+}
+
+package "Maintenance.Infrastructure" {
+  class MaintenanceDbContext <<repository>>
+  class MaintenanceService <<service>> {
+    +GetAllAsync(page : int, pageSize : int) : Task<PaginatedResponseDto<InterventionResponseDto>>
+    +GetByIdAsync(id : long) : Task<InterventionResponseDto?>
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<InterventionResponseDto>>
+    +CreateAsync(dto : CreateInterventionDto) : Task<InterventionResponseDto>
+    +UpdateStatutAsync(id : long, statut : StatutIntervention) : Task<bool>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+MaintenanceService ..|> IMaintenanceService
+
+' Dependance d'utilisation
+InterventionsController ..> IMaintenanceService : << use >>
+MaintenanceService ..> IInterventionRepository : << use >>
+MaintenanceService ..> MaintenanceDbContext : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

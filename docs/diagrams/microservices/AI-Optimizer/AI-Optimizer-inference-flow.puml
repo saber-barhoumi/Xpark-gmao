@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -23,10 +24,5 @@ start
 :Selection gloutonne;
 :Plan d'affectation;
 stop
-
-legend right
-Optimisation heuristique (contraintes + notation), pas un
-modele appris.
-endlegend
 
 @enduml

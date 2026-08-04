@@ -1,53 +1,54 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title PredictionPanne - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
-:GESTIONNAIRE: as GESTIONNAIRE
-:TECHNICIEN: as TECHNICIEN
+title Diagramme de cas d'utilisation - PredictionPanne
 
-rectangle "PredictionPanne" {
-  package "Predictions" {
-    usecase "GetDashboard\nGET dashboard" as PredictionsControllerGetDashboardGET
-    usecase "GetSanteFlotte\nGET sante" as PredictionsControllerGetSanteFlotteGET
-    usecase "GetSanteVehicule\nGET sante/{vehiculeId:long}" as PredictionsControllerGetSanteVehiculeGET
-    usecase "GetHistorique\nGET historique/{vehiculeId:long}" as PredictionsControllerGetHistoriqueGET
-    usecase "GetHistoriqueGlobal\nGET historique" as PredictionsControllerGetHistoriqueGlobalGET
-    usecase "SupprimerPrediction\nDELETE historique/{id:long}" as PredictionsControllerSupprimerPredictionDELETE
-    usecase "SupprimerLot\nPOST historique/supprimer" as PredictionsControllerSupprimerLotPOST
-    usecase "Recalculer\nPOST recalculer" as PredictionsControllerRecalculerPOST
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Responsable" as Responsable
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+actor "Technicien" as Technicien
+
+Utilisateur <|-- Responsable
+Responsable <|-- Administrateur
+Responsable <|-- Gestionnaire
+Utilisateur <|-- Technicien
+
+rectangle "Service Maintenance Predictive" {
+  package "Consultation" {
+    usecase "Consulter le tableau de bord des risques" as UC_Consulter_le_tableau_de_bord_des_r
+    usecase "Consulter la sante de la flotte" as UC_Consulter_la_sante_de_la_flotte
+    usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
+    usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
+  }
+  package "Calcul" {
+    usecase "Recalculer les predictions" as UC_Recalculer_les_predictions
+    usecase "Evaluer le risque de panne" as UC_Evaluer_le_risque_de_panne
+    usecase "Identifier l'organe a risque" as UC_Identifier_l_organe_a_risque
+  }
+  package "Entretien du journal" {
+    usecase "Supprimer une prediction" as UC_Supprimer_une_prediction
+    usecase "Supprimer un lot de predictions" as UC_Supprimer_un_lot_de_predictions
   }
 }
 
-ADMIN --> PredictionsControllerGetDashboardGET
-ADMIN --> PredictionsControllerGetSanteFlotteGET
-ADMIN --> PredictionsControllerGetSanteVehiculeGET
-ADMIN --> PredictionsControllerGetHistoriqueGET
-ADMIN --> PredictionsControllerGetHistoriqueGlobalGET
-GESTIONNAIRE --> PredictionsControllerGetHistoriqueGlobalGET
-ADMIN --> PredictionsControllerSupprimerPredictionDELETE
-GESTIONNAIRE --> PredictionsControllerSupprimerPredictionDELETE
-ADMIN --> PredictionsControllerSupprimerLotPOST
-GESTIONNAIRE --> PredictionsControllerSupprimerLotPOST
-ADMIN --> PredictionsControllerRecalculerPOST
-GESTIONNAIRE --> PredictionsControllerRecalculerPOST
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Consulter_le_tableau_de_bord_des_r
+Responsable -- UC_Consulter_la_sante_de_la_flotte
+Responsable -- UC_Recalculer_les_predictions
+Administrateur -- UC_Supprimer_un_lot_de_predictions
+Administrateur -- UC_Supprimer_une_prediction
+Technicien -- UC_Consulter_l_historique_des_predict
+Technicien -- UC_Consulter_la_sante_d_un_vehicule
 
-legend right
-Acteurs deduits des attributs [Authorize(Roles=...)] du service.
-Les cas sans role explicite heritent du [Authorize] du controleur.
-endlegend
+UC_Recalculer_les_predictions ..> UC_Evaluer_le_risque_de_panne : << include >>
+UC_Evaluer_le_risque_de_panne ..> UC_Identifier_l_organe_a_risque : << include >>
 
 @enduml

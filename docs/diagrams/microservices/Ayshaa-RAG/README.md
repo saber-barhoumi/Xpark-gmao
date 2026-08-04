@@ -34,17 +34,18 @@
 
 | Fichier | Contenu |
 |---|---|
-| `Ayshaa-RAG-sequence.puml` | Sequence d'un flux metier reel du service |
-| `Ayshaa-RAG-usecase.puml` | Cas d'utilisation et acteurs (roles releves dans le code) |
-| `Ayshaa-RAG-communication.puml` | Echanges avec les autres composants et les protocoles employes |
+| `Ayshaa-RAG-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Ayshaa-RAG-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
+| `Ayshaa-RAG-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
 | `Ayshaa-RAG-entities.puml` | Entites persistees, cles et relations |
-| `Ayshaa-RAG-class.puml` | Classes des quatre couches et leurs dependances |
-| `Ayshaa-RAG-component.puml` | Composants internes et points d'entree |
-| `Ayshaa-RAG-package.puml` | Organisation en paquets et sens des dependances |
-| `Ayshaa-RAG-activity.puml` | Deroulement metier de bout en bout |
-| `Ayshaa-RAG-state.puml` | Etats et transitions des objets du domaine |
+| `Ayshaa-RAG-component.puml` | Diagramme de composants |
+| `Ayshaa-RAG-package.puml` | Diagramme de paquets et sens des dependances |
+| `Ayshaa-RAG-sequence.puml` | Diagramme de sequence d'un flux metier reel |
+| `Ayshaa-RAG-communication.puml` | Diagramme de communication entre composants |
+| `Ayshaa-RAG-activity.puml` | Diagramme d'activites du processus metier |
+| `Ayshaa-RAG-state.puml` | Diagramme d'etats-transitions |
 | `Ayshaa-RAG-database.puml` | Persistance et tables accedees |
-| `Ayshaa-RAG-api-flow.puml` | Cheminement complet d'un appel API |
+| `Ayshaa-RAG-api-flow.puml` | Sequence complete d'un appel de service |
 | `Ayshaa-RAG-service-flow.puml` | Traversee des couches internes |
 | `Ayshaa-RAG-rag-flow.puml` | Chaine de recherche augmentee (RAG) |
 | `Ayshaa-RAG-inference-flow.puml` | Flux d'inference |
@@ -59,6 +60,23 @@ Conformement a la consigne « ne generer que ce qui existe » :
 - `Ayshaa-RAG-ocr-flow.puml` : aucun code OCR dans ce service — l'OCR de la plateforme est realise cote navigateur par `frontend/backoffice/src/services/groqOCRService.ts` (API xAI Grok).
 - `Ayshaa-RAG-optimization-flow.puml` : pas de logique d'optimisation dans ce service.
 - `Ayshaa-RAG-training-flow.puml` : aucun code d'entrainement dans le depot.
+
+## Conformite UML
+
+Les diagrammes de ce dossier suivent les conventions du cours :
+
+- **Cas d'utilisation** : association acteur / cas d'utilisation en trait continu
+  sans fleche, acteur secondaire porte par le stereotype `<< secondary >>`,
+  `<< include >>` pour une partie obligatoire et `<< extend >>` pour une partie
+  optionnelle, generalisation entre acteurs pour eviter les liens redondants.
+  Les systemes tiers sont des acteurs places hors de la frontiere du systeme.
+- **Classes** : deux diagrammes distincts, l'un pour l'architecture (couches,
+  interfaces, realisations), l'autre pour le domaine (entites, enumerations).
+  Syntaxe `[Vis] Nom : Type` pour les attributs et `[Vis] Nom(Arg) : TypeRetour`
+  pour les operations ; multiplicite indiquee aux deux extremites de chaque
+  association ; composition `*--` reservee aux cycles de vie possedes.
+- Aucune legende : chaque diagramme se lit seul. Les notes ne portent que sur
+  un choix d'architecture.
 
 ## Regeneration
 

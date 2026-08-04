@@ -1,0 +1,127 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Mission
+
+package "Mission.API" {
+  class DataMigrationController <<control>> {
+    +MigrateHistorical(ct : CT) : Task<IActionResult>
+    +GetDatasetStats(ct : CT) : Task<IActionResult>
+  }
+  class MissionsController <<control>> {
+    +GetAll(statut : string?) : Task<IActionResult>
+    +GetMyMissions() : Task<IActionResult>
+    +GetDriverMissions(statut : string?) : Task<IActionResult>
+    +CancelMyMission(id : long) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Create(dto : CreateMissionDto) : Task<IActionResult>
+    +Close(id : long, dto : CloseMissionDto) : Task<IActionResult>
+    +RequestOptimization(dto : OptimizeRequestDto) : Task<IActionResult>
+    +GetOptimizationPlan(batchId : string) : IActionResult
+    +Assign(id : long, dto : AssignMissionDto) : Task<IActionResult>
+    +... 2 autres operations
+  }
+  class TransportRequestsController <<control>> {
+    +Create(dto : CreateTransportRequestDto) : Task<IActionResult>
+    +GetMyRequests() : Task<IActionResult>
+    +GetMyRequest(id : long) : Task<IActionResult>
+    +EditMyRequest(id : long, dto : EditTransportRequestDto) : Task<IActionResult>
+    +CancelMyRequest(id : long, dto : ReasonDto?) : Task<IActionResult>
+    +AcceptQuotation(id : long) : Task<IActionResult>
+    +RejectQuotation(id : long, dto : ReasonDto?) : Task<IActionResult>
+    +GetAll(statut : string?) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Delete(id : long) : Task<IActionResult>
+    +... 2 autres operations
+  }
+}
+
+package "Mission.Application" as APP {
+  interface IHistoricalMigrationService <<interface>> {
+    +MigrateHistoricalMissionsAsync(ct : CT) : Task<MigrationSummary>
+  }
+  interface IMissionService <<interface>> {
+    +GetAllAsync() : Task<IEnumerable<MissionResponseDto>>
+    +GetByIdAsync(id : long) : Task<MissionResponseDto?>
+    +GetByStatutAsync(statut : StatutMission) : Task<IEnumerable<MissionResponseDto>>
+    +CreateMissionAsync(dto : CreateMissionDto) : Task<MissionResponseDto>
+    +CloseMissionAsync(missionId : long, kilometrageRetour : double) : Task<MissionResponseDto>
+    +AssignMissionAsync(missionId : long, dto : AssignMissionDto) : Task<MissionResponseDto>
+    +CreateMissionFromAcceptedRequestAsync(clientUserId : long, clientNom : string?, dto : ClientMissionRequestDto) : Task<MissionResponseDto>
+    +CancelMyMissionAsync(clientUserId : long, missionId : long) : Task<bool>
+    +GetByClientAsync(clientUserId : long) : Task<IEnumerable<MissionResponseDto>>
+    +GetByDriverNameAsync(chauffeurNom : string, statut : string?) : Task<IEnumerable<MissionResponseDto>>
+    +... 2 autres operations
+  }
+  interface IOptimizationService <<interface>> {
+    +RequestOptimizationAsync(dto : OptimizeRequestDto) : Task<string>
+    +GetPlan(batchId : string) : string?
+  }
+  interface IOptimizerEventBus <<interface>> {
+    +PublishOptimizationRequestedAsync(payloadJson : string, ct : CT) : Task
+    +PublishAsync(routingKey : string, payloadJson : string, ct : CT) : Task
+  }
+  interface IMissionRepository <<interface>> {
+    +GetWithDetailsAsync(id : long) : Task<MissionEntity?>
+    +GetByStatutAsync(statut : StatutMission) : Task<IEnumerable<MissionEntity>>
+  }
+}
+
+package "Mission.Infrastructure" {
+  class MissionDbContext <<repository>>
+  class OptimizerEventBus <<adapter>> {
+    +PublishOptimizationRequestedAsync(payloadJson : string, ct : CT) : Task
+    +PublishAsync(routingKey : string, payloadJson : string, ct : CT) : Task
+    +DisposeAsync() : ValueTask
+  }
+  class HistoricalMigrationService <<service>> {
+    +MigrateHistoricalMissionsAsync(ct : CT) : Task<MigrationSummary>
+  }
+  class MissionService <<service>> {
+    +GetAllAsync() : Task<IEnumerable<MissionResponseDto>>
+    +GetByIdAsync(id : long) : Task<MissionResponseDto?>
+    +GetByStatutAsync(statut : StatutMission) : Task<IEnumerable<MissionResponseDto>>
+    +CreateMissionAsync(dto : CreateMissionDto) : Task<MissionResponseDto>
+    +CloseMissionAsync(missionId : long, kilometrageRetour : double) : Task<MissionResponseDto>
+    +CreateMissionFromAcceptedRequestAsync(clientUserId : long, clientNom : string?, dto : ClientMissionRequestDto) : Task<MissionResponseDto>
+    +CancelMyMissionAsync(clientUserId : long, missionId : long) : Task<bool>
+    +GetByClientAsync(clientUserId : long) : Task<IEnumerable<MissionResponseDto>>
+    +... 4 autres operations
+  }
+  class OptimizationService <<service>> {
+    +RequestOptimizationAsync(dto : OptimizeRequestDto) : Task<string>
+    +GetPlan(batchId : string) : string?
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+HistoricalMigrationService ..|> IHistoricalMigrationService
+MissionService ..|> IMissionService
+OptimizationService ..|> IOptimizationService
+OptimizerEventBus ..|> IOptimizerEventBus
+
+' Dependance d'utilisation
+DataMigrationController ..> IHistoricalMigrationService : << use >>
+HistoricalMigrationService ..> MissionDbContext : << use >>
+MissionService ..> IMissionRepository : << use >>
+MissionService ..> IOptimizerEventBus : << use >>
+MissionsController ..> IMissionService : << use >>
+MissionsController ..> IOptimizationService : << use >>
+OptimizationService ..> IMissionRepository : << use >>
+OptimizationService ..> IOptimizerEventBus : << use >>
+TransportRequestsController ..> IMissionService : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

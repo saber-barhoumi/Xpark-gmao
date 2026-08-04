@@ -1,35 +1,44 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title AI-Optimizer - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:GESTIONNAIRE: as GESTIONNAIRE
+title Diagramme de cas d'utilisation - AI-Optimizer
 
-rectangle "AI-Optimizer" {
-  package "API FastAPI" {
-    usecase "health\nGET /health" as healthGET
-    usecase "run_optimization\nPOST /optimize" as run_optimizationPOST
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Gestionnaire" as Gestionnaire
+
+Utilisateur <|-- Gestionnaire
+
+rectangle "Service Optimisation de Flotte" {
+  package "Optimisation" {
+    usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
+    usecase "Appliquer les contraintes d'affectation" as UC_Appliquer_les_contraintes_d_affect
+    usecase "Noter les candidats" as UC_Noter_les_candidats
+    usecase "Produire un plan d'affectation" as UC_Produire_un_plan_d_affectation
+  }
+  package "Exploitation" {
+    usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
   }
 }
 
-GESTIONNAIRE --> healthGET
-GESTIONNAIRE --> run_optimizationPOST
+' Acteurs secondaires (a droite, hors frontiere)
+actor "Bus de messages" as Bus
 
-legend right
-Service interne : il n'expose pas de RBAC propre, l'acces est
-filtre en amont (passerelle ou service appelant).
-endlegend
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Optimiser_une_affectation
+Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
+
+Bus -- UC_Optimiser_une_affectation : << secondary >>
+Bus -- UC_Produire_un_plan_d_affectation : << secondary >>
+
+UC_Optimiser_une_affectation ..> UC_Appliquer_les_contraintes_d_affect : << include >>
+UC_Optimiser_une_affectation ..> UC_Noter_les_candidats : << include >>
+UC_Optimiser_une_affectation ..> UC_Produire_un_plan_d_affectation : << include >>
 
 @enduml

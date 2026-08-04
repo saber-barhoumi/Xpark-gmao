@@ -33,17 +33,18 @@ Files : `optimizer.ready-for-optimization`
 
 | Fichier | Contenu |
 |---|---|
-| `AI-Optimizer-sequence.puml` | Sequence d'un flux metier reel du service |
-| `AI-Optimizer-usecase.puml` | Cas d'utilisation et acteurs (roles releves dans le code) |
-| `AI-Optimizer-communication.puml` | Echanges avec les autres composants et les protocoles employes |
+| `AI-Optimizer-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `AI-Optimizer-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
+| `AI-Optimizer-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
 | `AI-Optimizer-entities.puml` | Entites persistees, cles et relations |
-| `AI-Optimizer-class.puml` | Classes des quatre couches et leurs dependances |
-| `AI-Optimizer-component.puml` | Composants internes et points d'entree |
-| `AI-Optimizer-package.puml` | Organisation en paquets et sens des dependances |
-| `AI-Optimizer-activity.puml` | Deroulement metier de bout en bout |
-| `AI-Optimizer-state.puml` | Etats et transitions des objets du domaine |
+| `AI-Optimizer-component.puml` | Diagramme de composants |
+| `AI-Optimizer-package.puml` | Diagramme de paquets et sens des dependances |
+| `AI-Optimizer-sequence.puml` | Diagramme de sequence d'un flux metier reel |
+| `AI-Optimizer-communication.puml` | Diagramme de communication entre composants |
+| `AI-Optimizer-activity.puml` | Diagramme d'activites du processus metier |
+| `AI-Optimizer-state.puml` | Diagramme d'etats-transitions |
 | `AI-Optimizer-database.puml` | Persistance et tables accedees |
-| `AI-Optimizer-api-flow.puml` | Cheminement complet d'un appel API |
+| `AI-Optimizer-api-flow.puml` | Sequence complete d'un appel de service |
 | `AI-Optimizer-service-flow.puml` | Traversee des couches internes |
 | `AI-Optimizer-optimization-flow.puml` | Flux d'optimisation |
 | `AI-Optimizer-inference-flow.puml` | Flux d'inference |
@@ -58,6 +59,23 @@ Conformement a la consigne « ne generer que ce qui existe » :
 - `AI-Optimizer-ocr-flow.puml` : aucun code OCR dans ce service — l'OCR de la plateforme est realise cote navigateur par `frontend/backoffice/src/services/groqOCRService.ts` (API xAI Grok).
 - `AI-Optimizer-rag-flow.puml` : pas de recherche augmentee dans ce service.
 - `AI-Optimizer-training-flow.puml` : aucun code d'entrainement dans le depot.
+
+## Conformite UML
+
+Les diagrammes de ce dossier suivent les conventions du cours :
+
+- **Cas d'utilisation** : association acteur / cas d'utilisation en trait continu
+  sans fleche, acteur secondaire porte par le stereotype `<< secondary >>`,
+  `<< include >>` pour une partie obligatoire et `<< extend >>` pour une partie
+  optionnelle, generalisation entre acteurs pour eviter les liens redondants.
+  Les systemes tiers sont des acteurs places hors de la frontiere du systeme.
+- **Classes** : deux diagrammes distincts, l'un pour l'architecture (couches,
+  interfaces, realisations), l'autre pour le domaine (entites, enumerations).
+  Syntaxe `[Vis] Nom : Type` pour les attributs et `[Vis] Nom(Arg) : TypeRetour`
+  pour les operations ; multiplicite indiquee aux deux extremites de chaque
+  association ; composition `*--` reservee aux cycles de vie possedes.
+- Aucune legende : chaque diagramme se lit seul. Les notes ne portent que sur
+  un choix d'architecture.
 
 ## Regeneration
 

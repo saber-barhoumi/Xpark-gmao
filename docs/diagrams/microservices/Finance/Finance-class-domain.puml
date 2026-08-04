@@ -1,0 +1,41 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - Finance
+
+class Facture <<entity>> {
+  +IdFacture : Long {id}
+  +NumeroFacture : String
+  +DateFacture : Date
+  +DateEcheance : Date
+  +Montant : Double
+  +MontantTVA : Double
+  +MontantTTC : Double
+  +TauxTVA : Double
+  +Description : String
+  +Statut : StatutFacture
+  +DatePaiement : Date
+  +MotifAnnulation : String
+  +ClientId : Long
+  +MissionId : Long
+  +DateCreation : Date
+}
+enum StatutFacture <<enumeration>> {
+  EN_ATTENTE
+  BROUILLON
+  EMISE
+  PAYEE
+  ANNULEE
+  EN_RETARD
+}
+
+Facture ..> StatutFacture : << use >>
+
+@enduml

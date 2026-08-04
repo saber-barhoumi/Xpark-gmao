@@ -1,57 +1,59 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title Alerts - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
-:GESTIONNAIRE: as GESTIONNAIRE
+title Diagramme de cas d'utilisation - Alerts
 
-rectangle "Alerts" {
-  package "Alertes" {
-    usecase "GetAll\nGET /" as AlertesControllerGetAllGET
-    usecase "GetNonLues\nGET non-lues" as AlertesControllerGetNonLuesGET
-    usecase "GetNonLues\nGET unread" as AlertesControllerGetNonLuesGET
-    usecase "CountNonLues\nGET count" as AlertesControllerCountNonLuesGET
-    usecase "CountNonLues\nGET count-unread" as AlertesControllerCountNonLuesGET
-    usecase "GetByType\nGET type/{type}" as AlertesControllerGetByTypeGET
-    usecase "MarquerLue\nPATCH {id:long}/lire" as AlertesControllerMarquerLuePATCH
-    usecase "MarquerLue\nPUT {id:long}/mark-as-read" as AlertesControllerMarquerLuePUT
-    usecase "MarquerToutesLues\nPATCH lire-toutes" as AlertesControllerMarquerToutesLuesPATCH
-    usecase "MarquerToutesLues\nPUT mark-all-read" as AlertesControllerMarquerToutesLuesPUT
-    usecase "MarquerTraitee\nPATCH {id:long}/traiter" as AlertesControllerMarquerTraiteePATCH
-    usecase "MarquerTraitee\nPOST {id:long}/traitee" as AlertesControllerMarquerTraiteePOST
-    usecase "... 6 autres actions" as AlertesControllerreste
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Responsable" as Responsable
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+
+Utilisateur <|-- Responsable
+Responsable <|-- Administrateur
+Responsable <|-- Gestionnaire
+
+rectangle "Service Alertes" {
+  package "Consultation" {
+    usecase "Consulter les alertes" as UC_Consulter_les_alertes
+    usecase "Consulter les alertes non lues" as UC_Consulter_les_alertes_non_lues
+    usecase "Compter les alertes non lues" as UC_Compter_les_alertes_non_lues
+    usecase "Filtrer les alertes par categorie" as UC_Filtrer_les_alertes_par_categorie
+  }
+  package "Traitement" {
+    usecase "Marquer une alerte comme lue" as UC_Marquer_une_alerte_comme_lue
+    usecase "Marquer toutes les alertes comme lues" as UC_Marquer_toutes_les_alertes_comme_l
+    usecase "Marquer une alerte comme traitee" as UC_Marquer_une_alerte_comme_traitee
+    usecase "Supprimer une alerte" as UC_Supprimer_une_alerte
+    usecase "Supprimer plusieurs alertes" as UC_Supprimer_plusieurs_alertes
+  }
+  package "Surveillance" {
+    usecase "Lancer les controles metier" as UC_Lancer_les_controles_metier
+    usecase "Ecarter les doublons" as UC_Ecarter_les_doublons
+    usecase "Generer les alertes du jour" as UC_Generer_les_alertes_du_jour
   }
 }
 
-ADMIN --> AlertesControllerGetAllGET
-ADMIN --> AlertesControllerGetByTypeGET
-ADMIN --> AlertesControllerMarquerLuePATCH
-ADMIN --> AlertesControllerMarquerLuePUT
-ADMIN --> AlertesControllerMarquerToutesLuesPATCH
-GESTIONNAIRE --> AlertesControllerMarquerToutesLuesPATCH
-ADMIN --> AlertesControllerMarquerToutesLuesPUT
-GESTIONNAIRE --> AlertesControllerMarquerToutesLuesPUT
-ADMIN --> AlertesControllerMarquerTraiteePATCH
-GESTIONNAIRE --> AlertesControllerMarquerTraiteePATCH
-ADMIN --> AlertesControllerMarquerTraiteePOST
-GESTIONNAIRE --> AlertesControllerMarquerTraiteePOST
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Consulter_les_alertes
+Responsable -- UC_Compter_les_alertes_non_lues
+Responsable -- UC_Consulter_les_alertes_non_lues
+Responsable -- UC_Filtrer_les_alertes_par_categorie
+Responsable -- UC_Lancer_les_controles_metier
+Responsable -- UC_Marquer_toutes_les_alertes_comme_l
+Responsable -- UC_Marquer_une_alerte_comme_lue
+Responsable -- UC_Marquer_une_alerte_comme_traitee
+Administrateur -- UC_Generer_les_alertes_du_jour
+Administrateur -- UC_Supprimer_plusieurs_alertes
+Administrateur -- UC_Supprimer_une_alerte
 
-legend right
-Acteurs deduits des attributs [Authorize(Roles=...)] du service.
-Les cas sans role explicite heritent du [Authorize] du controleur.
-endlegend
+UC_Lancer_les_controles_metier ..> UC_Ecarter_les_doublons : << include >>
+UC_Generer_les_alertes_du_jour ..> UC_Lancer_les_controles_metier : << include >>
 
 @enduml

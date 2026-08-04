@@ -1,0 +1,46 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - IBOA
+
+class BusinessEvent <<value object>> {
+  +eventId : str
+  +timestamp : datetime
+  +eventType : str                              # RabbitMQ routing key (xpark.fleet.…)
+  +severity : str
+  +sourceService : str
+  +sourceUserId : str
+  +eventData : Dict[str, Any
+  +context : Dict[str, Any
+  +metadata : Dict[str, Any
+}
+class ScoredEvent <<value object>> {
+  +criticityScore : int                         # 1-100 (FICHE §5.1)
+  +classification : str                         # CRITIQUE | IMPORTANT | NORMAL | INFO
+  +scoreBreakdown : List[str                   # explainability of the score
+}
+class Alert <<value object>> {
+  +alertId : str
+  +eventId : str
+  +criticityScore : int
+  +alertStatus : str                            # PENDING | SENT | SENT_SIMULATED | FAILED | SUPPRESSED | BATCHED
+  +recipient : str
+  +deliveryChannel : str                        # WHATSAPP | EMAIL | BATCH_EMAIL | NONE
+  +messageContent : str
+  +sentAt : datetime
+  +retryCount : int
+  +failureReason : str
+}
+
+ScoredEvent "1" *-- "1" BusinessEvent : event
+BusinessEvent "1" -- "0..1" ScoredEvent : notation
+ScoredEvent "1..*" -- "0..1" Alert : agregation
+
+@enduml

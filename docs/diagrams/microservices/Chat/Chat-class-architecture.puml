@@ -1,0 +1,24 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Chat
+
+package "Chat.Infrastructure" {
+  class ChatDbContext <<repository>>
+  class UserStatusChangedConsumer <<adapter>>
+  class ChatHub <<boundary>>
+}
+
+' Dependance d'utilisation
+ChatHub ..> ChatDbContext : << use >>
+UserStatusChangedConsumer ..> ChatDbContext : << use >>
+
+
+@enduml

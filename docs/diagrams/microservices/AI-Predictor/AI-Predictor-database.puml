@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -20,9 +21,5 @@ note as N
   - model_xgboost.pkl (modele pre-entraine, joblib)
   - distance_matrix.json (distances entre villes)
 end note
-
-legend right
-Aucune persistance : verifie, aucun client base de donnees dans les dependances.
-endlegend
 
 @enduml

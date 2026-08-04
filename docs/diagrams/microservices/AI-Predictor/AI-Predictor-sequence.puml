@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -36,12 +37,5 @@ MD --> A : prix estime
 A --> FO : { prix, fourchette }
 deactivate A
 FO -> C : affichage de l'estimation
-
-
-legend right
-Le modele est charge une fois au demarrage avec joblib.
-Aucun code d'entrainement n'est present dans le depot :
-seul l'artefact model_xgboost.pkl est versionne.
-endlegend
 
 @enduml

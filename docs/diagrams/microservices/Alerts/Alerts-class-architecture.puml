@@ -1,0 +1,80 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Alerts
+
+package "Alerts.API" {
+  class AlertesController <<control>> {
+    +GetAll() : Task<IActionResult>
+    +GetNonLues() : Task<IActionResult>
+    +CountNonLues() : Task<IActionResult>
+    +GetByType(type : string) : Task<IActionResult>
+    +MarquerLue(id : long) : Task<IActionResult>
+    +MarquerToutesLues() : Task<IActionResult>
+    +MarquerTraitee(id : long) : Task<IActionResult>
+    +Supprimer(id : long) : Task<IActionResult>
+    +SupprimerPlusieurs(req : SupprimerAlertesRequest) : Task<IActionResult>
+    +SupprimerToutes() : Task<IActionResult>
+    +... 2 autres operations
+  }
+}
+
+package "Alerts.Application" as APP {
+  interface IAlertService <<interface>> {
+    +GetAllAsync() : Task<IEnumerable<AlerteResponseDto>>
+    +GetNonLuesAsync() : Task<IEnumerable<AlerteResponseDto>>
+    +CountNonLuesAsync() : Task<int>
+    +GetByTypeAsync(type : string) : Task<IEnumerable<AlerteResponseDto>>
+    +MarquerLueAsync(id : long) : Task<bool>
+    +MarquerToutesLuesAsync() : Task<bool>
+    +MarquerTraiteeAsync(id : long) : Task<bool>
+    +SupprimerAsync(id : long) : Task<bool>
+    +SupprimerPlusieursAsync(ids : IEnumerable<long>) : Task<int>
+    +SupprimerToutesAsync() : Task<int>
+    +... 2 autres operations
+  }
+  interface IAlertRepository <<interface>> {
+    +GetAllSortedAsync() : Task<IEnumerable<Alerte>>
+    +GetNonLuesAsync() : Task<IEnumerable<Alerte>>
+    +GetByTypeAsync(type : TypeAlerte) : Task<IEnumerable<Alerte>>
+    +CountNonLuesAsync() : Task<int>
+  }
+}
+
+package "Alerts.Infrastructure" {
+  class AlertsDbContext <<repository>>
+  class AlerteService <<service>> {
+    +GetAllAsync() : Task<IEnumerable<AlerteResponseDto>>
+    +GetNonLuesAsync() : Task<IEnumerable<AlerteResponseDto>>
+    +CountNonLuesAsync() : Task<int>
+    +GetByTypeAsync(type : string) : Task<IEnumerable<AlerteResponseDto>>
+    +MarquerLueAsync(id : long) : Task<bool>
+    +MarquerToutesLuesAsync() : Task<bool>
+    +MarquerTraiteeAsync(id : long) : Task<bool>
+    +SupprimerAsync(id : long) : Task<bool>
+    +... 4 autres operations
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+AlerteService ..|> IAlertService
+
+' Dependance d'utilisation
+AlerteService ..> AlertsDbContext : << use >>
+AlerteService ..> IAlertRepository : << use >>
+AlertesController ..> IAlertService : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

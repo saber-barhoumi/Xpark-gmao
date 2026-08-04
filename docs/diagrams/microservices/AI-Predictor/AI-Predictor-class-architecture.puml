@@ -1,0 +1,23 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - AI-Predictor
+
+package "CalculateurPrixTrajetIA" {
+  class "main" as main_py <<module>> {
+    +health()
+    +get_cities()
+    +get_distance()
+    +predict()
+  }
+}
+
+
+@enduml

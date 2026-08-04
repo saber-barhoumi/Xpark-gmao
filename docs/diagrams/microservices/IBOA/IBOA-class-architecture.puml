@@ -1,0 +1,89 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - IBOA
+
+package "IntelligentBusinessOwnerAssistant" {
+  class "aggregator" as aggregator_py <<module>> {
+  }
+  class Aggregator <<service>>
+  class "delivery" as delivery_py <<module>> {
+    +whatsapp_configured()
+    +email_configured()
+    +send_whatsapp()
+    +send_email()
+  }
+  class "formatters" as formatters_py <<module>> {
+    +type_label()
+    +format_whatsapp()
+    +format_email()
+    +format_batch_email()
+    +build_daily_pdf()
+    +build_daily_excel()
+  }
+  class "main" as main_py <<module>> {
+    +startup()
+    +health()
+    +get_events()
+    +delete_events()
+    +delete_all_events()
+    +get_alerts()
+    +delete_alerts()
+    +delete_all_alerts()
+    +... 7 autres operations
+  }
+  class "pipeline" as pipeline_py <<module>> {
+    +normalize()
+    +process_event()
+    +flush_batch()
+    +start_batch_scheduler()
+  }
+  class "rabbitmq_consumer" as rabbitmq_consumer_py <<module>> {
+    +publish_event()
+    +start_consumer_thread()
+  }
+  class "scorer" as scorer_py <<module>> {
+    +classify()
+    +score_event()
+    +object_key()
+  }
+  class "storage" as storage_py <<module>> {
+    +init_db()
+    +save_event()
+    +count_similar_events()
+    +recent_events()
+    +events_today()
+    +save_alert()
+    +recent_alerts()
+    +delete_events()
+    +... 8 autres operations
+  }
+}
+
+aggregator_py ..> models_py : << use >>
+formatters_py ..> models_py : << use >>
+main_py ..> delivery_py : << use >>
+main_py ..> formatters_py : << use >>
+main_py ..> models_py : << use >>
+main_py ..> pipeline_py : << use >>
+main_py ..> rabbitmq_consumer_py : << use >>
+main_py ..> storage_py : << use >>
+pipeline_py ..> aggregator_py : << use >>
+pipeline_py ..> delivery_py : << use >>
+pipeline_py ..> formatters_py : << use >>
+pipeline_py ..> models_py : << use >>
+pipeline_py ..> scorer_py : << use >>
+pipeline_py ..> storage_py : << use >>
+rabbitmq_consumer_py ..> pipeline_py : << use >>
+scorer_py ..> models_py : << use >>
+storage_py ..> models_py : << use >>
+aggregator_py ..> Aggregator : << use >>
+
+@enduml

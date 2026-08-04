@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -35,13 +36,5 @@ MD --> API : joblib.load au demarrage
 DM --> API
 COL --> TD : missions terminees
 TD ..> DS : alimenterait un reentrainement
-
-legend right
-IMPORTANT : aucun code d'entrainement ne figure dans le depot.
-Seul l'artefact model_xgboost.pkl est versionne ; les etapes en
-rouge sont deduites de son existence, pas observees dans le code.
-C'est pourquoi aucun <NameMicroService>-training-flow.puml n'est
-genere pour ce service.
-endlegend
 
 @enduml

@@ -1,0 +1,172 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - Fleet
+
+package "Fleet.API" {
+  class AssurancesController <<control>> {
+    +GetByVehicule(vehiculeId : long) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Create(dto : CreateAssuranceDto) : Task<IActionResult>
+    +Delete(id : long) : Task<IActionResult>
+  }
+  class CarburantsController <<control>> {
+    +GetAll(vehiculeId : long?) : Task<IActionResult>
+    +GetStats(vehiculeId : long?, start : DateTime?, end : DateTime?) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Create(dto : CreateCarburantDto) : Task<IActionResult>
+    +Delete(id : long) : Task<IActionResult>
+  }
+  class DocumentsController <<control>> {
+    +GetByVehicule(vehiculeId : long) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Create(dto : CreateDocumentDto) : Task<IActionResult>
+    +Delete(id : long) : Task<IActionResult>
+  }
+  class EcheancesController <<control>> {
+    +GetAll(start : DateTime?, end : DateTime?) : Task<IActionResult>
+  }
+  class SourcesController <<control>> {
+    +GetAll() : Task<IActionResult>
+    +GetActives() : Task<IActionResult>
+    +GetByType(type : string) : Task<IActionResult>
+    +GetById(id : long) : Task<IActionResult>
+    +Create(dto : CreateSourceDto) : Task<IActionResult>
+    +Update(id : long, dto : UpdateSourceDto) : Task<IActionResult>
+    +Delete(id : long) : Task<IActionResult>
+  }
+}
+
+package "Fleet.Application" as APP {
+  interface IAssuranceService <<interface>> {
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<AssuranceDto>>
+    +GetByIdAsync(id : long) : Task<AssuranceDto?>
+    +CreateAsync(dto : CreateAssuranceDto) : Task<AssuranceDto>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  interface ICarburantService <<interface>> {
+    +GetByVehiculeAsync(vehiculeId : long?) : Task<IEnumerable<CarburantDto>>
+    +GetByIdAsync(id : long) : Task<CarburantDto?>
+    +CreateAsync(dto : CreateCarburantDto) : Task<CarburantDto>
+    +DeleteAsync(id : long) : Task<bool>
+    +GetStatsAsync(vehiculeId : long?, start : DateTime?, end : DateTime?) : Task<StatistiquesCarburantDto>
+  }
+  interface IDocumentService <<interface>> {
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<DocumentDto>>
+    +GetByIdAsync(id : long) : Task<DocumentDto?>
+    +CreateAsync(dto : CreateDocumentDto) : Task<DocumentDto>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  interface IEcheanceService <<interface>> {
+    +GetEcheancesAsync(start : DateTime?, end : DateTime?) : Task<IEnumerable<EcheanceDto>>
+  }
+  interface ISourceService <<interface>> {
+    +GetAllAsync() : Task<IEnumerable<SourceDto>>
+    +GetActivesAsync() : Task<IEnumerable<SourceDto>>
+    +GetByTypeAsync(type : string) : Task<IEnumerable<SourceDto>>
+    +GetByIdAsync(id : long) : Task<SourceDto?>
+    +CreateAsync(dto : CreateSourceDto) : Task<SourceDto>
+    +UpdateAsync(id : long, dto : UpdateSourceDto) : Task<SourceDto?>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  interface IVehiculeService <<interface>> {
+    +GetAllAsync(page : int, pageSize : int) : Task<object>
+    +GetByIdAsync(id : long) : Task<VehiculeDto?>
+    +GetByImmatriculationAsync(immatriculation : string) : Task<VehiculeDto?>
+    +GetLatestInfoAsync(id : long) : Task<object?>
+    +GetDisponiblesAsync() : Task<IEnumerable<VehiculeDto>>
+    +CreateAsync(dto : CreateVehiculeDto) : Task<VehiculeDto>
+    +UpdateAsync(id : long, dto : UpdateVehiculeDto) : Task<VehiculeDto?>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  interface IXparkEventBus <<interface>> {
+    +PublishAsync(routingKey : string, severity : string, eventData : object, ct : CT) : Task
+  }
+}
+
+package "Fleet.Infrastructure" {
+  class FleetDbContext <<repository>>
+  class XparkEventBus <<adapter>> {
+    +PublishAsync(routingKey : string, severity : string, eventData : object, ct : CT) : Task
+    +DisposeAsync() : ValueTask
+  }
+  class AssuranceService <<service>> {
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<AssuranceDto>>
+    +GetByIdAsync(id : long) : Task<AssuranceDto?>
+    +CreateAsync(dto : CreateAssuranceDto) : Task<AssuranceDto>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  class CarburantService <<service>> {
+    +GetByVehiculeAsync(vehiculeId : long?) : Task<IEnumerable<CarburantDto>>
+    +GetByIdAsync(id : long) : Task<CarburantDto?>
+    +CreateAsync(dto : CreateCarburantDto) : Task<CarburantDto>
+    +DeleteAsync(id : long) : Task<bool>
+    +GetStatsAsync(vehiculeId : long?, start : DateTime?, end : DateTime?) : Task<StatistiquesCarburantDto>
+  }
+  class DocumentService <<service>> {
+    +GetByVehiculeAsync(vehiculeId : long) : Task<IEnumerable<DocumentDto>>
+    +GetByIdAsync(id : long) : Task<DocumentDto?>
+    +CreateAsync(dto : CreateDocumentDto) : Task<DocumentDto>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  class EcheanceService <<service>> {
+    +GetEcheancesAsync(start : DateTime?, end : DateTime?) : Task<IEnumerable<EcheanceDto>>
+  }
+  class SourceService <<service>> {
+    +GetAllAsync() : Task<IEnumerable<SourceDto>>
+    +GetActivesAsync() : Task<IEnumerable<SourceDto>>
+    +GetByTypeAsync(type : string) : Task<IEnumerable<SourceDto>>
+    +GetByIdAsync(id : long) : Task<SourceDto?>
+    +CreateAsync(dto : CreateSourceDto) : Task<SourceDto>
+    +UpdateAsync(id : long, dto : UpdateSourceDto) : Task<SourceDto?>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+  class VehiculeService <<service>> {
+    +GetAllAsync(page : int, pageSize : int) : Task<object>
+    +GetByIdAsync(id : long) : Task<VehiculeDto?>
+    +GetByImmatriculationAsync(immatriculation : string) : Task<VehiculeDto?>
+    +GetLatestInfoAsync(id : long) : Task<object?>
+    +GetDisponiblesAsync() : Task<IEnumerable<VehiculeDto>>
+    +CreateAsync(dto : CreateVehiculeDto) : Task<VehiculeDto>
+    +UpdateAsync(id : long, dto : UpdateVehiculeDto) : Task<VehiculeDto?>
+    +DeleteAsync(id : long) : Task<bool>
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+AssuranceService ..|> IAssuranceService
+CarburantService ..|> ICarburantService
+DocumentService ..|> IDocumentService
+EcheanceService ..|> IEcheanceService
+SourceService ..|> ISourceService
+VehiculeService ..|> IVehiculeService
+XparkEventBus ..|> IXparkEventBus
+
+' Dependance d'utilisation
+AssuranceService ..> FleetDbContext : << use >>
+AssurancesController ..> IAssuranceService : << use >>
+CarburantService ..> FleetDbContext : << use >>
+CarburantsController ..> ICarburantService : << use >>
+DocumentService ..> FleetDbContext : << use >>
+DocumentsController ..> IDocumentService : << use >>
+EcheanceService ..> FleetDbContext : << use >>
+EcheancesController ..> IEcheanceService : << use >>
+SourceService ..> FleetDbContext : << use >>
+SourcesController ..> ISourceService : << use >>
+VehiculeService ..> FleetDbContext : << use >>
+VehiculeService ..> IXparkEventBus : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

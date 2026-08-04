@@ -1,119 +1,90 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title Maintenance - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
-:GESTIONNAIRE: as GESTIONNAIRE
-:TECHNICIEN: as TECHNICIEN
+title Diagramme de cas d'utilisation - Maintenance
 
-rectangle "Maintenance" {
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Responsable" as Responsable
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+actor "Technicien" as Technicien
+
+Utilisateur <|-- Responsable
+Responsable <|-- Administrateur
+Responsable <|-- Gestionnaire
+Utilisateur <|-- Technicien
+
+rectangle "Service Maintenance" {
+  package "Ordres de travail" {
+    usecase "Consulter les ordres de travail" as UC_Consulter_les_ordres_de_travail
+    usecase "Ouvrir un ordre de travail" as UC_Ouvrir_un_ordre_de_travail
+    usecase "Modifier un ordre de travail" as UC_Modifier_un_ordre_de_travail
+    usecase "Valider un ordre de travail" as UC_Valider_un_ordre_de_travail
+    usecase "Changer le statut d'un ordre de travail" as UC_Changer_le_statut_d_un_ordre_de_tr
+    usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
+    usecase "Vider une colonne du tableau" as UC_Vider_une_colonne_du_tableau
+    usecase "Supprimer un ordre de travail" as UC_Supprimer_un_ordre_de_travail
+  }
   package "Interventions" {
-    usecase "GetAll\nGET /" as InterventionsControllerGetAllGET
-    usecase "GetById\nGET {id:long}" as InterventionsControllerGetByIdGET
-    usecase "Create\nPOST /" as InterventionsControllerCreatePOST
-    usecase "Update\nPUT {id:long}" as InterventionsControllerUpdatePUT
-    usecase "UpdateStatut\nPATCH {id:long}/statut" as InterventionsControllerUpdateStatutPATCH
-    usecase "AddPiece\nPOST {id:long}/pieces" as InterventionsControllerAddPiecePOST
-    usecase "RemovePiece\nDELETE {id:long}/pieces/{pieceId:long}" as InterventionsControllerRemovePieceDELETE
-    usecase "Delete\nDELETE {id:long}" as InterventionsControllerDeleteDELETE
+    usecase "Consulter les interventions" as UC_Consulter_les_interventions
+    usecase "Declarer une intervention" as UC_Declarer_une_intervention
+    usecase "Modifier une intervention" as UC_Modifier_une_intervention
+    usecase "Changer le statut d'une intervention" as UC_Changer_le_statut_d_une_interventi
+    usecase "Consommer une piece de rechange" as UC_Consommer_une_piece_de_rechange
+    usecase "Restituer une piece" as UC_Restituer_une_piece
+    usecase "Supprimer une intervention" as UC_Supprimer_une_intervention
   }
-  package "OrdreTravail" {
-    usecase "GetAll\nGET /" as OrdreTravailControllerGetAllGET
-    usecase "GetById\nGET {id:long}" as OrdreTravailControllerGetByIdGET
-    usecase "Create\nPOST /" as OrdreTravailControllerCreatePOST
-    usecase "Update\nPUT {id:long}" as OrdreTravailControllerUpdatePUT
-    usecase "Valider\nPATCH {id:long}/valider" as OrdreTravailControllerValiderPATCH
-    usecase "GetHistorique\nGET {id:long}/historique" as OrdreTravailControllerGetHistoriqueGET
-    usecase "Delete\nDELETE {id:long}" as OrdreTravailControllerDeleteDELETE
-    usecase "GetKanban\nGET kanban" as OrdreTravailControllerGetKanbanGET
-    usecase "GetKanbanMetadata\nGET kanban/metadata" as OrdreTravailControllerGetKanbanMetadataGET
-    usecase "UpdateStatut\nPUT {id:long}/statut" as OrdreTravailControllerUpdateStatutPUT
-    usecase "ClearSection\nDELETE kanban/clear/{statut}" as OrdreTravailControllerClearSectionDELETE
-    usecase "GetDetail\nGET {id:long}/detail" as OrdreTravailControllerGetDetailGET
-    usecase "... 4 autres actions" as OrdreTravailControllerreste
+  package "Stock de pieces" {
+    usecase "Consulter les pieces de rechange" as UC_Consulter_les_pieces_de_rechange
+    usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
+    usecase "Referencer une piece" as UC_Referencer_une_piece
+    usecase "Reapprovisionner le stock" as UC_Reapprovisionner_le_stock
+    usecase "Modifier une piece" as UC_Modifier_une_piece
+    usecase "Retirer une piece" as UC_Retirer_une_piece
   }
-  package "PiecesRechange" {
-    usecase "GetAll\nGET /" as PiecesRechangeControllerGetAllGET
-    usecase "GetById\nGET {id:long}" as PiecesRechangeControllerGetByIdGET
-    usecase "GetStockFaible\nGET stock-faible" as PiecesRechangeControllerGetStockFaibleGET
-    usecase "Create\nPOST /" as PiecesRechangeControllerCreatePOST
-    usecase "AjouterStock\nPOST {id:long}/stock" as PiecesRechangeControllerAjouterStockPOST
-    usecase "Update\nPUT {id:long}" as PiecesRechangeControllerUpdatePUT
-    usecase "Delete\nDELETE {id:long}" as PiecesRechangeControllerDeleteDELETE
-    usecase "UploadImage\nPOST upload" as PiecesRechangeControllerUploadImagePOST
+  package "Suivi documentaire" {
+    usecase "Commenter un ordre de travail" as UC_Commenter_un_ordre_de_travail
+    usecase "Joindre un document" as UC_Joindre_un_document
+    usecase "Supprimer un commentaire" as UC_Supprimer_un_commentaire
+    usecase "Supprimer une piece jointe" as UC_Supprimer_une_piece_jointe
   }
 }
 
-ADMIN --> InterventionsControllerGetAllGET
-ADMIN --> InterventionsControllerGetByIdGET
-ADMIN --> InterventionsControllerCreatePOST
-GESTIONNAIRE --> InterventionsControllerCreatePOST
-TECHNICIEN --> InterventionsControllerCreatePOST
-ADMIN --> InterventionsControllerUpdatePUT
-GESTIONNAIRE --> InterventionsControllerUpdatePUT
-TECHNICIEN --> InterventionsControllerUpdatePUT
-ADMIN --> InterventionsControllerUpdateStatutPATCH
-GESTIONNAIRE --> InterventionsControllerUpdateStatutPATCH
-TECHNICIEN --> InterventionsControllerUpdateStatutPATCH
-ADMIN --> InterventionsControllerAddPiecePOST
-GESTIONNAIRE --> InterventionsControllerAddPiecePOST
-TECHNICIEN --> InterventionsControllerAddPiecePOST
-ADMIN --> InterventionsControllerRemovePieceDELETE
-GESTIONNAIRE --> InterventionsControllerRemovePieceDELETE
-ADMIN --> InterventionsControllerDeleteDELETE
-ADMIN --> OrdreTravailControllerGetAllGET
-ADMIN --> OrdreTravailControllerGetByIdGET
-ADMIN --> OrdreTravailControllerCreatePOST
-GESTIONNAIRE --> OrdreTravailControllerCreatePOST
-ADMIN --> OrdreTravailControllerUpdatePUT
-GESTIONNAIRE --> OrdreTravailControllerUpdatePUT
-TECHNICIEN --> OrdreTravailControllerUpdatePUT
-ADMIN --> OrdreTravailControllerValiderPATCH
-GESTIONNAIRE --> OrdreTravailControllerValiderPATCH
-ADMIN --> OrdreTravailControllerGetHistoriqueGET
-ADMIN --> OrdreTravailControllerDeleteDELETE
-ADMIN --> OrdreTravailControllerGetKanbanGET
-ADMIN --> OrdreTravailControllerGetKanbanMetadataGET
-ADMIN --> OrdreTravailControllerUpdateStatutPUT
-GESTIONNAIRE --> OrdreTravailControllerUpdateStatutPUT
-TECHNICIEN --> OrdreTravailControllerUpdateStatutPUT
-ADMIN --> OrdreTravailControllerClearSectionDELETE
-ADMIN --> OrdreTravailControllerGetDetailGET
-ADMIN --> PiecesRechangeControllerGetAllGET
-ADMIN --> PiecesRechangeControllerGetByIdGET
-ADMIN --> PiecesRechangeControllerGetStockFaibleGET
-GESTIONNAIRE --> PiecesRechangeControllerGetStockFaibleGET
-TECHNICIEN --> PiecesRechangeControllerGetStockFaibleGET
-ADMIN --> PiecesRechangeControllerCreatePOST
-GESTIONNAIRE --> PiecesRechangeControllerCreatePOST
-TECHNICIEN --> PiecesRechangeControllerCreatePOST
-ADMIN --> PiecesRechangeControllerAjouterStockPOST
-GESTIONNAIRE --> PiecesRechangeControllerAjouterStockPOST
-TECHNICIEN --> PiecesRechangeControllerAjouterStockPOST
-ADMIN --> PiecesRechangeControllerUpdatePUT
-GESTIONNAIRE --> PiecesRechangeControllerUpdatePUT
-ADMIN --> PiecesRechangeControllerDeleteDELETE
-GESTIONNAIRE --> PiecesRechangeControllerDeleteDELETE
-ADMIN --> PiecesRechangeControllerUploadImagePOST
-GESTIONNAIRE --> PiecesRechangeControllerUploadImagePOST
-TECHNICIEN --> PiecesRechangeControllerUploadImagePOST
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Consulter_les_interventions
+Utilisateur -- UC_Consulter_les_ordres_de_travail
+Responsable -- UC_Consulter_l_historique_des_statuts
+Responsable -- UC_Consulter_les_pieces_en_stock_faib
+Responsable -- UC_Modifier_un_ordre_de_travail
+Responsable -- UC_Modifier_une_piece
+Responsable -- UC_Ouvrir_un_ordre_de_travail
+Responsable -- UC_Reapprovisionner_le_stock
+Responsable -- UC_Referencer_une_piece
+Responsable -- UC_Valider_un_ordre_de_travail
+Administrateur -- UC_Retirer_une_piece
+Administrateur -- UC_Supprimer_un_commentaire
+Administrateur -- UC_Supprimer_un_ordre_de_travail
+Administrateur -- UC_Supprimer_une_intervention
+Administrateur -- UC_Supprimer_une_piece_jointe
+Administrateur -- UC_Vider_une_colonne_du_tableau
+Technicien -- UC_Changer_le_statut_d_un_ordre_de_tr
+Technicien -- UC_Changer_le_statut_d_une_interventi
+Technicien -- UC_Commenter_un_ordre_de_travail
+Technicien -- UC_Consommer_une_piece_de_rechange
+Technicien -- UC_Consulter_les_pieces_de_rechange
+Technicien -- UC_Declarer_une_intervention
+Technicien -- UC_Joindre_un_document
+Technicien -- UC_Modifier_une_intervention
+Technicien -- UC_Restituer_une_piece
 
-legend right
-Acteurs deduits des attributs [Authorize(Roles=...)] du service.
-Les cas sans role explicite heritent du [Authorize] du controleur.
-endlegend
+UC_Declarer_une_intervention ..> UC_Consommer_une_piece_de_rechange : << include >>
+UC_Joindre_un_document ..> UC_Commenter_un_ordre_de_travail : << extend >>
 
 @enduml

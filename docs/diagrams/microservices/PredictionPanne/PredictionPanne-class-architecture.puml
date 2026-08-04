@@ -1,0 +1,75 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes de conception - Architecture - PredictionPanne
+
+package "PredictionPanne.API" {
+  class PredictionsController <<control>> {
+    +GetDashboard() : Task<IActionResult>
+    +GetSanteFlotte() : Task<IActionResult>
+    +GetSanteVehicule(vehiculeId : long) : Task<IActionResult>
+    +GetHistorique(vehiculeId : long, limite : int) : Task<IActionResult>
+    +GetHistoriqueGlobal(limite : int) : Task<IActionResult>
+    +SupprimerPrediction(id : long) : Task<IActionResult>
+    +SupprimerLot(req : SupprimerPredictionsRequest?) : Task<IActionResult>
+    +SupprimerPredictionsRequest(Ids : List<long>?) : record
+    +Recalculer() : Task<IActionResult>
+  }
+}
+
+package "PredictionPanne.Application" as APP {
+  interface IPredictionEngine <<interface>> {
+    +Predire(features : VehiculeFeatures) : IEnumerable<PredictionCalculee>
+  }
+  interface IPredictionService <<interface>> {
+    +GetDashboardAsync() : Task<DashboardDto>
+    +GetSanteFlotteAsync() : Task<IEnumerable<SanteVehiculeDto>>
+    +GetSanteVehiculeAsync(vehiculeId : long) : Task<SanteVehiculeDto?>
+    +GetHistoriqueAsync(vehiculeId : long, limite : int) : Task<IEnumerable<PredictionDto>>
+    +GetHistoriqueGlobalAsync(limite : int) : Task<IEnumerable<PredictionDto>>
+    +SupprimerAsync(idPrediction : long) : Task<bool>
+    +SupprimerLotAsync(ids : IEnumerable<long>) : Task<int>
+    +RecalculerAsync() : Task<RecalculResultatDto>
+  }
+}
+
+package "PredictionPanne.Infrastructure" {
+  class PredictionDbContext <<repository>>
+  class RuleBasedPredictionEngine <<service>> {
+    +Predire(f : VehiculeFeatures) : IEnumerable<PredictionCalculee>
+  }
+  class PredictionService <<service>> {
+    +RecalculerAsync() : Task<RecalculResultatDto>
+    +GetSanteFlotteAsync() : Task<IEnumerable<SanteVehiculeDto>>
+    +GetSanteVehiculeAsync(vehiculeId : long) : Task<SanteVehiculeDto?>
+    +GetHistoriqueAsync(vehiculeId : long, limite : int) : Task<IEnumerable<PredictionDto>>
+    +GetHistoriqueGlobalAsync(limite : int) : Task<IEnumerable<PredictionDto>>
+    +SupprimerAsync(idPrediction : long) : Task<bool>
+    +SupprimerLotAsync(ids : IEnumerable<long>) : Task<int>
+    +GetDashboardAsync() : Task<DashboardDto>
+  }
+}
+
+' Realisation : la classe pointe vers l'interface qu'elle realise
+PredictionService ..|> IPredictionService
+RuleBasedPredictionEngine ..|> IPredictionEngine
+
+' Dependance d'utilisation
+PredictionService ..> IPredictionEngine : << use >>
+PredictionService ..> PredictionDbContext : << use >>
+PredictionsController ..> IPredictionService : << use >>
+
+note top of APP
+  Les interfaces sont declarees dans la couche Application ;
+  l'Infrastructure les realise. La dependance est ainsi
+  inversee et le Domain ne depend d'aucune autre couche.
+end note
+
+@enduml

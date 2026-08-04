@@ -1,60 +1,68 @@
 @startuml
-skinparam backgroundColor #FFFFFF
+skinparam style strictuml
+skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
-skinparam componentStyle rectangle
-
-title Chat - Cas d'utilisation
-
+skinparam backgroundColor #FFFFFF
 left to right direction
 
-:ADMIN: as ADMIN
-:GESTIONNAIRE: as GESTIONNAIRE
-:TECHNICIEN: as TECHNICIEN
-:CHAUFFEUR: as CHAUFFEUR
-:CLIENT: as CLIENT
+title Diagramme de cas d'utilisation - Chat
 
-rectangle "Chat" {
-  package "Chat" {
-    usecase "GetConversations\nGET conversations" as ChatControllerGetConversationsGET
-    usecase "GetArchivedConversations\nGET conversations/archived" as ChatControllerGetArchivedConversationsGET
-    usecase "DeleteConversation\nDELETE conversations/{id:long}" as ChatControllerDeleteConversationDELETE
-    usecase "GetConversation\nGET conversations/{id:long}" as ChatControllerGetConversationGET
-    usecase "CreatePrivate\nPOST conversations/private" as ChatControllerCreatePrivatePOST
-    usecase "CreateGroup\nPOST conversations/group" as ChatControllerCreateGroupPOST
-    usecase "GetMessages\nGET conversations/{id:long}/messages" as ChatControllerGetMessagesGET
-    usecase "UploadFile\nPOST conversations/{id:long}/upload" as ChatControllerUploadFilePOST
-    usecase "DeleteMessage\nDELETE messages/{id:long}" as ChatControllerDeleteMessageDELETE
-    usecase "PinMessage\nPUT messages/{id:long}/epingler" as ChatControllerPinMessagePUT
-    usecase "ForwardMessage\nPOST messages/forward" as ChatControllerForwardMessagePOST
-    usecase "TogglePin\nPUT conversations/{id:long}/pin" as ChatControllerTogglePinPUT
-    usecase "... 4 autres actions" as ChatControllerreste
+' Acteurs principaux (a gauche)
+actor "Utilisateur" as Utilisateur
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+actor "Technicien" as Technicien
+actor "Chauffeur" as Chauffeur
+actor "Client" as Client
+
+Utilisateur <|-- Administrateur
+Utilisateur <|-- Gestionnaire
+Utilisateur <|-- Technicien
+Utilisateur <|-- Chauffeur
+Utilisateur <|-- Client
+
+rectangle "Service Messagerie" {
+  package "Conversations" {
+    usecase "Consulter ses conversations" as UC_Consulter_ses_conversations
+    usecase "Ouvrir une conversation privee" as UC_Ouvrir_une_conversation_privee
+    usecase "Creer un groupe de discussion" as UC_Creer_un_groupe_de_discussion
+    usecase "Archiver une conversation" as UC_Archiver_une_conversation
+    usecase "Consulter les conversations archivees" as UC_Consulter_les_conversations_archiv
+    usecase "Supprimer une conversation" as UC_Supprimer_une_conversation
+    usecase "Couper les notifications" as UC_Couper_les_notifications
+  }
+  package "Messages" {
+    usecase "Consulter les messages" as UC_Consulter_les_messages
+    usecase "Envoyer un message" as UC_Envoyer_un_message
+    usecase "Joindre un fichier" as UC_Joindre_un_fichier
+    usecase "Epingler un message" as UC_Epingler_un_message
+    usecase "Transferer un message" as UC_Transferer_un_message
+    usecase "Supprimer un message" as UC_Supprimer_un_message
+  }
+  package "Presence" {
+    usecase "Consulter les correspondants connectes" as UC_Consulter_les_correspondants_conne
+    usecase "Rechercher un correspondant" as UC_Rechercher_un_correspondant
   }
 }
 
-ADMIN --> ChatControllerGetConversationsGET
-ADMIN --> ChatControllerGetArchivedConversationsGET
-ADMIN --> ChatControllerDeleteConversationDELETE
-ADMIN --> ChatControllerGetConversationGET
-ADMIN --> ChatControllerCreatePrivatePOST
-ADMIN --> ChatControllerCreateGroupPOST
-ADMIN --> ChatControllerGetMessagesGET
-ADMIN --> ChatControllerUploadFilePOST
-ADMIN --> ChatControllerDeleteMessageDELETE
-ADMIN --> ChatControllerPinMessagePUT
-ADMIN --> ChatControllerForwardMessagePOST
-ADMIN --> ChatControllerTogglePinPUT
+' Associations : trait continu sans fleche (UML : relation d'association)
+Utilisateur -- UC_Archiver_une_conversation
+Utilisateur -- UC_Consulter_les_conversations_archiv
+Utilisateur -- UC_Consulter_les_correspondants_conne
+Utilisateur -- UC_Consulter_les_messages
+Utilisateur -- UC_Consulter_ses_conversations
+Utilisateur -- UC_Couper_les_notifications
+Utilisateur -- UC_Creer_un_groupe_de_discussion
+Utilisateur -- UC_Envoyer_un_message
+Utilisateur -- UC_Epingler_un_message
+Utilisateur -- UC_Ouvrir_une_conversation_privee
+Utilisateur -- UC_Rechercher_un_correspondant
+Utilisateur -- UC_Supprimer_un_message
+Utilisateur -- UC_Transferer_un_message
+Administrateur -- UC_Supprimer_une_conversation
 
-legend right
-Acteurs deduits des attributs [Authorize(Roles=...)] du service.
-Les cas sans role explicite heritent du [Authorize] du controleur.
-endlegend
+UC_Joindre_un_fichier ..> UC_Envoyer_un_message : << extend >>
 
 @enduml

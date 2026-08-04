@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -52,11 +53,5 @@ US -> MQ : Publish(UserApprovedEvent)
 US --> UM : ok
 UM --> BO : 200
 deactivate UM
-
-
-legend right
-Reconstitue depuis AuthController, UserManagementController,
-AuthService et UserService.
-endlegend
 
 @enduml

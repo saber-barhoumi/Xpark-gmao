@@ -1,4 +1,5 @@
 @startuml
+skinparam style strictuml
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Verdana
@@ -67,11 +68,5 @@ BO -> TC : GET /api/tracking (carte Leaflet)
 
 G -> MC : mission TERMINEE
 MC -> EB : xpark.mission.task-completed
-
-
-legend right
-La reservation est un devis : TransportRequest precede toujours
-Mission, qui n'est creee qu'a l'acceptation.
-endlegend
 
 @enduml

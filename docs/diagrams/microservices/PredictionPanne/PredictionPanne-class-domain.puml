@@ -1,0 +1,59 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+hide empty members
+
+title Diagramme de classes du domaine - PredictionPanne
+
+class Prediction <<entity>> {
+  +IdPrediction : Long {id}
+  +VehiculeId : Long
+  +TypePanne : TypePanne
+  +NiveauRisque : NiveauRisque
+  +Probabilite : Double
+  +ScoreConfiance : Double
+  +DatePanneEstimee : Date
+  +DateMaintenanceRecommandee : Date
+  +DureeVieRestanteJours : Integer
+  +KilometrageRestant : Double
+  +PieceARemplacer : String
+  +Explication : String
+  +Recommandation : String
+  +Source : SourcePrediction
+  +VersionModele : String
+  +DateCalcul : Date
+  +Realisee : Boolean
+  +DateVerification : Date
+}
+enum NiveauRisque <<enumeration>> {
+  FAIBLE
+  MODERE
+  ELEVE
+  CRITIQUE
+}
+enum TypePanne <<enumeration>> {
+  MOTEUR
+  FREINS
+  PNEUMATIQUES
+  TRANSMISSION
+  SUSPENSION
+  ELECTRIQUE
+  REFROIDISSEMENT
+  CLIMATISATION
+  AUTRE
+}
+enum SourcePrediction <<enumeration>> {
+  REGLES
+  MODELE_ML
+}
+
+Prediction ..> NiveauRisque : << use >>
+Prediction ..> SourcePrediction : << use >>
+Prediction ..> TypePanne : << use >>
+
+@enduml
