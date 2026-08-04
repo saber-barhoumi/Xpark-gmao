@@ -1,0 +1,59 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title Mission - Suivi d'une mission en direct
+
+actor "Chauffeur" as D
+actor "Client" as C
+participant "TrackingController" as CTRL <<control>>
+participant "IMissionService" as IMS <<interface>>
+participant "MissionService" as MS <<service>>
+participant "MissionDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+
+loop tant que la mission est en cours
+  D -> CTRL : transmettrePosition(positionDto)
+  activate CTRL
+  CTRL -> IMS : enregistrerPositionAsync(positionDto)
+  activate IMS
+  IMS -> MS : enregistrerPositionAsync(positionDto)
+  activate MS
+  MS -> REPO : ajouter(position)
+  activate REPO
+  REPO -> BD : enregistrer
+  BD --> REPO : confirmation
+  REPO --> MS : position
+  deactivate REPO
+  MS --> IMS : confirmation
+  deactivate MS
+  IMS --> CTRL : confirmation
+  deactivate IMS
+  CTRL --> D : positionEnregistree
+  deactivate CTRL
+end
+
+C -> CTRL : obtenirPositionCourante(identifiantMission)
+activate CTRL
+CTRL -> IMS : obtenirDernierePositionAsync(identifiantMission)
+activate IMS
+IMS -> MS : obtenirDernierePositionAsync(identifiantMission)
+activate MS
+MS -> REPO : lireDernierePosition(identifiantMission)
+activate REPO
+REPO -> BD : selectionner
+BD --> REPO : position
+REPO --> MS : position
+deactivate REPO
+MS --> IMS : positionDto
+deactivate MS
+IMS --> CTRL : positionDto
+deactivate IMS
+CTRL --> C : positionDto
+deactivate CTRL
+
+@enduml

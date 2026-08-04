@@ -35,19 +35,29 @@
 
 | Fichier | Contenu |
 |---|---|
-| `Maintenance-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Maintenance-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Maintenance-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Maintenance-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Maintenance-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Maintenance-component.puml` | Diagramme de composants |
-| `Maintenance-package.puml` | Diagramme de paquets et sens des dependances |
-| `Maintenance-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Maintenance-communication.puml` | Diagramme de communication entre composants |
-| `Maintenance-activity.puml` | Diagramme d'activites du processus metier |
-| `Maintenance-state.puml` | Diagramme d'etats-transitions |
+| `Maintenance-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Maintenance-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Maintenance-component.puml` | Composants internes |
+| `Maintenance-package.puml` | Paquets et sens des dependances |
+| `Maintenance-communication.puml` | Communication entre composants |
+| `Maintenance-activity.puml` | Activites du processus metier |
+| `Maintenance-state.puml` | Etats-transitions |
 | `Maintenance-database.puml` | Persistance et tables accedees |
-| `Maintenance-api-flow.puml` | Sequence complete d'un appel de service |
+| `Maintenance-api-flow.puml` | Sequence d'un appel de service |
 | `Maintenance-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
+
+### Sequences (un fichier par scenario)
+
+Le diagramme de sequence unique combinait plusieurs cas d'utilisation.
+Un diagramme de sequence decrivant UN scenario, il a ete scinde :
+
+| Fichier | Scenario |
+|---|---|
+| `sequence/Maintenance-seq-intervention.puml` | Declaration d'une intervention |
+| `sequence/Maintenance-seq-ordre-travail.puml` | Ouverture et suivi d'un ordre de travail |
+
 
 ## Diagrammes IA non generes
 

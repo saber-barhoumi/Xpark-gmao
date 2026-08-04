@@ -22,21 +22,15 @@ Responsable <|-- Gestionnaire
 Utilisateur <|-- Technicien
 
 rectangle "Service Maintenance Predictive" {
-  package "Consultation" {
-    usecase "Consulter le tableau de bord des risques" as UC_Consulter_le_tableau_de_bord_des_r
-    usecase "Consulter la sante de la flotte" as UC_Consulter_la_sante_de_la_flotte
-    usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
-    usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
-  }
-  package "Calcul" {
-    usecase "Recalculer les predictions" as UC_Recalculer_les_predictions
-    usecase "Evaluer le risque de panne" as UC_Evaluer_le_risque_de_panne
-    usecase "Identifier l'organe a risque" as UC_Identifier_l_organe_a_risque
-  }
-  package "Entretien du journal" {
-    usecase "Supprimer une prediction" as UC_Supprimer_une_prediction
-    usecase "Supprimer un lot de predictions" as UC_Supprimer_un_lot_de_predictions
-  }
+  usecase "Consulter le tableau de bord des risques" as UC_Consulter_le_tableau_de_bord_des_r
+  usecase "Consulter la sante de la flotte" as UC_Consulter_la_sante_de_la_flotte
+  usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
+  usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
+  usecase "Recalculer les predictions" as UC_Recalculer_les_predictions
+  usecase "Evaluer le risque de panne" as UC_Evaluer_le_risque_de_panne
+  usecase "Identifier l'organe a risque" as UC_Identifier_l_organe_a_risque
+  usecase "Supprimer une prediction" as UC_Supprimer_une_prediction
+  usecase "Supprimer un lot de predictions" as UC_Supprimer_un_lot_de_predictions
 }
 
 ' Associations : trait continu sans fleche (UML : relation d'association)

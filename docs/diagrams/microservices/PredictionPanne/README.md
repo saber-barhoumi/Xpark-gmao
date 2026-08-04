@@ -33,22 +33,23 @@
 
 | Fichier | Contenu |
 |---|---|
-| `PredictionPanne-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `PredictionPanne-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `PredictionPanne-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `PredictionPanne-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `PredictionPanne-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `PredictionPanne-component.puml` | Diagramme de composants |
-| `PredictionPanne-package.puml` | Diagramme de paquets et sens des dependances |
-| `PredictionPanne-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `PredictionPanne-communication.puml` | Diagramme de communication entre composants |
-| `PredictionPanne-activity.puml` | Diagramme d'activites du processus metier |
-| `PredictionPanne-state.puml` | Diagramme d'etats-transitions |
+| `PredictionPanne-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `PredictionPanne-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `PredictionPanne-component.puml` | Composants internes |
+| `PredictionPanne-package.puml` | Paquets et sens des dependances |
+| `PredictionPanne-sequence.puml` | Sequence d'un scenario metier |
+| `PredictionPanne-communication.puml` | Communication entre composants |
+| `PredictionPanne-activity.puml` | Activites du processus metier |
+| `PredictionPanne-state.puml` | Etats-transitions |
 | `PredictionPanne-database.puml` | Persistance et tables accedees |
-| `PredictionPanne-api-flow.puml` | Sequence complete d'un appel de service |
+| `PredictionPanne-api-flow.puml` | Sequence d'un appel de service |
 | `PredictionPanne-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
 | `PredictionPanne-classifier-ia-pipeline.puml` | Chaine de classification |
 | `PredictionPanne-prediction-flow.puml` | Flux de prediction |
 | `PredictionPanne-inference-flow.puml` | Flux d'inference |
+
 
 ## Diagrammes IA non generes
 

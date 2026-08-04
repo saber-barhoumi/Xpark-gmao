@@ -18,15 +18,11 @@ Utilisateur <|-- Gestionnaire
 Utilisateur <|-- Client
 
 rectangle "Service Estimation Tarifaire" {
-  package "Estimation" {
-    usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
-    usecase "Consulter les villes desservies" as UC_Consulter_les_villes_desservies
-    usecase "Calculer la distance du trajet" as UC_Calculer_la_distance_du_trajet
-    usecase "Appliquer le modele de prediction" as UC_Appliquer_le_modele_de_prediction
-  }
-  package "Exploitation" {
-    usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
-  }
+  usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
+  usecase "Consulter les villes desservies" as UC_Consulter_les_villes_desservies
+  usecase "Calculer la distance du trajet" as UC_Calculer_la_distance_du_trajet
+  usecase "Appliquer le modele de prediction" as UC_Appliquer_le_modele_de_prediction
+  usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
 }
 
 ' Acteurs secondaires (a droite, hors frontiere)

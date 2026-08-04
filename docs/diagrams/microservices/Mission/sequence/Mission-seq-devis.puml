@@ -1,0 +1,80 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title Mission - Etablissement et acceptation d'un devis
+
+actor "Gestionnaire" as G
+actor "Client" as C
+participant "TransportRequestsController" as CTRL <<control>>
+participant "IMissionService" as IMS <<interface>>
+participant "MissionService" as MS <<service>>
+participant "MissionDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+queue "Bus d'evenements" as BUS
+
+G -> CTRL : obtenirDemandesEnAttente()
+activate CTRL
+CTRL -> IMS : obtenirDemandesAsync()
+activate IMS
+IMS --> CTRL : listeDemandes
+deactivate IMS
+CTRL --> G : listeDemandes
+deactivate CTRL
+
+G -> CTRL : envoyerDevis(identifiant, devisDto)
+activate CTRL
+CTRL -> IMS : enregistrerDevisAsync(identifiant, devisDto)
+activate IMS
+IMS -> MS : enregistrerDevisAsync(identifiant, devisDto)
+activate MS
+MS -> REPO : mettreAJour(demandeTransport)
+REPO -> BD : enregistrer
+MS --> IMS : devisEnregistre
+deactivate MS
+IMS --> CTRL : devisEnregistre
+deactivate IMS
+CTRL --> G : devisEnvoye
+deactivate CTRL
+
+alt Devis accepte par le client
+  C -> CTRL : accepterDevis(identifiant)
+  activate CTRL
+  CTRL -> IMS : accepterDevisAsync(identifiant)
+  activate IMS
+  IMS -> MS : accepterDevisAsync(identifiant)
+  activate MS
+  MS -> REPO : ajouter(mission)
+  activate REPO
+  REPO -> BD : enregistrer
+  BD --> REPO : identifiant attribue
+  REPO --> MS : mission
+  deactivate REPO
+  MS -> BUS : publier("xpark.mission.client-request")
+  MS --> IMS : missionDto
+  deactivate MS
+  IMS --> CTRL : missionDto
+  deactivate IMS
+  CTRL --> C : missionCreee
+  deactivate CTRL
+else Devis refuse
+  C -> CTRL : refuserDevis(identifiant)
+  activate CTRL
+  CTRL -> IMS : refuserDevisAsync(identifiant)
+  activate IMS
+  IMS -> MS : refuserDevisAsync(identifiant)
+  activate MS
+  MS -> REPO : mettreAJourStatut(identifiant, ANNULEE)
+  MS --> IMS : demandeAnnulee
+  deactivate MS
+  IMS --> CTRL : demandeAnnulee
+  deactivate IMS
+  CTRL --> C : demandeAnnulee
+  deactivate CTRL
+end
+
+@enduml

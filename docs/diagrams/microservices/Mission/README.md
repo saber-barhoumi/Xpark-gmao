@@ -45,20 +45,31 @@ Routing keys sur l'exchange topic `xpark.ai` : `xpark.mission.client-request`, `
 
 | Fichier | Contenu |
 |---|---|
-| `Mission-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Mission-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Mission-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Mission-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Mission-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Mission-component.puml` | Diagramme de composants |
-| `Mission-package.puml` | Diagramme de paquets et sens des dependances |
-| `Mission-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Mission-communication.puml` | Diagramme de communication entre composants |
-| `Mission-activity.puml` | Diagramme d'activites du processus metier |
-| `Mission-state.puml` | Diagramme d'etats-transitions |
+| `Mission-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Mission-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Mission-component.puml` | Composants internes |
+| `Mission-package.puml` | Paquets et sens des dependances |
+| `Mission-communication.puml` | Communication entre composants |
+| `Mission-activity.puml` | Activites du processus metier |
+| `Mission-state.puml` | Etats-transitions |
 | `Mission-database.puml` | Persistance et tables accedees |
-| `Mission-api-flow.puml` | Sequence complete d'un appel de service |
+| `Mission-api-flow.puml` | Sequence d'un appel de service |
 | `Mission-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
 | `Mission-optimization-flow.puml` | Flux d'optimisation |
+
+### Sequences (un fichier par scenario)
+
+Le diagramme de sequence unique combinait plusieurs cas d'utilisation.
+Un diagramme de sequence decrivant UN scenario, il a ete scinde :
+
+| Fichier | Scenario |
+|---|---|
+| `sequence/Mission-seq-demande-transport.puml` | Depot d'une demande de transport |
+| `sequence/Mission-seq-devis.puml` | Etablissement et acceptation d'un devis |
+| `sequence/Mission-seq-suivi-direct.puml` | Suivi d'une mission en direct |
+
 
 ## Diagrammes IA non generes
 

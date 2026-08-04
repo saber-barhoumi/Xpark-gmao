@@ -1,0 +1,58 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title Maintenance - Declaration d'une intervention
+
+actor "Technicien" as T
+participant "InterventionsController" as CTRL <<control>>
+participant "IMaintenanceService" as IMS <<interface>>
+participant "MaintenanceService" as MS <<service>>
+participant "MaintenanceDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+
+T -> CTRL : declarerIntervention(interventionDto)
+activate CTRL
+CTRL -> IMS : creerInterventionAsync(interventionDto)
+activate IMS
+IMS -> MS : creerInterventionAsync(interventionDto)
+activate MS
+
+MS -> REPO : ajouter(intervention)
+activate REPO
+REPO -> BD : enregistrer
+BD --> REPO : identifiant attribue
+REPO --> MS : intervention
+deactivate REPO
+
+loop pour chaque piece consommee
+  MS -> REPO : ajouter(interventionPiece)
+  activate REPO
+  REPO -> BD : enregistrer
+  REPO --> MS : ligneConsommation
+  deactivate REPO
+  MS -> REPO : decrementerStock(pieceRechange, quantite)
+  activate REPO
+  REPO -> BD : enregistrer
+  REPO --> MS : pieceRechange
+  deactivate REPO
+end
+
+note right of MS
+  Aucune alerte n'est emise ici : le service
+  Alertes detecte le stock sous le minimum
+  lors de son prochain controle.
+end note
+
+MS --> IMS : interventionDto
+deactivate MS
+IMS --> CTRL : interventionDto
+deactivate IMS
+CTRL --> T : interventionDto
+deactivate CTRL
+
+@enduml

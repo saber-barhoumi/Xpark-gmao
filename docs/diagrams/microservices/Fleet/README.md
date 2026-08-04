@@ -43,19 +43,30 @@ Routing keys sur l'exchange topic `xpark.ai` : `xpark.fleet.maintenance-due`, `x
 
 | Fichier | Contenu |
 |---|---|
-| `Fleet-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Fleet-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Fleet-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Fleet-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Fleet-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Fleet-component.puml` | Diagramme de composants |
-| `Fleet-package.puml` | Diagramme de paquets et sens des dependances |
-| `Fleet-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Fleet-communication.puml` | Diagramme de communication entre composants |
-| `Fleet-activity.puml` | Diagramme d'activites du processus metier |
-| `Fleet-state.puml` | Diagramme d'etats-transitions |
+| `Fleet-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Fleet-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Fleet-component.puml` | Composants internes |
+| `Fleet-package.puml` | Paquets et sens des dependances |
+| `Fleet-communication.puml` | Communication entre composants |
+| `Fleet-activity.puml` | Activites du processus metier |
+| `Fleet-state.puml` | Etats-transitions |
 | `Fleet-database.puml` | Persistance et tables accedees |
-| `Fleet-api-flow.puml` | Sequence complete d'un appel de service |
+| `Fleet-api-flow.puml` | Sequence d'un appel de service |
 | `Fleet-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
+
+### Sequences (un fichier par scenario)
+
+Le diagramme de sequence unique combinait plusieurs cas d'utilisation.
+Un diagramme de sequence decrivant UN scenario, il a ete scinde :
+
+| Fichier | Scenario |
+|---|---|
+| `sequence/Fleet-seq-changement-etat.puml` | Changement d'etat d'un vehicule |
+| `sequence/Fleet-seq-immatriculation.puml` | Immatriculation d'un vehicule |
+| `sequence/Fleet-seq-suivi-echeances.puml` | Suivi des echeances administratives |
+
 
 ## Diagrammes IA non generes
 

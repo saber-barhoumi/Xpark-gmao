@@ -33,21 +33,22 @@ Files : `optimizer.ready-for-optimization`
 
 | Fichier | Contenu |
 |---|---|
-| `AI-Optimizer-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `AI-Optimizer-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `AI-Optimizer-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `AI-Optimizer-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `AI-Optimizer-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `AI-Optimizer-component.puml` | Diagramme de composants |
-| `AI-Optimizer-package.puml` | Diagramme de paquets et sens des dependances |
-| `AI-Optimizer-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `AI-Optimizer-communication.puml` | Diagramme de communication entre composants |
-| `AI-Optimizer-activity.puml` | Diagramme d'activites du processus metier |
-| `AI-Optimizer-state.puml` | Diagramme d'etats-transitions |
+| `AI-Optimizer-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `AI-Optimizer-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `AI-Optimizer-component.puml` | Composants internes |
+| `AI-Optimizer-package.puml` | Paquets et sens des dependances |
+| `AI-Optimizer-sequence.puml` | Sequence d'un scenario metier |
+| `AI-Optimizer-communication.puml` | Communication entre composants |
+| `AI-Optimizer-activity.puml` | Activites du processus metier |
+| `AI-Optimizer-state.puml` | Etats-transitions |
 | `AI-Optimizer-database.puml` | Persistance et tables accedees |
-| `AI-Optimizer-api-flow.puml` | Sequence complete d'un appel de service |
+| `AI-Optimizer-api-flow.puml` | Sequence d'un appel de service |
 | `AI-Optimizer-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
 | `AI-Optimizer-optimization-flow.puml` | Flux d'optimisation |
 | `AI-Optimizer-inference-flow.puml` | Flux d'inference |
+
 
 ## Diagrammes IA non generes
 

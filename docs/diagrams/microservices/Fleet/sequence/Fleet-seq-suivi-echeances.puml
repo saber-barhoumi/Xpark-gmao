@@ -1,0 +1,60 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign first
+autonumber
+
+title Fleet - Suivi des echeances administratives
+
+actor "Gestionnaire" as G
+participant "EcheancesController" as CTRL <<control>>
+participant "IEcheanceService" as IES <<interface>>
+participant "EcheanceService" as ES <<service>>
+participant "FleetDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+
+G -> CTRL : obtenirEcheances()
+activate CTRL
+CTRL -> IES : obtenirToutesAsync()
+activate IES
+IES -> ES : obtenirToutesAsync()
+activate ES
+
+ES -> REPO : lireDocumentsAdministratifs()
+activate REPO
+REPO -> BD : selectionner
+activate BD
+BD --> REPO : documents
+deactivate BD
+REPO --> ES : documents
+deactivate REPO
+
+ES -> REPO : lireAssurances()
+activate REPO
+REPO -> BD : selectionner
+activate BD
+BD --> REPO : assurances
+deactivate BD
+REPO --> ES : assurances
+deactivate REPO
+
+note right of ES
+  Deux lectures suffisent : les echeances des
+  documents et des assurances sont unifiees en
+  memoire, sans requete par vehicule.
+end note
+
+ES -> ES : normaliserDates()
+ES -> ES : calculerJoursRestants()
+
+ES --> IES : listeEcheances
+deactivate ES
+IES --> CTRL : listeEcheances
+deactivate IES
+CTRL --> G : listeEcheances
+deactivate CTRL
+
+@enduml

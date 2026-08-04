@@ -30,22 +30,23 @@
 
 | Fichier | Contenu |
 |---|---|
-| `AI-Predictor-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `AI-Predictor-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `AI-Predictor-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `AI-Predictor-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `AI-Predictor-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `AI-Predictor-component.puml` | Diagramme de composants |
-| `AI-Predictor-package.puml` | Diagramme de paquets et sens des dependances |
-| `AI-Predictor-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `AI-Predictor-communication.puml` | Diagramme de communication entre composants |
-| `AI-Predictor-activity.puml` | Diagramme d'activites du processus metier |
-| `AI-Predictor-state.puml` | Diagramme d'etats-transitions |
+| `AI-Predictor-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `AI-Predictor-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `AI-Predictor-component.puml` | Composants internes |
+| `AI-Predictor-package.puml` | Paquets et sens des dependances |
+| `AI-Predictor-sequence.puml` | Sequence d'un scenario metier |
+| `AI-Predictor-communication.puml` | Communication entre composants |
+| `AI-Predictor-activity.puml` | Activites du processus metier |
+| `AI-Predictor-state.puml` | Etats-transitions |
 | `AI-Predictor-database.puml` | Persistance et tables accedees |
-| `AI-Predictor-api-flow.puml` | Sequence complete d'un appel de service |
+| `AI-Predictor-api-flow.puml` | Sequence d'un appel de service |
 | `AI-Predictor-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
-| `AI-Predictor-ml-pipeline.puml` | Chaine d'apprentissage automatique |
+| `AI-Predictor-ml-pipeline.puml` | Chaine d'apprentissage |
 | `AI-Predictor-prediction-flow.puml` | Flux de prediction |
 | `AI-Predictor-inference-flow.puml` | Flux d'inference |
+
 
 ## Diagrammes IA non generes
 

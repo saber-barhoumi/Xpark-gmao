@@ -34,21 +34,22 @@
 
 | Fichier | Contenu |
 |---|---|
-| `Ayshaa-RAG-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Ayshaa-RAG-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Ayshaa-RAG-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Ayshaa-RAG-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Ayshaa-RAG-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Ayshaa-RAG-component.puml` | Diagramme de composants |
-| `Ayshaa-RAG-package.puml` | Diagramme de paquets et sens des dependances |
-| `Ayshaa-RAG-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Ayshaa-RAG-communication.puml` | Diagramme de communication entre composants |
-| `Ayshaa-RAG-activity.puml` | Diagramme d'activites du processus metier |
-| `Ayshaa-RAG-state.puml` | Diagramme d'etats-transitions |
+| `Ayshaa-RAG-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Ayshaa-RAG-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Ayshaa-RAG-component.puml` | Composants internes |
+| `Ayshaa-RAG-package.puml` | Paquets et sens des dependances |
+| `Ayshaa-RAG-sequence.puml` | Sequence d'un scenario metier |
+| `Ayshaa-RAG-communication.puml` | Communication entre composants |
+| `Ayshaa-RAG-activity.puml` | Activites du processus metier |
+| `Ayshaa-RAG-state.puml` | Etats-transitions |
 | `Ayshaa-RAG-database.puml` | Persistance et tables accedees |
-| `Ayshaa-RAG-api-flow.puml` | Sequence complete d'un appel de service |
+| `Ayshaa-RAG-api-flow.puml` | Sequence d'un appel de service |
 | `Ayshaa-RAG-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
-| `Ayshaa-RAG-rag-flow.puml` | Chaine de recherche augmentee (RAG) |
+| `Ayshaa-RAG-rag-flow.puml` | Chaine RAG |
 | `Ayshaa-RAG-inference-flow.puml` | Flux d'inference |
+
 
 ## Diagrammes IA non generes
 

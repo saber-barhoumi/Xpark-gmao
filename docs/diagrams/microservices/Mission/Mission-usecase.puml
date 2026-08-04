@@ -24,34 +24,26 @@ Utilisateur <|-- Chauffeur
 Utilisateur <|-- Client
 
 rectangle "Service Missions" {
-  package "Demande et devis" {
-    usecase "Deposer une demande de transport" as UC_Deposer_une_demande_de_transport
-    usecase "Consulter ses demandes" as UC_Consulter_ses_demandes
-    usecase "Modifier sa demande" as UC_Modifier_sa_demande
-    usecase "Annuler sa demande" as UC_Annuler_sa_demande
-    usecase "Etablir un devis" as UC_Etablir_un_devis
-    usecase "Accepter un devis" as UC_Accepter_un_devis
-    usecase "Refuser un devis" as UC_Refuser_un_devis
-    usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
-  }
-  package "Execution des missions" {
-    usecase "Consulter les missions" as UC_Consulter_les_missions
-    usecase "Creer une mission" as UC_Creer_une_mission
-    usecase "Affecter un vehicule et un chauffeur" as UC_Affecter_un_vehicule_et_un_chauffe
-    usecase "Cloturer une mission" as UC_Cloturer_une_mission
-    usecase "Annuler une mission" as UC_Annuler_une_mission
-    usecase "Optimiser une tournee" as UC_Optimiser_une_tournee
-  }
-  package "Suivi en direct" {
-    usecase "Transmettre sa position" as UC_Transmettre_sa_position
-    usecase "Suivre une mission en direct" as UC_Suivre_une_mission_en_direct
-    usecase "Consulter l'historique du trajet" as UC_Consulter_l_historique_du_trajet
-  }
-  package "Assistance" {
-    usecase "Ouvrir un ticket de support" as UC_Ouvrir_un_ticket_de_support
-    usecase "Repondre a un ticket" as UC_Repondre_a_un_ticket
-    usecase "Cloturer un ticket" as UC_Cloturer_un_ticket
-  }
+  usecase "Deposer une demande de transport" as UC_Deposer_une_demande_de_transport
+  usecase "Consulter ses demandes" as UC_Consulter_ses_demandes
+  usecase "Modifier sa demande" as UC_Modifier_sa_demande
+  usecase "Annuler sa demande" as UC_Annuler_sa_demande
+  usecase "Etablir un devis" as UC_Etablir_un_devis
+  usecase "Accepter un devis" as UC_Accepter_un_devis
+  usecase "Refuser un devis" as UC_Refuser_un_devis
+  usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
+  usecase "Consulter les missions" as UC_Consulter_les_missions
+  usecase "Creer une mission" as UC_Creer_une_mission
+  usecase "Affecter un vehicule et un chauffeur" as UC_Affecter_un_vehicule_et_un_chauffe
+  usecase "Cloturer une mission" as UC_Cloturer_une_mission
+  usecase "Annuler une mission" as UC_Annuler_une_mission
+  usecase "Optimiser une tournee" as UC_Optimiser_une_tournee
+  usecase "Transmettre sa position" as UC_Transmettre_sa_position
+  usecase "Suivre une mission en direct" as UC_Suivre_une_mission_en_direct
+  usecase "Consulter l'historique du trajet" as UC_Consulter_l_historique_du_trajet
+  usecase "Ouvrir un ticket de support" as UC_Ouvrir_un_ticket_de_support
+  usecase "Repondre a un ticket" as UC_Repondre_a_un_ticket
+  usecase "Cloturer un ticket" as UC_Cloturer_un_ticket
 }
 
 ' Acteurs secondaires (a droite, hors frontiere)

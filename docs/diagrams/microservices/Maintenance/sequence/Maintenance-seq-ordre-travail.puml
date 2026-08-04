@@ -1,0 +1,64 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title Maintenance - Ouverture et suivi d'un ordre de travail
+
+actor "Gestionnaire" as G
+actor "Technicien" as T
+participant "OrdreTravailController" as CTRL <<control>>
+participant "IMaintenanceService" as IMS <<interface>>
+participant "MaintenanceService" as MS <<service>>
+participant "MaintenanceDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+
+G -> CTRL : ouvrirOrdreTravail(ordreDto)
+activate CTRL
+CTRL -> IMS : creerOrdreAsync(ordreDto)
+activate IMS
+IMS -> MS : creerOrdreAsync(ordreDto)
+activate MS
+MS -> REPO : ajouter(ordreTravail)
+activate REPO
+REPO -> BD : enregistrer
+BD --> REPO : identifiant attribue
+REPO --> MS : ordreTravail
+deactivate REPO
+MS -> REPO : ajouter(historiqueStatut)
+activate REPO
+REPO -> BD : enregistrer
+REPO --> MS : historique
+deactivate REPO
+MS --> IMS : ordreDto
+deactivate MS
+IMS --> CTRL : ordreDto
+deactivate IMS
+CTRL --> G : ordreDto
+deactivate CTRL
+
+T -> CTRL : changerStatut(identifiant, EN_COURS)
+activate CTRL
+CTRL -> IMS : changerStatutAsync(identifiant, EN_COURS)
+activate IMS
+IMS -> MS : changerStatutAsync(identifiant, EN_COURS)
+activate MS
+MS -> REPO : mettreAJour(ordreTravail)
+MS -> REPO : ajouter(historiqueStatut)
+MS --> IMS : ordreDto
+deactivate MS
+IMS --> CTRL : ordreDto
+deactivate IMS
+CTRL --> T : ordreDto
+deactivate CTRL
+
+note over MS
+  Chaque changement de statut est trace :
+  l'historique de l'ordre de travail est
+  reconstituable a tout moment.
+end note
+
+@enduml

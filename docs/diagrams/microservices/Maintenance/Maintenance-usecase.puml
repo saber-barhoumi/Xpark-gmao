@@ -22,39 +22,31 @@ Responsable <|-- Gestionnaire
 Utilisateur <|-- Technicien
 
 rectangle "Service Maintenance" {
-  package "Ordres de travail" {
-    usecase "Consulter les ordres de travail" as UC_Consulter_les_ordres_de_travail
-    usecase "Ouvrir un ordre de travail" as UC_Ouvrir_un_ordre_de_travail
-    usecase "Modifier un ordre de travail" as UC_Modifier_un_ordre_de_travail
-    usecase "Valider un ordre de travail" as UC_Valider_un_ordre_de_travail
-    usecase "Changer le statut d'un ordre de travail" as UC_Changer_le_statut_d_un_ordre_de_tr
-    usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
-    usecase "Vider une colonne du tableau" as UC_Vider_une_colonne_du_tableau
-    usecase "Supprimer un ordre de travail" as UC_Supprimer_un_ordre_de_travail
-  }
-  package "Interventions" {
-    usecase "Consulter les interventions" as UC_Consulter_les_interventions
-    usecase "Declarer une intervention" as UC_Declarer_une_intervention
-    usecase "Modifier une intervention" as UC_Modifier_une_intervention
-    usecase "Changer le statut d'une intervention" as UC_Changer_le_statut_d_une_interventi
-    usecase "Consommer une piece de rechange" as UC_Consommer_une_piece_de_rechange
-    usecase "Restituer une piece" as UC_Restituer_une_piece
-    usecase "Supprimer une intervention" as UC_Supprimer_une_intervention
-  }
-  package "Stock de pieces" {
-    usecase "Consulter les pieces de rechange" as UC_Consulter_les_pieces_de_rechange
-    usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
-    usecase "Referencer une piece" as UC_Referencer_une_piece
-    usecase "Reapprovisionner le stock" as UC_Reapprovisionner_le_stock
-    usecase "Modifier une piece" as UC_Modifier_une_piece
-    usecase "Retirer une piece" as UC_Retirer_une_piece
-  }
-  package "Suivi documentaire" {
-    usecase "Commenter un ordre de travail" as UC_Commenter_un_ordre_de_travail
-    usecase "Joindre un document" as UC_Joindre_un_document
-    usecase "Supprimer un commentaire" as UC_Supprimer_un_commentaire
-    usecase "Supprimer une piece jointe" as UC_Supprimer_une_piece_jointe
-  }
+  usecase "Consulter les ordres de travail" as UC_Consulter_les_ordres_de_travail
+  usecase "Ouvrir un ordre de travail" as UC_Ouvrir_un_ordre_de_travail
+  usecase "Modifier un ordre de travail" as UC_Modifier_un_ordre_de_travail
+  usecase "Valider un ordre de travail" as UC_Valider_un_ordre_de_travail
+  usecase "Changer le statut d'un ordre de travail" as UC_Changer_le_statut_d_un_ordre_de_tr
+  usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
+  usecase "Vider une colonne du tableau" as UC_Vider_une_colonne_du_tableau
+  usecase "Supprimer un ordre de travail" as UC_Supprimer_un_ordre_de_travail
+  usecase "Consulter les interventions" as UC_Consulter_les_interventions
+  usecase "Declarer une intervention" as UC_Declarer_une_intervention
+  usecase "Modifier une intervention" as UC_Modifier_une_intervention
+  usecase "Changer le statut d'une intervention" as UC_Changer_le_statut_d_une_interventi
+  usecase "Consommer une piece de rechange" as UC_Consommer_une_piece_de_rechange
+  usecase "Restituer une piece" as UC_Restituer_une_piece
+  usecase "Supprimer une intervention" as UC_Supprimer_une_intervention
+  usecase "Consulter les pieces de rechange" as UC_Consulter_les_pieces_de_rechange
+  usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
+  usecase "Referencer une piece" as UC_Referencer_une_piece
+  usecase "Reapprovisionner le stock" as UC_Reapprovisionner_le_stock
+  usecase "Modifier une piece" as UC_Modifier_une_piece
+  usecase "Retirer une piece" as UC_Retirer_une_piece
+  usecase "Commenter un ordre de travail" as UC_Commenter_un_ordre_de_travail
+  usecase "Joindre un document" as UC_Joindre_un_document
+  usecase "Supprimer un commentaire" as UC_Supprimer_un_commentaire
+  usecase "Supprimer une piece jointe" as UC_Supprimer_une_piece_jointe
 }
 
 ' Associations : trait continu sans fleche (UML : relation d'association)

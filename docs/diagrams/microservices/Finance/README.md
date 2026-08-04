@@ -35,19 +35,20 @@
 
 | Fichier | Contenu |
 |---|---|
-| `Finance-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Finance-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Finance-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Finance-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Finance-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Finance-component.puml` | Diagramme de composants |
-| `Finance-package.puml` | Diagramme de paquets et sens des dependances |
-| `Finance-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Finance-communication.puml` | Diagramme de communication entre composants |
-| `Finance-activity.puml` | Diagramme d'activites du processus metier |
-| `Finance-state.puml` | Diagramme d'etats-transitions |
+| `Finance-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Finance-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Finance-component.puml` | Composants internes |
+| `Finance-package.puml` | Paquets et sens des dependances |
+| `Finance-sequence.puml` | Sequence d'un scenario metier |
+| `Finance-communication.puml` | Communication entre composants |
+| `Finance-activity.puml` | Activites du processus metier |
+| `Finance-state.puml` | Etats-transitions |
 | `Finance-database.puml` | Persistance et tables accedees |
-| `Finance-api-flow.puml` | Sequence complete d'un appel de service |
+| `Finance-api-flow.puml` | Sequence d'un appel de service |
 | `Finance-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
+
 
 ## Diagrammes IA non generes
 

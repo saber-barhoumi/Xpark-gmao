@@ -37,19 +37,20 @@
 
 | Fichier | Contenu |
 |---|---|
-| `Alerts-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Alerts-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Alerts-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Alerts-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Alerts-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Alerts-component.puml` | Diagramme de composants |
-| `Alerts-package.puml` | Diagramme de paquets et sens des dependances |
-| `Alerts-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Alerts-communication.puml` | Diagramme de communication entre composants |
-| `Alerts-activity.puml` | Diagramme d'activites du processus metier |
-| `Alerts-state.puml` | Diagramme d'etats-transitions |
+| `Alerts-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Alerts-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Alerts-component.puml` | Composants internes |
+| `Alerts-package.puml` | Paquets et sens des dependances |
+| `Alerts-sequence.puml` | Sequence d'un scenario metier |
+| `Alerts-communication.puml` | Communication entre composants |
+| `Alerts-activity.puml` | Activites du processus metier |
+| `Alerts-state.puml` | Etats-transitions |
 | `Alerts-database.puml` | Persistance et tables accedees |
-| `Alerts-api-flow.puml` | Sequence complete d'un appel de service |
+| `Alerts-api-flow.puml` | Sequence d'un appel de service |
 | `Alerts-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
+
 
 ## Diagrammes IA non generes
 

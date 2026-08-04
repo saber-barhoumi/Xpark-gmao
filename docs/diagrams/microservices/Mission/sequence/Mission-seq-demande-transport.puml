@@ -1,0 +1,50 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title Mission - Depot d'une demande de transport
+
+actor "Client" as C
+participant "TransportRequestsController" as CTRL <<control>>
+participant "IMissionService" as IMS <<interface>>
+participant "MissionService" as MS <<service>>
+participant "MissionDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+participant "Moteur d'estimation tarifaire" as EST <<secondary>>
+
+C -> EST : estimerPrix(depart, arrivee, caracteristiques)
+activate EST
+EST --> C : fourchetteTarifaire
+deactivate EST
+
+C -> CTRL : deposerDemande(demandeDto)
+activate CTRL
+CTRL -> IMS : creerDemandeAsync(demandeDto)
+activate IMS
+IMS -> MS : creerDemandeAsync(demandeDto)
+activate MS
+MS -> REPO : ajouter(demandeTransport)
+activate REPO
+REPO -> BD : enregistrer
+BD --> REPO : identifiant attribue
+REPO --> MS : demandeTransport
+deactivate REPO
+
+note right of MS
+  La demande est enregistree au statut
+  EN_ATTENTE. Aucune mission n'est creee
+  a ce stade : la reservation est un devis.
+end note
+
+MS --> IMS : demandeDto
+deactivate MS
+IMS --> CTRL : demandeDto
+deactivate IMS
+CTRL --> C : demandeEnregistree
+deactivate CTRL
+
+@enduml

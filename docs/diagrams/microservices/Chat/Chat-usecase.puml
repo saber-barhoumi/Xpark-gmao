@@ -24,27 +24,21 @@ Utilisateur <|-- Chauffeur
 Utilisateur <|-- Client
 
 rectangle "Service Messagerie" {
-  package "Conversations" {
-    usecase "Consulter ses conversations" as UC_Consulter_ses_conversations
-    usecase "Ouvrir une conversation privee" as UC_Ouvrir_une_conversation_privee
-    usecase "Creer un groupe de discussion" as UC_Creer_un_groupe_de_discussion
-    usecase "Archiver une conversation" as UC_Archiver_une_conversation
-    usecase "Consulter les conversations archivees" as UC_Consulter_les_conversations_archiv
-    usecase "Supprimer une conversation" as UC_Supprimer_une_conversation
-    usecase "Couper les notifications" as UC_Couper_les_notifications
-  }
-  package "Messages" {
-    usecase "Consulter les messages" as UC_Consulter_les_messages
-    usecase "Envoyer un message" as UC_Envoyer_un_message
-    usecase "Joindre un fichier" as UC_Joindre_un_fichier
-    usecase "Epingler un message" as UC_Epingler_un_message
-    usecase "Transferer un message" as UC_Transferer_un_message
-    usecase "Supprimer un message" as UC_Supprimer_un_message
-  }
-  package "Presence" {
-    usecase "Consulter les correspondants connectes" as UC_Consulter_les_correspondants_conne
-    usecase "Rechercher un correspondant" as UC_Rechercher_un_correspondant
-  }
+  usecase "Consulter ses conversations" as UC_Consulter_ses_conversations
+  usecase "Ouvrir une conversation privee" as UC_Ouvrir_une_conversation_privee
+  usecase "Creer un groupe de discussion" as UC_Creer_un_groupe_de_discussion
+  usecase "Archiver une conversation" as UC_Archiver_une_conversation
+  usecase "Consulter les conversations archivees" as UC_Consulter_les_conversations_archiv
+  usecase "Supprimer une conversation" as UC_Supprimer_une_conversation
+  usecase "Couper les notifications" as UC_Couper_les_notifications
+  usecase "Consulter les messages" as UC_Consulter_les_messages
+  usecase "Envoyer un message" as UC_Envoyer_un_message
+  usecase "Joindre un fichier" as UC_Joindre_un_fichier
+  usecase "Epingler un message" as UC_Epingler_un_message
+  usecase "Transferer un message" as UC_Transferer_un_message
+  usecase "Supprimer un message" as UC_Supprimer_un_message
+  usecase "Consulter les correspondants connectes" as UC_Consulter_les_correspondants_conne
+  usecase "Rechercher un correspondant" as UC_Rechercher_un_correspondant
 }
 
 ' Associations : trait continu sans fleche (UML : relation d'association)

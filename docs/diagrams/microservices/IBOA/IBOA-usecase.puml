@@ -16,23 +16,17 @@ actor "Administrateur" as Administrateur
 Utilisateur <|-- Administrateur
 
 rectangle "Service Journal Metier" {
-  package "Traitement des evenements" {
-    usecase "Recevoir un evenement metier" as UC_Recevoir_un_evenement_metier
-    usecase "Evaluer la criticite" as UC_Evaluer_la_criticite
-    usecase "Regrouper les evenements lies" as UC_Regrouper_les_evenements_lies
-    usecase "Diffuser une alerte" as UC_Diffuser_une_alerte
-  }
-  package "Consultation" {
-    usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
-    usecase "Consulter les alertes metier" as UC_Consulter_les_alertes_metier
-    usecase "Consulter les statistiques" as UC_Consulter_les_statistiques
-  }
-  package "Pilotage" {
-    usecase "Definir ses preferences de diffusion" as UC_Definir_ses_preferences_de_diffusi
-    usecase "Editer un rapport quotidien" as UC_Editer_un_rapport_quotidien
-    usecase "Purger le journal" as UC_Purger_le_journal
-    usecase "Purger les alertes" as UC_Purger_les_alertes
-  }
+  usecase "Recevoir un evenement metier" as UC_Recevoir_un_evenement_metier
+  usecase "Evaluer la criticite" as UC_Evaluer_la_criticite
+  usecase "Regrouper les evenements lies" as UC_Regrouper_les_evenements_lies
+  usecase "Diffuser une alerte" as UC_Diffuser_une_alerte
+  usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
+  usecase "Consulter les alertes metier" as UC_Consulter_les_alertes_metier
+  usecase "Consulter les statistiques" as UC_Consulter_les_statistiques
+  usecase "Definir ses preferences de diffusion" as UC_Definir_ses_preferences_de_diffusi
+  usecase "Editer un rapport quotidien" as UC_Editer_un_rapport_quotidien
+  usecase "Purger le journal" as UC_Purger_le_journal
+  usecase "Purger les alertes" as UC_Purger_les_alertes
 }
 
 ' Acteurs secondaires (a droite, hors frontiere)

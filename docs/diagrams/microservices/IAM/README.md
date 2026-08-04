@@ -41,19 +41,29 @@ Evenements publies (MassTransit) : `ClientCreatedEvent`, `EmployeeCreatedEvent`,
 
 | Fichier | Contenu |
 |---|---|
-| `IAM-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `IAM-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `IAM-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `IAM-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `IAM-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `IAM-component.puml` | Diagramme de composants |
-| `IAM-package.puml` | Diagramme de paquets et sens des dependances |
-| `IAM-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `IAM-communication.puml` | Diagramme de communication entre composants |
-| `IAM-activity.puml` | Diagramme d'activites du processus metier |
-| `IAM-state.puml` | Diagramme d'etats-transitions |
+| `IAM-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `IAM-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `IAM-component.puml` | Composants internes |
+| `IAM-package.puml` | Paquets et sens des dependances |
+| `IAM-communication.puml` | Communication entre composants |
+| `IAM-activity.puml` | Activites du processus metier |
+| `IAM-state.puml` | Etats-transitions |
 | `IAM-database.puml` | Persistance et tables accedees |
-| `IAM-api-flow.puml` | Sequence complete d'un appel de service |
+| `IAM-api-flow.puml` | Sequence d'un appel de service |
 | `IAM-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
+
+### Sequences (un fichier par scenario)
+
+Le diagramme de sequence unique combinait plusieurs cas d'utilisation.
+Un diagramme de sequence decrivant UN scenario, il a ete scinde :
+
+| Fichier | Scenario |
+|---|---|
+| `sequence/IAM-seq-approbation-compte.puml` | Approbation d'un compte |
+| `sequence/IAM-seq-inscription.puml` | Inscription d'un compte |
+
 
 ## Diagrammes IA non generes
 

@@ -1,0 +1,56 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title IAM - Inscription d'un compte
+
+actor "Visiteur" as V
+participant "AuthController" as CTRL <<control>>
+participant "IAuthService" as IAS <<interface>>
+participant "AuthService" as AS <<service>>
+participant "IamDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+participant "Serveur de messagerie" as SMTP <<secondary>>
+queue "Bus d'evenements" as BUS
+
+V -> CTRL : sInscrire(inscriptionDto)
+activate CTRL
+CTRL -> IAS : enregistrerAsync(inscriptionDto)
+activate IAS
+IAS -> AS : enregistrerAsync(inscriptionDto)
+activate AS
+
+AS -> REPO : rechercherParCourriel(courriel)
+activate REPO
+REPO -> BD : selectionner
+BD --> REPO : aucun resultat
+REPO --> AS : null
+deactivate REPO
+
+AS -> AS : hacherMotDePasse(motDePasse)
+AS -> REPO : ajouter(utilisateur)
+activate REPO
+REPO -> BD : enregistrer
+BD --> REPO : identifiant attribue
+REPO --> AS : utilisateur
+deactivate REPO
+
+note right of AS
+  Le compte est cree au statut EN_ATTENTE :
+  il reste inutilisable jusqu'a approbation.
+end note
+
+AS -> BUS : publier(UserRegisteredEvent)
+AS -> SMTP : envoyerCourrielDeConfirmation(courriel, jeton)
+AS --> IAS : compteCree
+deactivate AS
+IAS --> CTRL : compteCree
+deactivate IAS
+CTRL --> V : compteEnAttenteApprobation
+deactivate CTRL
+
+@enduml

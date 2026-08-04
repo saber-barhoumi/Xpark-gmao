@@ -1,0 +1,58 @@
+@startuml
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+autonumber
+
+title IAM - Approbation d'un compte
+
+actor "Administrateur" as A
+participant "UserManagementController" as CTRL <<control>>
+participant "IUserService" as IUS <<interface>>
+participant "UserService" as US <<service>>
+participant "IamDbContext" as REPO <<repository>>
+database "Base de donnees" as BD
+queue "Bus d'evenements" as BUS
+
+A -> CTRL : obtenirComptesEnAttente()
+activate CTRL
+CTRL -> IUS : obtenirEnAttenteAsync()
+activate IUS
+IUS -> US : obtenirEnAttenteAsync()
+activate US
+US -> REPO : lireUtilisateursParStatut(EN_ATTENTE)
+activate REPO
+REPO -> BD : selectionner
+BD --> REPO : comptes
+REPO --> US : comptes
+deactivate REPO
+US --> IUS : listeComptes
+deactivate US
+IUS --> CTRL : listeComptes
+deactivate IUS
+CTRL --> A : listeComptes
+deactivate CTRL
+
+A -> CTRL : approuverCompte(identifiant)
+activate CTRL
+CTRL -> IUS : approuverAsync(identifiant)
+activate IUS
+IUS -> US : approuverAsync(identifiant)
+activate US
+US -> REPO : mettreAJourStatut(identifiant, ACTIF)
+activate REPO
+REPO -> BD : enregistrer
+BD --> REPO : confirmation
+REPO --> US : utilisateur
+deactivate REPO
+US -> BUS : publier(UserApprovedEvent)
+US --> IUS : confirmation
+deactivate US
+IUS --> CTRL : confirmation
+deactivate IUS
+CTRL --> A : compteActive
+deactivate CTRL
+
+@enduml

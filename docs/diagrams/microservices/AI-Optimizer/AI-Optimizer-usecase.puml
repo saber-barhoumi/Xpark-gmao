@@ -16,15 +16,11 @@ actor "Gestionnaire" as Gestionnaire
 Utilisateur <|-- Gestionnaire
 
 rectangle "Service Optimisation de Flotte" {
-  package "Optimisation" {
-    usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
-    usecase "Appliquer les contraintes d'affectation" as UC_Appliquer_les_contraintes_d_affect
-    usecase "Noter les candidats" as UC_Noter_les_candidats
-    usecase "Produire un plan d'affectation" as UC_Produire_un_plan_d_affectation
-  }
-  package "Exploitation" {
-    usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
-  }
+  usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
+  usecase "Appliquer les contraintes d'affectation" as UC_Appliquer_les_contraintes_d_affect
+  usecase "Noter les candidats" as UC_Noter_les_candidats
+  usecase "Produire un plan d'affectation" as UC_Produire_un_plan_d_affectation
+  usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
 }
 
 ' Acteurs secondaires (a droite, hors frontiere)

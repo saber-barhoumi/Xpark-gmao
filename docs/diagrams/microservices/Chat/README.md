@@ -37,19 +37,20 @@ Consommateur : `UserStatusChangedConsumer` sur `UserStatusChangedEvent`
 
 | Fichier | Contenu |
 |---|---|
-| `Chat-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `Chat-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `Chat-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `Chat-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `Chat-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `Chat-component.puml` | Diagramme de composants |
-| `Chat-package.puml` | Diagramme de paquets et sens des dependances |
-| `Chat-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `Chat-communication.puml` | Diagramme de communication entre composants |
-| `Chat-activity.puml` | Diagramme d'activites du processus metier |
-| `Chat-state.puml` | Diagramme d'etats-transitions |
+| `Chat-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `Chat-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `Chat-component.puml` | Composants internes |
+| `Chat-package.puml` | Paquets et sens des dependances |
+| `Chat-sequence.puml` | Sequence d'un scenario metier |
+| `Chat-communication.puml` | Communication entre composants |
+| `Chat-activity.puml` | Activites du processus metier |
+| `Chat-state.puml` | Etats-transitions |
 | `Chat-database.puml` | Persistance et tables accedees |
-| `Chat-api-flow.puml` | Sequence complete d'un appel de service |
+| `Chat-api-flow.puml` | Sequence d'un appel de service |
 | `Chat-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
+
 
 ## Diagrammes IA non generes
 

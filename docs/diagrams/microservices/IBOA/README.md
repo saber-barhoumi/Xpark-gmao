@@ -45,21 +45,22 @@ Files : `iboa.events`
 
 | Fichier | Contenu |
 |---|---|
-| `IBOA-usecase.puml` | Diagramme de cas d'utilisation (acteurs, << include >>, << extend >>) |
+| `IBOA-usecase.puml` | Cas d'utilisation (acteurs, << include >>, << extend >>) |
 | `IBOA-entities.puml` | Modele du domaine : entites, associations et cardinalites |
-| `IBOA-class-domain.puml` | Diagramme de classes du domaine : entites, enumerations, multiplicites |
-| `IBOA-class-architecture.puml` | Diagramme de classes de conception : couches, interfaces, realisations |
-| `IBOA-component.puml` | Diagramme de composants |
-| `IBOA-package.puml` | Diagramme de paquets et sens des dependances |
-| `IBOA-sequence.puml` | Diagramme de sequence d'un flux metier reel |
-| `IBOA-communication.puml` | Diagramme de communication entre composants |
-| `IBOA-activity.puml` | Diagramme d'activites du processus metier |
-| `IBOA-state.puml` | Diagramme d'etats-transitions |
+| `IBOA-class-domain.puml` | Classes du domaine : entites, enumerations, multiplicites |
+| `IBOA-class-architecture.puml` | Classes de conception : couches, interfaces, realisations |
+| `IBOA-component.puml` | Composants internes |
+| `IBOA-package.puml` | Paquets et sens des dependances |
+| `IBOA-sequence.puml` | Sequence d'un scenario metier |
+| `IBOA-communication.puml` | Communication entre composants |
+| `IBOA-activity.puml` | Activites du processus metier |
+| `IBOA-state.puml` | Etats-transitions |
 | `IBOA-database.puml` | Persistance et tables accedees |
-| `IBOA-api-flow.puml` | Sequence complete d'un appel de service |
+| `IBOA-api-flow.puml` | Sequence d'un appel de service |
 | `IBOA-service-flow.puml` | Chaine interne en couches (dependances vers l'interieur) |
 | `IBOA-classifier-ia-pipeline.puml` | Chaine de classification |
 | `IBOA-inference-flow.puml` | Flux d'inference |
+
 
 ## Diagrammes IA non generes
 

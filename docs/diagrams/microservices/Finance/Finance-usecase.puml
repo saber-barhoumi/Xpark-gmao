@@ -22,18 +22,14 @@ Responsable <|-- Gestionnaire
 Utilisateur <|-- Client
 
 rectangle "Service Finance" {
-  package "Facturation" {
-    usecase "Consulter les factures" as UC_Consulter_les_factures
-    usecase "Consulter ses factures" as UC_Consulter_ses_factures
-    usecase "Etablir une facture" as UC_Etablir_une_facture
-    usecase "Verifier les missions facturables" as UC_Verifier_les_missions_facturables
-    usecase "Marquer une facture comme payee" as UC_Marquer_une_facture_comme_payee
-    usecase "Annuler une facture" as UC_Annuler_une_facture
-  }
-  package "Recouvrement" {
-    usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
-    usecase "Consulter les factures d'un client" as UC_Consulter_les_factures_d_un_client
-  }
+  usecase "Consulter les factures" as UC_Consulter_les_factures
+  usecase "Consulter ses factures" as UC_Consulter_ses_factures
+  usecase "Etablir une facture" as UC_Etablir_une_facture
+  usecase "Verifier les missions facturables" as UC_Verifier_les_missions_facturables
+  usecase "Marquer une facture comme payee" as UC_Marquer_une_facture_comme_payee
+  usecase "Annuler une facture" as UC_Annuler_une_facture
+  usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
+  usecase "Consulter les factures d'un client" as UC_Consulter_les_factures_d_un_client
 }
 
 ' Associations : trait continu sans fleche (UML : relation d'association)
