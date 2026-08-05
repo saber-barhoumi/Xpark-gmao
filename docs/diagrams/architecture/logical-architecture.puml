@@ -1,0 +1,172 @@
+@startuml
+skinparam style strictuml
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #455A64
+
+title Architecture logique - XPARK GMAO
+
+' ============================================================
+'  1. NIVEAU PRESENTATION
+' ============================================================
+package "Niveau Presentation" as N1 #E1F5FE {
+  component "Back-office\n<<application web>>\nReact 18 + Vite" as BO
+  component "Portail client\n<<application web>>\nNext.js 14" as FO
+  component "XPARK Driver\n<<application mobile>>\nExpo React Native" as DRV
+}
+
+' ============================================================
+'  2. NIVEAU PASSERELLE
+' ============================================================
+package "Niveau Passerelle" as N2 #ECEFF1 {
+  component "Reverse proxy\n<<routage>>\nnginx" as GW
+  component "Validation du jeton\n<<securite>>\nJWT HMAC-SHA256" as SEC
+  component "Filtrage des origines\n<<securite>>\nCORS" as CORS
+}
+
+' ============================================================
+'  3. NIVEAU APPLICATIF ET DOMAINE
+' ============================================================
+package "Niveau Applicatif et Domaine" as N3 #E8F5E9 {
+
+  package "Services metier (.NET 8)" as N3A #F1F8E9 {
+    component "IAM\n<<microservice>>\nidentites, MFA, roles" as IAM
+    component "Fleet\n<<microservice>>\nvehicules, equipements" as FLEET
+    component "Mission\n<<microservice>>\ndevis, missions, suivi" as MISSION
+    component "Maintenance\n<<microservice>>\ninterventions, pieces" as MAINT
+    component "Finance\n<<microservice>>\nfacturation" as FIN
+    component "Alerts\n<<microservice>>\ncontroles metier" as ALERT
+    component "Chat\n<<microservice>>\nmessagerie temps reel" as CHAT
+    component "PredictionPanne\n<<microservice>>\nmaintenance predictive" as PRED
+  }
+
+  package "Services d'aide a la decision (Python)" as N3B #FCE4EC {
+    component "AI Predictor\n<<service IA>>\nestimation tarifaire" as AIP
+    component "AI Optimizer\n<<service IA>>\naffectation de flotte" as AIO
+    component "Ayshaa RAG\n<<service IA>>\nassistant documentaire" as RAG
+    component "IBOA\n<<service IA>>\njournal metier" as IBOA
+  }
+
+  package "Noyau partage" as N3C #F5F5F5 {
+    component "XparkGMAO.Shared\n<<bibliotheque>>\nenumerations, evenements" as SHARED
+  }
+}
+
+' ============================================================
+'  4. NIVEAU INTEGRATION
+' ============================================================
+package "Niveau Integration" as N4 #FFF3E0 {
+  queue "Messages types\n<<MassTransit>>\nun exchange par type" as MT
+  queue "Exchange topic\n<<xpark.ai>>\nJSON sans enveloppe" as TOPIC
+}
+
+' ============================================================
+'  5. NIVEAU PERSISTANCE
+' ============================================================
+package "Niveau Persistance" as N5 #FFF8E1 {
+  package "Base relationnelle partagee" as N5A #FFFDE7 {
+    database "xpark_gmao\n<<PostgreSQL 16>>" as PG {
+      card "Schema IAM" as SIAM
+      card "Schema Fleet" as SFLEET
+      card "Schema Mission" as SMISSION
+      card "Schema Maintenance" as SMAINT
+      card "Schema Finance" as SFIN
+      card "Schema Alerts" as SALERT
+      card "Schema Chat" as SCHAT
+      card "Schema Prediction" as SPRED
+    }
+  }
+  database "Qdrant\n<<base vectorielle>>" as QD
+  storage "Volume partage\n<<fichiers televerses>>" as UP
+}
+
+' ============================================================
+'  Dependances entre niveaux
+' ============================================================
+BO --> GW
+FO --> GW
+DRV --> GW
+
+GW --> SEC
+GW --> CORS
+GW --> N3A
+
+N3A --> SHARED
+N3B --> SHARED
+
+IAM --> MT
+MT --> CHAT
+
+FLEET --> TOPIC
+MISSION --> TOPIC
+TOPIC --> IBOA
+TOPIC --> AIO
+AIO --> TOPIC
+
+MISSION --> AIP
+RAG --> N3A
+
+IAM --> SIAM
+FLEET --> SFLEET
+MISSION --> SMISSION
+MAINT --> SMAINT
+FIN --> SFIN
+ALERT --> SALERT
+CHAT --> SCHAT
+PRED --> SPRED
+
+IBOA --> PG
+RAG --> QD
+IAM --> UP
+CHAT --> UP
+
+' ============================================================
+'  Ecarts assumes par rapport au patron de reference
+' ============================================================
+note bottom of N5A
+  **Base partagee, et non une base par service.**
+  Les neuf chaines de connexion de docker-compose.yml pointent
+  toutes vers xpark_gmao. Le cloisonnement est LOGIQUE : chaque
+  service ne possede en ecriture que ses propres tables et lit
+  celles des autres domaines en SQL direct. C'est pourquoi
+  Vehicule, Utilisateur ou Mission sont redeclares en lecture
+  seule dans plusieurs couches Domain.
+  Consequence : le decouplage des donnees n'est pas garanti par
+  l'infrastructure mais par une discipline de developpement.
+end note
+
+note bottom of N4
+  Deux bus coexistent volontairement :
+  MassTransit transporte des messages types entre services .NET ;
+  l'exchange topic xpark.ai transporte du JSON brut, que les
+  services Python consomment directement avec pika.
+end note
+
+note right of N2
+  Aucun cache applicatif n'est deploye : Redis n'existe
+  nulle part dans le depot. La limitation de debit de
+  l'assistant est en memoire, sa memoire de conversation
+  en SQLite.
+end note
+
+' ============================================================
+'  Empilement des services : sans ces liens invisibles, les
+'  douze services s'alignent sur une seule rangee et le rendu
+'  atteint 4903 pixels de large. Il depasse alors la limite par
+'  defaut de PlantUML (4096) et se retrouve TRONQUE a droite.
+'  Deux colonnes ramenent la largeur a 2438 pixels.
+' ============================================================
+IAM -[hidden]down- FLEET
+FLEET -[hidden]down- MISSION
+MISSION -[hidden]down- MAINT
+FIN -[hidden]down- ALERT
+ALERT -[hidden]down- CHAT
+CHAT -[hidden]down- PRED
+AIP -[hidden]down- AIO
+RAG -[hidden]down- IBOA
+
+@enduml

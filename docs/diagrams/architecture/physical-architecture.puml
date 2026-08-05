@@ -1,0 +1,166 @@
+@startuml
+skinparam style strictuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #455A64
+
+title Architecture physique et deploiement - XPARK GMAO
+
+' ============================================================
+'  ZONE PUBLIQUE
+' ============================================================
+node "Poste client" as CLIENT #E1F5FE {
+  artifact "Navigateur web" as NAV
+  artifact "Application chauffeur\n(Android / iOS)" as MOB
+}
+
+cloud "Internet" as NET
+
+' ============================================================
+'  HOTE DOCKER
+' ============================================================
+node "Hote Docker\n<<serveur d'execution>>" as HOTE #FAFAFA {
+
+  ' ---------- Exposition ----------
+  node "Conteneurs exposes\n<<publication de ports>>" as ZEXPO #ECEFF1 {
+    artifact "xpark-backoffice\nnginx 1.27 + fichiers React\n**8080 -> 80/tcp**" as CBO
+    artifact "xpark-frontoffice\nNode 20 + Next.js\n**3001 -> 3000/tcp**" as CFO
+    artifact "xpark-nginx\nnginx 1.25-alpine\n**8080 -> 80/tcp**" as CGW
+  }
+
+  ' ---------- Reseau interne ----------
+  node "Reseau bridge xpark-network\n<<resolution DNS par nom de service>>" as ZNET #FFFFFF {
+
+    node "Conteneurs applicatifs .NET 8\n<<ASP.NET Core>>" as ZAPP #E8F5E9 {
+      artifact "xpark-iam-api\n5001 -> 80/tcp" as CIAM
+      artifact "xpark-fleet-api\n5002 -> 80/tcp" as CFLEET
+      artifact "xpark-mission-api\n5003 -> 80/tcp" as CMISSION
+      artifact "xpark-maintenance-api\n5004 -> 80/tcp" as CMAINT
+      artifact "xpark-finance-api\n5005 -> 80/tcp" as CFIN
+      artifact "xpark-alerts-api\n5006 -> 80/tcp" as CALERT
+      artifact "xpark-chat-api\n5007 -> 80/tcp" as CCHAT
+      artifact "xpark-prediction-api\n5009 -> 80/tcp" as CPRED
+    }
+
+    node "Conteneurs applicatifs Python\n<<FastAPI / uvicorn>>" as ZIA #FCE4EC {
+      artifact "xpark-ai-predictor\n8000 -> 8000/tcp" as CAIP
+      artifact "xpark-ai-optimizer\n8001 -> 8000/tcp" as CAIO
+      artifact "xpark-iboa\n5008 -> 8000/tcp" as CIBOA
+      artifact "xpark-ayshaa-rag\n8010 -> 8010/tcp" as CRAG
+    }
+
+    node "Conteneurs de donnees et de messagerie" as ZDATA #FFF8E1 {
+      artifact "xpark-postgres\npostgres:16-alpine\n**5432/tcp**" as CPG
+      artifact "xpark-rabbitmq\nrabbitmq:3.13-management\n**5672/tcp** + **15672/tcp**" as CMQ
+      artifact "xpark-qdrant\nqdrant:v1.12.4\n**6333/tcp**" as CQD
+      artifact "xpark-ollama\nollama:latest\n**11434/tcp**" as COL
+    }
+  }
+
+  ' ---------- Volumes ----------
+  storage "Volumes persistants" as VOL #EEEEEE {
+    artifact "postgres-data" as VPG
+    artifact "rabbitmq-data" as VMQ
+    artifact "qdrant-data" as VQD
+    artifact "ollama-data" as VOL2
+    artifact "./data/uploads\n(montage hote)" as VUP
+  }
+}
+
+' ============================================================
+'  Systemes tiers
+' ============================================================
+node "Systemes tiers" as TIERS #ECEFF1 {
+  artifact "Serveur SMTP\n587/tcp + STARTTLS" as SMTP
+  artifact "API Twilio\nHTTPS 443/tcp" as TW
+  artifact "API xAI Grok\nHTTPS 443/tcp" as GROK
+}
+
+' ============================================================
+'  Liaisons reseau, protocole et port annotes
+' ============================================================
+NAV --> NET : HTTP
+MOB --> NET : HTTP
+
+NET --> CBO : HTTP 8080/tcp
+NET --> CFO : HTTP 3001/tcp
+NET --> CMISSION : HTTP 5003/tcp
+NET --> CIAM : HTTP 5001/tcp
+
+CBO --> CGW : HTTP 80/tcp\n(proxy_pass, resolution dynamique)
+CGW --> ZAPP : HTTP 80/tcp
+
+CFO --> CAIP : HTTP 8000/tcp
+CMISSION --> CAIP : HTTP 8000/tcp
+CRAG --> ZAPP : HTTP 80/tcp
+
+ZAPP --> CPG : TCP 5432\n(Npgsql)
+CIBOA --> CPG : TCP 5432\n(psycopg2)
+
+CIAM --> CMQ : AMQP 5672\n(MassTransit)
+CCHAT --> CMQ : AMQP 5672\n(MassTransit)
+CFLEET --> CMQ : AMQP 5672\n(exchange xpark.ai)
+CMISSION --> CMQ : AMQP 5672\n(exchange xpark.ai)
+CMQ --> CIBOA : AMQP 5672
+CMQ --> CAIO : AMQP 5672
+
+CRAG --> CQD : HTTP 6333/tcp
+CRAG --> COL : HTTP 11434/tcp
+
+CBO --> CCHAT : WebSocket 80/tcp\n(SignalR, Upgrade conserve)
+
+CIAM --> SMTP : SMTP 587/tcp
+CIBOA --> SMTP : SMTP 587/tcp
+CIBOA --> TW : HTTPS 443/tcp
+NAV --> GROK : HTTPS 443/tcp\n(OCR execute dans le navigateur)
+
+CPG --> VPG
+CMQ --> VMQ
+CQD --> VQD
+COL --> VOL2
+CIAM --> VUP
+CCHAT --> VUP
+CBO --> VUP
+
+' ============================================================
+'  Ecarts assumes par rapport a la cible
+' ============================================================
+note bottom of ZEXPO
+  **Pas de terminaison TLS.** La passerelle publie 8080 -> 80 en
+  clair ; aucun certificat ni directive listen ... ssl dans les
+  deux fichiers nginx.conf. Le port 443 devra etre ajoute avant
+  toute mise en ligne, avec redirection depuis le port 80.
+end note
+
+note bottom of ZDATA
+  Une seule instance PostgreSQL heberge la base xpark_gmao,
+  partagee par les huit services .NET : il n'y a pas une
+  instance par microservice.
+  Aucun conteneur de cache : Redis n'est declare nulle part
+  dans docker-compose.yml.
+end note
+
+note right of HOTE
+  Orchestration par docker compose, sur un hote unique.
+  Le depot ne contient ni manifeste Kubernetes, ni chart Helm.
+  L'ordre de demarrage repose sur depends_on avec la condition
+  service_healthy : postgres et rabbitmq d'abord, puis les
+  services metier, puis la passerelle.
+  Les huit services .NET exposent /health ; les quatre services
+  Python et la passerelle n'ont pas encore de sonde.
+end note
+
+note right of ZAPP
+  Les ports 5001 a 5009 ne sont que des publications vers
+  l'hote, utiles au diagnostic et aux appels directs du
+  portail client. A l'interieur du reseau, les services
+  s'appellent par leur nom (iam-api, fleet-api, ...) sur
+  le port 80.
+  Aucun echange gRPC : toutes les communications synchrones
+  sont en REST sur HTTP.
+end note
+
+@enduml
