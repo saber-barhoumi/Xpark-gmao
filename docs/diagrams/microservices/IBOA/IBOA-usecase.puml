@@ -14,6 +14,7 @@ actor "Utilisateur" as Utilisateur
 actor "Administrateur" as Administrateur
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
+Administrateur -up-|> Utilisateur
 
 rectangle "Service Journal Metier" {
   usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
@@ -37,9 +38,9 @@ actor "Passerelle de messagerie instantanee" as Twilio
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_le_journal_des_evenement
 
-Bus -- UC_Recevoir_un_evenement_metier : << secondary >>
-SMTP -- UC_Diffuser_une_alerte : << secondary >>
-Twilio -- UC_Diffuser_une_alerte : << secondary >>
+UC_Recevoir_un_evenement_metier -right- Bus : << secondary >>
+UC_Diffuser_une_alerte -right- SMTP : << secondary >>
+UC_Diffuser_une_alerte -right- Twilio : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>

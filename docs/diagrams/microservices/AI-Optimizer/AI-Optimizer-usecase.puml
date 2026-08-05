@@ -14,6 +14,7 @@ actor "Utilisateur" as Utilisateur
 actor "Gestionnaire" as Gestionnaire
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
+Gestionnaire -up-|> Utilisateur
 
 rectangle "Service Optimisation de Flotte" {
   usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
@@ -30,8 +31,8 @@ actor "Bus de messages" as Bus
 Utilisateur -- UC_Optimiser_une_affectation
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
-Bus -- UC_Optimiser_une_affectation : << secondary >>
-Bus -- UC_Produire_un_plan_d_affectation : << secondary >>
+UC_Optimiser_une_affectation -right- Bus : << secondary >>
+UC_Produire_un_plan_d_affectation -right- Bus : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Optimiser_une_affectation ..> UC_Appliquer_les_contraintes_d_affect : << include >>

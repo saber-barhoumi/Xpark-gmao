@@ -18,6 +18,7 @@ actor "Client" as Client
 ' Generalisation : triangle creux, de l'enfant vers le parent
 Employe -up-|> Utilisateur
 Client -up-|> Utilisateur
+Gestionnaire -up-|> Employe
 
 rectangle "Service Estimation Tarifaire" {
   usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
@@ -35,7 +36,7 @@ Utilisateur -- UC_Estimer_le_prix_du_trajet
 Gestionnaire -- UC_Consulter_les_villes_desservies
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
-Modele -- UC_Appliquer_le_modele_de_prediction : << secondary >>
+UC_Appliquer_le_modele_de_prediction -right- Modele : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Estimer_le_prix_du_trajet ..> UC_Calculer_la_distance_du_trajet : << include >>

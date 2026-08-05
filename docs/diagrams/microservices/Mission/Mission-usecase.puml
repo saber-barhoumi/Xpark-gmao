@@ -71,8 +71,8 @@ Client -- UC_Refuser_un_devis
 Client -- UC_Suivre_une_mission_en_direct
 Client -- UC_Ouvrir_un_ticket_de_support
 
-Estimateur -- UC_Estimer_le_prix_du_trajet : << secondary >>
-Optimiseur -- UC_Optimiser_une_tournee : << secondary >>
+UC_Estimer_le_prix_du_trajet -right- Estimateur : << secondary >>
+UC_Optimiser_une_tournee -right- Optimiseur : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Deposer_une_demande_de_transport ..> UC_Estimer_le_prix_du_trajet : << include >>

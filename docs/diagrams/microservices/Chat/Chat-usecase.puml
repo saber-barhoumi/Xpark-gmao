@@ -21,6 +21,8 @@ actor "Client" as Client
 ' Generalisation : triangle creux, de l'enfant vers le parent
 Employe -up-|> Utilisateur
 Client -up-|> Utilisateur
+Administrateur -up-|> Employe
+Gestionnaire -up-|> Employe
 Technicien -up-|> Employe
 Chauffeur -up-|> Employe
 

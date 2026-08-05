@@ -18,6 +18,7 @@ actor "Administrateur" as Administrateur
 ' Generalisation : triangle creux, de l'enfant vers le parent
 Employe -up-|> Utilisateur
 Client -up-|> Utilisateur
+Administrateur -up-|> Employe
 
 rectangle "Service Assistant Conversationnel" {
   usecase "Poser une question" as UC_Poser_une_question
@@ -40,8 +41,8 @@ Client -- UC_Consulter_le_message_d_accueil
 Administrateur -- UC_Reindexer_la_base_documentaire
 Administrateur -- UC_Consulter_les_statistiques_du_serv
 
-Qdrant -- UC_Rechercher_dans_la_base_documentai : << secondary >>
-Ollama -- UC_Rediger_une_reponse : << secondary >>
+UC_Rechercher_dans_la_base_documentai -right- Qdrant : << secondary >>
+UC_Rediger_une_reponse -right- Ollama : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Poser_une_question ..> UC_Detecter_la_langue : << include >>
