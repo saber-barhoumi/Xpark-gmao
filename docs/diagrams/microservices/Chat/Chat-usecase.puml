@@ -9,8 +9,9 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Chat
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 actor "Technicien" as Technicien
@@ -18,11 +19,10 @@ actor "Chauffeur" as Chauffeur
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Utilisateur
-Gestionnaire -up-|> Utilisateur
-Technicien -up-|> Utilisateur
-Chauffeur -up-|> Utilisateur
+Employe -up-|> Utilisateur
 Client -up-|> Utilisateur
+Technicien -up-|> Employe
+Chauffeur -up-|> Employe
 
 rectangle "Service Messagerie" {
   usecase "Consulter ses conversations" as UC_Consulter_ses_conversations
@@ -59,6 +59,6 @@ Utilisateur -- UC_Rechercher_un_correspondant
 Administrateur -- UC_Supprimer_une_conversation
 
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Joindre_un_fichier .[norank].> UC_Envoyer_un_message : << extend >>
+UC_Joindre_un_fichier ..> UC_Envoyer_un_message : << extend >>
 
 @enduml

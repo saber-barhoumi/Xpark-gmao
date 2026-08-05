@@ -9,7 +9,7 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Maintenance
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
@@ -69,7 +69,6 @@ Administrateur -- UC_Supprimer_un_commentaire
 Administrateur -- UC_Supprimer_une_piece_jointe
 Technicien -- UC_Changer_le_statut_d_un_ordre_de_tr
 Technicien -- UC_Declarer_une_intervention
-Technicien -- UC_Consommer_une_piece_de_rechange
 Technicien -- UC_Modifier_une_intervention
 Technicien -- UC_Changer_le_statut_d_une_interventi
 Technicien -- UC_Restituer_une_piece
@@ -77,9 +76,7 @@ Technicien -- UC_Consulter_les_pieces_de_rechange
 Technicien -- UC_Commenter_un_ordre_de_travail
 Technicien -- UC_Joindre_un_document
 
-' << include >> : du cas de base vers le cas obligatoire
-UC_Declarer_une_intervention .[norank].> UC_Consommer_une_piece_de_rechange : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Joindre_un_document .[norank].> UC_Commenter_un_ordre_de_travail : << extend >>
+UC_Consommer_une_piece_de_rechange ..> UC_Declarer_une_intervention : << extend >>
 
 @enduml

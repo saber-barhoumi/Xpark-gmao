@@ -9,7 +9,7 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Alerts
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
@@ -43,13 +43,12 @@ Responsable -- UC_Filtrer_les_alertes_par_categorie
 Responsable -- UC_Marquer_une_alerte_comme_lue
 Responsable -- UC_Marquer_toutes_les_alertes_comme_l
 Responsable -- UC_Marquer_une_alerte_comme_traitee
-Responsable -- UC_Lancer_les_controles_metier
 Administrateur -- UC_Supprimer_une_alerte
 Administrateur -- UC_Supprimer_plusieurs_alertes
 Administrateur -- UC_Generer_les_alertes_du_jour
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Lancer_les_controles_metier .[norank].> UC_Ecarter_les_doublons : << include >>
-UC_Generer_les_alertes_du_jour .[norank].> UC_Lancer_les_controles_metier : << include >>
+UC_Lancer_les_controles_metier ..> UC_Ecarter_les_doublons : << include >>
+UC_Generer_les_alertes_du_jour ..> UC_Lancer_les_controles_metier : << include >>
 
 @enduml

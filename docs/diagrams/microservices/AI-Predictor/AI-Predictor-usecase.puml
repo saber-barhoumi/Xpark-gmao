@@ -9,13 +9,14 @@ left to right direction
 
 title Diagramme de cas d'utilisation - AI-Predictor
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Gestionnaire" as Gestionnaire
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Gestionnaire -up-|> Utilisateur
+Employe -up-|> Utilisateur
 Client -up-|> Utilisateur
 
 rectangle "Service Estimation Tarifaire" {
@@ -37,7 +38,7 @@ Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 Modele -- UC_Appliquer_le_modele_de_prediction : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Estimer_le_prix_du_trajet .[norank].> UC_Calculer_la_distance_du_trajet : << include >>
-UC_Estimer_le_prix_du_trajet .[norank].> UC_Appliquer_le_modele_de_prediction : << include >>
+UC_Estimer_le_prix_du_trajet ..> UC_Calculer_la_distance_du_trajet : << include >>
+UC_Estimer_le_prix_du_trajet ..> UC_Appliquer_le_modele_de_prediction : << include >>
 
 @enduml

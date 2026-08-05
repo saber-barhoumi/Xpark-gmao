@@ -9,8 +9,9 @@ left to right direction
 
 title Diagramme de cas d'utilisation - IAM
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
@@ -19,12 +20,13 @@ actor "Technicien" as Technicien
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
+Employe -up-|> Utilisateur
+Client -up-|> Utilisateur
 Administrateur -up-|> Responsable
 Gestionnaire -up-|> Responsable
-Responsable -up-|> Utilisateur
-Chauffeur -up-|> Utilisateur
-Technicien -up-|> Utilisateur
-Client -up-|> Utilisateur
+Responsable -up-|> Employe
+Chauffeur -up-|> Employe
+Technicien -up-|> Employe
 
 rectangle "Service Identites et Acces" {
   usecase "Se connecter" as UC_Se_connecter
@@ -92,9 +94,9 @@ SMTP -- UC_Confirmer_son_adresse_electronique : << secondary >>
 SMTP -- UC_Reinitialiser_son_mot_de_passe : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Supprimer_un_compte .[norank].> UC_Consulter_les_dependances_metier : << include >>
+UC_Supprimer_un_compte ..> UC_Consulter_les_dependances_metier : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Valider_un_second_facteur .[norank].> UC_Se_connecter : << extend >>
-UC_Archiver_un_compte .[norank].> UC_Supprimer_un_compte : << extend >>
+UC_Valider_un_second_facteur ..> UC_Se_connecter : << extend >>
+UC_Archiver_un_compte ..> UC_Supprimer_un_compte : << extend >>
 
 @enduml

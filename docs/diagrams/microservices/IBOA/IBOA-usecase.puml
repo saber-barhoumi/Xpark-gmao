@@ -9,12 +9,11 @@ left to right direction
 
 title Diagramme de cas d'utilisation - IBOA
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Administrateur" as Administrateur
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Utilisateur
 
 rectangle "Service Journal Metier" {
   usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
@@ -43,9 +42,9 @@ SMTP -- UC_Diffuser_une_alerte : << secondary >>
 Twilio -- UC_Diffuser_une_alerte : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Recevoir_un_evenement_metier .[norank].> UC_Evaluer_la_criticite : << include >>
-UC_Evaluer_la_criticite .[norank].> UC_Regrouper_les_evenements_lies : << include >>
+UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>
+UC_Evaluer_la_criticite ..> UC_Regrouper_les_evenements_lies : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Diffuser_une_alerte .[norank].> UC_Evaluer_la_criticite : << extend >>
+UC_Diffuser_une_alerte ..> UC_Evaluer_la_criticite : << extend >>
 
 @enduml

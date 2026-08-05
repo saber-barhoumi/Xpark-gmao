@@ -9,7 +9,7 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Fleet
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
@@ -32,8 +32,8 @@ rectangle "Service Flotte" {
   usecase "Declarer un plein de carburant" as UC_Declarer_un_plein_de_carburant
   usecase "Verifier les equipements avant mission" as UC_Verifier_les_equipements_avant_mis
   usecase "Affecter un equipement a une mission" as UC_Affecter_un_equipement_a_une_missi
-  usecase "Realiser une inspection" as UC_Realiser_une_inspection
   usecase "Restituer un equipement" as UC_Restituer_un_equipement
+  usecase "Realiser une inspection" as UC_Realiser_une_inspection
   usecase "Gerer les contrats de garantie" as UC_Gerer_les_contrats_de_garantie
   usecase "Immatriculer un vehicule" as UC_Immatriculer_un_vehicule
   usecase "Modifier un vehicule" as UC_Modifier_un_vehicule
@@ -58,8 +58,8 @@ Utilisateur -- UC_Consulter_les_statistiques_de_cons
 Utilisateur -- UC_Declarer_un_plein_de_carburant
 Utilisateur -- UC_Verifier_les_equipements_avant_mis
 Utilisateur -- UC_Affecter_un_equipement_a_une_missi
-Utilisateur -- UC_Realiser_une_inspection
 Utilisateur -- UC_Restituer_un_equipement
+Utilisateur -- UC_Realiser_une_inspection
 Utilisateur -- UC_Gerer_les_contrats_de_garantie
 Responsable -- UC_Immatriculer_un_vehicule
 Responsable -- UC_Modifier_un_vehicule
@@ -71,10 +71,5 @@ Administrateur -- UC_Retirer_un_vehicule_du_parc
 Administrateur -- UC_Retirer_un_equipement
 Administrateur -- UC_Supprimer_une_piece_justificative
 
-' << include >> : du cas de base vers le cas obligatoire
-UC_Affecter_un_equipement_a_une_missi .[norank].> UC_Verifier_les_equipements_avant_mis : << include >>
-' << extend >> : du cas optionnel vers le cas de base
-UC_Realiser_une_inspection .[norank].> UC_Affecter_un_equipement_a_une_missi : << extend >>
-UC_Consulter_les_statistiques_de_cons .[norank].> UC_Declarer_un_plein_de_carburant : << extend >>
 
 @enduml

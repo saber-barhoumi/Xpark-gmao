@@ -9,7 +9,7 @@ left to right direction
 
 title Diagramme de cas d'utilisation - PredictionPanne
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
@@ -44,7 +44,7 @@ Technicien -- UC_Consulter_la_sante_d_un_vehicule
 Technicien -- UC_Consulter_l_historique_des_predict
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Recalculer_les_predictions .[norank].> UC_Evaluer_le_risque_de_panne : << include >>
-UC_Evaluer_le_risque_de_panne .[norank].> UC_Identifier_l_organe_a_risque : << include >>
+UC_Recalculer_les_predictions ..> UC_Evaluer_le_risque_de_panne : << include >>
+UC_Evaluer_le_risque_de_panne ..> UC_Identifier_l_organe_a_risque : << include >>
 
 @enduml

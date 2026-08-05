@@ -9,8 +9,9 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Mission
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
@@ -18,11 +19,12 @@ actor "Chauffeur" as Chauffeur
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
+Employe -up-|> Utilisateur
+Client -up-|> Utilisateur
 Administrateur -up-|> Responsable
 Gestionnaire -up-|> Responsable
-Responsable -up-|> Utilisateur
-Chauffeur -up-|> Utilisateur
-Client -up-|> Utilisateur
+Responsable -up-|> Employe
+Chauffeur -up-|> Employe
 
 rectangle "Service Missions" {
   usecase "Consulter les missions" as UC_Consulter_les_missions
@@ -54,11 +56,8 @@ actor "Moteur d'optimisation" as Optimiseur
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_les_missions
 Responsable -- UC_Etablir_un_devis
-Responsable -- UC_Creer_une_mission
-Responsable -- UC_Affecter_un_vehicule_et_un_chauffe
 Responsable -- UC_Cloturer_une_mission
 Responsable -- UC_Annuler_une_mission
-Responsable -- UC_Optimiser_une_tournee
 Responsable -- UC_Consulter_l_historique_du_trajet
 Responsable -- UC_Repondre_a_un_ticket
 Administrateur -- UC_Cloturer_un_ticket
@@ -76,10 +75,10 @@ Estimateur -- UC_Estimer_le_prix_du_trajet : << secondary >>
 Optimiseur -- UC_Optimiser_une_tournee : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Deposer_une_demande_de_transport .[norank].> UC_Estimer_le_prix_du_trajet : << include >>
-UC_Accepter_un_devis .[norank].> UC_Creer_une_mission : << include >>
-UC_Creer_une_mission .[norank].> UC_Affecter_un_vehicule_et_un_chauffe : << include >>
+UC_Deposer_une_demande_de_transport ..> UC_Estimer_le_prix_du_trajet : << include >>
+UC_Accepter_un_devis ..> UC_Creer_une_mission : << include >>
+UC_Creer_une_mission ..> UC_Affecter_un_vehicule_et_un_chauffe : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Optimiser_une_tournee .[norank].> UC_Affecter_un_vehicule_et_un_chauffe : << extend >>
+UC_Optimiser_une_tournee ..> UC_Affecter_un_vehicule_et_un_chauffe : << extend >>
 
 @enduml

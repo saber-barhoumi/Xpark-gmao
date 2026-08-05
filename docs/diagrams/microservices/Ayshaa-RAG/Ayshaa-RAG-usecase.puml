@@ -9,14 +9,15 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Ayshaa-RAG
 
-' Acteurs principaux, empiles verticalement a gauche
+' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Client" as Client
 actor "Administrateur" as Administrateur
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
+Employe -up-|> Utilisateur
 Client -up-|> Utilisateur
-Administrateur -up-|> Utilisateur
 
 rectangle "Service Assistant Conversationnel" {
   usecase "Poser une question" as UC_Poser_une_question
@@ -43,10 +44,10 @@ Qdrant -- UC_Rechercher_dans_la_base_documentai : << secondary >>
 Ollama -- UC_Rediger_une_reponse : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
-UC_Poser_une_question .[norank].> UC_Detecter_la_langue : << include >>
-UC_Poser_une_question .[norank].> UC_Rediger_une_reponse : << include >>
+UC_Poser_une_question ..> UC_Detecter_la_langue : << include >>
+UC_Poser_une_question ..> UC_Rediger_une_reponse : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Rechercher_dans_la_base_documentai .[norank].> UC_Poser_une_question : << extend >>
-UC_Interroger_les_donnees_metier .[norank].> UC_Poser_une_question : << extend >>
+UC_Rechercher_dans_la_base_documentai ..> UC_Poser_une_question : << extend >>
+UC_Interroger_les_donnees_metier ..> UC_Poser_une_question : << extend >>
 
 @enduml

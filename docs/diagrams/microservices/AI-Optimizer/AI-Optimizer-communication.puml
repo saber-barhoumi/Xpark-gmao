@@ -10,7 +10,6 @@ hide empty members
 skinparam componentStyle rectangle
 left to right direction
 
-
 title AI-Optimizer - Diagramme de communication
 
 ' 1. Clients
