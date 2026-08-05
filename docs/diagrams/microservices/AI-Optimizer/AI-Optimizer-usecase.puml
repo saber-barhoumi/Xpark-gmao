@@ -9,11 +9,12 @@ left to right direction
 
 title Diagramme de cas d'utilisation - AI-Optimizer
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Gestionnaire" as Gestionnaire
 
-Utilisateur <|-- Gestionnaire
+' Generalisation : triangle creux, de l'enfant vers le parent
+Gestionnaire -up-|> Utilisateur
 
 rectangle "Service Optimisation de Flotte" {
   usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
@@ -23,18 +24,19 @@ rectangle "Service Optimisation de Flotte" {
   usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
 }
 
-' Acteurs secondaires (a droite, hors frontiere)
+' Acteurs secondaires, a droite, hors de la frontiere
 actor "Bus de messages" as Bus
 
-' Associations : trait continu sans fleche (UML : relation d'association)
+' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Optimiser_une_affectation
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
 Bus -- UC_Optimiser_une_affectation : << secondary >>
 Bus -- UC_Produire_un_plan_d_affectation : << secondary >>
 
-UC_Optimiser_une_affectation ..> UC_Appliquer_les_contraintes_d_affect : << include >>
-UC_Optimiser_une_affectation ..> UC_Noter_les_candidats : << include >>
-UC_Optimiser_une_affectation ..> UC_Produire_un_plan_d_affectation : << include >>
+' << include >> : du cas de base vers le cas obligatoire
+UC_Optimiser_une_affectation .[norank].> UC_Appliquer_les_contraintes_d_affect : << include >>
+UC_Optimiser_une_affectation .[norank].> UC_Noter_les_candidats : << include >>
+UC_Optimiser_une_affectation .[norank].> UC_Produire_un_plan_d_affectation : << include >>
 
 @enduml

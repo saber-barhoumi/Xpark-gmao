@@ -1,44 +1,56 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
+skinparam backgroundColor #FFFFFF
+hide empty members
 skinparam componentStyle rectangle
+left to right direction
 
-title Mission - Communications
 
-skinparam componentStyle rectangle
+title Mission - Diagramme de communication
 
-component "**mission-api**" as ME #E8F5E9
+' 1. Clients
+component "backoffice\n<<interface utilisateur>>" as BO #E1F5FE
 
-component "backoffice" as BO #E1F5FE
-component "nginx" as GWc #ECEFF1
-database "postgres" as PG #FFF8E1
-queue "rabbitmq" as MQ #ECEFF1
+' 2. Passerelle
+component "nginx\n<<passerelle>>" as GW #ECEFF1
 
-BO -[#0066CC]-> GWc : HTTP
-GWc -[#0066CC]-> ME : proxy_pass /mission/
-ME -[#666666]-> PG : Npgsql
-component "finance-api" as finance_api #E8F5E9
-ME -[#0066CC]-> finance_api : HTTP interne
-component "fleet-api" as fleet_api #E8F5E9
-ME -[#0066CC]-> fleet_api : HTTP interne
-ME -[#CC6600]-> MQ : xpark.mission.client-request
-ME -[#CC6600]-> MQ : xpark.mission.task-cancelled
-ME -[#CC6600]-> MQ : xpark.mission.task-completed
-ME -[#CC6600]-> MQ : xpark.missions.ready-for-optimization
-ME -[#CC6600]-> MQ : xpark.optimization.plan-generated
-component "ai-predictor" as AIP #FCE4EC
-ME -[#0066CC]-> AIP : estimation de prix
-component "ai-optimizer" as AIO #FCE4EC
-MQ -[#CC6600]-> AIO : ready-for-optimization
-AIO -[#CC6600]-> MQ : plan-generated
+' 3. Service
+component "mission-api\n<<microservice>>" as API #E8F5E9
+
+' 4. Persistance et messagerie
+database "postgres\n<<base de donnees>>" as BD #FFF8E1
+queue "rabbitmq\n<<bus de messages>>" as MQ #FFF3E0
+component "finance-api\n<<microservice>>" as finance_api #E8F5E9
+component "fleet-api\n<<microservice>>" as fleet_api #E8F5E9
+
+' 5. Consommateurs
+component "ai-optimizer\n<<consommateur>>" as ai_optimizer #FCE4EC
+component "iboa\n<<consommateur>>" as iboa #FCE4EC
+
+' Flux synchrone (HTTP), de gauche a droite
+BO --> GW : requete
+GW --> API : /mission/
+API --> BD : Npgsql
+API --> finance_api : appel interne
+API --> fleet_api : appel interne
+
+' Flux asynchrone (AMQP) : une seule fleche par famille de cles
+API --> MQ : publie xpark.mission.client-request
+API --> MQ : publie xpark.mission.task-cancelled
+API --> MQ : publie xpark.mission.task-completed
+API --> MQ : publie xpark.missions.ready-for-optimization
+API --> MQ : publie xpark.optimization.plan-generated
+MQ --> ai_optimizer : Moteur d'optimisation
+MQ --> iboa : Journal metier
+
+note bottom of API
+  Mission publie la demande d'optimisation et consomme en retour
+  le plan produit : le sens des deux fleches vers le bus differe.
+end note
 
 @enduml

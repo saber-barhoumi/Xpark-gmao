@@ -9,7 +9,7 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Chat
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
@@ -17,11 +17,12 @@ actor "Technicien" as Technicien
 actor "Chauffeur" as Chauffeur
 actor "Client" as Client
 
-Utilisateur <|-- Administrateur
-Utilisateur <|-- Gestionnaire
-Utilisateur <|-- Technicien
-Utilisateur <|-- Chauffeur
-Utilisateur <|-- Client
+' Generalisation : triangle creux, de l'enfant vers le parent
+Administrateur -up-|> Utilisateur
+Gestionnaire -up-|> Utilisateur
+Technicien -up-|> Utilisateur
+Chauffeur -up-|> Utilisateur
+Client -up-|> Utilisateur
 
 rectangle "Service Messagerie" {
   usecase "Consulter ses conversations" as UC_Consulter_ses_conversations
@@ -29,7 +30,6 @@ rectangle "Service Messagerie" {
   usecase "Creer un groupe de discussion" as UC_Creer_un_groupe_de_discussion
   usecase "Archiver une conversation" as UC_Archiver_une_conversation
   usecase "Consulter les conversations archivees" as UC_Consulter_les_conversations_archiv
-  usecase "Supprimer une conversation" as UC_Supprimer_une_conversation
   usecase "Couper les notifications" as UC_Couper_les_notifications
   usecase "Consulter les messages" as UC_Consulter_les_messages
   usecase "Envoyer un message" as UC_Envoyer_un_message
@@ -39,24 +39,26 @@ rectangle "Service Messagerie" {
   usecase "Supprimer un message" as UC_Supprimer_un_message
   usecase "Consulter les correspondants connectes" as UC_Consulter_les_correspondants_conne
   usecase "Rechercher un correspondant" as UC_Rechercher_un_correspondant
+  usecase "Supprimer une conversation" as UC_Supprimer_une_conversation
 }
 
-' Associations : trait continu sans fleche (UML : relation d'association)
+' Associations : trait continu sans fleche (relation d'association)
+Utilisateur -- UC_Consulter_ses_conversations
+Utilisateur -- UC_Ouvrir_une_conversation_privee
+Utilisateur -- UC_Creer_un_groupe_de_discussion
 Utilisateur -- UC_Archiver_une_conversation
 Utilisateur -- UC_Consulter_les_conversations_archiv
-Utilisateur -- UC_Consulter_les_correspondants_conne
-Utilisateur -- UC_Consulter_les_messages
-Utilisateur -- UC_Consulter_ses_conversations
 Utilisateur -- UC_Couper_les_notifications
-Utilisateur -- UC_Creer_un_groupe_de_discussion
+Utilisateur -- UC_Consulter_les_messages
 Utilisateur -- UC_Envoyer_un_message
 Utilisateur -- UC_Epingler_un_message
-Utilisateur -- UC_Ouvrir_une_conversation_privee
-Utilisateur -- UC_Rechercher_un_correspondant
-Utilisateur -- UC_Supprimer_un_message
 Utilisateur -- UC_Transferer_un_message
+Utilisateur -- UC_Supprimer_un_message
+Utilisateur -- UC_Consulter_les_correspondants_conne
+Utilisateur -- UC_Rechercher_un_correspondant
 Administrateur -- UC_Supprimer_une_conversation
 
-UC_Joindre_un_fichier ..> UC_Envoyer_un_message : << extend >>
+' << extend >> : du cas optionnel vers le cas de base
+UC_Joindre_un_fichier .[norank].> UC_Envoyer_un_message : << extend >>
 
 @enduml

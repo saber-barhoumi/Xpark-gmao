@@ -9,41 +9,44 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Ayshaa-RAG
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Client" as Client
 actor "Administrateur" as Administrateur
 
-Utilisateur <|-- Client
-Utilisateur <|-- Administrateur
+' Generalisation : triangle creux, de l'enfant vers le parent
+Client -up-|> Utilisateur
+Administrateur -up-|> Utilisateur
 
 rectangle "Service Assistant Conversationnel" {
   usecase "Poser une question" as UC_Poser_une_question
   usecase "Detecter la langue" as UC_Detecter_la_langue
-  usecase "Rechercher dans la base documentaire" as UC_Rechercher_dans_la_base_documentai
   usecase "Rediger une reponse" as UC_Rediger_une_reponse
-  usecase "Consulter le message d'accueil" as UC_Consulter_le_message_d_accueil
+  usecase "Rechercher dans la base documentaire" as UC_Rechercher_dans_la_base_documentai
   usecase "Interroger les donnees metier" as UC_Interroger_les_donnees_metier
+  usecase "Consulter le message d'accueil" as UC_Consulter_le_message_d_accueil
   usecase "Reindexer la base documentaire" as UC_Reindexer_la_base_documentaire
   usecase "Consulter les statistiques du service" as UC_Consulter_les_statistiques_du_serv
 }
 
-' Acteurs secondaires (a droite, hors frontiere)
+' Acteurs secondaires, a droite, hors de la frontiere
 actor "Base vectorielle" as Qdrant
 actor "Modele de generation" as Ollama
 
-' Associations : trait continu sans fleche (UML : relation d'association)
+' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Poser_une_question
 Client -- UC_Consulter_le_message_d_accueil
-Administrateur -- UC_Consulter_les_statistiques_du_serv
 Administrateur -- UC_Reindexer_la_base_documentaire
+Administrateur -- UC_Consulter_les_statistiques_du_serv
 
 Qdrant -- UC_Rechercher_dans_la_base_documentai : << secondary >>
 Ollama -- UC_Rediger_une_reponse : << secondary >>
 
-UC_Poser_une_question ..> UC_Detecter_la_langue : << include >>
-UC_Poser_une_question ..> UC_Rediger_une_reponse : << include >>
-UC_Rechercher_dans_la_base_documentai ..> UC_Poser_une_question : << extend >>
-UC_Interroger_les_donnees_metier ..> UC_Poser_une_question : << extend >>
+' << include >> : du cas de base vers le cas obligatoire
+UC_Poser_une_question .[norank].> UC_Detecter_la_langue : << include >>
+UC_Poser_une_question .[norank].> UC_Rediger_une_reponse : << include >>
+' << extend >> : du cas optionnel vers le cas de base
+UC_Rechercher_dans_la_base_documentai .[norank].> UC_Poser_une_question : << extend >>
+UC_Interroger_les_donnees_metier .[norank].> UC_Poser_une_question : << extend >>
 
 @enduml

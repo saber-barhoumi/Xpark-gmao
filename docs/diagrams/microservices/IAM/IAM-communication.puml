@@ -1,31 +1,41 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
+skinparam backgroundColor #FFFFFF
+hide empty members
 skinparam componentStyle rectangle
+left to right direction
 
-title IAM - Communications
 
-skinparam componentStyle rectangle
+title IAM - Diagramme de communication
 
-component "**iam-api**" as ME #E8F5E9
+' 1. Clients
+component "backoffice\n<<interface utilisateur>>" as BO #E1F5FE
 
-component "backoffice" as BO #E1F5FE
-component "nginx" as GWc #ECEFF1
-database "postgres" as PG #FFF8E1
-queue "rabbitmq" as MQ #ECEFF1
+' 2. Passerelle
+component "nginx\n<<passerelle>>" as GW #ECEFF1
 
-BO -[#0066CC]-> GWc : HTTP
-GWc -[#0066CC]-> ME : proxy_pass /iam/
-ME -[#666666]-> PG : Npgsql
-ME -[#CC6600]-> MQ : MassTransit\nClientCreatedEvent, EmployeeCreatedEvent, UserApprovedEvent
+' 3. Service
+component "iam-api\n<<microservice>>" as API #E8F5E9
+
+' 4. Persistance et messagerie
+database "postgres\n<<base de donnees>>" as BD #FFF8E1
+queue "rabbitmq\n<<bus de messages>>" as MQ #FFF3E0
+
+' 5. Consommateurs
+component "chat-api\n<<consommateur>>" as chat_api #FCE4EC
+
+' Flux synchrone (HTTP), de gauche a droite
+BO --> GW : requete
+GW --> API : /iam/
+API --> BD : Npgsql
+
+' Flux asynchrone (AMQP) : une seule fleche par famille de cles
+API --> MQ : publie 5 evenements types
+MQ --> chat_api : Messagerie
 
 @enduml

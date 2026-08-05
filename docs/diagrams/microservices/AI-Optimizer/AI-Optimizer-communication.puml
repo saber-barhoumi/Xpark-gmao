@@ -1,33 +1,31 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
+skinparam backgroundColor #FFFFFF
+hide empty members
 skinparam componentStyle rectangle
+left to right direction
 
-title AI-Optimizer - Communications
 
-skinparam componentStyle rectangle
+title AI-Optimizer - Diagramme de communication
 
-component "**ai-optimizer**" as ME #E8F5E9
+' 1. Clients
+component "backoffice\n<<interface utilisateur>>" as BO #E1F5FE
 
-component "backoffice" as BO #E1F5FE
-component "nginx" as GWc #ECEFF1
-database "postgres" as PG #FFF8E1
-queue "rabbitmq" as MQ #ECEFF1
+' 2. Service
+component "ai-optimizer\n<<service IA>>" as API #FCE4EC
 
-component "mission-api" as MS #E8F5E9
-MS -[#CC6600]-> MQ : xpark.missions.ready-for-optimization
-MQ -[#CC6600]-> ME : file optimizer.ready-for-optimization
-ME -[#CC6600]-> MQ : xpark.optimization.plan-generated
-MQ -[#CC6600]-> MS : plan disponible
-BO -[#0066CC]-> ME : POST /optimize (appel direct)
+' 3. Messagerie
+queue "rabbitmq\n<<bus de messages>>" as MQ #FFF3E0
+component "mission-api\n<<microservice>>" as MS #E8F5E9
+
+MS --> MQ : demande d'optimisation
+MQ --> API : file optimizer
+API --> MQ : plan produit
+MQ --> MS : plan disponible
 
 @enduml

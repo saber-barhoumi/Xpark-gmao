@@ -9,18 +9,19 @@ left to right direction
 
 title Diagramme de cas d'utilisation - IBOA
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Administrateur" as Administrateur
 
-Utilisateur <|-- Administrateur
+' Generalisation : triangle creux, de l'enfant vers le parent
+Administrateur -up-|> Utilisateur
 
 rectangle "Service Journal Metier" {
+  usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
   usecase "Recevoir un evenement metier" as UC_Recevoir_un_evenement_metier
   usecase "Evaluer la criticite" as UC_Evaluer_la_criticite
   usecase "Regrouper les evenements lies" as UC_Regrouper_les_evenements_lies
   usecase "Diffuser une alerte" as UC_Diffuser_une_alerte
-  usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
   usecase "Consulter les alertes metier" as UC_Consulter_les_alertes_metier
   usecase "Consulter les statistiques" as UC_Consulter_les_statistiques
   usecase "Definir ses preferences de diffusion" as UC_Definir_ses_preferences_de_diffusi
@@ -29,20 +30,22 @@ rectangle "Service Journal Metier" {
   usecase "Purger les alertes" as UC_Purger_les_alertes
 }
 
-' Acteurs secondaires (a droite, hors frontiere)
+' Acteurs secondaires, a droite, hors de la frontiere
 actor "Bus de messages" as Bus
 actor "Serveur de messagerie" as SMTP
 actor "Passerelle de messagerie instantanee" as Twilio
 
-' Associations : trait continu sans fleche (UML : relation d'association)
+' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_le_journal_des_evenement
 
 Bus -- UC_Recevoir_un_evenement_metier : << secondary >>
 SMTP -- UC_Diffuser_une_alerte : << secondary >>
 Twilio -- UC_Diffuser_une_alerte : << secondary >>
 
-UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>
-UC_Evaluer_la_criticite ..> UC_Regrouper_les_evenements_lies : << include >>
-UC_Diffuser_une_alerte ..> UC_Evaluer_la_criticite : << extend >>
+' << include >> : du cas de base vers le cas obligatoire
+UC_Recevoir_un_evenement_metier .[norank].> UC_Evaluer_la_criticite : << include >>
+UC_Evaluer_la_criticite .[norank].> UC_Regrouper_les_evenements_lies : << include >>
+' << extend >> : du cas optionnel vers le cas de base
+UC_Diffuser_une_alerte .[norank].> UC_Evaluer_la_criticite : << extend >>
 
 @enduml

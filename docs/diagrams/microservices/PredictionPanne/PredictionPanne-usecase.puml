@@ -9,40 +9,42 @@ left to right direction
 
 title Diagramme de cas d'utilisation - PredictionPanne
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 actor "Technicien" as Technicien
 
-Utilisateur <|-- Responsable
-Responsable <|-- Administrateur
-Responsable <|-- Gestionnaire
-Utilisateur <|-- Technicien
+' Generalisation : triangle creux, de l'enfant vers le parent
+Administrateur -up-|> Responsable
+Gestionnaire -up-|> Responsable
+Responsable -up-|> Utilisateur
+Technicien -up-|> Utilisateur
 
 rectangle "Service Maintenance Predictive" {
   usecase "Consulter le tableau de bord des risques" as UC_Consulter_le_tableau_de_bord_des_r
   usecase "Consulter la sante de la flotte" as UC_Consulter_la_sante_de_la_flotte
-  usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
-  usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
   usecase "Recalculer les predictions" as UC_Recalculer_les_predictions
   usecase "Evaluer le risque de panne" as UC_Evaluer_le_risque_de_panne
-  usecase "Identifier l'organe a risque" as UC_Identifier_l_organe_a_risque
   usecase "Supprimer une prediction" as UC_Supprimer_une_prediction
   usecase "Supprimer un lot de predictions" as UC_Supprimer_un_lot_de_predictions
+  usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
+  usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
+  usecase "Identifier l'organe a risque" as UC_Identifier_l_organe_a_risque
 }
 
-' Associations : trait continu sans fleche (UML : relation d'association)
+' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_le_tableau_de_bord_des_r
 Responsable -- UC_Consulter_la_sante_de_la_flotte
 Responsable -- UC_Recalculer_les_predictions
-Administrateur -- UC_Supprimer_un_lot_de_predictions
 Administrateur -- UC_Supprimer_une_prediction
-Technicien -- UC_Consulter_l_historique_des_predict
+Administrateur -- UC_Supprimer_un_lot_de_predictions
 Technicien -- UC_Consulter_la_sante_d_un_vehicule
+Technicien -- UC_Consulter_l_historique_des_predict
 
-UC_Recalculer_les_predictions ..> UC_Evaluer_le_risque_de_panne : << include >>
-UC_Evaluer_le_risque_de_panne ..> UC_Identifier_l_organe_a_risque : << include >>
+' << include >> : du cas de base vers le cas obligatoire
+UC_Recalculer_les_predictions .[norank].> UC_Evaluer_le_risque_de_panne : << include >>
+UC_Evaluer_le_risque_de_panne .[norank].> UC_Identifier_l_organe_a_risque : << include >>
 
 @enduml

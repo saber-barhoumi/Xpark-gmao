@@ -9,7 +9,7 @@ left to right direction
 
 title Diagramme de cas d'utilisation - IAM
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
@@ -18,80 +18,83 @@ actor "Chauffeur" as Chauffeur
 actor "Technicien" as Technicien
 actor "Client" as Client
 
-Utilisateur <|-- Responsable
-Responsable <|-- Administrateur
-Responsable <|-- Gestionnaire
-Utilisateur <|-- Chauffeur
-Utilisateur <|-- Technicien
-Utilisateur <|-- Client
+' Generalisation : triangle creux, de l'enfant vers le parent
+Administrateur -up-|> Responsable
+Gestionnaire -up-|> Responsable
+Responsable -up-|> Utilisateur
+Chauffeur -up-|> Utilisateur
+Technicien -up-|> Utilisateur
+Client -up-|> Utilisateur
 
 rectangle "Service Identites et Acces" {
   usecase "Se connecter" as UC_Se_connecter
-  usecase "Se deconnecter" as UC_Se_deconnecter
-  usecase "S'inscrire" as UC_S_inscrire
   usecase "Valider un second facteur" as UC_Valider_un_second_facteur
+  usecase "Se deconnecter" as UC_Se_deconnecter
   usecase "Reinitialiser son mot de passe" as UC_Reinitialiser_son_mot_de_passe
-  usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
-  usecase "Se connecter par code PIN" as UC_Se_connecter_par_code_PIN
-  usecase "Verrouiller sa session" as UC_Verrouiller_sa_session
   usecase "Consulter son profil" as UC_Consulter_son_profil
   usecase "Modifier son profil" as UC_Modifier_son_profil
   usecase "Changer son mot de passe" as UC_Changer_son_mot_de_passe
   usecase "Deposer une photo de profil" as UC_Deposer_une_photo_de_profil
-  usecase "Approuver un compte" as UC_Approuver_un_compte
-  usecase "Rejeter un compte" as UC_Rejeter_un_compte
+  usecase "Activer le second facteur" as UC_Activer_le_second_facteur
+  usecase "Desactiver le second facteur" as UC_Desactiver_le_second_facteur
   usecase "Changer le role d'un compte" as UC_Changer_le_role_d_un_compte
   usecase "Suspendre un compte" as UC_Suspendre_un_compte
   usecase "Reactiver un compte" as UC_Reactiver_un_compte
+  usecase "Gerer les clients" as UC_Gerer_les_clients
+  usecase "Gerer les employes" as UC_Gerer_les_employes
+  usecase "Approuver un compte" as UC_Approuver_un_compte
+  usecase "Rejeter un compte" as UC_Rejeter_un_compte
   usecase "Supprimer un compte" as UC_Supprimer_un_compte
   usecase "Consulter les dependances metier" as UC_Consulter_les_dependances_metier
   usecase "Archiver un compte" as UC_Archiver_un_compte
   usecase "Restaurer un compte archive" as UC_Restaurer_un_compte_archive
   usecase "Purger un compte archive" as UC_Purger_un_compte_archive
-  usecase "Activer le second facteur" as UC_Activer_le_second_facteur
-  usecase "Desactiver le second facteur" as UC_Desactiver_le_second_facteur
   usecase "Consulter l'historique des connexions" as UC_Consulter_l_historique_des_connexi
   usecase "Effacer l'historique des connexions" as UC_Effacer_l_historique_des_connexion
-  usecase "Gerer les clients" as UC_Gerer_les_clients
-  usecase "Gerer les employes" as UC_Gerer_les_employes
+  usecase "Se connecter par code PIN" as UC_Se_connecter_par_code_PIN
+  usecase "Verrouiller sa session" as UC_Verrouiller_sa_session
+  usecase "S'inscrire" as UC_S_inscrire
+  usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
 }
 
-' Acteurs secondaires (a droite, hors frontiere)
+' Acteurs secondaires, a droite, hors de la frontiere
 actor "Serveur de messagerie" as SMTP
 
-' Associations : trait continu sans fleche (UML : relation d'association)
-Utilisateur -- UC_Activer_le_second_facteur
-Utilisateur -- UC_Changer_son_mot_de_passe
-Utilisateur -- UC_Consulter_son_profil
-Utilisateur -- UC_Deposer_une_photo_de_profil
-Utilisateur -- UC_Desactiver_le_second_facteur
-Utilisateur -- UC_Modifier_son_profil
-Utilisateur -- UC_Reinitialiser_son_mot_de_passe
+' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Se_connecter
 Utilisateur -- UC_Se_deconnecter
+Utilisateur -- UC_Reinitialiser_son_mot_de_passe
+Utilisateur -- UC_Consulter_son_profil
+Utilisateur -- UC_Modifier_son_profil
+Utilisateur -- UC_Changer_son_mot_de_passe
+Utilisateur -- UC_Deposer_une_photo_de_profil
+Utilisateur -- UC_Activer_le_second_facteur
+Utilisateur -- UC_Desactiver_le_second_facteur
 Responsable -- UC_Changer_le_role_d_un_compte
+Responsable -- UC_Suspendre_un_compte
+Responsable -- UC_Reactiver_un_compte
 Responsable -- UC_Gerer_les_clients
 Responsable -- UC_Gerer_les_employes
-Responsable -- UC_Reactiver_un_compte
-Responsable -- UC_Suspendre_un_compte
 Administrateur -- UC_Approuver_un_compte
+Administrateur -- UC_Rejeter_un_compte
+Administrateur -- UC_Supprimer_un_compte
+Administrateur -- UC_Restaurer_un_compte_archive
+Administrateur -- UC_Purger_un_compte_archive
 Administrateur -- UC_Consulter_l_historique_des_connexi
 Administrateur -- UC_Effacer_l_historique_des_connexion
-Administrateur -- UC_Purger_un_compte_archive
-Administrateur -- UC_Rejeter_un_compte
-Administrateur -- UC_Restaurer_un_compte_archive
-Administrateur -- UC_Supprimer_un_compte
 Chauffeur -- UC_Se_connecter_par_code_PIN
 Chauffeur -- UC_Verrouiller_sa_session
-Client -- UC_Confirmer_son_adresse_electronique
 Client -- UC_S_inscrire
+Client -- UC_Confirmer_son_adresse_electronique
 
 SMTP -- UC_Valider_un_second_facteur : << secondary >>
 SMTP -- UC_Confirmer_son_adresse_electronique : << secondary >>
 SMTP -- UC_Reinitialiser_son_mot_de_passe : << secondary >>
 
-UC_Supprimer_un_compte ..> UC_Consulter_les_dependances_metier : << include >>
-UC_Valider_un_second_facteur ..> UC_Se_connecter : << extend >>
-UC_Archiver_un_compte ..> UC_Supprimer_un_compte : << extend >>
+' << include >> : du cas de base vers le cas obligatoire
+UC_Supprimer_un_compte .[norank].> UC_Consulter_les_dependances_metier : << include >>
+' << extend >> : du cas optionnel vers le cas de base
+UC_Valider_un_second_facteur .[norank].> UC_Se_connecter : << extend >>
+UC_Archiver_un_compte .[norank].> UC_Supprimer_un_compte : << extend >>
 
 @enduml

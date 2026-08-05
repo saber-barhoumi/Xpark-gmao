@@ -1,30 +1,33 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
+skinparam backgroundColor #FFFFFF
+hide empty members
 skinparam componentStyle rectangle
+left to right direction
 
-title Finance - Communications
 
-skinparam componentStyle rectangle
+title Finance - Diagramme de communication
 
-component "**finance-api**" as ME #E8F5E9
+' 1. Clients
+component "backoffice\n<<interface utilisateur>>" as BO #E1F5FE
 
-component "backoffice" as BO #E1F5FE
-component "nginx" as GWc #ECEFF1
-database "postgres" as PG #FFF8E1
-queue "rabbitmq" as MQ #ECEFF1
+' 2. Passerelle
+component "nginx\n<<passerelle>>" as GW #ECEFF1
 
-BO -[#0066CC]-> GWc : HTTP
-GWc -[#0066CC]-> ME : proxy_pass /finance/
-ME -[#666666]-> PG : Npgsql
+' 3. Service
+component "finance-api\n<<microservice>>" as API #E8F5E9
+
+' 4. Persistance et messagerie
+database "postgres\n<<base de donnees>>" as BD #FFF8E1
+
+' Flux synchrone (HTTP), de gauche a droite
+BO --> GW : requete
+GW --> API : /finance/
+API --> BD : Npgsql
 
 @enduml

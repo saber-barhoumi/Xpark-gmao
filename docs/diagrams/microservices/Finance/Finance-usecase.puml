@@ -9,39 +9,42 @@ left to right direction
 
 title Diagramme de cas d'utilisation - Finance
 
-' Acteurs principaux (a gauche)
+' Acteurs principaux, empiles verticalement a gauche
 actor "Utilisateur" as Utilisateur
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 actor "Client" as Client
 
-Utilisateur <|-- Responsable
-Responsable <|-- Administrateur
-Responsable <|-- Gestionnaire
-Utilisateur <|-- Client
+' Generalisation : triangle creux, de l'enfant vers le parent
+Administrateur -up-|> Responsable
+Gestionnaire -up-|> Responsable
+Responsable -up-|> Utilisateur
+Client -up-|> Utilisateur
 
 rectangle "Service Finance" {
   usecase "Consulter les factures" as UC_Consulter_les_factures
-  usecase "Consulter ses factures" as UC_Consulter_ses_factures
+  usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
   usecase "Etablir une facture" as UC_Etablir_une_facture
   usecase "Verifier les missions facturables" as UC_Verifier_les_missions_facturables
   usecase "Marquer une facture comme payee" as UC_Marquer_une_facture_comme_payee
   usecase "Annuler une facture" as UC_Annuler_une_facture
-  usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
   usecase "Consulter les factures d'un client" as UC_Consulter_les_factures_d_un_client
+  usecase "Consulter ses factures" as UC_Consulter_ses_factures
 }
 
-' Associations : trait continu sans fleche (UML : relation d'association)
+' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_les_factures
-Responsable -- UC_Annuler_une_facture
-Responsable -- UC_Consulter_les_factures_d_un_client
 Responsable -- UC_Consulter_les_factures_impayees
 Responsable -- UC_Etablir_une_facture
 Responsable -- UC_Marquer_une_facture_comme_payee
+Responsable -- UC_Annuler_une_facture
+Responsable -- UC_Consulter_les_factures_d_un_client
 Client -- UC_Consulter_ses_factures
 
-UC_Etablir_une_facture ..> UC_Verifier_les_missions_facturables : << include >>
-UC_Consulter_les_factures_impayees ..> UC_Consulter_les_factures : << extend >>
+' << include >> : du cas de base vers le cas obligatoire
+UC_Etablir_une_facture .[norank].> UC_Verifier_les_missions_facturables : << include >>
+' << extend >> : du cas optionnel vers le cas de base
+UC_Consulter_les_factures_impayees .[norank].> UC_Consulter_les_factures : << extend >>
 
 @enduml

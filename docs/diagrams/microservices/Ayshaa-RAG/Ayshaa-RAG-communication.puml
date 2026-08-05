@@ -1,41 +1,32 @@
 @startuml
 skinparam style strictuml
-skinparam backgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
-skinparam roundCorner 6
-skinparam ArrowColor #4A5568
-skinparam TitleFontSize 16
-skinparam TitleFontColor #1A202C
-skinparam NoteBackgroundColor #FFF8DC
-skinparam NoteBorderColor #D6BF7A
+skinparam backgroundColor #FFFFFF
+hide empty members
 skinparam componentStyle rectangle
+left to right direction
 
-title Ayshaa-RAG - Communications
 
-skinparam componentStyle rectangle
+title Ayshaa-RAG - Diagramme de communication
 
-component "**ayshaa-rag**" as ME #E8F5E9
+' 1. Clients
+component "backoffice\n<<interface utilisateur>>" as BO #E1F5FE
 
-component "backoffice" as BO #E1F5FE
-component "nginx" as GWc #ECEFF1
-database "postgres" as PG #FFF8E1
-queue "rabbitmq" as MQ #ECEFF1
+' 2. Service
+component "ayshaa-rag\n<<service IA>>" as API #FCE4EC
 
-component "frontoffice" as FO #E1F5FE
-FO -[#0066CC]-> ME : POST /chat
-component "iam-api" as iam_api #E8F5E9
-ME -[#0066CC]-> iam_api : outils metier
-component "fleet-api" as fleet_api #E8F5E9
-ME -[#0066CC]-> fleet_api : outils metier
-component "mission-api" as mission_api #E8F5E9
-ME -[#0066CC]-> mission_api : outils metier
-component "ai-predictor" as ai_predictor #E8F5E9
-ME -[#0066CC]-> ai_predictor : outils metier
-database "qdrant" as QD #FFF8E1
-component "ollama" as OL #FCE4EC
-ME -[#666666]-> QD : recherche vectorielle
-ME -[#0066CC]-> OL : generation (repli extractif si absent)
+' 3. Ressources
+database "qdrant\n<<base vectorielle>>" as QD #FFF8E1
+component "ollama\n<<modele de generation>>" as OL #FCE4EC
+component "services metier\n<<microservices>>" as MET #E8F5E9
+
+BO --> API : question
+API --> QD : recherche vectorielle
+API --> MET : consultation metier
+API --> OL : generation
 
 @enduml
