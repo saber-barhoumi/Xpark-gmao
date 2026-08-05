@@ -6,8 +6,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title IAM - Approbation d'un compte
-
 actor "Administrateur" as A
 participant "UserManagementController" as CTRL <<control>>
 participant "IUserService" as IUS <<interface>>

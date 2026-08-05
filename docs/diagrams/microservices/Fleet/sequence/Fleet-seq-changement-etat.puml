@@ -7,8 +7,6 @@ skinparam backgroundColor #FFFFFF
 skinparam sequenceMessageAlign first
 autonumber
 
-title Fleet - Changement d'etat d'un vehicule
-
 actor "Gestionnaire" as G
 participant "VehiculesController" as CTRL <<control>>
 participant "IVehiculeService" as IVS <<interface>>

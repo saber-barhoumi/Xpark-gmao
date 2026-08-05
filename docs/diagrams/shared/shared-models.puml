@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Shared - Enumerations communes
-
 hide empty members
 left to right direction
 

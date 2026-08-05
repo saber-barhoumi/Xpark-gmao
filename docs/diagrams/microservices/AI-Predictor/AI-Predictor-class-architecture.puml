@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - AI-Predictor
-
 package "CalculateurPrixTrajetIA" {
   class "main" as main_py <<module>> {
     +health()
@@ -18,6 +16,5 @@ package "CalculateurPrixTrajetIA" {
     +predict()
   }
 }
-
 
 @enduml

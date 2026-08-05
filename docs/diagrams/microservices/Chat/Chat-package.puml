@@ -12,8 +12,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Chat - Organisation en paquets
-
 package "Chat.API" as API #E1F5FE {
   [Controllers]
   [Program.cs]

@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - Finance
-
 package "Finance.API" {
   class FacturesController <<control>> {
     +GetAll(page : int, pageSize : int, statut : string?) : Task<IActionResult>

@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - IBOA
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Administrateur" as Administrateur
@@ -38,9 +36,9 @@ actor "Passerelle de messagerie instantanee" as Twilio
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_le_journal_des_evenement
 
-UC_Recevoir_un_evenement_metier -right- Bus : << secondary >>
-UC_Diffuser_une_alerte -right- SMTP : << secondary >>
-UC_Diffuser_une_alerte -right- Twilio : << secondary >>
+UC_Recevoir_un_evenement_metier -right- Bus
+UC_Diffuser_une_alerte -right- SMTP
+UC_Diffuser_une_alerte -right- Twilio
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>

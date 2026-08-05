@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - AI-Optimizer
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Gestionnaire" as Gestionnaire
@@ -31,8 +29,8 @@ actor "Bus de messages" as Bus
 Utilisateur -- UC_Optimiser_une_affectation
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
-UC_Optimiser_une_affectation -right- Bus : << secondary >>
-UC_Produire_un_plan_d_affectation -right- Bus : << secondary >>
+UC_Optimiser_une_affectation -right- Bus
+UC_Produire_un_plan_d_affectation -right- Bus
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Optimiser_une_affectation ..> UC_Appliquer_les_contraintes_d_affect : << include >>

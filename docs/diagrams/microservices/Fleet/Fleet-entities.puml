@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Fleet - Modele du domaine
-
 class Assurance <<entity>> {
   -idAssurance : Long {id}
   -compagnie : String

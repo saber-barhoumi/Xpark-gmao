@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Diagramme de deploiement
-
 node "Hote Docker" as Hote {
   node "Reseau bridge xpark-network" as Net {
     artifact "ai-optimizer \n8001:8000\nbuild ./OptimisateurFlotteIA" as ai_optimizer

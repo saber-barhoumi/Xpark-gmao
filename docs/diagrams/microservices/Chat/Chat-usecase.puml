@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - Chat
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe

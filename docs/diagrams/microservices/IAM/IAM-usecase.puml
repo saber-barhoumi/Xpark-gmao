@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - IAM
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
@@ -89,9 +87,9 @@ Chauffeur -- UC_Verrouiller_sa_session
 Client -- UC_S_inscrire
 Client -- UC_Confirmer_son_adresse_electronique
 
-UC_Valider_un_second_facteur -right- SMTP : << secondary >>
-UC_Confirmer_son_adresse_electronique -right- SMTP : << secondary >>
-UC_Reinitialiser_son_mot_de_passe -right- SMTP : << secondary >>
+UC_Valider_un_second_facteur -right- SMTP
+UC_Confirmer_son_adresse_electronique -right- SMTP
+UC_Reinitialiser_son_mot_de_passe -right- SMTP
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Supprimer_un_compte ..> UC_Consulter_les_dependances_metier : << include >>

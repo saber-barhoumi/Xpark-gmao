@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Organisation en paquets (Clean Architecture)
-
 package "XparkGMAO.Shared" as Sh #ECEFF1 {
   class Events
   class Enums

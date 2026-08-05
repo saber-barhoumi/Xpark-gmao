@@ -7,8 +7,6 @@ skinparam backgroundColor #FFFFFF
 skinparam sequenceMessageAlign first
 autonumber
 
-title Fleet - Suivi des echeances administratives
-
 actor "Gestionnaire" as G
 participant "EcheancesController" as CTRL <<control>>
 participant "IEcheanceService" as IES <<interface>>

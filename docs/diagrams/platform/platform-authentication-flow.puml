@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Flux d'authentification
-
 skinparam ActivityBackgroundColor #E3F2FD
 
 start

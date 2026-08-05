@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Shared - Bibliotheques partagees
-
 skinparam componentStyle rectangle
 
 package "XparkGMAO.Shared" #ECEFF1 {

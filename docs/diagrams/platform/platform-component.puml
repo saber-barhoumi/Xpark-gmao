@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Diagramme de composants
-
 component "Back-office React" as BO #E1F5FE
 component "Portail client Next.js" as FO #E1F5FE
 component "nginx (passerelle)" as GWc #ECEFF1

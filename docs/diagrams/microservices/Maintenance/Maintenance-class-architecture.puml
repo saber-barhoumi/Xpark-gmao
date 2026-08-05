@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - Maintenance
-
 package "Maintenance.API" {
   class InterventionsController <<control>> {
     +GetAll(page : int, pageSize : int, statut : string?, type : string?, vehiculeId : long?) : Task<IActionResult>

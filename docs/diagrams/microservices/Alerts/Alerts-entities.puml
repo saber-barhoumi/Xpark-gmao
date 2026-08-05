@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Alerts - Modele du domaine
-
 class Alerte <<entity>> {
   -idAlerte : Long {id}
   -message : String

@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - Mission
-
 package "Mission.API" {
   class DataMigrationController <<control>> {
     +MigrateHistorical(ct : CT) : Task<IActionResult>

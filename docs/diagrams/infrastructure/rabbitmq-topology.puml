@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Infrastructure - Topologie RabbitMQ
-
 skinparam componentStyle rectangle
 
 package "Bus 1 : MassTransit (messages types)" #E3F2FD {

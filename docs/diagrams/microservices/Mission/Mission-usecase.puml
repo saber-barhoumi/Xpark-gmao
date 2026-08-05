@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - Mission
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
@@ -71,8 +69,8 @@ Client -- UC_Refuser_un_devis
 Client -- UC_Suivre_une_mission_en_direct
 Client -- UC_Ouvrir_un_ticket_de_support
 
-UC_Estimer_le_prix_du_trajet -right- Estimateur : << secondary >>
-UC_Optimiser_une_tournee -right- Optimiseur : << secondary >>
+UC_Estimer_le_prix_du_trajet -right- Estimateur
+UC_Optimiser_une_tournee -right- Optimiseur
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Deposer_une_demande_de_transport ..> UC_Estimer_le_prix_du_trajet : << include >>

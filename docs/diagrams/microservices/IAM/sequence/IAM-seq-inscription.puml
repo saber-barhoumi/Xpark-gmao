@@ -6,15 +6,13 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title IAM - Inscription d'un compte
-
 actor "Visiteur" as V
 participant "AuthController" as CTRL <<control>>
 participant "IAuthService" as IAS <<interface>>
 participant "AuthService" as AS <<service>>
 participant "IamDbContext" as REPO <<repository>>
 database "Base de donnees" as BD
-participant "Serveur de messagerie" as SMTP <<secondary>>
+participant "Serveur de messagerie" as SMTP
 queue "Bus d'evenements" as BUS
 
 V -> CTRL : sInscrire(inscriptionDto)

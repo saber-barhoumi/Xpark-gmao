@@ -6,8 +6,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title Mission - Suivi d'une mission en direct
-
 actor "Chauffeur" as D
 actor "Client" as C
 participant "TrackingController" as CTRL <<control>>

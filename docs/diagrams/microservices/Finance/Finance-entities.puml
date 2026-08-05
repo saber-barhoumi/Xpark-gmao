@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Finance - Modele du domaine
-
 class Facture <<entity>> {
   -idFacture : Long {id}
   -numeroFacture : String

@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 skinparam ArrowColor #455A64
 
-title Architecture logique - XPARK GMAO
-
 ' ============================================================
 '  1. NIVEAU PRESENTATION
 ' ============================================================

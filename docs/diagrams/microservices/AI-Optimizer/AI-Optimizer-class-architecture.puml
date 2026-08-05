@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - AI-Optimizer
-
 package "OptimisateurFlotteIA" {
   class "constraints" as constraints_py <<module>> {
     +vehicle_class()

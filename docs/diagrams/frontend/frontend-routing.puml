@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Back-office - Routage (react-router-dom)
-
 skinparam componentStyle rectangle
 left to right direction
 

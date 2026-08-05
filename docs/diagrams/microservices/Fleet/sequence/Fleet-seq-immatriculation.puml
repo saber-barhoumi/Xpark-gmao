@@ -7,8 +7,6 @@ skinparam backgroundColor #FFFFFF
 skinparam sequenceMessageAlign first
 autonumber
 
-title Fleet - Immatriculation d'un vehicule
-
 actor "Gestionnaire" as G
 participant "VehiculesController" as CTRL <<control>>
 participant "IVehiculeService" as IVS <<interface>>

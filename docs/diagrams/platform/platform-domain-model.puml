@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Modele de domaine (entites principales)
-
 hide empty members
 
 package "IAM" #E3F2FD {

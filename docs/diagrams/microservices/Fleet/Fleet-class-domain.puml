@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes du domaine - Fleet
-
 class Assurance <<entity>> {
   +IdAssurance : Long {id}
   +Compagnie : String

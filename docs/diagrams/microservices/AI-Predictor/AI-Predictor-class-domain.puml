@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes du domaine - AI-Predictor
-
 note as N
   Ce service ne definit aucune structure de donnees composee :
   ses modeles Pydantic sont des messages plats, sans relation

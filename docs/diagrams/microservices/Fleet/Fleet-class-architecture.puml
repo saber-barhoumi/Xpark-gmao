@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - Fleet
-
 package "Fleet.API" {
   class AssurancesController <<control>> {
     +GetByVehicule(vehiculeId : long) : Task<IActionResult>

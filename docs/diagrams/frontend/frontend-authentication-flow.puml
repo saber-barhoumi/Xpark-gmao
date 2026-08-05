@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Back-office - Flux d'authentification cote interface
-
 skinparam ActivityBackgroundColor #E1F5FE
 
 start

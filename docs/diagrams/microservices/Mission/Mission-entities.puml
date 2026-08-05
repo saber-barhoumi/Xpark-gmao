@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Mission - Modele du domaine
-
 class LivePosition <<entity>> {
   -idPosition : Long {id}
   -latitude : Double

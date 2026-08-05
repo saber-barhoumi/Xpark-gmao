@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes du domaine - IAM
-
 class Chauffeur <<entity>> {
   +NumeroPermis : String
   +DateExpirationPermis : Date

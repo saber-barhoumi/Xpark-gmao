@@ -6,8 +6,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title Maintenance - Declaration d'une intervention
-
 actor "Technicien" as T
 participant "InterventionsController" as CTRL <<control>>
 participant "IMaintenanceService" as IMS <<interface>>

@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - PredictionPanne
-
 package "PredictionPanne.API" {
   class PredictionsController <<control>> {
     +GetDashboard() : Task<IActionResult>

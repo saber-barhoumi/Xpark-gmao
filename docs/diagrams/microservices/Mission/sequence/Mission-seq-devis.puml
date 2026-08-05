@@ -6,8 +6,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title Mission - Etablissement et acceptation d'un devis
-
 actor "Gestionnaire" as G
 actor "Client" as C
 participant "TransportRequestsController" as CTRL <<control>>

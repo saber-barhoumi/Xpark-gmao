@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Maintenance - Modele du domaine
-
 class Attachment <<entity>> {
   -id : Long {id}
   -nom : String

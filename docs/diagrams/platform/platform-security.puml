@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Vue securite
-
 skinparam componentStyle rectangle
 
 package "1. Transport et exposition" #ECEFF1 {

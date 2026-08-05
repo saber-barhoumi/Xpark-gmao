@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Shared - Contrat de reponse commun et DTO par service
-
 hide empty members
 
 package "XparkGMAO.Shared.Common" #ECEFF1 {

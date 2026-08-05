@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Infrastructure - Topologie SignalR
-
 skinparam componentStyle rectangle
 
 component "backoffice\nsignalRService.ts\n@microsoft/signalr" as BO #E1F5FE
@@ -27,7 +25,6 @@ BO --> N1 : WebSocket
 N1 --> N2 : proxy_read_timeout 86400s
 N2 --> HUB
 HUB --> PG : ChatDbContext
-
 
 component "backoffice\nuseKanbanContext" as KB #E1F5FE
 component "location /kanbanHub\n-> /backend/kanbanHub" as KN #FFEBEE

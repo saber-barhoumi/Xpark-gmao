@@ -12,8 +12,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title AI-Optimizer - Flux d'inference
-
 skinparam ActivityBackgroundColor #FCE4EC
 
 start

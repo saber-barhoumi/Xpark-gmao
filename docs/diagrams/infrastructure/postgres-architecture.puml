@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Infrastructure - Architecture PostgreSQL
-
 skinparam componentStyle rectangle
 
 database "postgres:16-alpine\nconteneur xpark-postgres\n:5432" as PG #FFF8E1 {

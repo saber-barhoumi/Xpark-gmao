@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes du domaine - PredictionPanne
-
 class Prediction <<entity>> {
   +IdPrediction : Long {id}
   +VehiculeId : Long

@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Fleet - Chaine interne en couches
-
 skinparam componentStyle rectangle
 
 actor "Client du service" as CLIENT

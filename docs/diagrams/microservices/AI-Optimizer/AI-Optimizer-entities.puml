@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title AI-Optimizer - Modele du domaine
-
 note as N
   Service Python : les structures de donnees sont des modeles
   Pydantic, c'est-a-dire des objets-valeurs de transfert et non

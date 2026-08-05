@@ -6,8 +6,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title Maintenance - Ouverture et suivi d'un ordre de travail
-
 actor "Gestionnaire" as G
 actor "Technicien" as T
 participant "OrdreTravailController" as CTRL <<control>>

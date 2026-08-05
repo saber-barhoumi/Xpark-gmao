@@ -12,8 +12,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Maintenance - Diagramme d'etats
-
 skinparam state {
   BackgroundColor #F5F7FA
   BorderColor #78909C

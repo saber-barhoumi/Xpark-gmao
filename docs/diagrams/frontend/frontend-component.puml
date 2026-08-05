@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Back-office - Architecture des composants
-
 skinparam componentStyle rectangle
 
 package "Point d'entree" #E1F5FE {

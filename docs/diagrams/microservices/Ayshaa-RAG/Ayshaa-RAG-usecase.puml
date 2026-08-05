@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - Ayshaa-RAG
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
@@ -41,8 +39,8 @@ Client -- UC_Consulter_le_message_d_accueil
 Administrateur -- UC_Reindexer_la_base_documentaire
 Administrateur -- UC_Consulter_les_statistiques_du_serv
 
-UC_Rechercher_dans_la_base_documentai -right- Qdrant : << secondary >>
-UC_Rediger_une_reponse -right- Ollama : << secondary >>
+UC_Rechercher_dans_la_base_documentai -right- Qdrant
+UC_Rediger_une_reponse -right- Ollama
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Poser_une_question ..> UC_Detecter_la_langue : << include >>

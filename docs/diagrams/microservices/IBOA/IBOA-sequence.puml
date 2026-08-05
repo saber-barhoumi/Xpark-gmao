@@ -12,8 +12,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title IBOA - Notation et journalisation d'un evenement metier
-
 autonumber
 
 participant "fleet-api / mission-api" as SRC

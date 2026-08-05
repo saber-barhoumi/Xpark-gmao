@@ -10,8 +10,6 @@ hide empty members
 skinparam componentStyle rectangle
 left to right direction
 
-title Ayshaa-RAG - Diagramme de communication
-
 ' 1. Clients
 component "backoffice\n<<interface utilisateur>>" as BO #E1F5FE
 

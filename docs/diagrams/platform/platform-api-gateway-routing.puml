@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Routage des API
-
 skinparam componentStyle rectangle
 
 component "backoffice (React)" as BO #E1F5FE

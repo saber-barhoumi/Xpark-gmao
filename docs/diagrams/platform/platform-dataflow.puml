@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Flux de donnees d'une demande de transport
-
 skinparam ActivityBackgroundColor #E8F5E9
 skinparam ActivityBorderColor #66BB6A
 

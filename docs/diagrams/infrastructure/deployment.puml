@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Infrastructure - Deploiement
-
 node "Machine hote (Docker Engine)" as Hote {
   component "docker compose" as DC #ECEFF1
   node "xpark-network (bridge)" as Net {

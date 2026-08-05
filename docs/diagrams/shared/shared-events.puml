@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Shared - Evenements d'integration
-
 hide empty members
 
 package "Evenements IAM" #E8F5E9 {

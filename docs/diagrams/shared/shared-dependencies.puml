@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Shared - Dependances entre couches et bibliotheques
-
 skinparam componentStyle rectangle
 
 package "Service type (les 8 sont identiques)" #E8F5E9 {

@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Back-office - Gestion de l'etat
-
 skinparam componentStyle rectangle
 
 package "Etat global (React Context)" #FFF3E0 {

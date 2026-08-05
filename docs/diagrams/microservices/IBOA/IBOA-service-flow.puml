@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title IBOA - Chaine interne en couches
-
 skinparam componentStyle rectangle
 
 package "Presentation" {

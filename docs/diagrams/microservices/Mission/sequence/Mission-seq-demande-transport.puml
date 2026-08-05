@@ -6,15 +6,13 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 autonumber
 
-title Mission - Depot d'une demande de transport
-
 actor "Client" as C
 participant "TransportRequestsController" as CTRL <<control>>
 participant "IMissionService" as IMS <<interface>>
 participant "MissionService" as MS <<service>>
 participant "MissionDbContext" as REPO <<repository>>
 database "Base de donnees" as BD
-participant "Moteur d'estimation tarifaire" as EST <<secondary>>
+participant "Moteur d'estimation tarifaire" as EST
 
 C -> EST : estimerPrix(depart, arrivee, caracteristiques)
 activate EST

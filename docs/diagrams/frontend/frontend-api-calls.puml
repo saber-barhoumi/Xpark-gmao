@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Back-office - Appels API par service
-
 skinparam componentStyle rectangle
 left to right direction
 

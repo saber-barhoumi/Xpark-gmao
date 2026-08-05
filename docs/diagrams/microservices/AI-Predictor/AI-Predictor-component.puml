@@ -12,8 +12,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title AI-Predictor - Diagramme de composants
-
 skinparam componentStyle rectangle
 
 component "backoffice (React)" as BO #E1F5FE

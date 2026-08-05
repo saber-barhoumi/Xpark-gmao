@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes du domaine - Ayshaa-RAG
-
 class Source <<value object>> {
   +title : str
   +section : str

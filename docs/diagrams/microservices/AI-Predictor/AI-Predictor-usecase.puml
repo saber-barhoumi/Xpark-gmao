@@ -7,8 +7,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-title Diagramme de cas d'utilisation - AI-Predictor
-
 ' Acteurs principaux, empiles a gauche du plus general au plus specialise
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
@@ -28,15 +26,10 @@ rectangle "Service Estimation Tarifaire" {
   usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
 }
 
-' Acteurs secondaires, a droite, hors de la frontiere
-actor "Modele XGBoost pre-entraine" as Modele
-
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Estimer_le_prix_du_trajet
 Gestionnaire -- UC_Consulter_les_villes_desservies
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
-
-UC_Appliquer_le_modele_de_prediction -right- Modele : << secondary >>
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Estimer_le_prix_du_trajet ..> UC_Calculer_la_distance_du_trajet : << include >>

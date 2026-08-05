@@ -11,8 +11,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title XPARK GMAO - Sondes de sante
-
 skinparam componentStyle rectangle
 
 component "Orchestrateur / docker compose" as Orch #ECEFF1

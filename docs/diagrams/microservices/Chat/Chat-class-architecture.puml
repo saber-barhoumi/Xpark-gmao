@@ -8,8 +8,6 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
 
-title Diagramme de classes de conception - Architecture - Chat
-
 package "Chat.Infrastructure" {
   class ChatDbContext <<repository>>
   class UserStatusChangedConsumer <<adapter>>
@@ -19,6 +17,5 @@ package "Chat.Infrastructure" {
 ' Dependance d'utilisation
 ChatHub ..> ChatDbContext : << use >>
 UserStatusChangedConsumer ..> ChatDbContext : << use >>
-
 
 @enduml

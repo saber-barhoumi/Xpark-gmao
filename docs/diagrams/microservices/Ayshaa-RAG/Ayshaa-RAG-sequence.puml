@@ -12,8 +12,6 @@ skinparam NoteBackgroundColor #FFF8DC
 skinparam NoteBorderColor #D6BF7A
 skinparam componentStyle rectangle
 
-title Ayshaa-RAG - Reponse de l'assistant conversationnel
-
 autonumber
 
 actor "Visiteur" as V
