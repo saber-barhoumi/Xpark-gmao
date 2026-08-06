@@ -7,41 +7,50 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
-Responsable -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Responsable -up-|> Employe
+Administrateur -left-|> Responsable
+Gestionnaire -down-|> Responsable
 
 rectangle "Service Flotte" {
-  usecase "Consulter les vehicules" as UC_Consulter_les_vehicules
-  usecase "Rechercher un vehicule disponible" as UC_Rechercher_un_vehicule_disponible
-  usecase "Consulter les equipements" as UC_Consulter_les_equipements
-  usecase "Consulter les indicateurs des equipements" as UC_Consulter_les_indicateurs_des_equi
-  usecase "Consulter les documents administratifs" as UC_Consulter_les_documents_administra
-  usecase "Consulter les echeances" as UC_Consulter_les_echeances
-  usecase "Consulter les sources de carburant" as UC_Consulter_les_sources_de_carburant
-  usecase "Consulter les statistiques de consommation" as UC_Consulter_les_statistiques_de_cons
-  usecase "Declarer un plein de carburant" as UC_Declarer_un_plein_de_carburant
-  usecase "Verifier les equipements avant mission" as UC_Verifier_les_equipements_avant_mis
-  usecase "Affecter un equipement a une mission" as UC_Affecter_un_equipement_a_une_missi
-  usecase "Restituer un equipement" as UC_Restituer_un_equipement
-  usecase "Realiser une inspection" as UC_Realiser_une_inspection
-  usecase "Gerer les contrats de garantie" as UC_Gerer_les_contrats_de_garantie
-  usecase "Immatriculer un vehicule" as UC_Immatriculer_un_vehicule
-  usecase "Modifier un vehicule" as UC_Modifier_un_vehicule
-  usecase "Ajouter un equipement" as UC_Ajouter_un_equipement
-  usecase "Modifier un equipement" as UC_Modifier_un_equipement
-  usecase "Enregistrer un document administratif" as UC_Enregistrer_un_document_administra
-  usecase "Enregistrer une assurance" as UC_Enregistrer_une_assurance
-  usecase "Retirer un vehicule du parc" as UC_Retirer_un_vehicule_du_parc
-  usecase "Retirer un equipement" as UC_Retirer_un_equipement
-  usecase "Supprimer une piece justificative" as UC_Supprimer_une_piece_justificative
+  package "Exploitation courante" {
+    usecase "Consulter les vehicules" as UC_Consulter_les_vehicules
+    usecase "Rechercher un vehicule disponible" as UC_Rechercher_un_vehicule_disponible
+    usecase "Consulter les equipements" as UC_Consulter_les_equipements
+    usecase "Consulter les indicateurs des equipements" as UC_Consulter_les_indicateurs_des_equi
+    usecase "Consulter les documents administratifs" as UC_Consulter_les_documents_administra
+    usecase "Consulter les echeances" as UC_Consulter_les_echeances
+    usecase "Consulter les sources de carburant" as UC_Consulter_les_sources_de_carburant
+    usecase "Consulter les statistiques de consommation" as UC_Consulter_les_statistiques_de_cons
+    usecase "Declarer un plein de carburant" as UC_Declarer_un_plein_de_carburant
+    usecase "Verifier les equipements avant mission" as UC_Verifier_les_equipements_avant_mis
+    usecase "Affecter un equipement a une mission" as UC_Affecter_un_equipement_a_une_missi
+    usecase "Restituer un equipement" as UC_Restituer_un_equipement
+    usecase "Realiser une inspection" as UC_Realiser_une_inspection
+    usecase "Gerer les contrats de garantie" as UC_Gerer_les_contrats_de_garantie
+  }
+  package "Tenue du referentiel" {
+    usecase "Immatriculer un vehicule" as UC_Immatriculer_un_vehicule
+    usecase "Modifier un vehicule" as UC_Modifier_un_vehicule
+    usecase "Ajouter un equipement" as UC_Ajouter_un_equipement
+    usecase "Modifier un equipement" as UC_Modifier_un_equipement
+    usecase "Enregistrer un document administratif" as UC_Enregistrer_un_document_administra
+    usecase "Enregistrer une assurance" as UC_Enregistrer_une_assurance
+  }
+  package "Retrait definitif" {
+    usecase "Retirer un vehicule du parc" as UC_Retirer_un_vehicule_du_parc
+    usecase "Retirer un equipement" as UC_Retirer_un_equipement
+    usecase "Supprimer une piece justificative" as UC_Supprimer_une_piece_justificative
+  }
 }
 
 ' Associations : trait continu sans fleche (relation d'association)
@@ -68,5 +77,6 @@ Responsable -- UC_Enregistrer_une_assurance
 Administrateur -- UC_Retirer_un_vehicule_du_parc
 Administrateur -- UC_Retirer_un_equipement
 Administrateur -- UC_Supprimer_une_piece_justificative
+
 
 @enduml

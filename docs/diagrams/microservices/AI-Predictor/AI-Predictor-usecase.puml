@@ -7,28 +7,33 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
 actor "Gestionnaire" as Gestionnaire
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Employe -up-|> Utilisateur
-Client -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Client -down-|> Utilisateur
 Gestionnaire -up-|> Employe
 
 rectangle "Service Estimation Tarifaire" {
-  usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
+  package "Estimation" {
+    usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
+    usecase "Consulter les villes desservies" as UC_Consulter_les_villes_desservies
+  }
+  package "Exploitation" {
+    usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
+  }
   usecase "Calculer la distance du trajet" as UC_Calculer_la_distance_du_trajet
   usecase "Appliquer le modele de prediction" as UC_Appliquer_le_modele_de_prediction
-  usecase "Consulter les villes desservies" as UC_Consulter_les_villes_desservies
-  usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
 }
 
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Estimer_le_prix_du_trajet
-Gestionnaire -- UC_Consulter_les_villes_desservies
+Utilisateur -- UC_Consulter_les_villes_desservies
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
 ' << include >> : du cas de base vers le cas obligatoire

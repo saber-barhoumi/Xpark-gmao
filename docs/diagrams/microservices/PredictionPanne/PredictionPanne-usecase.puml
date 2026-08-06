@@ -7,28 +7,37 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 actor "Technicien" as Technicien
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
-Responsable -up-|> Utilisateur
-Technicien -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Responsable -up-|> Employe
+Administrateur -left-|> Responsable
+Gestionnaire -down-|> Responsable
+Technicien -up-|> Employe
 
 rectangle "Service Maintenance Predictive" {
-  usecase "Consulter le tableau de bord des risques" as UC_Consulter_le_tableau_de_bord_des_r
-  usecase "Consulter la sante de la flotte" as UC_Consulter_la_sante_de_la_flotte
-  usecase "Recalculer les predictions" as UC_Recalculer_les_predictions
+  package "Consultation" {
+    usecase "Consulter le tableau de bord des risques" as UC_Consulter_le_tableau_de_bord_des_r
+    usecase "Consulter la sante de la flotte" as UC_Consulter_la_sante_de_la_flotte
+    usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
+    usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
+  }
+  package "Calcul" {
+    usecase "Recalculer les predictions" as UC_Recalculer_les_predictions
+  }
+  package "Entretien du journal" {
+    usecase "Supprimer une prediction" as UC_Supprimer_une_prediction
+    usecase "Supprimer un lot de predictions" as UC_Supprimer_un_lot_de_predictions
+  }
   usecase "Evaluer le risque de panne" as UC_Evaluer_le_risque_de_panne
-  usecase "Supprimer une prediction" as UC_Supprimer_une_prediction
-  usecase "Supprimer un lot de predictions" as UC_Supprimer_un_lot_de_predictions
-  usecase "Consulter la sante d'un vehicule" as UC_Consulter_la_sante_d_un_vehicule
-  usecase "Consulter l'historique des predictions" as UC_Consulter_l_historique_des_predict
   usecase "Identifier l'organe a risque" as UC_Identifier_l_organe_a_risque
 }
 

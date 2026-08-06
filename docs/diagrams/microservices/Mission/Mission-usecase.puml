@@ -7,7 +7,8 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
 actor "Responsable" as Responsable
@@ -17,34 +18,42 @@ actor "Chauffeur" as Chauffeur
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Employe -up-|> Utilisateur
-Client -up-|> Utilisateur
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
+Employe -down-|> Utilisateur
+Client -left-|> Utilisateur
 Responsable -up-|> Employe
+Administrateur -left-|> Responsable
+Gestionnaire -down-|> Responsable
 Chauffeur -up-|> Employe
 
 rectangle "Service Missions" {
-  usecase "Consulter les missions" as UC_Consulter_les_missions
-  usecase "Etablir un devis" as UC_Etablir_un_devis
+  package "Demande et devis" {
+    usecase "Etablir un devis" as UC_Etablir_un_devis
+    usecase "Deposer une demande de transport" as UC_Deposer_une_demande_de_transport
+    usecase "Consulter ses demandes" as UC_Consulter_ses_demandes
+    usecase "Modifier sa demande" as UC_Modifier_sa_demande
+    usecase "Annuler sa demande" as UC_Annuler_sa_demande
+    usecase "Accepter un devis" as UC_Accepter_un_devis
+    usecase "Refuser un devis" as UC_Refuser_un_devis
+  }
+  package "Execution des missions" {
+    usecase "Consulter les missions" as UC_Consulter_les_missions
+    usecase "Cloturer une mission" as UC_Cloturer_une_mission
+    usecase "Annuler une mission" as UC_Annuler_une_mission
+  }
+  package "Suivi en direct" {
+    usecase "Consulter l'historique du trajet" as UC_Consulter_l_historique_du_trajet
+    usecase "Transmettre sa position" as UC_Transmettre_sa_position
+    usecase "Suivre une mission en direct" as UC_Suivre_une_mission_en_direct
+  }
+  package "Assistance" {
+    usecase "Repondre a un ticket" as UC_Repondre_a_un_ticket
+    usecase "Cloturer un ticket" as UC_Cloturer_un_ticket
+    usecase "Ouvrir un ticket de support" as UC_Ouvrir_un_ticket_de_support
+  }
   usecase "Creer une mission" as UC_Creer_une_mission
   usecase "Affecter un vehicule et un chauffeur" as UC_Affecter_un_vehicule_et_un_chauffe
-  usecase "Cloturer une mission" as UC_Cloturer_une_mission
-  usecase "Annuler une mission" as UC_Annuler_une_mission
   usecase "Optimiser une tournee" as UC_Optimiser_une_tournee
-  usecase "Consulter l'historique du trajet" as UC_Consulter_l_historique_du_trajet
-  usecase "Repondre a un ticket" as UC_Repondre_a_un_ticket
-  usecase "Cloturer un ticket" as UC_Cloturer_un_ticket
-  usecase "Transmettre sa position" as UC_Transmettre_sa_position
-  usecase "Deposer une demande de transport" as UC_Deposer_une_demande_de_transport
   usecase "Estimer le prix du trajet" as UC_Estimer_le_prix_du_trajet
-  usecase "Consulter ses demandes" as UC_Consulter_ses_demandes
-  usecase "Modifier sa demande" as UC_Modifier_sa_demande
-  usecase "Annuler sa demande" as UC_Annuler_sa_demande
-  usecase "Accepter un devis" as UC_Accepter_un_devis
-  usecase "Refuser un devis" as UC_Refuser_un_devis
-  usecase "Suivre une mission en direct" as UC_Suivre_une_mission_en_direct
-  usecase "Ouvrir un ticket de support" as UC_Ouvrir_un_ticket_de_support
 }
 
 ' Acteurs secondaires, a droite, hors de la frontiere
@@ -69,14 +78,14 @@ Client -- UC_Refuser_un_devis
 Client -- UC_Suivre_une_mission_en_direct
 Client -- UC_Ouvrir_un_ticket_de_support
 
-UC_Estimer_le_prix_du_trajet -right- Estimateur
-UC_Optimiser_une_tournee -right- Optimiseur
+UC_Estimer_le_prix_du_trajet -down- Estimateur
+UC_Optimiser_une_tournee -down- Optimiseur
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Deposer_une_demande_de_transport ..> UC_Estimer_le_prix_du_trajet : << include >>
 UC_Accepter_un_devis ..> UC_Creer_une_mission : << include >>
 UC_Creer_une_mission ..> UC_Affecter_un_vehicule_et_un_chauffe : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Optimiser_une_tournee ..> UC_Affecter_un_vehicule_et_un_chauffe : << extend >>
+UC_Optimiser_une_tournee .left.> UC_Affecter_un_vehicule_et_un_chauffe : << extend >>
 
 @enduml

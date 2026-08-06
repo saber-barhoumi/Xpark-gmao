@@ -12,9 +12,9 @@ plutot que comblee par une hypothese. Voir « Ce qui n'a pas pu etre genere ».
 
 | | |
 |---|---|
-| Diagrammes `.puml` | **197** |
+| Diagrammes `.puml` | **218** |
 | Fichiers README | **14** |
-| Dossiers | **18** |
+| Dossiers | **36** |
 | Microservices documentes | **12** |
 
 ## Organisation
@@ -23,24 +23,28 @@ plutot que comblee par une hypothese. Voir « Ce qui n'a pas pu etre genere ».
 docs/diagrams/
 ├── README.md                  ce fichier
 ├── platform/                  22 diagrammes — vue d'ensemble de la plateforme
+├── architecture/              2 diagrammes — architectures logique et physique
 ├── infrastructure/            6 diagrammes — socle technique
 ├── frontend/                  6 diagrammes — back-office React
 ├── shared/                    6 diagrammes — bibliotheques communes
 ├── backend/                   README seul (sources absentes du depot)
-└── microservices/             157 diagrammes repartis sur 12 services
-    ├── AI-Optimizer/      14 diagrammes + README
-    ├── AI-Predictor/      15 diagrammes + README
-    ├── Alerts/            12 diagrammes + README
-    ├── Ayshaa-RAG/        14 diagrammes + README
-    ├── Chat/              12 diagrammes + README
-    ├── Finance/           12 diagrammes + README
-    ├── Fleet/             12 diagrammes + README
-    ├── IAM/               12 diagrammes + README
-    ├── IBOA/              14 diagrammes + README
-    ├── Maintenance/       12 diagrammes + README
-    ├── Mission/           13 diagrammes + README
-    └── PredictionPanne/   15 diagrammes + README
+└── microservices/             176 diagrammes repartis sur 12 services
+    ├── AI-Optimizer/      15 diagrammes + README
+    ├── AI-Predictor/      16 diagrammes + README
+    ├── Alerts/            13 diagrammes + README
+    ├── Ayshaa-RAG/        15 diagrammes + README
+    ├── Chat/              13 diagrammes + README
+    ├── Finance/           13 diagrammes + README
+    ├── Fleet/             16 diagrammes + README
+    ├── IAM/               14 diagrammes + README
+    ├── IBOA/              15 diagrammes + README
+    ├── Maintenance/       14 diagrammes + README
+    ├── Mission/           16 diagrammes + README
+    └── PredictionPanne/   16 diagrammes + README
 ```
+
+Les services dont un `<Service>-sequence.puml` couvrait plusieurs scenarios
+possedent en plus un sous-dossier `sequence/`, un fichier par scenario.
 
 ## Convention de nommage
 
@@ -52,10 +56,47 @@ docs/diagrams/
 | Commun | `shared-<sujet>.puml` | `shared-events.puml` |
 | Microservice | `<Service>-<sujet>.puml` | `Mission/Mission-sequence.puml` |
 
-Les 12 sujets presents pour **chaque** microservice :
+Les 13 sujets presents pour **chaque** microservice :
 
-`sequence` · `usecase` · `communication` · `entities` · `class` · `component` ·
-`package` · `activity` · `state` · `database` · `api-flow` · `service-flow`
+`sequence` · `usecase` · `communication` · `entities` · `class-architecture` ·
+`class-domain` · `component` · `package` · `activity` · `state` · `database` ·
+`api-flow` · `service-flow`
+
+Le diagramme de classes est scinde en deux : `class-architecture` montre les
+couches et les interfaces, `class-domain` ne retient que les entites metier,
+sans aucune trace d'infrastructure.
+
+## Mise en page des cas d'utilisation
+
+Les `<Service>-usecase.puml` suivent une disposition unique, pensee pour
+qu'aucun trait ne contourne la frontiere ni ne traverse un autre element.
+Elle repose sur une propriete de PlantUML : sous `left to right direction`,
+les indications de sens subissent une rotation d'un quart de tour.
+
+| Ecrit | Effet reel | Usage |
+|---|---|---|
+| `-up-\|>` | le parent passe **a gauche** | acteur porteur d'associations dont le parent ne l'est pas |
+| `-down-\|>` | le parent passe **a droite** | acteur purement structurel, repousse vers la gauche |
+| `-left-\|>` / `-right-\|>` | **meme colonne**, ordre vertical impose | deux acteurs porteurs d'associations |
+
+Regles appliquees :
+
+1. **Tous les acteurs sont a gauche**, en arbre d'heritage
+   `Gestionnaire / Technicien / Chauffeur → Employe → Utilisateur`,
+   `Client → Utilisateur`. `Responsable` regroupe la combinaison
+   ADMIN + GESTIONNAIRE, de loin la plus frequente dans les habilitations.
+2. **Tout acteur qui porte au moins une association occupe la colonne
+   accolee a la frontiere.** Chaque association ne franchit alors qu'une
+   seule colonne. Les acteurs purement structurels s'effacent vers la gauche.
+3. **Un cas d'utilisation n'est relie qu'a un seul acteur** : quand plusieurs
+   le revendiquent, l'association part de leur plus proche ancetre commun,
+   et les sous-acteurs en heritent par generalisation.
+4. **La frontiere est subdivisee en domaines fonctionnels** (`package`).
+   Un cas atteint par `<< include >>` reste **hors domaine** : il occupe la
+   colonne suivante, et l'enfermer tirerait tout son domaine avec lui.
+5. **Acteurs secondaires a droite**, hors frontiere, relies par une
+   association simple : aucun stereotype en dehors de `<< include >>` et
+   `<< extend >>`, qui ne relient que des cas d'utilisation entre eux.
 
 Sujets supplementaires, uniquement la ou la fonctionnalite existe vraiment :
 

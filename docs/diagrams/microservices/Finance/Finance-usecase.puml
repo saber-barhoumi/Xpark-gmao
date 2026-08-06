@@ -7,7 +7,8 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
 actor "Responsable" as Responsable
@@ -16,21 +17,25 @@ actor "Gestionnaire" as Gestionnaire
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Employe -up-|> Utilisateur
-Client -up-|> Utilisateur
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
+Employe -down-|> Utilisateur
+Client -left-|> Utilisateur
 Responsable -up-|> Employe
+Administrateur -down-|> Responsable
+Gestionnaire -down-|> Responsable
 
 rectangle "Service Finance" {
-  usecase "Consulter les factures" as UC_Consulter_les_factures
-  usecase "Etablir une facture" as UC_Etablir_une_facture
+  package "Facturation" {
+    usecase "Consulter les factures" as UC_Consulter_les_factures
+    usecase "Etablir une facture" as UC_Etablir_une_facture
+    usecase "Marquer une facture comme payee" as UC_Marquer_une_facture_comme_payee
+    usecase "Annuler une facture" as UC_Annuler_une_facture
+    usecase "Consulter ses factures" as UC_Consulter_ses_factures
+  }
+  package "Recouvrement" {
+    usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
+    usecase "Consulter les factures d'un client" as UC_Consulter_les_factures_d_un_client
+  }
   usecase "Verifier les missions facturables" as UC_Verifier_les_missions_facturables
-  usecase "Marquer une facture comme payee" as UC_Marquer_une_facture_comme_payee
-  usecase "Annuler une facture" as UC_Annuler_une_facture
-  usecase "Consulter les factures impayees" as UC_Consulter_les_factures_impayees
-  usecase "Consulter les factures d'un client" as UC_Consulter_les_factures_d_un_client
-  usecase "Consulter ses factures" as UC_Consulter_ses_factures
 }
 
 ' Associations : trait continu sans fleche (relation d'association)

@@ -7,45 +7,56 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 actor "Technicien" as Technicien
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
-Responsable -up-|> Utilisateur
-Technicien -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Responsable -up-|> Employe
+Administrateur -left-|> Responsable
+Gestionnaire -down-|> Responsable
+Technicien -up-|> Employe
 
 rectangle "Service Maintenance" {
-  usecase "Consulter les ordres de travail" as UC_Consulter_les_ordres_de_travail
-  usecase "Consulter les interventions" as UC_Consulter_les_interventions
-  usecase "Ouvrir un ordre de travail" as UC_Ouvrir_un_ordre_de_travail
-  usecase "Modifier un ordre de travail" as UC_Modifier_un_ordre_de_travail
-  usecase "Valider un ordre de travail" as UC_Valider_un_ordre_de_travail
-  usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
-  usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
-  usecase "Referencer une piece" as UC_Referencer_une_piece
-  usecase "Reapprovisionner le stock" as UC_Reapprovisionner_le_stock
-  usecase "Modifier une piece" as UC_Modifier_une_piece
-  usecase "Vider une colonne du tableau" as UC_Vider_une_colonne_du_tableau
-  usecase "Supprimer un ordre de travail" as UC_Supprimer_un_ordre_de_travail
-  usecase "Supprimer une intervention" as UC_Supprimer_une_intervention
-  usecase "Retirer une piece" as UC_Retirer_une_piece
-  usecase "Supprimer un commentaire" as UC_Supprimer_un_commentaire
-  usecase "Supprimer une piece jointe" as UC_Supprimer_une_piece_jointe
-  usecase "Changer le statut d'un ordre de travail" as UC_Changer_le_statut_d_un_ordre_de_tr
-  usecase "Declarer une intervention" as UC_Declarer_une_intervention
-  usecase "Consommer une piece de rechange" as UC_Consommer_une_piece_de_rechange
-  usecase "Modifier une intervention" as UC_Modifier_une_intervention
-  usecase "Changer le statut d'une intervention" as UC_Changer_le_statut_d_une_interventi
-  usecase "Restituer une piece" as UC_Restituer_une_piece
-  usecase "Consulter les pieces de rechange" as UC_Consulter_les_pieces_de_rechange
-  usecase "Commenter un ordre de travail" as UC_Commenter_un_ordre_de_travail
-  usecase "Joindre un document" as UC_Joindre_un_document
+  package "Ordres de travail" {
+    usecase "Consulter les ordres de travail" as UC_Consulter_les_ordres_de_travail
+    usecase "Ouvrir un ordre de travail" as UC_Ouvrir_un_ordre_de_travail
+    usecase "Modifier un ordre de travail" as UC_Modifier_un_ordre_de_travail
+    usecase "Valider un ordre de travail" as UC_Valider_un_ordre_de_travail
+    usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
+    usecase "Vider une colonne du tableau" as UC_Vider_une_colonne_du_tableau
+    usecase "Supprimer un ordre de travail" as UC_Supprimer_un_ordre_de_travail
+    usecase "Changer le statut d'un ordre de travail" as UC_Changer_le_statut_d_un_ordre_de_tr
+  }
+  package "Interventions" {
+    usecase "Consulter les interventions" as UC_Consulter_les_interventions
+    usecase "Supprimer une intervention" as UC_Supprimer_une_intervention
+    usecase "Declarer une intervention" as UC_Declarer_une_intervention
+    usecase "Consommer une piece de rechange" as UC_Consommer_une_piece_de_rechange
+    usecase "Modifier une intervention" as UC_Modifier_une_intervention
+    usecase "Changer le statut d'une intervention" as UC_Changer_le_statut_d_une_interventi
+    usecase "Restituer une piece" as UC_Restituer_une_piece
+  }
+  package "Stock de pieces" {
+    usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
+    usecase "Referencer une piece" as UC_Referencer_une_piece
+    usecase "Reapprovisionner le stock" as UC_Reapprovisionner_le_stock
+    usecase "Modifier une piece" as UC_Modifier_une_piece
+    usecase "Retirer une piece" as UC_Retirer_une_piece
+    usecase "Consulter les pieces de rechange" as UC_Consulter_les_pieces_de_rechange
+  }
+  package "Suivi documentaire" {
+    usecase "Supprimer un commentaire" as UC_Supprimer_un_commentaire
+    usecase "Supprimer une piece jointe" as UC_Supprimer_une_piece_jointe
+    usecase "Commenter un ordre de travail" as UC_Commenter_un_ordre_de_travail
+    usecase "Joindre un document" as UC_Joindre_un_document
+  }
 }
 
 ' Associations : trait continu sans fleche (relation d'association)
@@ -75,6 +86,6 @@ Technicien -- UC_Commenter_un_ordre_de_travail
 Technicien -- UC_Joindre_un_document
 
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Consommer_une_piece_de_rechange ..> UC_Declarer_une_intervention : << extend >>
+UC_Consommer_une_piece_de_rechange .left.> UC_Declarer_une_intervention : << extend >>
 
 @enduml

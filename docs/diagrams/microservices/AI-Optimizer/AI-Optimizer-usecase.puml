@@ -7,19 +7,26 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Gestionnaire" as Gestionnaire
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Gestionnaire -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Gestionnaire -up-|> Employe
 
 rectangle "Service Optimisation de Flotte" {
-  usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
+  package "Optimisation" {
+    usecase "Optimiser une affectation" as UC_Optimiser_une_affectation
+  }
+  package "Exploitation" {
+    usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
+  }
   usecase "Appliquer les contraintes d'affectation" as UC_Appliquer_les_contraintes_d_affect
   usecase "Noter les candidats" as UC_Noter_les_candidats
   usecase "Produire un plan d'affectation" as UC_Produire_un_plan_d_affectation
-  usecase "Verifier la disponibilite du service" as UC_Verifier_la_disponibilite_du_servi
 }
 
 ' Acteurs secondaires, a droite, hors de la frontiere
@@ -29,8 +36,8 @@ actor "Bus de messages" as Bus
 Utilisateur -- UC_Optimiser_une_affectation
 Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
-UC_Optimiser_une_affectation -right- Bus
-UC_Produire_un_plan_d_affectation -right- Bus
+UC_Optimiser_une_affectation -down- Bus
+UC_Produire_un_plan_d_affectation -down- Bus
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Optimiser_une_affectation ..> UC_Appliquer_les_contraintes_d_affect : << include >>

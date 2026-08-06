@@ -7,30 +7,39 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
 actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
-Responsable -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Responsable -up-|> Employe
+Administrateur -left-|> Responsable
+Gestionnaire -down-|> Responsable
 
 rectangle "Service Alertes" {
-  usecase "Consulter les alertes" as UC_Consulter_les_alertes
-  usecase "Consulter les alertes non lues" as UC_Consulter_les_alertes_non_lues
-  usecase "Compter les alertes non lues" as UC_Compter_les_alertes_non_lues
-  usecase "Filtrer les alertes par categorie" as UC_Filtrer_les_alertes_par_categorie
-  usecase "Marquer une alerte comme lue" as UC_Marquer_une_alerte_comme_lue
-  usecase "Marquer toutes les alertes comme lues" as UC_Marquer_toutes_les_alertes_comme_l
-  usecase "Marquer une alerte comme traitee" as UC_Marquer_une_alerte_comme_traitee
+  package "Consultation" {
+    usecase "Consulter les alertes" as UC_Consulter_les_alertes
+    usecase "Consulter les alertes non lues" as UC_Consulter_les_alertes_non_lues
+    usecase "Compter les alertes non lues" as UC_Compter_les_alertes_non_lues
+    usecase "Filtrer les alertes par categorie" as UC_Filtrer_les_alertes_par_categorie
+  }
+  package "Traitement" {
+    usecase "Marquer une alerte comme lue" as UC_Marquer_une_alerte_comme_lue
+    usecase "Marquer toutes les alertes comme lues" as UC_Marquer_toutes_les_alertes_comme_l
+    usecase "Marquer une alerte comme traitee" as UC_Marquer_une_alerte_comme_traitee
+    usecase "Supprimer une alerte" as UC_Supprimer_une_alerte
+    usecase "Supprimer plusieurs alertes" as UC_Supprimer_plusieurs_alertes
+  }
+  package "Surveillance" {
+    usecase "Generer les alertes du jour" as UC_Generer_les_alertes_du_jour
+  }
   usecase "Lancer les controles metier" as UC_Lancer_les_controles_metier
   usecase "Ecarter les doublons" as UC_Ecarter_les_doublons
-  usecase "Supprimer une alerte" as UC_Supprimer_une_alerte
-  usecase "Supprimer plusieurs alertes" as UC_Supprimer_plusieurs_alertes
-  usecase "Generer les alertes du jour" as UC_Generer_les_alertes_du_jour
 }
 
 ' Associations : trait continu sans fleche (relation d'association)

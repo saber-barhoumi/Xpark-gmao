@@ -7,25 +7,38 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
+actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Administrateur -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Responsable -up-|> Employe
+Administrateur -down-|> Responsable
+Gestionnaire -down-|> Responsable
 
 rectangle "Service Journal Metier" {
-  usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
-  usecase "Recevoir un evenement metier" as UC_Recevoir_un_evenement_metier
+  package "Traitement des evenements" {
+    usecase "Recevoir un evenement metier" as UC_Recevoir_un_evenement_metier
+  }
+  package "Consultation" {
+    usecase "Consulter le journal des evenements" as UC_Consulter_le_journal_des_evenement
+    usecase "Consulter les alertes metier" as UC_Consulter_les_alertes_metier
+    usecase "Consulter les statistiques" as UC_Consulter_les_statistiques
+  }
+  package "Pilotage" {
+    usecase "Definir ses preferences de diffusion" as UC_Definir_ses_preferences_de_diffusi
+    usecase "Editer un rapport quotidien" as UC_Editer_un_rapport_quotidien
+    usecase "Purger le journal" as UC_Purger_le_journal
+    usecase "Purger les alertes" as UC_Purger_les_alertes
+  }
   usecase "Evaluer la criticite" as UC_Evaluer_la_criticite
   usecase "Regrouper les evenements lies" as UC_Regrouper_les_evenements_lies
   usecase "Diffuser une alerte" as UC_Diffuser_une_alerte
-  usecase "Consulter les alertes metier" as UC_Consulter_les_alertes_metier
-  usecase "Consulter les statistiques" as UC_Consulter_les_statistiques
-  usecase "Definir ses preferences de diffusion" as UC_Definir_ses_preferences_de_diffusi
-  usecase "Editer un rapport quotidien" as UC_Editer_un_rapport_quotidien
-  usecase "Purger le journal" as UC_Purger_le_journal
-  usecase "Purger les alertes" as UC_Purger_les_alertes
 }
 
 ' Acteurs secondaires, a droite, hors de la frontiere
@@ -34,16 +47,22 @@ actor "Serveur de messagerie" as SMTP
 actor "Passerelle de messagerie instantanee" as Twilio
 
 ' Associations : trait continu sans fleche (relation d'association)
-Utilisateur -- UC_Consulter_le_journal_des_evenement
+Responsable -- UC_Consulter_le_journal_des_evenement
+Responsable -- UC_Consulter_les_alertes_metier
+Responsable -- UC_Consulter_les_statistiques
+Responsable -- UC_Definir_ses_preferences_de_diffusi
+Responsable -- UC_Editer_un_rapport_quotidien
+Responsable -- UC_Purger_le_journal
+Responsable -- UC_Purger_les_alertes
 
-UC_Recevoir_un_evenement_metier -right- Bus
-UC_Diffuser_une_alerte -right- SMTP
-UC_Diffuser_une_alerte -right- Twilio
+UC_Recevoir_un_evenement_metier -down- Bus
+UC_Diffuser_une_alerte -down- SMTP
+UC_Diffuser_une_alerte -down- Twilio
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>
 UC_Evaluer_la_criticite ..> UC_Regrouper_les_evenements_lies : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Diffuser_une_alerte ..> UC_Evaluer_la_criticite : << extend >>
+UC_Diffuser_une_alerte .left.> UC_Evaluer_la_criticite : << extend >>
 
 @enduml

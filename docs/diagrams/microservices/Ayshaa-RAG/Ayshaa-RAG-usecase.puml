@@ -7,26 +7,33 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
 actor "Client" as Client
 actor "Administrateur" as Administrateur
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Employe -up-|> Utilisateur
-Client -up-|> Utilisateur
+Employe -down-|> Utilisateur
+Client -left-|> Utilisateur
 Administrateur -up-|> Employe
 
 rectangle "Service Assistant Conversationnel" {
-  usecase "Poser une question" as UC_Poser_une_question
+  package "Dialogue" {
+    usecase "Poser une question" as UC_Poser_une_question
+    usecase "Rechercher dans la base documentaire" as UC_Rechercher_dans_la_base_documentai
+    usecase "Consulter le message d'accueil" as UC_Consulter_le_message_d_accueil
+  }
+  package "Assistance metier" {
+    usecase "Interroger les donnees metier" as UC_Interroger_les_donnees_metier
+  }
+  package "Exploitation" {
+    usecase "Reindexer la base documentaire" as UC_Reindexer_la_base_documentaire
+    usecase "Consulter les statistiques du service" as UC_Consulter_les_statistiques_du_serv
+  }
   usecase "Detecter la langue" as UC_Detecter_la_langue
   usecase "Rediger une reponse" as UC_Rediger_une_reponse
-  usecase "Rechercher dans la base documentaire" as UC_Rechercher_dans_la_base_documentai
-  usecase "Interroger les donnees metier" as UC_Interroger_les_donnees_metier
-  usecase "Consulter le message d'accueil" as UC_Consulter_le_message_d_accueil
-  usecase "Reindexer la base documentaire" as UC_Reindexer_la_base_documentaire
-  usecase "Consulter les statistiques du service" as UC_Consulter_les_statistiques_du_serv
 }
 
 ' Acteurs secondaires, a droite, hors de la frontiere
@@ -39,14 +46,14 @@ Client -- UC_Consulter_le_message_d_accueil
 Administrateur -- UC_Reindexer_la_base_documentaire
 Administrateur -- UC_Consulter_les_statistiques_du_serv
 
-UC_Rechercher_dans_la_base_documentai -right- Qdrant
-UC_Rediger_une_reponse -right- Ollama
+UC_Rechercher_dans_la_base_documentai -down- Qdrant
+UC_Rediger_une_reponse -down- Ollama
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Poser_une_question ..> UC_Detecter_la_langue : << include >>
 UC_Poser_une_question ..> UC_Rediger_une_reponse : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Rechercher_dans_la_base_documentai ..> UC_Poser_une_question : << extend >>
-UC_Interroger_les_donnees_metier ..> UC_Poser_une_question : << extend >>
+UC_Rechercher_dans_la_base_documentai .left.> UC_Poser_une_question : << extend >>
+UC_Interroger_les_donnees_metier .left.> UC_Poser_une_question : << extend >>
 
 @enduml

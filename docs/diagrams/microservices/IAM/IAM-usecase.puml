@@ -7,7 +7,8 @@ skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 left to right direction
 
-' Acteurs principaux, empiles a gauche du plus general au plus specialise
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
 actor "Responsable" as Responsable
@@ -18,43 +19,53 @@ actor "Technicien" as Technicien
 actor "Client" as Client
 
 ' Generalisation : triangle creux, de l'enfant vers le parent
-Employe -up-|> Utilisateur
-Client -up-|> Utilisateur
-Administrateur -up-|> Responsable
-Gestionnaire -up-|> Responsable
+Employe -down-|> Utilisateur
+Client -left-|> Utilisateur
 Responsable -up-|> Employe
+Administrateur -left-|> Responsable
+Gestionnaire -down-|> Responsable
 Chauffeur -up-|> Employe
-Technicien -up-|> Employe
+Technicien -down-|> Employe
 
 rectangle "Service Identites et Acces" {
-  usecase "Se connecter" as UC_Se_connecter
-  usecase "Valider un second facteur" as UC_Valider_un_second_facteur
-  usecase "Se deconnecter" as UC_Se_deconnecter
-  usecase "Reinitialiser son mot de passe" as UC_Reinitialiser_son_mot_de_passe
-  usecase "Consulter son profil" as UC_Consulter_son_profil
-  usecase "Modifier son profil" as UC_Modifier_son_profil
-  usecase "Changer son mot de passe" as UC_Changer_son_mot_de_passe
-  usecase "Deposer une photo de profil" as UC_Deposer_une_photo_de_profil
-  usecase "Activer le second facteur" as UC_Activer_le_second_facteur
-  usecase "Desactiver le second facteur" as UC_Desactiver_le_second_facteur
-  usecase "Changer le role d'un compte" as UC_Changer_le_role_d_un_compte
-  usecase "Suspendre un compte" as UC_Suspendre_un_compte
-  usecase "Reactiver un compte" as UC_Reactiver_un_compte
-  usecase "Gerer les clients" as UC_Gerer_les_clients
-  usecase "Gerer les employes" as UC_Gerer_les_employes
-  usecase "Approuver un compte" as UC_Approuver_un_compte
-  usecase "Rejeter un compte" as UC_Rejeter_un_compte
-  usecase "Supprimer un compte" as UC_Supprimer_un_compte
+  package "Authentification" {
+    usecase "Se connecter" as UC_Se_connecter
+    usecase "Valider un second facteur" as UC_Valider_un_second_facteur
+    usecase "Se deconnecter" as UC_Se_deconnecter
+    usecase "Reinitialiser son mot de passe" as UC_Reinitialiser_son_mot_de_passe
+    usecase "Se connecter par code PIN" as UC_Se_connecter_par_code_PIN
+    usecase "Verrouiller sa session" as UC_Verrouiller_sa_session
+    usecase "S'inscrire" as UC_S_inscrire
+    usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
+  }
+  package "Profil" {
+    usecase "Consulter son profil" as UC_Consulter_son_profil
+    usecase "Modifier son profil" as UC_Modifier_son_profil
+    usecase "Changer son mot de passe" as UC_Changer_son_mot_de_passe
+    usecase "Deposer une photo de profil" as UC_Deposer_une_photo_de_profil
+  }
+  package "Administration des comptes" {
+    usecase "Changer le role d'un compte" as UC_Changer_le_role_d_un_compte
+    usecase "Suspendre un compte" as UC_Suspendre_un_compte
+    usecase "Reactiver un compte" as UC_Reactiver_un_compte
+    usecase "Approuver un compte" as UC_Approuver_un_compte
+    usecase "Rejeter un compte" as UC_Rejeter_un_compte
+    usecase "Supprimer un compte" as UC_Supprimer_un_compte
+    usecase "Archiver un compte" as UC_Archiver_un_compte
+    usecase "Restaurer un compte archive" as UC_Restaurer_un_compte_archive
+    usecase "Purger un compte archive" as UC_Purger_un_compte_archive
+  }
+  package "Securite" {
+    usecase "Activer le second facteur" as UC_Activer_le_second_facteur
+    usecase "Desactiver le second facteur" as UC_Desactiver_le_second_facteur
+    usecase "Consulter l'historique des connexions" as UC_Consulter_l_historique_des_connexi
+    usecase "Effacer l'historique des connexions" as UC_Effacer_l_historique_des_connexion
+  }
+  package "Referentiel" {
+    usecase "Gerer les clients" as UC_Gerer_les_clients
+    usecase "Gerer les employes" as UC_Gerer_les_employes
+  }
   usecase "Consulter les dependances metier" as UC_Consulter_les_dependances_metier
-  usecase "Archiver un compte" as UC_Archiver_un_compte
-  usecase "Restaurer un compte archive" as UC_Restaurer_un_compte_archive
-  usecase "Purger un compte archive" as UC_Purger_un_compte_archive
-  usecase "Consulter l'historique des connexions" as UC_Consulter_l_historique_des_connexi
-  usecase "Effacer l'historique des connexions" as UC_Effacer_l_historique_des_connexion
-  usecase "Se connecter par code PIN" as UC_Se_connecter_par_code_PIN
-  usecase "Verrouiller sa session" as UC_Verrouiller_sa_session
-  usecase "S'inscrire" as UC_S_inscrire
-  usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
 }
 
 ' Acteurs secondaires, a droite, hors de la frontiere
@@ -87,14 +98,14 @@ Chauffeur -- UC_Verrouiller_sa_session
 Client -- UC_S_inscrire
 Client -- UC_Confirmer_son_adresse_electronique
 
-UC_Valider_un_second_facteur -right- SMTP
-UC_Confirmer_son_adresse_electronique -right- SMTP
-UC_Reinitialiser_son_mot_de_passe -right- SMTP
+UC_Valider_un_second_facteur -down- SMTP
+UC_Confirmer_son_adresse_electronique -down- SMTP
+UC_Reinitialiser_son_mot_de_passe -down- SMTP
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Supprimer_un_compte ..> UC_Consulter_les_dependances_metier : << include >>
 ' << extend >> : du cas optionnel vers le cas de base
-UC_Valider_un_second_facteur ..> UC_Se_connecter : << extend >>
-UC_Archiver_un_compte ..> UC_Supprimer_un_compte : << extend >>
+UC_Valider_un_second_facteur .left.> UC_Se_connecter : << extend >>
+UC_Archiver_un_compte .left.> UC_Supprimer_un_compte : << extend >>
 
 @enduml
