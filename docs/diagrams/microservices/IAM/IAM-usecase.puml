@@ -5,6 +5,8 @@ skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
 left to right direction
 
 ' Acteurs, alignes a gauche : les porteurs d'associations sont
@@ -28,44 +30,33 @@ Chauffeur -up-|> Employe
 Technicien -down-|> Employe
 
 rectangle "Service Identites et Acces" {
-  package "Authentification" {
+  package "Acces au service" {
     usecase "Se connecter" as UC_Se_connecter
-    usecase "Valider un second facteur" as UC_Valider_un_second_facteur
-    usecase "Se deconnecter" as UC_Se_deconnecter
     usecase "Reinitialiser son mot de passe" as UC_Reinitialiser_son_mot_de_passe
+    usecase "Cloturer sa session" as UC_Cloturer_sa_session
     usecase "Se connecter par code PIN" as UC_Se_connecter_par_code_PIN
-    usecase "Verrouiller sa session" as UC_Verrouiller_sa_session
     usecase "S'inscrire" as UC_S_inscrire
-    usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
   }
-  package "Profil" {
-    usecase "Consulter son profil" as UC_Consulter_son_profil
-    usecase "Modifier son profil" as UC_Modifier_son_profil
+  package "Compte personnel" {
+    usecase "Gerer son profil" as UC_Gerer_son_profil
     usecase "Changer son mot de passe" as UC_Changer_son_mot_de_passe
-    usecase "Deposer une photo de profil" as UC_Deposer_une_photo_de_profil
+    usecase "Gerer son second facteur" as UC_Gerer_son_second_facteur
   }
   package "Administration des comptes" {
-    usecase "Changer le role d'un compte" as UC_Changer_le_role_d_un_compte
-    usecase "Suspendre un compte" as UC_Suspendre_un_compte
-    usecase "Reactiver un compte" as UC_Reactiver_un_compte
-    usecase "Approuver un compte" as UC_Approuver_un_compte
-    usecase "Rejeter un compte" as UC_Rejeter_un_compte
+    usecase "Gerer les habilitations" as UC_Gerer_les_habilitations
+    usecase "Statuer sur une demande d'inscription" as UC_Statuer_sur_une_demande_d_inscript
     usecase "Supprimer un compte" as UC_Supprimer_un_compte
-    usecase "Archiver un compte" as UC_Archiver_un_compte
-    usecase "Restaurer un compte archive" as UC_Restaurer_un_compte_archive
-    usecase "Purger un compte archive" as UC_Purger_un_compte_archive
-  }
-  package "Securite" {
-    usecase "Activer le second facteur" as UC_Activer_le_second_facteur
-    usecase "Desactiver le second facteur" as UC_Desactiver_le_second_facteur
-    usecase "Consulter l'historique des connexions" as UC_Consulter_l_historique_des_connexi
-    usecase "Effacer l'historique des connexions" as UC_Effacer_l_historique_des_connexion
+    usecase "Gerer les comptes archives" as UC_Gerer_les_comptes_archives
+    usecase "Gerer l'historique des connexions" as UC_Gerer_l_historique_des_connexions
   }
   package "Referentiel" {
-    usecase "Gerer les clients" as UC_Gerer_les_clients
-    usecase "Gerer les employes" as UC_Gerer_les_employes
+    usecase "Gerer le referentiel des utilisateurs" as UC_Gerer_le_referentiel_des_utilisate
   }
+  usecase "Valider un second facteur" as UC_Valider_un_second_facteur
+  usecase "Deposer une photo de profil" as UC_Deposer_une_photo_de_profil
   usecase "Consulter les dependances metier" as UC_Consulter_les_dependances_metier
+  usecase "Archiver un compte" as UC_Archiver_un_compte
+  usecase "Confirmer son adresse electronique" as UC_Confirmer_son_adresse_electronique
 }
 
 ' Acteurs secondaires, a droite, hors de la frontiere
@@ -73,39 +64,31 @@ actor "Serveur de messagerie" as SMTP
 
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Se_connecter
-Utilisateur -- UC_Se_deconnecter
 Utilisateur -- UC_Reinitialiser_son_mot_de_passe
-Utilisateur -- UC_Consulter_son_profil
-Utilisateur -- UC_Modifier_son_profil
+Utilisateur -- UC_Cloturer_sa_session
+Utilisateur -- UC_Gerer_son_profil
 Utilisateur -- UC_Changer_son_mot_de_passe
-Utilisateur -- UC_Deposer_une_photo_de_profil
-Utilisateur -- UC_Activer_le_second_facteur
-Utilisateur -- UC_Desactiver_le_second_facteur
-Responsable -- UC_Changer_le_role_d_un_compte
-Responsable -- UC_Suspendre_un_compte
-Responsable -- UC_Reactiver_un_compte
-Responsable -- UC_Gerer_les_clients
-Responsable -- UC_Gerer_les_employes
-Administrateur -- UC_Approuver_un_compte
-Administrateur -- UC_Rejeter_un_compte
+Utilisateur -- UC_Gerer_son_second_facteur
+Responsable -- UC_Gerer_les_habilitations
+Responsable -- UC_Gerer_le_referentiel_des_utilisate
+Administrateur -- UC_Statuer_sur_une_demande_d_inscript
 Administrateur -- UC_Supprimer_un_compte
-Administrateur -- UC_Restaurer_un_compte_archive
-Administrateur -- UC_Purger_un_compte_archive
-Administrateur -- UC_Consulter_l_historique_des_connexi
-Administrateur -- UC_Effacer_l_historique_des_connexion
+Administrateur -- UC_Gerer_les_comptes_archives
+Administrateur -- UC_Gerer_l_historique_des_connexions
 Chauffeur -- UC_Se_connecter_par_code_PIN
-Chauffeur -- UC_Verrouiller_sa_session
 Client -- UC_S_inscrire
-Client -- UC_Confirmer_son_adresse_electronique
 
 UC_Valider_un_second_facteur -down- SMTP
 UC_Confirmer_son_adresse_electronique -down- SMTP
 UC_Reinitialiser_son_mot_de_passe -down- SMTP
+UC_Confirmer_son_adresse_electronique -[hidden]down- SMTP
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Supprimer_un_compte ..> UC_Consulter_les_dependances_metier : << include >>
-' << extend >> : du cas optionnel vers le cas de base
-UC_Valider_un_second_facteur .left.> UC_Se_connecter : << extend >>
-UC_Archiver_un_compte .left.> UC_Supprimer_un_compte : << extend >>
+UC_S_inscrire ..> UC_Confirmer_son_adresse_electronique : << include >>
+' << extend >> : la pointe designe le cas de base
+UC_Se_connecter <.. UC_Valider_un_second_facteur : << extend >>
+UC_Supprimer_un_compte <.. UC_Archiver_un_compte : << extend >>
+UC_Gerer_son_profil <.. UC_Deposer_une_photo_de_profil : << extend >>
 
 @enduml

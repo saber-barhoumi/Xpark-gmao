@@ -5,6 +5,8 @@ skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
 left to right direction
 
 ' Acteurs, alignes a gauche : les porteurs d'associations sont
@@ -27,65 +29,47 @@ rectangle "Service Maintenance" {
   package "Ordres de travail" {
     usecase "Consulter les ordres de travail" as UC_Consulter_les_ordres_de_travail
     usecase "Ouvrir un ordre de travail" as UC_Ouvrir_un_ordre_de_travail
-    usecase "Modifier un ordre de travail" as UC_Modifier_un_ordre_de_travail
-    usecase "Valider un ordre de travail" as UC_Valider_un_ordre_de_travail
-    usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
-    usecase "Vider une colonne du tableau" as UC_Vider_une_colonne_du_tableau
-    usecase "Supprimer un ordre de travail" as UC_Supprimer_un_ordre_de_travail
+    usecase "Instruire un ordre de travail" as UC_Instruire_un_ordre_de_travail
     usecase "Changer le statut d'un ordre de travail" as UC_Changer_le_statut_d_un_ordre_de_tr
   }
   package "Interventions" {
     usecase "Consulter les interventions" as UC_Consulter_les_interventions
-    usecase "Supprimer une intervention" as UC_Supprimer_une_intervention
     usecase "Declarer une intervention" as UC_Declarer_une_intervention
-    usecase "Consommer une piece de rechange" as UC_Consommer_une_piece_de_rechange
-    usecase "Modifier une intervention" as UC_Modifier_une_intervention
-    usecase "Changer le statut d'une intervention" as UC_Changer_le_statut_d_une_interventi
-    usecase "Restituer une piece" as UC_Restituer_une_piece
+    usecase "Suivre une intervention" as UC_Suivre_une_intervention
   }
   package "Stock de pieces" {
-    usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
-    usecase "Referencer une piece" as UC_Referencer_une_piece
+    usecase "Tenir le catalogue des pieces" as UC_Tenir_le_catalogue_des_pieces
     usecase "Reapprovisionner le stock" as UC_Reapprovisionner_le_stock
-    usecase "Modifier une piece" as UC_Modifier_une_piece
-    usecase "Retirer une piece" as UC_Retirer_une_piece
-    usecase "Consulter les pieces de rechange" as UC_Consulter_les_pieces_de_rechange
+    usecase "Consulter le stock de pieces" as UC_Consulter_le_stock_de_pieces
   }
   package "Suivi documentaire" {
-    usecase "Supprimer un commentaire" as UC_Supprimer_un_commentaire
-    usecase "Supprimer une piece jointe" as UC_Supprimer_une_piece_jointe
-    usecase "Commenter un ordre de travail" as UC_Commenter_un_ordre_de_travail
-    usecase "Joindre un document" as UC_Joindre_un_document
+    usecase "Documenter un ordre de travail" as UC_Documenter_un_ordre_de_travail
   }
+  package "Purge" {
+    usecase "Purger le dossier de maintenance" as UC_Purger_le_dossier_de_maintenance
+  }
+  usecase "Consulter l'historique des statuts" as UC_Consulter_l_historique_des_statuts
+  usecase "Consommer ou restituer une piece" as UC_Consommer_ou_restituer_une_piece
+  usecase "Consulter les pieces en stock faible" as UC_Consulter_les_pieces_en_stock_faib
 }
 
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_les_ordres_de_travail
 Utilisateur -- UC_Consulter_les_interventions
 Responsable -- UC_Ouvrir_un_ordre_de_travail
-Responsable -- UC_Modifier_un_ordre_de_travail
-Responsable -- UC_Valider_un_ordre_de_travail
-Responsable -- UC_Consulter_l_historique_des_statuts
-Responsable -- UC_Consulter_les_pieces_en_stock_faib
-Responsable -- UC_Referencer_une_piece
+Responsable -- UC_Instruire_un_ordre_de_travail
+Responsable -- UC_Tenir_le_catalogue_des_pieces
 Responsable -- UC_Reapprovisionner_le_stock
-Responsable -- UC_Modifier_une_piece
-Administrateur -- UC_Vider_une_colonne_du_tableau
-Administrateur -- UC_Supprimer_un_ordre_de_travail
-Administrateur -- UC_Supprimer_une_intervention
-Administrateur -- UC_Retirer_une_piece
-Administrateur -- UC_Supprimer_un_commentaire
-Administrateur -- UC_Supprimer_une_piece_jointe
+Administrateur -- UC_Purger_le_dossier_de_maintenance
 Technicien -- UC_Changer_le_statut_d_un_ordre_de_tr
 Technicien -- UC_Declarer_une_intervention
-Technicien -- UC_Modifier_une_intervention
-Technicien -- UC_Changer_le_statut_d_une_interventi
-Technicien -- UC_Restituer_une_piece
-Technicien -- UC_Consulter_les_pieces_de_rechange
-Technicien -- UC_Commenter_un_ordre_de_travail
-Technicien -- UC_Joindre_un_document
+Technicien -- UC_Suivre_une_intervention
+Technicien -- UC_Consulter_le_stock_de_pieces
+Technicien -- UC_Documenter_un_ordre_de_travail
 
-' << extend >> : du cas optionnel vers le cas de base
-UC_Consommer_une_piece_de_rechange .left.> UC_Declarer_une_intervention : << extend >>
+' << extend >> : la pointe designe le cas de base
+UC_Declarer_une_intervention <.. UC_Consommer_ou_restituer_une_piece : << extend >>
+UC_Consulter_les_ordres_de_travail <.. UC_Consulter_l_historique_des_statuts : << extend >>
+UC_Consulter_le_stock_de_pieces <.. UC_Consulter_les_pieces_en_stock_faib : << extend >>
 
 @enduml

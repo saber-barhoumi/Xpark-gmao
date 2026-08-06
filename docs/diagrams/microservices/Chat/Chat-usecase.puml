@@ -5,6 +5,8 @@ skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
 left to right direction
 
 ' Acteurs, alignes a gauche : les porteurs d'associations sont
@@ -28,44 +30,40 @@ Chauffeur -down-|> Employe
 rectangle "Service Messagerie" {
   package "Conversations" {
     usecase "Consulter ses conversations" as UC_Consulter_ses_conversations
-    usecase "Ouvrir une conversation privee" as UC_Ouvrir_une_conversation_privee
-    usecase "Creer un groupe de discussion" as UC_Creer_un_groupe_de_discussion
+    usecase "Ouvrir une conversation" as UC_Ouvrir_une_conversation
     usecase "Archiver une conversation" as UC_Archiver_une_conversation
-    usecase "Consulter les conversations archivees" as UC_Consulter_les_conversations_archiv
     usecase "Couper les notifications" as UC_Couper_les_notifications
     usecase "Supprimer une conversation" as UC_Supprimer_une_conversation
   }
   package "Messages" {
     usecase "Consulter les messages" as UC_Consulter_les_messages
     usecase "Envoyer un message" as UC_Envoyer_un_message
-    usecase "Joindre un fichier" as UC_Joindre_un_fichier
-    usecase "Epingler un message" as UC_Epingler_un_message
-    usecase "Transferer un message" as UC_Transferer_un_message
-    usecase "Supprimer un message" as UC_Supprimer_un_message
+    usecase "Agir sur un message" as UC_Agir_sur_un_message
   }
   package "Presence" {
     usecase "Consulter les correspondants connectes" as UC_Consulter_les_correspondants_conne
     usecase "Rechercher un correspondant" as UC_Rechercher_un_correspondant
   }
+  usecase "Consulter les conversations archivees" as UC_Consulter_les_conversations_archiv
+  usecase "Creer un groupe de discussion" as UC_Creer_un_groupe_de_discussion
+  usecase "Joindre un fichier" as UC_Joindre_un_fichier
 }
 
 ' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Consulter_ses_conversations
-Utilisateur -- UC_Ouvrir_une_conversation_privee
-Utilisateur -- UC_Creer_un_groupe_de_discussion
+Utilisateur -- UC_Ouvrir_une_conversation
 Utilisateur -- UC_Archiver_une_conversation
-Utilisateur -- UC_Consulter_les_conversations_archiv
 Utilisateur -- UC_Couper_les_notifications
 Utilisateur -- UC_Consulter_les_messages
 Utilisateur -- UC_Envoyer_un_message
-Utilisateur -- UC_Epingler_un_message
-Utilisateur -- UC_Transferer_un_message
-Utilisateur -- UC_Supprimer_un_message
+Utilisateur -- UC_Agir_sur_un_message
 Utilisateur -- UC_Consulter_les_correspondants_conne
 Utilisateur -- UC_Rechercher_un_correspondant
 Administrateur -- UC_Supprimer_une_conversation
 
-' << extend >> : du cas optionnel vers le cas de base
-UC_Joindre_un_fichier .left.> UC_Envoyer_un_message : << extend >>
+' << extend >> : la pointe designe le cas de base
+UC_Envoyer_un_message <.. UC_Joindre_un_fichier : << extend >>
+UC_Ouvrir_une_conversation <.. UC_Creer_un_groupe_de_discussion : << extend >>
+UC_Consulter_ses_conversations <.. UC_Consulter_les_conversations_archiv : << extend >>
 
 @enduml

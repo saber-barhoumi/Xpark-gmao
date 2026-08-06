@@ -5,6 +5,8 @@ skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
 left to right direction
 
 ' Acteurs, alignes a gauche : les porteurs d'associations sont
@@ -38,6 +40,7 @@ Gestionnaire -- UC_Verifier_la_disponibilite_du_servi
 
 UC_Optimiser_une_affectation -down- Bus
 UC_Produire_un_plan_d_affectation -down- Bus
+UC_Produire_un_plan_d_affectation -[hidden]down- Bus
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Optimiser_une_affectation ..> UC_Appliquer_les_contraintes_d_affect : << include >>

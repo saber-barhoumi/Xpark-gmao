@@ -5,6 +5,8 @@ skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
 left to right direction
 
 ' Acteurs, alignes a gauche : les porteurs d'associations sont
@@ -58,11 +60,16 @@ Responsable -- UC_Purger_les_alertes
 UC_Recevoir_un_evenement_metier -down- Bus
 UC_Diffuser_une_alerte -down- SMTP
 UC_Diffuser_une_alerte -down- Twilio
+UC_Diffuser_une_alerte -[hidden]down- Bus
+UC_Diffuser_une_alerte -[hidden]down- SMTP
+UC_Diffuser_une_alerte -[hidden]down- Twilio
+Bus -[hidden]right- SMTP
+SMTP -[hidden]right- Twilio
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Recevoir_un_evenement_metier ..> UC_Evaluer_la_criticite : << include >>
 UC_Evaluer_la_criticite ..> UC_Regrouper_les_evenements_lies : << include >>
-' << extend >> : du cas optionnel vers le cas de base
-UC_Diffuser_une_alerte .left.> UC_Evaluer_la_criticite : << extend >>
+' << extend >> : la pointe designe le cas de base
+UC_Evaluer_la_criticite <.. UC_Diffuser_une_alerte : << extend >>
 
 @enduml

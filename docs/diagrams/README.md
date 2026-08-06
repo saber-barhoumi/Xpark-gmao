@@ -97,6 +97,97 @@ Regles appliquees :
 5. **Acteurs secondaires a droite**, hors frontiere, relies par une
    association simple : aucun stereotype en dehors de `<< include >>` et
    `<< extend >>`, qui ne relient que des cas d'utilisation entre eux.
+   Deux liens invisibles les tiennent en place : un lien de rang depuis
+   le cas le plus a droite, qui les pousse tous dans la meme derniere
+   colonne, et un chainage de meme colonne qui les aligne verticalement.
+   Sans le premier, un acteur rattache a un cas de la colonne 0 se posait
+   AU-DESSUS du cadre au lieu d'etre a sa droite.
+
+## Obtenir un format paysage sur un gros diagramme
+
+Le probleme et sa cause. Les acteurs occupent la colonne de gauche, les
+cas d'utilisation la colonne suivante : la hauteur est donc
+proportionnelle au NOMBRE de cas, et un service a 28 cas produit une
+bande verticale illisible. On ne peut pas y remedier en repartissant les
+domaines horizontalement : essai fait sur IAM, des que les domaines
+occupent plusieurs colonnes, l'acteur qui possede les cas de la colonne
+de droite est ejecte hors du cadre et ses associations traversent tout le
+diagramme. **Acteurs a gauche et domaines cote a cote sont
+incompatibles** ; c'est une contrainte du graphe, pas de PlantUML.
+
+Trois leviers agissent reellement, dans cet ordre :
+
+1. **Deplacer le detail vers la droite.** Un cas atteint par
+   `<< include >>` ou `<< extend >>` occupe la colonne suivante. Ecrire
+   l'extension dans le sens `base <.. extension : << extend >>` plutot
+   que `extension ..> base` : le trace est identique, la pointe reste sur
+   le cas de base comme l'exige UML, mais Graphviz classe alors
+   l'extension APRES sa base, donc a droite. Ecrite dans l'autre sens,
+   elle remontait d'un cran a gauche, dans la colonne des acteurs.
+   Chaque cas ainsi deplace raccourcit la colonne principale ET elargit
+   le diagramme : le rapport largeur / hauteur progresse deux fois.
+
+2. **Factoriser.** Les variantes d'une meme capacite (activer /
+   desactiver, consulter / modifier, referencer / modifier) deviennent un
+   seul cas. Un diagramme de cas d'utilisation exprime des buts
+   d'utilisateur, pas la liste des endpoints. Toutes les fusions
+   pratiquees ici sont consignees en commentaire dans le generateur et
+   resumees plus bas.
+
+3. **Regler `nodesep` et `ranksep`.** `nodesep` resserre l'axe qui
+   deborde - l'empilement a l'interieur d'une colonne - et `ranksep`
+   aere celui qui manque de matiere - l'ecart entre colonnes. Les
+   valeurs retenues sont `nodesep 18` et `ranksep 80`. Sans toucher au
+   contenu, ce seul reglage a fait passer IAM de 1,00 a 1,21.
+
+Resultat mesure, largeur / hauteur du rendu PNG :
+
+| Service | Avant | Apres | Rapport |
+|---|---|---|---|
+| IAM | 1013 x 2332 | 1289 x 1067 | 0,43 -> **1,21** |
+| Maintenance | 592 x 2140 | 954 x 1056 | 0,28 -> **0,90** |
+| Fleet | 590 x 1993 | 968 x 905 | 0,30 -> **1,07** |
+| Chat | 706 x 1318 | 1101 x 799 | 0,54 -> **1,38** |
+| Mission | 1344 x 1443 | 1758 x 1149 | 0,93 -> **1,53** |
+
+Fleet et Maintenance restent legerement en portrait. Les descendre au
+format paysage demanderait de fusionner des capacites reellement
+distinctes - par exemple confondre l'inspection d'un vehicule avec
+l'affectation d'un equipement. Le gain de forme ne vaut pas cette perte
+de sens : ces deux diagrammes tiennent desormais sur une page A4
+portrait, ce qui etait l'objectif.
+
+## Cas d'utilisation regroupes
+
+Le diagramme exprime des buts metier, pas la liste des actions des
+controleurs. Les regroupements pratiques :
+
+| Service | Cas regroupes | Cas resultant |
+|---|---|---|
+| IAM | Consulter + Modifier son profil | Gerer son profil |
+| IAM | Activer + Desactiver le second facteur | Gerer son second facteur |
+| IAM | Se deconnecter + Verrouiller sa session | Cloturer sa session |
+| IAM | Approuver + Rejeter un compte | Statuer sur une demande d'inscription |
+| IAM | Changer le role + Suspendre + Reactiver | Gerer les habilitations |
+| IAM | Restaurer + Purger un compte archive | Gerer les comptes archives |
+| IAM | Consulter + Effacer l'historique des connexions | Gerer l'historique des connexions |
+| IAM | Gerer les clients + Gerer les employes | Gerer le referentiel des utilisateurs |
+| Fleet | Vehicules + disponibilite + equipements + indicateurs | Consulter le parc |
+| Fleet | Documents administratifs + echeances | Consulter les pieces administratives |
+| Fleet | Sources de carburant + statistiques | Suivre la consommation de carburant |
+| Fleet | Affecter + Restituer un equipement | Affecter et restituer un equipement |
+| Fleet | Immatriculer + Modifier un vehicule | Tenir la fiche d'un vehicule |
+| Fleet | Ajouter + Modifier un equipement | Tenir la fiche d'un equipement |
+| Fleet | Document administratif + assurance | Enregistrer une piece administrative |
+| Fleet | Retirer vehicule + equipement + piece justificative | Sortir un bien de l'inventaire |
+| Maintenance | Modifier + Valider un ordre de travail | Instruire un ordre de travail |
+| Maintenance | Modifier + Changer le statut d'une intervention | Suivre une intervention |
+| Maintenance | Consommer + Restituer une piece | Consommer ou restituer une piece |
+| Maintenance | Referencer + Modifier une piece | Tenir le catalogue des pieces |
+| Maintenance | Commenter + Joindre un document | Documenter un ordre de travail |
+| Maintenance | Les quatre suppressions reservees a l'administrateur | Purger le dossier de maintenance |
+| Chat | Ouvrir une conversation privee + Creer un groupe | Ouvrir une conversation |
+| Chat | Epingler + Transferer + Supprimer un message | Agir sur un message |
 
 Sujets supplementaires, uniquement la ou la fonctionnalite existe vraiment :
 

@@ -5,6 +5,8 @@ skinparam shadowing false
 skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
 left to right direction
 
 ' Acteurs, alignes a gauche : les porteurs d'associations sont
@@ -80,12 +82,15 @@ Client -- UC_Ouvrir_un_ticket_de_support
 
 UC_Estimer_le_prix_du_trajet -down- Estimateur
 UC_Optimiser_une_tournee -down- Optimiseur
+UC_Optimiser_une_tournee -[hidden]down- Estimateur
+UC_Optimiser_une_tournee -[hidden]down- Optimiseur
+Estimateur -[hidden]right- Optimiseur
 
 ' << include >> : du cas de base vers le cas obligatoire
 UC_Deposer_une_demande_de_transport ..> UC_Estimer_le_prix_du_trajet : << include >>
 UC_Accepter_un_devis ..> UC_Creer_une_mission : << include >>
 UC_Creer_une_mission ..> UC_Affecter_un_vehicule_et_un_chauffe : << include >>
-' << extend >> : du cas optionnel vers le cas de base
-UC_Optimiser_une_tournee .left.> UC_Affecter_un_vehicule_et_un_chauffe : << extend >>
+' << extend >> : la pointe designe le cas de base
+UC_Affecter_un_vehicule_et_un_chauffe <.. UC_Optimiser_une_tournee : << extend >>
 
 @enduml
