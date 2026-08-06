@@ -39,7 +39,7 @@ cloud "Internet" as NET
 node "Hote Docker  <<serveur d'execution unique - docker compose>>" as HOTE #FAFAFA {
 
   node "Conteneurs exposes  <<publication de ports>>" as ZEXPO #ECEFF1 {
-    artifact "xpark-backoffice\nnginx 1.27 + fichiers React\n**8080 -> 80/tcp**" as CBO
+    artifact "xpark-backoffice\nnginx 1.27 + fichiers React\n**3000 -> 80/tcp**" as CBO
     artifact "xpark-frontoffice\nNode 20 + Next.js\n**3001 -> 3000/tcp**" as CFO
     artifact "xpark-nginx  <<passerelle>>\nnginx 1.25-alpine\n**8080 -> 80/tcp**" as CGW
   }
@@ -72,7 +72,7 @@ node "Systemes tiers" as TIERS #ECEFF1 {
 NAV -down-> NET : HTTP
 MOB -down-> NET : HTTP
 
-NET -down-> ZEXPO : HTTP 8080 et 3001/tcp
+NET -down-> ZEXPO : HTTP 3000, 3001 et 8080/tcp
 NET -down-> ZAPP : HTTP 5001 et 5003/tcp\nconnexion et suivi GPS, en direct
 
 CBO -down-> CGW : HTTP 80/tcp\nproxy_pass, resolution dynamique
