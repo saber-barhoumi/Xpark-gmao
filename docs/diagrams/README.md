@@ -157,6 +157,53 @@ l'affectation d'un equipement. Le gain de forme ne vaut pas cette perte
 de sens : ces deux diagrammes tiennent desormais sur une page A4
 portrait, ce qui etait l'objectif.
 
+## Les deux diagrammes d'architecture
+
+`architecture/logical-architecture.puml` et
+`architecture/physical-architecture.puml` sont les deux vues d'ensemble
+destinees au rapport. Elles obeissent a une regle unique : **une boite
+par GROUPE, pas par service**.
+
+Un microservice n'a pas sa propre boite ; chaque groupe technologique en
+a une et enumere ses membres a l'interieur. Motif : les huit services
+.NET partagent la meme passerelle, le meme courtier et la meme base. Les
+relier un par un produisait une trentaine de traits croises qui
+n'apprenaient rien de plus que le lien de groupe. Le detail service par
+service reste disponible dans `platform/`, `infrastructure/` et
+`microservices/`.
+
+Quatre procedes rendent le trace lisible :
+
+1. **Empilement en bandes.** Direction par defaut (haut vers bas), une
+   bande par niveau, dans l'ordre de declaration : Presentation,
+   Passerelle, Coeur applicatif, Persistance. Toutes les fleches portent
+   `-down->` : le flux se lit de haut en bas sans exception.
+
+2. **`skinparam linetype ortho`.** Les liaisons deviennent des segments
+   a angle droit au lieu de diagonales : plus aucune fleche ne coupe une
+   boite en biais.
+
+3. **Un connecteur par couple de groupes.** Vingt-six liaisons au lieu
+   d'une quarantaine sur la vue physique, treize au lieu d'une trentaine
+   sur la vue logique. Les echanges asynchrones sont resumes par une
+   liaison bidirectionnelle `<-down->` etiquetee « publie / consomme » ;
+   le detail des 22 evenements est dans
+   `platform/platform-rabbitmq-events.puml`.
+
+4. **Le courtier place SOUS les deux groupes de calcul.** Entre eux, les
+   libelles des fleches se superposaient a sa boite - le defaut
+   d'origine. En dessous, les fleches sont verticales et les libelles
+   tombent dans l'espace libre.
+
+Resultat : la vue logique passe de 2438 x 1384 a **1781 x 838**, la vue
+physique de 3040 x 1479 a **1816 x 1105**. Les deux tiennent en pleine
+largeur sur une page A4 paysage sans reduction.
+
+> Le format C4 (`C4-PlantUML`) n'a pas ete retenu : il exige un
+> `!include` vers un depot distant, et le rendu echouerait hors ligne.
+> Les memes conventions sont obtenues avec les elements standard
+> `node` / `artifact` / `component` / `database`.
+
 ## Cas d'utilisation regroupes
 
 Le diagramme exprime des buts metier, pas la liste des actions des

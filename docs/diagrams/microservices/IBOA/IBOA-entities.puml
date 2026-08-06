@@ -7,7 +7,7 @@ skinparam defaultFontName Verdana
 skinparam defaultFontSize 11
 skinparam backgroundColor #FFFFFF
 hide empty members
-
+title IBOA - Entites
 note as N
   Service Python : les structures de donnees sont des modeles
   Pydantic, c'est-a-dire des objets-valeurs de transfert et non
