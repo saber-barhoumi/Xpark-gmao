@@ -1,0 +1,128 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+skinparam nodesep 18
+skinparam ranksep 80
+left to right direction
+
+' =====================================================================
+'  Cas d'utilisation GLOBAL de la plateforme.
+'
+'  Vue de synthese : un cas par capacite metier, et non le detail des
+'  services. Les diagrammes par service, dans microservices/, donnent
+'  le detail ; celui-ci donne la carte d'ensemble.
+'
+'  A ce niveau, les services d'aide a la decision sont INTERNES a la
+'  plateforme : seuls le serveur de messagerie et la passerelle de
+'  messagerie instantanee sont exterieurs au systeme.
+' =====================================================================
+
+' Acteurs, alignes a gauche : les porteurs d'associations sont
+' accoles a la frontiere, les acteurs structurels a leur gauche
+actor "Utilisateur" as Utilisateur
+actor "Employe" as Employe
+actor "Responsable" as Responsable
+actor "Administrateur" as Administrateur
+actor "Gestionnaire" as Gestionnaire
+actor "Technicien" as Technicien
+actor "Chauffeur" as Chauffeur
+actor "Client" as Client
+
+' Generalisation : triangle creux, de l'enfant vers le parent
+Employe -down-|> Utilisateur
+Client -left-|> Utilisateur
+Responsable -up-|> Employe
+Administrateur -down-|> Responsable
+Gestionnaire -down-|> Responsable
+Technicien -up-|> Employe
+Chauffeur -up-|> Employe
+
+rectangle "Plateforme XPARK GMAO" {
+
+  package "Identites et acces" {
+    usecase "Gerer son compte et ses acces" as UC_Compte
+    usecase "Administrer les comptes utilisateurs" as UC_AdminComptes
+  }
+
+  package "Flotte et equipements" {
+    usecase "Suivre l'exploitation de la flotte" as UC_Exploitation
+    usecase "Tenir le referentiel de la flotte" as UC_Referentiel
+  }
+
+  package "Transport et missions" {
+    usecase "Deposer une demande de transport" as UC_Demande
+    usecase "Etablir un devis" as UC_Devis
+    usecase "Planifier et affecter une mission" as UC_Planifier
+    usecase "Executer une mission" as UC_Executer
+    usecase "Suivre une mission en direct" as UC_Suivre
+  }
+
+  package "Maintenance" {
+    usecase "Realiser une intervention" as UC_Intervention
+    usecase "Piloter les ordres de travail" as UC_OrdresTravail
+    usecase "Gerer le stock de pieces" as UC_Stock
+  }
+
+  package "Finance et pilotage" {
+    usecase "Facturer les prestations" as UC_Facturer
+    usecase "Consulter ses factures" as UC_MesFactures
+    usecase "Surveiller les alertes metier" as UC_Alertes
+    usecase "Consulter le tableau de bord" as UC_TableauBord
+  }
+
+  package "Collaboration" {
+    usecase "Echanger par messagerie" as UC_Messagerie
+    usecase "Interroger l'assistant documentaire" as UC_Assistant
+  }
+
+  ' Cas d'aide a la decision, atteints depuis les cas de base
+  usecase "Estimer le prix du trajet" as UC_Estimation
+  usecase "Optimiser l'affectation de la flotte" as UC_Optimisation
+  usecase "Anticiper les pannes" as UC_Prediction
+}
+
+' Acteurs secondaires, hors frontiere
+actor "Serveur de messagerie" as SMTP
+actor "Passerelle de messagerie instantanee" as Twilio
+
+' Associations : trait continu sans fleche (relation d'association)
+Utilisateur -- UC_Compte
+Utilisateur -- UC_Exploitation
+Utilisateur -- UC_Messagerie
+Administrateur -- UC_AdminComptes
+Responsable -- UC_Referentiel
+Responsable -- UC_Devis
+Responsable -- UC_Planifier
+Responsable -- UC_OrdresTravail
+Responsable -- UC_Stock
+Responsable -- UC_Facturer
+Responsable -- UC_Alertes
+Responsable -- UC_TableauBord
+Technicien -- UC_Intervention
+Chauffeur -- UC_Executer
+Client -- UC_Demande
+Client -- UC_Suivre
+Client -- UC_MesFactures
+Client -- UC_Assistant
+
+' << include >> : du cas de base vers le cas obligatoire
+UC_Demande ..> UC_Estimation : << include >>
+UC_Planifier ..> UC_Optimisation : << include >>
+UC_OrdresTravail ..> UC_Prediction : << include >>
+
+' << extend >> : la pointe designe le cas de base
+UC_Devis <.. UC_Estimation : << extend >>
+
+' Acteurs secondaires : association simple, sans stereotype
+UC_Compte -down- SMTP
+UC_Alertes -down- SMTP
+UC_Alertes -down- Twilio
+UC_Estimation -[hidden]down- SMTP
+UC_Estimation -[hidden]down- Twilio
+SMTP -[hidden]right- Twilio
+
+@enduml

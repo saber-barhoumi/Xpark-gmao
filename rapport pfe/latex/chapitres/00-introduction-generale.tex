@@ -1,0 +1,87 @@
+% =====================================================================
+%  Introduction generale
+% =====================================================================
+%  Le guide precise : « pose le probleme a resoudre sans evocation de
+%  resultats », puis « le contenu de chaque chapitre est annonce
+%  brievement ».
+% =====================================================================
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Introduction generale}
+\chapter*{Introduction generale}
+\markboth{Introduction generale}{}
+
+Le transport routier de marchandises occupe une place structurante dans
+l'economie tunisienne. Il relie les zones industrielles du littoral aux
+bassins de production de l'interieur, dessert les ports et assure la
+distribution vers les reseaux commerciaux. Les entreprises du secteur
+exploitent des flottes de plusieurs dizaines de vehicules, mobilisent des
+chauffeurs sur des trajets longs et repondent a des clients qui attendent
+des delais fermes et une facturation exacte.
+
+Cette activite repose sur un equilibre fragile. Un vehicule immobilise
+par une panne non anticipee, un document administratif expire decouvert
+au moment d'un controle, un devis etabli sans reference tarifaire fiable
+ou une facture oubliee : chacun de ces incidents a un cout direct et
+degrade la relation commerciale. Les entreprises de taille moyenne
+gerent pourtant ces risques avec des outils qui n'ont pas ete concus
+pour cela, principalement des tableurs et des echanges informels.
+
+\vspace{0.4cm}
+\noindent
+\essentiel{La question a laquelle ce projet de fin d'etudes entend
+repondre est la suivante : comment doter une entreprise de transport de
+marchandises d'un systeme d'information unifie qui centralise
+l'exploitation de sa flotte, industrialise sa maintenance, ouvre un canal
+numerique a ses clients et mette l'aide a la decision au service de ses
+choix quotidiens ?}
+\vspace{0.4cm}
+
+Repondre a cette question suppose de traiter simultanement plusieurs
+domaines metier qui, dans les pratiques observees, sont geres
+separement : les identites et les habilitations, le referentiel des
+vehicules et des equipements, le cycle commercial de la demande a la
+facture, la maintenance curative et preventive, la communication interne
+et la relation client. L'enjeu n'est pas seulement de les informatiser un
+a un, mais de les faire cooperer sans les rendre indissociables : une
+evolution de la facturation ne doit pas immobiliser la gestion de la
+flotte.
+
+Le travail presente ici a consiste a concevoir et a developper
+\sujetCourt, une plateforme construite selon une architecture
+microservices. Elle reunit douze services autonomes, trois applications
+destinees a des publics distincts et une couche d'aide a la decision
+fondee sur l'apprentissage automatique et sur la recherche documentaire
+augmentee. La demarche suivie est agile, structuree par le cadre Scrum
+et decoupee en six sprints correspondant chacun a un domaine metier
+coherent.
+
+\section*{Organisation du rapport}
+\addcontentsline{toc}{section}{Organisation du rapport}
+
+Ce rapport suit la progression reelle du projet.
+
+Le \essentiel{premier chapitre} situe le travail dans son contexte. Il
+presente l'organisme d'accueil, formule la problematique, examine les
+pratiques et les solutions existantes, expose leurs limites, decrit la
+solution proposee et justifie le choix de la methodologie de travail.
+
+Le \essentiel{deuxieme chapitre} conduit l'analyse globale. Il identifie
+les acteurs du systeme, recense les besoins fonctionnels et non
+fonctionnels, les modelise par un diagramme de cas d'utilisation global,
+puis presente le pilotage du projet : composition de l'equipe, carnet de
+produit et decoupage en sprints.
+
+Le \essentiel{troisieme chapitre} decrit l'environnement de travail,
+materiel et logiciel, puis l'architecture retenue. Il en donne les deux
+vues complementaires, logique et physique, et explique les trois choix
+structurants qui la caracterisent.
+
+Les \essentiel{chapitres quatre a neuf} rendent compte des six sprints.
+Chacun suit la meme trame : planification et carnet de sprint,
+elaboration technique appuyee sur les modeles UML, realisation et tests
+de validation.
+
+La \essentiel{conclusion generale} dresse le bilan du travail accompli,
+revient sur les difficultes rencontrees, evalue l'atteinte des objectifs
+et ouvre sur les perspectives d'evolution de la plateforme.

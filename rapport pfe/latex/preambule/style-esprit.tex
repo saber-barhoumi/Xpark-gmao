@@ -1,0 +1,71 @@
+% =====================================================================
+%  Mise en forme imposee par « Rapport Stage Pedagogique.pdf »
+% =====================================================================
+%  Police Times 12 pt, marges 2,5 cm, interligne 1,15, justification,
+%  alinea de premiere ligne 0,50 cm, pagination en bas a droite sous la
+%  forme n/N. Chaque valeur ci-dessous est reprise du guide.
+% =====================================================================
+
+\setstretch{1.15}
+\setlength{\parindent}{0.5cm}
+\setlength{\parskip}{0.15\baselineskip}
+
+% ---------------------------------------------------------------- Titres
+\definecolor{bleuTitre}{HTML}{1F3864}
+\definecolor{grisFilet}{HTML}{9AA5B1}
+\definecolor{grisFond}{HTML}{F2F4F7}
+
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\bfseries\color{bleuTitre}}
+  {\filright\large\MakeUppercase{\chaptertitlename}\ \Huge\thechapter}
+  {8pt}{\huge\filright}
+\titlespacing*{\chapter}{0pt}{-20pt}{28pt}
+
+\titleformat{\section}{\normalfont\sffamily\large\bfseries\color{bleuTitre}}
+  {\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\sffamily\normalsize\bfseries\color{bleuTitre}}
+  {\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalfont\sffamily\small\bfseries\color{bleuTitre}}
+  {\thesubsubsection}{0.6em}{}
+
+\titlespacing*{\section}      {0pt}{14pt}{6pt}
+\titlespacing*{\subsection}   {0pt}{11pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{9pt}{3pt}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+% ---------------------------------------------------------------- En-tetes
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\small\sffamily\nouppercase{\leftmark}}
+\fancyfoot[R]{\small\sffamily\thepage/\pageref{LastPage}}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \fancyfoot[R]{\small\sffamily\thepage/\pageref{LastPage}}%
+}
+
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+
+% ---------------------------------------------------------------- Legendes
+\captionsetup[figure]{name=Figure}
+\captionsetup[table]{name=Tableau}
+\renewcommand{\cftfigpresnum}{Figure~}
+\renewcommand{\cfttabpresnum}{Tableau~}
+\setlength{\cftfignumwidth}{4.2em}
+\setlength{\cfttabnumwidth}{4.6em}
+
+% Les tableaux portent leur legende au-dessus, les figures en dessous.
+\captionsetup[table]{position=above,skip=4pt}
+\captionsetup[figure]{position=below,skip=6pt}
+
+% ---------------------------------------------------------------- Divers
+\renewcommand{\arraystretch}{1.25}
+\setlist{itemsep=2pt,parsep=0pt,topsep=4pt}
+\clubpenalty=10000      % pas de ligne isolee en bas de page
+\widowpenalty=10000     % pas de ligne isolee en haut de page
+\raggedbottom

@@ -1,0 +1,86 @@
+% =====================================================================
+%  RAPPORT DE PROJET DE FIN D'ETUDES
+%  XPARK GMAO - plateforme de gestion de flotte et de transport
+% =====================================================================
+%  Compilation :  pdflatex main  (deux fois, pour la table des matieres,
+%                 la table des figures et la pagination n/N)
+%  Ou simplement :  compiler.bat
+% =====================================================================
+\documentclass[12pt,a4paper,twoside,openright]{report}
+
+\input{preambule/packages}
+\input{preambule/style-esprit}
+\input{preambule/macros}
+\input{preambule/donnees-rapport}
+
+\hypersetup{
+  pdftitle={\sujetRapport},
+  pdfauthor={\etudiantComplet},
+  pdfsubject={Rapport de projet de fin d'etudes},
+  pdfkeywords={microservices, gestion de flotte, transport, Scrum, .NET, React}
+}
+
+\begin{document}
+
+% =====================================================================
+%  PAGES LIMINAIRES  (numerotation romaine)
+% =====================================================================
+\pagenumbering{roman}
+
+\input{liminaires/page-garde}
+\input{liminaires/validation-depot}
+\input{liminaires/dedicaces}
+\input{liminaires/remerciements}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Table des matieres}
+\tableofcontents
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Table des figures}
+\listoffigures
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+\listoftables
+
+\input{liminaires/acronymes}
+
+% =====================================================================
+%  CORPS DU RAPPORT  (numerotation arabe)
+% =====================================================================
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{chapitres/00-introduction-generale}
+
+\input{chapitres/01-etude-prealable}
+
+% Les chapitres suivants sont rediges un par un, apres validation du
+% precedent. Decommenter au fur et a mesure.
+\input{chapitres/02-analyse-globale}
+% \input{chapitres/03-environnement-architecture}
+% \input{chapitres/04-sprint1-iam}
+% \input{chapitres/05-sprint2-flotte}
+% \input{chapitres/06-sprint3-mission}
+% \input{chapitres/07-sprint4-maintenance}
+% \input{chapitres/08-sprint5-finance-alertes}
+% \input{chapitres/09-sprint6-collaboration-ia}
+% \input{chapitres/10-conclusion-generale}
+
+% =====================================================================
+%  BIBLIOGRAPHIE ET ANNEXES
+% =====================================================================
+% \input{biblio/references}
+% \appendix
+% \input{annexes/A-extraits-code}
+% \input{annexes/B-journal-de-bord}
+% \input{annexes/C-jeux-de-tests}
+% \input{annexes/D-diagrammes-complementaires}
+% \input{liminaires/resume}
+
+\end{document}

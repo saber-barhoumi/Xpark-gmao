@@ -1,0 +1,429 @@
+% =====================================================================
+%  Chapitre 1 - Etude prealable
+% =====================================================================
+\chapter{Etude prealable}
+\label{chap:etude-prealable}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Tout projet informatique repond a un besoin ne d'une situation concrete.
+Ce premier chapitre etablit cette situation. Il presente l'organisme au
+sein duquel le projet a ete conduit, formule la problematique a laquelle
+il entend repondre, examine la maniere dont ce besoin est aujourd'hui
+couvert et en releve les limites. Il expose ensuite la solution retenue
+et justifie la methodologie de travail adoptee.
+
+% =====================================================================
+\section{Presentation de l'organisme d'accueil}
+
+\subsection{L'entreprise}
+
+Le present projet de fin d'etudes a ete realise au sein de
+\essentiel{\entreprise}, entreprise de services numeriques implantee a
+\entrepriseVille{} (\entrepriseCodePostal), en Tunisie.
+
+\figReelle{logo-sipro.png}{Logo de l'entreprise \entreprise}
+  {fig:logo-sipro}{0.22}
+
+L'activite de \entreprise{} s'organise autour de trois metiers
+complementaires, qui vont de la conception logicielle a
+l'infrastructure materielle.
+
+\begin{table}[H]
+\centering
+\caption{Les trois metiers de \entreprise}
+\label{tab:metiers-sipro}
+\small
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Metier} & \textbf{Perimetre} \\ \midrule
+Edition logicielle &
+  Developpement de logiciels de gestion et de progiciels destines aux
+  entreprises. C'est le metier historique et celui dont releve le present
+  projet. \\
+Integration RFID &
+  Mise en oeuvre de solutions d'identification par radiofrequence :
+  tracabilite des biens, inventaire et controle d'acces. \\
+Materiel informatique &
+  Vente et maintenance de materiel informatique professionnel, incluant
+  l'assistance aux entreprises clientes. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Cette combinaison est determinante pour la comprehension du projet. Une
+entreprise qui integre des solutions de tracabilite et qui maintient du
+materiel sur site connait de l'interieur les contraintes de la gestion
+d'un parc : suivi des equipements, planification des interventions,
+surveillance des echeances. \essentiel{Le sujet confie n'est donc pas un
+exercice theorique : il prolonge un savoir-faire metier existant vers un
+domaine, le transport de marchandises, ou la demande des clients de
+\entreprise{} etait exprimee.}
+
+\subsection{La mission confiee}
+
+\entreprise{} a confie la conception et le developpement de
+\essentiel{\sujetCourt}, une plateforme web complete de gestion de flotte
+et de transport de marchandises, destinee a digitaliser les operations
+des societes de transport clientes de l'entreprise.
+
+Le stage s'est deroule du \stageDebut{} au \stageFin, soit une duree de
+\stageDuree{} mois. Cette duree a rendu possible un decoupage en six
+iterations d'un mois environ, chacune consacree a un domaine metier
+coherent et livrant un increment utilisable.
+
+Les objectifs fixes au depart etaient au nombre de quatre.
+
+\begin{enumerate}
+  \item \essentiel{Centraliser} dans un referentiel unique les vehicules,
+    les equipements, les personnels et les clients, aujourd'hui disperses
+    entre plusieurs documents.
+  \item \essentiel{Industrialiser} la maintenance : ordres de travail,
+    interventions, stock de pieces de rechange et surveillance des
+    echeances reglementaires.
+  \item \essentiel{Ouvrir un canal numerique au client final}, de la
+    demande de transport au suivi de l'acheminement et a la consultation
+    des factures.
+  \item \essentiel{Outiller la decision} par l'estimation tarifaire,
+    l'anticipation des pannes et l'affectation assistee des ressources.
+\end{enumerate}
+
+Le livrable attendu etait une plateforme fonctionnelle, deployable et
+documentee, accompagnee de la modelisation UML correspondante.
+
+% =====================================================================
+\section{Problematique}
+\label{sec:problematique}
+
+Une entreprise de transport de marchandises pilote simultanement quatre
+ressources dont les cycles de vie sont independants : un parc de
+vehicules, un ensemble d'equipements embarques, une equipe de chauffeurs
+et un portefeuille de clients. Chacune produit ses propres evenements,
+et c'est de leur croisement que naissent les difficultes.
+
+\figReelle{problematique.png}
+  {Interdependance des ressources d'une entreprise de transport}
+  {fig:problematique}{0.55}
+
+La figure~\ref{fig:problematique} illustre cette interdependance. Elle se
+traduit concretement par cinq difficultes recurrentes.
+
+\paragraph{La dispersion de l'information.}
+Le suivi des vehicules, celui des interventions de maintenance, le
+planning des chauffeurs et la facturation vivent dans des documents
+distincts, souvent detenus par des personnes differentes. Repondre a une
+question aussi simple que \exemple{ce vehicule est-il disponible jeudi
+prochain ?} suppose de consulter plusieurs sources et d'esperer qu'elles
+soient a jour.
+
+\paragraph{L'absence d'anticipation sur la maintenance.}
+Les interventions sont declenchees par la panne plutot que par
+l'observation de son approche. Le cout d'une immobilisation imprevue
+depasse largement celui de l'entretien qui l'aurait evitee : il faut y
+ajouter la mission non honoree, le report sur un autre vehicule et
+l'insatisfaction du client.
+
+\paragraph{Le risque administratif.}
+Une visite technique expiree, une assurance echue ou un permis de
+conduire perime exposent l'entreprise a une immobilisation immediate et a
+des sanctions. Ces echeances sont nombreuses, dispersees dans le temps et
+rarement surveillees de maniere systematique.
+
+\paragraph{L'estimation tarifaire empirique.}
+Le prix d'un transport se fixe souvent d'apres l'experience de la
+personne qui etablit le devis. Deux devis comparables peuvent ainsi
+differer sensiblement, ce qui fragilise la coherence commerciale et rend
+la marge difficile a piloter.
+
+\paragraph{L'opacite pour le client.}
+Le client n'a pas de moyen autonome de deposer une demande, de suivre
+l'acheminement de sa marchandise ni de consulter ses factures. Chaque
+demande d'information mobilise un interlocuteur, ce qui alourdit le
+travail administratif des deux cotes.
+
+\vspace{0.4cm}
+\noindent
+\essentiel{Ces cinq difficultes ont une cause commune : l'absence d'un
+referentiel unique ou les vehicules, les equipements, les chauffeurs, les
+missions et les clients seraient decrits une seule fois et relies entre
+eux.} C'est ce constat qui fonde le projet.
+
+% =====================================================================
+\section{Etude de l'existant}
+\label{sec:existant}
+
+\subsection{La situation avant le projet}
+
+Chez les societes de transport clientes de \entreprise, la gestion
+reposait sur des \essentiel{methodes traditionnelles}, articulees autour
+de trois supports.
+
+\begin{itemize}
+  \item \essentiel{Des feuilles de calcul Excel} pour le suivi du parc,
+    des missions et de la facturation. Chaque classeur etait tenu par une
+    personne, sur son poste, dans sa propre organisation de colonnes.
+  \item \essentiel{Des echanges par appel telephonique et par WhatsApp}
+    pour la coordination quotidienne : affectation d'un chauffeur,
+    signalement d'une panne, confirmation d'une livraison. Ces echanges
+    portaient l'information operationnelle mais n'en laissaient aucune
+    trace exploitable.
+  \item \essentiel{Un tableau de bord rudimentaire}, alimente
+    manuellement, offrant une vue partielle et rarement a jour.
+\end{itemize}
+
+Cette organisation fonctionne tant que le volume reste modeste et que les
+memes personnes restent en poste. Elle atteint sa limite des que
+plusieurs interlocuteurs doivent consulter ou modifier la meme
+information, et surtout des qu'il faut \exemple{retrouver ce qui a ete
+decide il y a trois mois}.
+
+\subsection{Les alternatives du marche}
+
+Face a cette situation, trois familles d'outils sont envisageables.
+
+\paragraph{Le tableur.}
+C'est la situation de depart decrite ci-dessus. Le tableur a pour lui sa
+gratuite, sa souplesse et le fait que chacun sache s'en servir. Il ne
+gere en revanche ni les acces concurrents, ni la tracabilite des
+modifications, ni les regles metier.
+
+\paragraph{Le progiciel de gestion generaliste.}
+Certaines entreprises s'appuient sur un progiciel comptable ou commercial
+auquel elles greffent le suivi de la flotte. La comptabilite et la
+facturation y sont bien traitees, mais les notions propres au transport
+(mission, echeance reglementaire, ordre de travail, piece de rechange)
+n'existent pas nativement et doivent etre detournees d'autres objets.
+
+\paragraph{La solution specialisee en ligne.}
+Il existe des offres dediees a la gestion de flotte, generalement
+proposees en abonnement. Elles couvrent bien le suivi des vehicules et la
+geolocalisation, mais leur cout est proportionnel a la taille du parc,
+leur parametrage suppose une adaptation aux usages du fournisseur, et
+l'hebergement des donnees echappe a l'entreprise.
+
+\subsection{Critique de l'existant}
+
+Le tableau~\ref{tab:critique-existant} confronte ces trois familles aux
+besoins identifies dans la section~\ref{sec:problematique}.
+
+\begin{table}[H]
+\centering
+\caption{Couverture des besoins par les pratiques existantes}
+\label{tab:critique-existant}
+\small
+\begin{tabularx}{\textwidth}{@{}Xccc@{}}
+\toprule
+\textbf{Besoin} & \textbf{Tableur} & \textbf{Progiciel} & \textbf{Solution} \\
+                &                  & \textbf{generaliste} & \textbf{specialisee} \\
+\midrule
+Referentiel unique des ressources      & non      & partiel  & oui \\
+Travail simultane a plusieurs          & non      & oui      & oui \\
+Tracabilite des modifications          & non      & oui      & oui \\
+Surveillance des echeances reglementaires & non   & non      & partiel \\
+Maintenance preventive et ordres de travail & non & non      & partiel \\
+Estimation tarifaire outillee          & non      & non      & non \\
+Portail autonome pour le client        & non      & non      & partiel \\
+Suivi de mission en direct             & non      & non      & oui \\
+Maitrise des donnees et du cout        & oui      & partiel  & non \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Aucune des trois familles ne couvre l'ensemble du besoin. Les deux
+manques les plus nets concernent \essentiel{l'aide a la decision}
+(estimation tarifaire, anticipation des pannes, affectation optimisee des
+ressources), absente partout, et \essentiel{la surveillance automatique
+des echeances}, qui n'est traitee qu'en partie et rarement de facon
+transversale aux vehicules, aux chauffeurs et aux equipements.
+
+\subsection{Solution proposee}
+
+\sujetCourt{} est une plateforme unifiee de gestion de flotte et de
+transport de marchandises. Elle repose sur trois principes.
+
+\paragraph{Un referentiel unique, des domaines separes.}
+Chaque ressource est decrite une seule fois. Les domaines metier restent
+toutefois autonomes : la facturation, la maintenance et l'exploitation
+evoluent independamment, ce qui permet de faire progresser un domaine
+sans immobiliser les autres.
+
+\paragraph{Trois publics, trois applications.}
+Un back-office pour le personnel de l'entreprise, un portail pour les
+clients, une application mobile pour les chauffeurs. Chacune n'expose que
+ce qui concerne son public.
+
+\paragraph{L'aide a la decision integree au flux de travail.}
+L'estimation tarifaire, l'anticipation des pannes, l'affectation des
+ressources et la veille metier ne sont pas des modules a part : elles
+interviennent au moment ou la decision se prend, dans l'ecran ou
+l'utilisateur travaille.
+
+\begin{definitionbox}{Ce que couvre la plateforme}
+Douze services metier autonomes, trois applications destinees a des
+publics distincts, un referentiel commun de vehicules, d'equipements,
+de personnels et de clients, et quatre services d'aide a la decision.
+Le detail de ce perimetre est etabli au chapitre suivant.
+\end{definitionbox}
+
+% =====================================================================
+\section{Methodologie de travail}
+\label{sec:methodologie}
+
+Le choix d'une methodologie n'est pas neutre : il determine la maniere
+dont les besoins sont recueillis, dont le travail est decoupe et dont
+l'avancement est mesure.
+
+\subsection{Le developpement en cascade}
+
+Le modele en cascade enchaine des phases sequentielles : specification,
+conception, developpement, tests, mise en service. Chaque phase se
+termine avant que la suivante ne commence, et produit un document qui
+sert de contrat pour la suite.
+
+Ce modele convient aux projets dont le besoin est stable et connu des le
+depart. Il presente en revanche deux inconvenients pour un projet comme
+celui-ci : le client ne voit un resultat utilisable qu'a la toute fin, et
+une erreur de comprehension du besoin ne se decouvre qu'au moment des
+tests, lorsque son cout de correction est maximal.
+
+\subsection{L'approche agile}
+
+Les approches agiles renversent cette logique. Le travail est decoupe en
+iterations courtes, chacune produisant un increment fonctionnel du
+produit. Le besoin est precise au fil de l'eau, au contact du resultat
+plutot que sur document.
+
+\figReelle{methodo-agile.png}
+  {Principes du developpement agile}
+  {fig:agile}{0.75}
+
+\subsection{Le cadre Scrum}
+
+Scrum est le cadre agile le plus repandu. Il repose sur trois roles, sur
+un ensemble d'evenements rythmant l'iteration et sur trois artefacts.
+
+\figReelle{methodo-scrum.jpg}
+  {Le processus Scrum}
+  {fig:scrum}{0.85}
+
+\begin{table}[H]
+\centering
+\caption{Roles, evenements et artefacts de Scrum}
+\label{tab:scrum}
+\small
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Element} & \textbf{Definition} \\ \midrule
+\multicolumn{2}{@{}l}{\textit{Roles}} \\
+Product Owner    & Porte la valeur metier, tient le carnet de produit et en fixe l'ordre de priorite. \\
+Scrum Master     & Veille a l'application du cadre et leve les obstacles rencontres par l'equipe. \\
+Equipe de developpement & Concoit, developpe et teste l'increment. Elle est autonome dans ses choix techniques. \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Evenements}} \\
+Planification de sprint & Selectionne les elements du carnet de produit traites pendant l'iteration. \\
+Melee quotidienne       & Point court de synchronisation sur l'avancement et les obstacles. \\
+Revue de sprint         & Presentation de l'increment realise. \\
+Retrospective           & Analyse du deroulement de l'iteration en vue de l'ameliorer. \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{Artefacts}} \\
+Carnet de produit  & Liste ordonnee de tout ce qui reste a realiser. \\
+Carnet de sprint   & Sous-ensemble retenu pour l'iteration en cours. \\
+Increment          & Resultat utilisable produit a la fin du sprint. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Choix retenu et adaptation au contexte}
+
+\essentiel{Scrum a ete retenu pour ce projet}, pour trois raisons.
+
+D'abord, \essentiel{le besoin n'etait pas entierement connu au depart}.
+Le perimetre s'est precise au contact des utilisateurs : plusieurs
+fonctionnalites, comme l'archivage reversible des comptes ou la
+surveillance des echeances documentaires, ont ete identifiees en cours de
+projet et n'auraient pas figure dans une specification initiale.
+
+Ensuite, \essentiel{le decoupage en domaines metier se prete
+naturellement a l'iteration}. Chaque sprint peut livrer un domaine
+complet et utilisable, ce qui rend l'avancement lisible et permet un
+retour utilisateur rapide.
+
+Enfin, \essentiel{le format du projet impose un rythme}. Un stage de fin
+d'etudes se deroule sur une duree fixe : le decoupage en iterations de
+duree egale donne une mesure objective de l'avancement et permet de
+reajuster le perimetre en cours de route plutot qu'a la fin.
+
+\paragraph{Adaptation au contexte du stage.}
+Scrum suppose une equipe de plusieurs developpeurs. Le projet ayant ete
+mene par un seul developpeur, le cadre a ete adapte : les roles de
+Product Owner et de Scrum Master ont ete tenus par les encadrants, la
+melee quotidienne est devenue un point d'avancement hebdomadaire, et la
+revue de sprint a pris la forme d'une demonstration a l'encadrant
+entreprise. Les artefacts, en revanche, ont ete tenus integralement :
+carnet de produit, carnet de sprint et increment livre a chaque
+iteration.
+
+\subsection{Outils de pilotage}
+\label{sec:outils-pilotage}
+
+Trois outils ont soutenu la conduite du projet au quotidien.
+
+\begin{table}[H]
+\centering
+\caption{Outils de pilotage du projet}
+\label{tab:outils-pilotage}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.2cm}p{3.4cm}X@{}}
+\toprule
+\textbf{Outil} & \textbf{Usage} & \textbf{Apport} \\ \midrule
+Trello & Carnet de produit et suivi des taches &
+  Chaque recit utilisateur devient une carte, deplacee de colonne en
+  colonne au fil de son avancement. Le carnet de sprint est ainsi visible
+  d'un coup d'oeil par les encadrants. \\
+Git et GitHub & Gestion de versions &
+  Historique complet des modifications, travail par branches et
+  possibilite de revenir sur une evolution. Le depot sert egalement de
+  sauvegarde et de support aux revues de code. \\
+WhatsApp & Communication quotidienne &
+  Canal d'echange court avec l'encadrant entreprise : levee rapide des
+  points bloquants, sans attendre le point d'avancement hebdomadaire. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=1.5cm,keepaspectratio]{trello-logo.jpg}\hspace{1.4cm}
+  \includegraphics[height=1.5cm,keepaspectratio]{logo-git.png}\hspace{1.4cm}
+  \includegraphics[height=1.5cm,keepaspectratio]{whatsapplogo.jpg}
+  \caption{Outils de pilotage et de communication du projet}
+  \label{fig:outils-pilotage}
+\end{figure}
+
+Il est notable que \essentiel{WhatsApp figure a la fois dans l'existant
+critique et dans les outils de pilotage}. La contradiction n'est
+qu'apparente : ce qui pose probleme n'est pas l'outil, c'est son emploi
+comme \exemple{support d'information metier}. Coordonner une equipe
+projet par messagerie instantanee est legitime ; y conserver l'etat d'un
+parc de vehicules ne l'est pas. C'est precisement la frontiere que la
+plateforme etablit.
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce chapitre a etabli le contexte du projet. L'examen des pratiques
+existantes a montre qu'aucune des trois familles d'outils rencontrees ne
+couvre l'ensemble du besoin d'une entreprise de transport de
+marchandises, les manques les plus nets portant sur l'aide a la decision
+et sur la surveillance des echeances reglementaires. La solution
+proposee, \sujetCourt, repose sur un referentiel unique servant des
+domaines metier autonomes, sur trois applications adaptees a trois
+publics et sur une aide a la decision integree au flux de travail. Le
+cadre Scrum a ete retenu pour conduire cette realisation, adapte au
+contexte d'un stage, et outille par Trello, Git et GitHub.
+
+Le chapitre suivant traduit ce cadrage en exigences : il identifie les
+acteurs du systeme, recense les besoins fonctionnels et non fonctionnels,
+et etablit le decoupage du travail en six sprints.

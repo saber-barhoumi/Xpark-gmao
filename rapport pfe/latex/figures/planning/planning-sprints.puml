@@ -1,0 +1,52 @@
+@startgantt
+' =====================================================================
+'  Planification du projet - stage du 15 fevrier au 15 aout 2026
+' =====================================================================
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+printscale weekly
+Project starts the 15th of february 2026
+saturday are closed
+sunday are closed
+
+-- Cadrage --
+[Etude prealable et analyse des besoins] as [S0] lasts 15 days
+[S0] is colored in #DCE7F5
+[Mise en place de l environnement] as [S0b] lasts 5 days
+[S0b] starts at [S0]'s end
+[S0b] is colored in #DCE7F5
+
+-- Sprints de developpement --
+[Sprint 1 : identites, acces et securite] as [S1] lasts 20 days
+[S1] starts at [S0b]'s end
+[S1] is colored in #E8F1FB
+[Sprint 2 : referentiel de flotte et equipements] as [S2] lasts 20 days
+[S2] starts at [S1]'s end
+[S2] is colored in #E8F1FB
+[Sprint 3 : demande, devis, mission et suivi] as [S3] lasts 20 days
+[S3] starts at [S2]'s end
+[S3] is colored in #E8F1FB
+[Sprint 4 : maintenance curative et predictive] as [S4] lasts 20 days
+[S4] starts at [S3]'s end
+[S4] is colored in #E8F1FB
+[Sprint 5 : facturation, alertes et journal metier] as [S5] lasts 15 days
+[S5] starts at [S4]'s end
+[S5] is colored in #E8F1FB
+[Sprint 6 : collaboration et aide a la decision] as [S6] lasts 15 days
+[S6] starts at [S5]'s end
+[S6] is colored in #E8F1FB
+
+-- Cloture --
+[Recette et mise en production] as [S7] lasts 8 days
+[S7] starts at [S6]'s end
+[S7] is colored in #DCE7F5
+[Redaction du rapport] as [R] lasts 45 days
+[R] starts at [S4]'s start
+[R] is colored in #F5E9DC
+
+[Livraison finale] happens at [S7]'s end
+
+@endgantt

@@ -1,0 +1,141 @@
+% =====================================================================
+%  Macros de figures
+% =====================================================================
+%  Toutes les figures du rapport passent par ces macros : la mise en
+%  forme (centrage, largeur, legende, espacement) reste ainsi identique
+%  d'un bout a l'autre du document.
+%
+%  Le guide impose que chaque figure porte une legende ET soit citee
+%  dans le texte. Chaque macro prend donc un label, et le texte doit
+%  contenir un \ref correspondant.
+% =====================================================================
+
+\graphicspath{{figures/}{figures/diagrammes/}{figures/logos/}%
+              {figures/captures/}{figures/planning/}}
+
+% ---------------------------------------------------------------------
+%  \figReelle{fichier}{legende}{label}{largeur}
+%  Figure ordinaire. La largeur s'exprime en fraction de \textwidth.
+% ---------------------------------------------------------------------
+\newcommand{\figReelle}[4]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#4\textwidth,keepaspectratio]{#1}
+    \caption{#2}
+    \label{#3}
+  \end{figure}%
+}
+
+% ---------------------------------------------------------------------
+%  \figDeux / \figTrois : plusieurs images sous UNE seule legende.
+%  Utilisees pour les ecrans longs, captures en plusieurs morceaux :
+%  le lecteur voit un seul numero de figure, ce qui evite d'alourdir
+%  la table des figures.
+% ---------------------------------------------------------------------
+\newcommand{\figDeux}[5]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#5\textwidth,keepaspectratio]{#1}\\[4pt]
+    \includegraphics[width=#5\textwidth,keepaspectratio]{#2}
+    \caption{#3}
+    \label{#4}
+  \end{figure}%
+}
+
+\newcommand{\figTrois}[6]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#6\textwidth,keepaspectratio]{#1}\\[3pt]
+    \includegraphics[width=#6\textwidth,keepaspectratio]{#2}\\[3pt]
+    \includegraphics[width=#6\textwidth,keepaspectratio]{#3}
+    \caption{#4}
+    \label{#5}
+  \end{figure}%
+}
+
+% ---------------------------------------------------------------------
+%  \figPaysage{fichier}{legende}{label}
+%  Diagramme trop large pour la justification : page en paysage.
+% ---------------------------------------------------------------------
+\newcommand{\figPaysage}[3]{%
+  \begin{landscape}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.95\linewidth,height=0.82\textheight,%
+                       keepaspectratio]{#1}
+      \caption{#2}
+      \label{#3}
+    \end{figure}
+  \end{landscape}%
+}
+
+% =====================================================================
+%  Emplacements reserves
+% =====================================================================
+%  Une figure encore absente occupe deja sa place, avec sa VRAIE
+%  legende et son VRAI label : elle est donc numerotee, citee dans le
+%  texte et listee dans la table des figures. Le jour ou l'image
+%  existe, seule la commande change : \figAttendue devient \figReelle.
+% =====================================================================
+\definecolor{cadreAttente}{HTML}{B0562A}
+\definecolor{fondAttente}{HTML}{FDF3EC}
+
+\newcommand{\figAttendue}[3]{%
+  \begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[width=0.86\textwidth,height=5.4cm,
+      colback=fondAttente,colframe=cadreAttente,boxrule=1pt,
+      borderline={0.5pt}{3pt}{cadreAttente,dashed},
+      halign=center,valign=center,sharp corners]
+      {\sffamily\bfseries\color{cadreAttente}FIGURE A FOURNIR}\\[6pt]
+      {\sffamily\small Fichier attendu :}\\[2pt]
+      {\ttfamily\small #1}
+    \end{tcolorbox}
+    \caption{#2}
+    \label{#3}
+  \end{figure}%
+}
+
+%  Variante pour les captures d'ecran : indique en plus l'ecran a
+%  photographier, pour que la reprise soit immediate.
+\newcommand{\captureAttendue}[4]{%
+  \begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[width=0.86\textwidth,height=5.4cm,
+      colback=fondAttente,colframe=cadreAttente,boxrule=1pt,
+      borderline={0.5pt}{3pt}{cadreAttente,dashed},
+      halign=center,valign=center,sharp corners]
+      {\sffamily\bfseries\color{cadreAttente}CAPTURE A FOURNIR}\\[6pt]
+      {\sffamily\small Ecran :} {\sffamily\itshape #4}\\[4pt]
+      {\sffamily\small Fichier attendu :}\\[2pt]
+      {\ttfamily\small #1}
+    \end{tcolorbox}
+    \caption{#2}
+    \label{#3}
+  \end{figure}%
+}
+
+% =====================================================================
+%  Encadres de contenu
+% =====================================================================
+\newtcolorbox{definitionbox}[1]{%
+  breakable, colback=grisFond, colframe=grisFilet, boxrule=0.6pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt, sharp corners,
+  title={\sffamily\bfseries #1}, coltitle=bleuTitre,
+  colbacktitle=grisFond, titlerule=0pt}
+
+% Mise en valeur imposee par le guide : les exemples en italique, les
+% definitions encadrees, les elements essentiels en gras.
+\newcommand{\exemple}[1]{\textit{#1}}
+\newcommand{\essentiel}[1]{\textbf{#1}}
+
+% =====================================================================
+%  Tableau de backlog de sprint
+% =====================================================================
+\newenvironment{backlog}[1]%
+  {\begin{table}[H]\centering\caption{#1}%
+   \small\begin{tabularx}{\textwidth}{@{}c>{\raggedright\arraybackslash}X c c@{}}
+   \toprule
+   \textbf{N\textsuperscript{o}} & \textbf{Recit utilisateur} &
+   \textbf{Priorite} & \textbf{Estimation} \\ \midrule}%
+  {\bottomrule\end{tabularx}\end{table}}

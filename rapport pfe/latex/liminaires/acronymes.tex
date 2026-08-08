@@ -1,0 +1,50 @@
+% =====================================================================
+%  Liste des acronymes
+% =====================================================================
+%  Volontairement tenue a la main plutot qu'avec le paquet glossaries :
+%  cela evite l'etape makeglossaries et garde la compilation a un simple
+%  pdflatex lance deux fois.
+% =====================================================================
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Liste des acronymes}
+\chapter*{Liste des acronymes}
+\markboth{Liste des acronymes}{}
+
+\begin{longtable}{@{}p{2.6cm}p{11.5cm}@{}}
+\toprule
+\textbf{Sigle} & \textbf{Signification} \\ \midrule
+\endfirsthead
+\toprule
+\textbf{Sigle} & \textbf{Signification} \\ \midrule
+\endhead
+
+AMQP    & \textit{Advanced Message Queuing Protocol}, protocole d'echange de messages \\
+API     & \textit{Application Programming Interface}, interface de programmation \\
+CORS    & \textit{Cross-Origin Resource Sharing}, partage de ressources entre origines \\
+CRUD    & \textit{Create, Read, Update, Delete}, les quatre operations de base sur une donnee \\
+DTO     & \textit{Data Transfer Object}, objet de transfert de donnees \\
+EF Core & \textit{Entity Framework Core}, couche de correspondance objet-relationnel de .NET \\
+GMAO    & Gestion de la maintenance assistee par ordinateur \\
+GPS     & \textit{Global Positioning System}, systeme de positionnement par satellite \\
+HTTP    & \textit{HyperText Transfer Protocol} \\
+IA      & Intelligence artificielle \\
+IAM     & \textit{Identity and Access Management}, gestion des identites et des acces \\
+IBOA    & \textit{Intelligent Business Owner Assistant}, assistant de veille metier \\
+JSON    & \textit{JavaScript Object Notation}, format d'echange de donnees \\
+JWT     & \textit{JSON Web Token}, jeton d'authentification signe \\
+MFA     & \textit{Multi-Factor Authentication}, authentification a plusieurs facteurs \\
+OT      & Ordre de travail \\
+PFE     & Projet de fin d'etudes \\
+REST    & \textit{Representational State Transfer}, style d'architecture d'API \\
+RAG     & \textit{Retrieval-Augmented Generation}, generation augmentee par recherche \\
+SGBD    & Systeme de gestion de base de donnees \\
+SPA     & \textit{Single Page Application}, application web monopage \\
+SQL     & \textit{Structured Query Language}, langage de requetes \\
+TVA     & Taxe sur la valeur ajoutee \\
+UML     & \textit{Unified Modeling Language}, langage de modelisation unifie \\
+URL     & \textit{Uniform Resource Locator}, adresse d'une ressource web \\
+VIN     & \textit{Vehicle Identification Number}, numero de chassis \\
+XGBoost & \textit{eXtreme Gradient Boosting}, algorithme d'apprentissage supervise \\
+\bottomrule
+\end{longtable}
