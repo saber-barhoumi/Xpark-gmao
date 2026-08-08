@@ -93,6 +93,12 @@ Le script de génération est `database/generer-visuels-demo.py`.
   publication d'événements**. Les journaux IBOA et les alertes calculées par le
   service Alerts ne sont donc pas régénérés automatiquement ; les alertes
   présentes ont été écrites explicitement.
+- **Les enums ne sont pas tous partages.** Le service Alerts declare son
+  propre `TypeAlerte` (41 valeurs) qui differe de celui de `XparkGMAO.Shared` :
+  il ignore `KILOMETRAGE_REVISON` et attend `KILOMETRAGE_MAINTENANCE`. Ecrire
+  une valeur de l'enum partage fait echouer la lecture EF Core avec un 409.
+  Les valeurs a respecter sont celles de la couche `Domain` du service
+  proprietaire de la table, pas celles du projet partage.
 - `TypePeriodicite` est plafonné à 10 caractères en base : la valeur utilisée
   est `KM`.
 - La colonne `Interventions.Cout` est `NOT NULL` : les interventions non

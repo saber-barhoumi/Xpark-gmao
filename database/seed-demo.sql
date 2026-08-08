@@ -1074,7 +1074,7 @@ FROM (VALUES
  (510,'MAINTENANCE',now()-interval '12 hours',NULL,
   'Le vehicule 153 TU 1188 (Peugeot Partner) est signale en besoin de maintenance : temperature moteur elevee.',
   'HAUTE','ACTIVE','153 TU 1188',NULL::bigint,NULL::bigint,'Vehicule',NULL::bigint),
- (511,'KILOMETRAGE_REVISON',now()-interval '1 day',NULL,
+ (511,'KILOMETRAGE_MAINTENANCE',now()-interval '1 day',NULL,
   'Le vehicule 131 TU 7290 (Mercedes-Benz Actros 1845) approche de l echeance de revision : 412 800 km.',
   'MOYENNE','ACTIVE','131 TU 7290',NULL::bigint,NULL::bigint,'Vehicule',NULL::bigint),
  (512,'EQUIPEMENT_HORS_SERVICE',now()-interval '3 days',NULL,
