@@ -1,0 +1,139 @@
+% =====================================================================
+%  Conclusion generale
+% =====================================================================
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Conclusion generale}
+\chapter*{Conclusion generale}
+\markboth{Conclusion generale}{}
+
+\section*{Rappel de la demarche}
+\addcontentsline{toc}{section}{Rappel de la demarche}
+
+Ce projet de fin d'etudes partait d'une question posee en introduction :
+comment doter une entreprise de transport de marchandises d'un systeme
+d'information unifie qui centralise l'exploitation de sa flotte,
+industrialise sa maintenance, ouvre un canal numerique a ses clients et
+mette l'aide a la decision au service de ses choix quotidiens ?
+
+L'etude prealable a montre que les pratiques en place, feuilles de
+calcul, echanges informels et tableau de bord alimente a la main,
+atteignaient leur limite des que plusieurs personnes devaient consulter
+ou modifier la meme information. Aucune des trois familles d'outils
+examinees ne couvrait l'ensemble du besoin, les manques les plus nets
+portant sur l'aide a la decision et sur la surveillance des echeances
+reglementaires.
+
+L'analyse a traduit ce constat en exigences, puis le travail a ete
+conduit selon le cadre Scrum, en six sprints d'un mois environ, chacun
+livrant un domaine metier utilisable de bout en bout.
+
+\section*{Resultats obtenus}
+\addcontentsline{toc}{section}{Resultats obtenus}
+
+Le perimetre realise comprend \essentiel{huit services metier} en .NET~8
+appliquant la Clean Architecture, \essentiel{quatre services d'aide a la
+decision} en Python, \essentiel{trois applications} destinees a des
+publics distincts, et une infrastructure de vingt conteneurs orchestres
+par Docker Compose autour d'une base relationnelle, d'un courtier de
+messages et d'une base vectorielle. Les six sprints totalisent
+\essentiel{trois cent six points de carnet, integralement livres}.
+
+Les quatre objectifs fixes au depart ont ete atteints. Le referentiel est
+\essentiel{unifie} : vehicules, equipements, personnels et clients sont
+decrits une seule fois. La maintenance est \essentiel{industrialisee} :
+ordres de travail suivis par etat, interventions tracees, stock surveille.
+Le client dispose d'un \essentiel{canal autonome}, de la demande au suivi
+en direct. Enfin, l'aide a la decision est \essentiel{integree au flux de
+travail} plutot que releguee dans un module separe.
+
+\section*{Difficultes rencontrees}
+\addcontentsline{toc}{section}{Difficultes rencontrees}
+
+Trois difficultes ont marque le deroulement du projet.
+
+\paragraph{Le decoupage en services.}
+Determiner ou passe la frontiere entre deux services est plus delicat que
+de la coder. La question s'est posee des le sprint~3 : la demande de
+transport releve-t-elle du domaine des missions ou de celui de la
+facturation ? La reponse retenue, la rattacher aux missions, decoule de
+l'observation que son cycle de vie s'acheve a la creation de la mission,
+et non au reglement.
+
+\paragraph{La coherence du vocabulaire entre services.}
+Chaque service definit ses propres enumerations. L'un d'eux, le service
+d'alertes, a fait diverger la sienne de celle du projet commun. Ecrire une
+valeur du vocabulaire commun qui n'y figurait pas suffisait a faire
+echouer la lecture. \essentiel{Cette difficulte est structurelle} : elle
+est le revers de l'autonomie des services.
+
+\paragraph{La restitution graphique de la modelisation.}
+Produire des diagrammes UML lisibles s'est revele un travail a part
+entiere. Certains atteignaient onze mille pixels de large, d'autres
+presentaient des associations contournant la frontiere du systeme. Il a
+fallu etablir des regles de mise en page explicites, puis les appliquer
+de maniere systematique, pour que les modeles soient exploitables dans un
+document imprime.
+
+\section*{Apports personnels}
+\addcontentsline{toc}{section}{Apports personnels}
+
+Sur le plan \essentiel{technique}, ce projet a permis de mettre en oeuvre
+une architecture microservices complete, de la conception au deploiement
+conteneurise, avec deux piles technologiques et trois types
+d'applications clientes. La Clean Architecture, appliquee huit fois, a
+cesse d'etre une notion pour devenir une habitude de travail.
+
+Sur le plan \essentiel{methodologique}, la conduite en sprints a montre
+sa valeur au moment ou le perimetre a evolue : plusieurs fonctionnalites,
+dont l'archivage reversible des comptes et la maintenance predictive, ont
+ete identifiees en cours de projet. Un cycle sequentiel les aurait
+renvoyees a une version ulterieure.
+
+Sur le plan \essentiel{professionnel}, l'exercice le plus formateur a ete
+d'apprendre a \essentiel{documenter ce qui ne fonctionne pas comme prevu}
+plutot qu'a le passer sous silence. Les ecarts par rapport au patron de
+reference, base partagee, absence de cache et de chiffrement, sont
+consignes dans les diagrammes eux-memes. C'est une pratique que
+l'entreprise d'accueil, \entreprise, encourage, et qui rend une
+architecture reprenable par un tiers.
+
+\section*{Perspectives}
+\addcontentsline{toc}{section}{Perspectives}
+
+Le travail realise ouvre plusieurs prolongements, classes ici par ordre
+de priorite.
+
+\begin{table}[H]
+\centering
+\caption{Perspectives d'evolution}
+\label{tab:perspectives}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.4cm}X@{}}
+\toprule
+\textbf{Axe} & \textbf{Contenu} \\ \midrule
+Mise en securite & Terminaison du chiffrement a la passerelle et
+  redirection du trafic en clair : prealable a toute mise en ligne \\
+Exploitation du bus & Sur vingt-deux evenements declares, un seul est
+  publie et un seul consomme ; les exploiter reduirait les lectures
+  directes entre domaines \\
+Cloisonnement des donnees & Passer a une base par service, en remplacant
+  les lectures en SQL direct par des appels ou des evenements \\
+Bascule vers l'apprentissage & Substituer un modele appris au moteur de
+  regles des qu'un historique suffisant sera constitue \\
+Mise a l'echelle & Cache applicatif et orchestrateur de grappe \\
+Application chauffeur & Mise en file locale des positions lorsque la
+  couverture reseau fait defaut \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section*{Mot de la fin}
+\addcontentsline{toc}{section}{Mot de la fin}
+
+La plateforme livree n'est pas un prototype : elle fonctionne, elle est
+deployee et elle repond aux besoins exprimes. Elle n'est pas non plus un
+produit acheve, et le present rapport s'est attache a dire ou passe cette
+limite. Cette distinction est peut-etre l'apprentissage principal de ces
+\stageDuree{} mois : un systeme d'information se juge autant a ce qu'il
+assume ne pas faire qu'a ce qu'il realise.

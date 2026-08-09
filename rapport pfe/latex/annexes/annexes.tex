@@ -1,0 +1,111 @@
+% =====================================================================
+%  Annexes
+% =====================================================================
+%  Le guide demande que les details techniques soient reportes en annexe
+%  et que le code source ne figure pas dans le corps. Les annexes sont
+%  volontairement breves : le depot du projet porte l'integralite des
+%  elements, et sa reference figure ci-dessous.
+% =====================================================================
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Annexes}
+\chapter*{Annexes}
+\markboth{Annexes}{}
+
+% ---------------------------------------------------------------------
+\section*{Annexe A -- Depot du projet et mise en route}
+\addcontentsline{toc}{section}{Annexe A -- Depot du projet et mise en route}
+
+L'integralite du code source, des modeles UML et de la documentation
+technique est publiee a l'adresse suivante :
+
+\begin{center}
+\url{\depotGitHub}
+\end{center}
+
+Le depot contient notamment deux cent vingt modeles UML au format
+PlantUML, repartis en vues de plateforme, d'infrastructure, de frontal et
+de microservice. Ces modeles sont du texte : ils se versionnent et se
+comparent comme du code, et c'est de leur rendu que proviennent toutes
+les figures de conception de ce rapport.
+
+\paragraph{Mise en route.}
+La plateforme se lance en une commande, depuis la racine du depot :
+\texttt{docker compose up -{}-build}. Les vingt conteneurs demarrent dans
+l'ordre impose par leurs dependances, la base et le courtier de messages
+d'abord. Le back-office est alors accessible sur le port 3000, le portail
+client sur le port 3001, la passerelle sur le port 8080.
+
+% ---------------------------------------------------------------------
+\section*{Annexe B -- Extrait du journal de bord}
+\addcontentsline{toc}{section}{Annexe B -- Extrait du journal de bord}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.3cm}X@{}}
+\toprule
+\textbf{Periode} & \textbf{Faits marquants et enseignements} \\ \midrule
+
+Sprint 1 & La suppression d'un compte est un faux besoin : les comptes
+  portent un historique metier. L'archivage reversible a ete introduit
+  apres avoir constate qu'une suppression cassait les references \\
+
+Sprint 2 & La surveillance des echeances a impose de stocker les dates
+  plutot que de les deduire ; la portee de ce choix n'est apparue qu'au
+  sprint~5 \\
+
+Sprint 3 & Le point d'entree creant une mission sans devis a ete retire :
+  il contournait la tarification. Difficulte : separer la negociation de
+  l'execution \\
+
+Sprint 4 & Le huitieme service a ete ajoute sans modifier aucun service
+  existant. Choix assume d'un moteur de regles explicables plutot que
+  d'un modele appris sans donnees \\
+
+Sprint 5 & Divergence entre l'enumeration du service d'alertes et celle
+  du projet commun, qui faisait echouer la lecture des donnees \\
+
+Sprint 6 & La liaison permanente de la messagerie a impose d'adapter la
+  passerelle, seul endroit portant une regle de proxy specifique \\
+
+Recette & Mise aux normes des modeles UML, jeu de donnees de
+  demonstration, redaction du rapport \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ---------------------------------------------------------------------
+\section*{Annexe C -- Jeu de donnees de demonstration}
+\addcontentsline{toc}{section}{Annexe C -- Jeu de donnees de demonstration}
+
+Les captures d'ecran de ce rapport ont ete prises sur une base peuplee
+par un script idempotent, verse au depot. Ce jeu de donnees couvre
+volontairement \essentiel{tous les etats de chaque cycle de vie}, afin que
+les ecrans presentes soient representatifs et non anecdotiques.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{4.3cm}X@{}}
+\toprule
+\textbf{Module} & \textbf{Volumetrie et couverture} \\ \midrule
+Utilisateurs & 42 comptes, dont 4 en attente et 15 archives ; six roles \\
+Flotte & 16 vehicules sur six statuts, 14 equipements, 18 pieces dont 3
+  sous leur seuil \\
+Missions & 17 demandes couvrant les cinq statuts, 32 missions, 69
+  positions sur quatre trajets \\
+Maintenance & 17 ordres de travail sur les quatre colonnes, 18
+  interventions \\
+Finance et alertes & 17 factures sur les cinq statuts, 46 alertes des
+  quatre priorites \\
+Messagerie & 12 conversations, 47 messages dont deux pieces jointes \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Les villes, distances et coordonnees employees sont reelles, les
+immatriculations suivent le format tunisien et les montants sont en
+dinars. Les avatars sont des monogrammes generes : aucune photographie de
+personne n'a ete utilisee.

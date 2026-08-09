@@ -88,94 +88,73 @@ n'est pas seulement un procede de redaction : c'est celui qui structure
 la plateforme et, on le verra en section~\ref{sec:sprints}, celui qui
 determine le decoupage en sprints.
 
-\subsection{Identites, acces et securite}
+\begin{table}[H]
+\centering
+\caption{Besoins fonctionnels par domaine metier}
+\label{tab:besoins-fonctionnels}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.1cm}X@{}}
+\toprule
+\textbf{Domaine} & \textbf{Besoins recenses} \\ \midrule
 
-\begin{itemize}
-  \item S'inscrire et confirmer son adresse electronique.
-  \item Se connecter, avec validation d'un second facteur lorsque
-    l'utilisateur l'a active.
-  \item Se connecter par code PIN depuis l'application chauffeur.
-  \item Gerer son profil et changer son mot de passe.
-  \item Activer ou desactiver son second facteur.
-  \item Statuer sur les demandes d'inscription en attente.
-  \item Gerer les habilitations : changer le role, suspendre, reactiver.
-  \item Archiver un compte plutot que le supprimer, et le restaurer.
-  \item Consulter et effacer l'historique des connexions.
-\end{itemize}
+Identites, acces et securite &
+  S'inscrire et confirmer son adresse electronique ; se connecter, avec
+  validation d'un second facteur lorsqu'il est actif ; se connecter par
+  code PIN depuis l'application chauffeur ; gerer son profil et son mot
+  de passe ; activer ou desactiver son second facteur ; statuer sur les
+  demandes d'inscription ; gerer les habilitations ; archiver puis
+  restaurer un compte ; consulter et effacer l'historique des
+  connexions \\
 
-\subsection{Referentiel de flotte et d'equipements}
+Referentiel de flotte et d'equipements &
+  Consulter le parc et rechercher un vehicule disponible ; tenir la fiche
+  d'un vehicule ; gerer l'inventaire des equipements, leur affectation et
+  leur etat ; enregistrer les pieces administratives et les assurances et
+  surveiller leurs echeances ; affecter et restituer un equipement ;
+  realiser une inspection ; declarer les pleins et suivre la
+  consommation ; sortir un bien de l'inventaire \\
 
-\begin{itemize}
-  \item Consulter le parc de vehicules et rechercher un vehicule
-    disponible.
-  \item Tenir la fiche d'un vehicule : immatriculation, caracteristiques,
-    kilometrage, photographie.
-  \item Gerer l'inventaire des equipements, leur affectation a un
-    vehicule et leur etat.
-  \item Enregistrer les pieces administratives et les assurances, et
-    surveiller leurs echeances.
-  \item Affecter et restituer un equipement, realiser une inspection.
-  \item Declarer les pleins de carburant et suivre la consommation.
-  \item Sortir un bien de l'inventaire.
-\end{itemize}
+Demande, devis, mission et suivi &
+  Deposer une demande depuis le portail client avec estimation
+  tarifaire ; etablir un devis en retenant, modifiant ou fixant le prix ;
+  accepter ou refuser un devis, la mission n'etant creee qu'a
+  l'acceptation ; affecter un vehicule et un chauffeur, au besoin avec
+  l'assistance du moteur d'optimisation ; transmettre la position depuis
+  l'application mobile ; suivre une mission en direct et consulter
+  l'historique du trajet ; cloturer ou annuler une mission ; ouvrir et
+  traiter un ticket de support \\
 
-\subsection{Demande, devis, mission et suivi}
+Maintenance curative et predictive &
+  Ouvrir, instruire et valider un ordre de travail et en suivre
+  l'avancement par etat ; declarer une intervention, la suivre, consommer
+  ou restituer des pieces ; tenir le catalogue des pieces et
+  reapprovisionner le stock avec alerte sur les seuils bas ; documenter
+  un ordre de travail ; consulter le risque de panne par vehicule et
+  l'organe concerne \\
 
-\begin{itemize}
-  \item Deposer une demande de transport depuis le portail client, avec
-    estimation tarifaire immediate.
-  \item Etablir un devis, en retenant le prix propose, en le modifiant ou
-    en le fixant manuellement.
-  \item Accepter ou refuser un devis ; la mission n'est creee qu'a
-    l'acceptation.
-  \item Affecter un vehicule et un chauffeur, manuellement ou avec
-    l'assistance du moteur d'optimisation.
-  \item Transmettre la position du vehicule depuis l'application mobile.
-  \item Suivre une mission en direct sur une carte et consulter
-    l'historique du trajet.
-  \item Cloturer ou annuler une mission, ouvrir et traiter un ticket de
-    support.
-\end{itemize}
+Facturation, alertes et journal metier &
+  Etablir une facture a partir des missions facturables, avec controle
+  des doublons ; suivre le cycle de vie d'une facture et identifier les
+  impayes ; consulter ses factures depuis le portail client ; recevoir
+  les alertes metier portant sur les echeances, les stocks, les retards
+  et les impayes ; consulter le journal des evenements et editer un
+  rapport de synthese \\
 
-\subsection{Maintenance curative et predictive}
+Collaboration et aide a la decision &
+  Echanger par messagerie instantanee, en conversation privee ou en
+  groupe, avec pieces jointes ; consulter les correspondants connectes ;
+  interroger un assistant documentaire sur les services et les donnees ;
+  consulter un tableau de bord consolidant les indicateurs
+  d'exploitation \\
 
-\begin{itemize}
-  \item Ouvrir, instruire et valider un ordre de travail, en suivant son
-    avancement sur un tableau a colonnes.
-  \item Declarer une intervention, la suivre et consommer ou restituer
-    des pieces de rechange.
-  \item Tenir le catalogue des pieces et reapprovisionner le stock, avec
-    alerte sur les seuils bas.
-  \item Documenter un ordre de travail par des commentaires et des pieces
-    jointes.
-  \item Consulter le risque de panne par vehicule et l'organe concerne.
-\end{itemize}
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\subsection{Facturation, alertes et journal metier}
-
-\begin{itemize}
-  \item Etablir une facture a partir des missions facturables, avec
-    controle des doublons.
-  \item Suivre le cycle de vie d'une facture, de son emission a son
-    reglement, et identifier les impayes.
-  \item Consulter ses factures depuis le portail client.
-  \item Recevoir les alertes metier : echeances reglementaires, stocks
-    bas, missions en retard, factures impayees.
-  \item Consulter le journal des evenements metier et editer un rapport
-    de synthese.
-\end{itemize}
-
-\subsection{Collaboration et aide a la decision}
-
-\begin{itemize}
-  \item Echanger par messagerie instantanee, en conversation privee ou en
-    groupe, avec pieces jointes.
-  \item Consulter les correspondants connectes.
-  \item Interroger un assistant documentaire sur les services et les
-    donnees de la plateforme.
-  \item Consulter un tableau de bord consolidant les indicateurs
-    d'exploitation.
-\end{itemize}
+Ces six domaines ne sont pas un simple classement de redaction :
+\essentiel{ils determinent le decoupage en sprints} presente en
+section~\ref{sec:sprints}, et chacun donnera son chapitre a la partie
+consacree a la realisation.
 
 % =====================================================================
 \section{Besoins non fonctionnels}

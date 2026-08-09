@@ -1,0 +1,8 @@
+
+% =====================================================================
+\section{Besoins non fonctionnels}
+\label{sec:besoins-non-fonctionnels}
+
+Les besoins non fonctionnels ne decrivent pas ce que fait le systeme mais
+la maniere dont il doit le faire. Ils ont oriente les choix
+d'architecture prese

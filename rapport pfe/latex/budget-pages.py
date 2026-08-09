@@ -136,11 +136,14 @@ def analyser(chemin):
 
 
 # --- Pieces sans source .tex mesurable ---------------------------------
+#  La table des figures et la liste des tableaux etaient forfaitisees a
+#  2,0 et 1,0 page. C'est faux : elles comptent exactement une ligne par
+#  figure et par tableau. Elles sont desormais DEDUITES du decompte reel,
+#  ce qui rend la projection plus juste.
+LIGNES_PAR_PAGE_LISTE = 42.0
 FORFAITS = [
     ('Page de garde + validation de depot', 2.0),
     ('Table des matieres', 2.5),
-    ('Table des figures', 2.0),
-    ('Liste des tableaux', 1.0),
 ]
 
 # --- Plafond par piece, en pages ---------------------------------------
@@ -203,6 +206,14 @@ if __name__ == '__main__':
         if not glob.glob(nom.split()[0] + '*'):
             print('%-46s %7.1f %5s %5s' % (nom, v, '-', '-'))
             total += v
+
+    # Tables des figures et des tableaux : une ligne par entree
+    p_fig = max(1.0, tf / LIGNES_PAR_PAGE_LISTE)
+    p_tab = max(1.0, tt / LIGNES_PAR_PAGE_LISTE)
+    print('-' * 66)
+    print('%-46s %7.1f %5d %5s' % ('Table des figures  (deduite)', p_fig, tf, '-'))
+    print('%-46s %7.1f %5s %5d' % ('Liste des tableaux  (deduite)', p_tab, '-', tt))
+    total += p_fig + p_tab
 
     print('=' * 66)
     print('%-46s %7.1f %5d %5d' % ('TOTAL PROJETE', total, tf, tt))

@@ -1,0 +1,7 @@
+s fonctionnels}
+\label{sec:besoins-fonctionnels}
+
+Les besoins fonctionnels sont presentes par domaine metier. Ce decoupage
+n'est pas seulement un procede de redaction : c'est celui qui structure
+la plateforme et, on le verra en section~\ref{sec:sprints}, celui qui
+determine le decoupage en sprints.
