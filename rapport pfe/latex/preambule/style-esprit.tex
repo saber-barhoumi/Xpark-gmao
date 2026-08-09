@@ -63,6 +63,24 @@
 \captionsetup[table]{position=above,skip=4pt}
 \captionsetup[figure]{position=below,skip=6pt}
 
+% ---------------------------------------------------- Pages liminaires
+%  POURQUOI DES PAGES BLANCHES APPARAISSENT
+%  La classe est chargee en « twoside, openright » : chaque nouvelle
+%  piece commence sur une page de DROITE, comme il est d'usage pour un
+%  document imprime en recto-verso. Quand la piece precedente se termine
+%  elle-meme sur une page de droite, LaTeX intercale une page blanche.
+%  C'est voulu, et c'est ce que demande le guide, qui recommande
+%  l'impression recto-verso.
+%
+%  Les CHAPITRES conservent ce comportement : commencer un chapitre au
+%  dos d'un autre serait fautif.
+%
+%  Les pages liminaires, elles, n'ont pas cette exigence. Le reglage
+%  ci-dessous permet de choisir :
+%      \clearpage        -> pas de page blanche entre elles  (defaut)
+%      \cleardoublepage  -> chacune sur une page de droite
+\newcommand{\sautLiminaire}{\clearpage}
+
 % ---------------------------------------------------------------- Divers
 \renewcommand{\arraystretch}{1.25}
 \setlist{itemsep=2pt,parsep=0pt,topsep=4pt}

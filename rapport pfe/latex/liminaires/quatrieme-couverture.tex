@@ -1,0 +1,16 @@
+% =====================================================================
+%  Quatrieme de couverture - modele officiel ESPRIT
+% =====================================================================
+%  Seconde image du modele fourni (word/media/image1.png) : bandeau
+%  rouge, embleme et coordonnees de l'ecole. Elle se place en toute
+%  derniere page, sans aucun texte ajoute.
+% =====================================================================
+\cleardoublepage
+\thispagestyle{empty}
+\null
+\begin{tikzpicture}[remember picture, overlay]
+  \node[anchor=north west, inner sep=0pt] at (current page.north west)
+    {\includegraphics[width=\paperwidth, height=\paperheight]{esprit-dos.png}};
+\end{tikzpicture}
+
+\clearpage

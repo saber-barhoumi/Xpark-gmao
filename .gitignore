@@ -18,3 +18,10 @@ data/uploads/chat/*
 # Artefacts de build .NET (introduits proprement avec la migration Clean Architecture)
 microservices/**/bin/
 microservices/**/obj/
+
+# Installeurs et archives deposes dans les dossiers de ressources du
+# rapport : ils depassent la limite de 100 Mo de GitHub et n'ont pas
+# vocation a etre versionnes.
+*.exe
+*.msi
+*.iso

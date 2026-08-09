@@ -1,58 +1,62 @@
 % =====================================================================
-%  Page de garde, reprise du gabarit « Page Garde Rapport Stage(Fr) »
+%  Page de garde - modele officiel ESPRIT
+% =====================================================================
+%  Le fond est l'image fournie dans « Page Garde Rapport Stage(Fr).docx »
+%  (word/media/image2.png), reprise telle quelle. Les champs a remplir
+%  sont poses par-dessus, en coordonnees absolues depuis le coin
+%  superieur gauche de la page, pour tomber dans les zones laissees
+%  libres par le modele :
+%      SPECIALITE .......... a droite du libelle imprime, y = 11,9 cm
+%      Sujet ............... zone centrale libre, y = 14,0 a 17,5 cm
+%      Intervenants ........ y = 18,5 a 21,5 cm
+%      Logo entreprise ..... cadre en pointilles, y = 23,1 a 26,1 cm
+%      Annee universitaire . sous le cadre, y = 26,6 cm
 % =====================================================================
 \begin{titlepage}
 \thispagestyle{empty}
-\centering
-\sffamily
+\null
+\begin{tikzpicture}[remember picture, overlay]
 
-\begin{minipage}[c]{0.30\textwidth}
-  \raggedright
-  \includegraphics[height=2.1cm,keepaspectratio]{\etablissementLogo}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.34\textwidth}
-  \centering
-  {\large\bfseries \anneeUniversitaire}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.30\textwidth}
-  \raggedleft
-  \includegraphics[height=2.1cm,keepaspectratio]{\entrepriseLogo}
-\end{minipage}
+  % --- fond officiel, pleine page
+  \node[anchor=north west, inner sep=0pt] at (current page.north west)
+    {\includegraphics[width=\paperwidth, height=\paperheight]{esprit-couverture.png}};
 
-\vspace{1.1cm}
-{\Large\bfseries\color{bleuTitre} \filiere\par}
+  % --- specialite, a droite du libelle imprime
+  \node[anchor=west, font=\sffamily\bfseries\large, text=black]
+    at ([xshift=10.9cm, yshift=-11.92cm]current page.north west)
+    {\filiere};
 
-\vspace{0.45cm}
-{\color{grisFilet}\rule{\textwidth}{1.2pt}}
+  % --- sujet du rapport, centre dans la zone libre
+  \node[anchor=north, align=center, text width=15.5cm,
+        font=\sffamily\bfseries\Large, text=black!85]
+    at ([xshift=10.5cm, yshift=-14.0cm]current page.north west)
+    {\sujetRapport};
 
-\vspace{1.5cm}
-{\bfseries\large RAPPORT DE PROJET DE FIN D'ETUDES\par}
+  \node[anchor=north, align=center, text width=15.5cm,
+        font=\sffamily\itshape\large, text=black!70]
+    at ([xshift=10.5cm, yshift=-17.6cm]current page.north west)
+    {\sujetCourt};
 
-\vspace{1.1cm}
-{\fontsize{22}{28}\selectfont\bfseries\color{bleuTitre}
- \sujetRapport\par}
+  % --- intervenants
+  \node[anchor=north west, align=left, text width=14cm,
+        font=\sffamily\normalsize, text=black!85]
+    at ([xshift=3.4cm, yshift=-19.0cm]current page.north west)
+    {%
+      \textbf{Realise par :} \etudiantComplet\\[5pt]
+      \textbf{Encadrant academique :} \encadrantAcademique\\[5pt]
+      \textbf{Encadrant entreprise :} \encadrantEntreprise\\[5pt]
+      \textbf{Organisme d'accueil :} \entreprise{} -- \entrepriseVille
+    };
 
-\vspace{0.7cm}
-{\Large\itshape \sujetCourt\par}
+  % --- logo de l'entreprise, dans le cadre en pointilles du modele
+  \node[anchor=center] at ([xshift=12.9cm, yshift=-24.6cm]current page.north west)
+    {\includegraphics[height=2.2cm, keepaspectratio]{\entrepriseLogo}};
 
-\vspace{1.3cm}
-{\color{grisFilet}\rule{0.6\textwidth}{0.8pt}}
+  % --- annee universitaire
+  \node[anchor=north, font=\sffamily\bfseries, text=black!85]
+    at ([xshift=12.9cm, yshift=-26.6cm]current page.north west)
+    {Annee universitaire \anneeUniversitaire};
 
-\vspace{1.3cm}
-\begin{minipage}{0.9\textwidth}
-  \raggedright\large
-  \textbf{Realise par :} \etudiantComplet\\[10pt]
-  \textbf{Encadrant academique :} \encadrantAcademique\\[6pt]
-  \textbf{Encadrant entreprise :} \encadrantEntreprise\\[10pt]
-  \textbf{Organisme d'accueil :} \entreprise{} -- \entrepriseVille
-\end{minipage}
-
-\vfill
-
-{\small \etablissementComplet\par}
-\vspace{0.3cm}
-{\small Annee universitaire \anneeUniversitaire}
+\end{tikzpicture}
 
 \end{titlepage}

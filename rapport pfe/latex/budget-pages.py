@@ -147,23 +147,23 @@ FORFAITS = [
 ]
 
 # --- Plafond par piece, en pages ---------------------------------------
-#  Le rapport ne doit pas depasser 80 pages, annexes comprises. La cible
-#  de travail est 73 pages : l'estimation porte une incertitude d'environ
+#  Le plafond a ete releve a 100 pages, annexes comprises. La cible de
+#  travail est 92 pages : l'estimation porte une incertitude d'environ
 #  10 pour cent, cette marge absorbe l'ecart.
-PLAFOND_TOTAL = 80
-CIBLE_TOTALE = 73
+PLAFOND_TOTAL = 100
+CIBLE_TOTALE = 92
 PLAFONDS = {
     'chapitres/00-introduction-generale.tex': 2.0,
-    'chapitres/01-etude-prealable.tex': 9.0,
-    'chapitres/02-analyse-globale.tex': 8.0,
+    'chapitres/01-etude-prealable.tex': 8.5,
+    'chapitres/02-analyse-globale.tex': 8.5,
     'chapitres/03-environnement-architecture.tex': 7.0,
-    'chapitres/04-sprint1-iam.tex': 5.8,
-    'chapitres/05-sprint2-flotte.tex': 5.8,
-    'chapitres/06-sprint3-mission.tex': 6.2,
-    'chapitres/07-sprint4-maintenance.tex': 5.8,
-    'chapitres/08-sprint5-finance-alertes.tex': 5.8,
-    'chapitres/09-sprint6-collaboration-ia.tex': 5.8,
-    'chapitres/10-conclusion-generale.tex': 2.0,
+    'chapitres/04-sprint1-iam.tex': 7.0,
+    'chapitres/05-sprint2-flotte.tex': 7.0,
+    'chapitres/06-sprint3-mission.tex': 7.2,
+    'chapitres/07-sprint4-maintenance.tex': 7.0,
+    'chapitres/08-sprint5-finance-alertes.tex': 7.0,
+    'chapitres/09-sprint6-collaboration-ia.tex': 7.0,
+    'chapitres/10-conclusion-generale.tex': 2.8,
 }
 
 if __name__ == '__main__':

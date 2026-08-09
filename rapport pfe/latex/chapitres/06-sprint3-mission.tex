@@ -161,6 +161,16 @@ trajets, ainsi qu'une matrice de distances entre les villes desservies.
 Sur reception d'une demande, il calcule la distance, applique le modele et
 renvoie un prix encadre d'une fourchette basse et haute.
 
+\figReelle{ai-predictor-sequence.png}
+  {Sequence : estimation du prix d'un trajet par le moteur tarifaire}
+  {fig:seq-estimation}{0.54}
+
+La sequence de la figure~\ref{fig:seq-estimation} met en evidence une
+propriete importante : \essentiel{le moteur ne consulte aucune base de
+donnees}. Il ne travaille que sur les parametres recus et sur ce qu'il a
+charge en memoire au demarrage. Il est donc sans etat, ce qui le rend
+duplicable a l'identique si la charge l'exigeait.
+
 \figReelle{mission-communication.png}
   {Echanges du service des missions}
   {fig:com-mission}{0.60}
