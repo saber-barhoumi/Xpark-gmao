@@ -1,0 +1,217 @@
+% =====================================================================
+%  Chapitre 8 - Sprint 5 : facturation, alertes et journal metier
+% =====================================================================
+\chapter{Sprint 5 : facturation, alertes et journal metier}
+\label{chap:sprint5}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Les quatre sprints precedents ont produit de la matiere : des comptes,
+des vehicules, des missions, des interventions. Ce sprint traite de trois
+services qui n'en creent aucune : ils \essentiel{exploitent ce que les
+autres ont produit}. La facturation transforme les missions en creances,
+les alertes transforment les donnees en signaux, le journal metier
+transforme les evenements en information de pilotage.
+
+Cette position d'aval explique qu'ils aient ete traites ensemble, et
+tardivement : chacun suppose que les modules amont existent deja.
+
+% =====================================================================
+\section{Planification du sprint}
+
+\subsection{Objectifs}
+
+\begin{enumerate}
+  \item Etablir des factures a partir des missions realisees, sans
+    double facturation possible.
+  \item Suivre le cycle de vie d'une facture et identifier les impayes.
+  \item Surveiller automatiquement les echeances, les stocks et les
+    retards, et en alerter les responsables.
+  \item Consigner les evenements metier dans un journal consultable.
+  \item Diffuser les alertes critiques hors de l'application.
+\end{enumerate}
+
+\subsection{Carnet du sprint}
+
+\begin{table}[H]
+\centering
+\caption{Carnet du sprint 5}
+\label{tab:backlog-s5}
+\small
+\begin{tabularx}{\textwidth}{@{}cp{2.3cm}Xcc@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Acteur} & \textbf{Besoin exprime} &
+\textbf{Prio.} & \textbf{Pts} \\ \midrule
+1 & Responsable & Etablir une facture depuis les missions facturables & Must & 8 \\
+2 & Responsable & Suivre le cycle de vie d'une facture & Must & 5 \\
+3 & Responsable & Identifier les factures impayees & Should & 3 \\
+4 & Client & Consulter ses propres factures & Must & 3 \\
+5 & Responsable & Consulter et filtrer les alertes metier & Must & 5 \\
+6 & Responsable & Lancer les controles metier & Should & 5 \\
+7 & Administrateur & Supprimer des alertes traitees & Should & 3 \\
+8 & Responsable & Consulter le journal des evenements metier & Could & 5 \\
+9 & Responsable & Recevoir une alerte critique hors application & Could & 5 \\
+10 & Responsable & Editer un rapport quotidien de synthese & Could & 5 \\
+\midrule
+\multicolumn{4}{@{}r}{\textbf{Total}} & \textbf{47} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Facturation}
+
+\figReelle{finance-usecase.png}
+  {Cas d'utilisation du service de facturation}
+  {fig:uc-finance}{0.52}
+
+\figReelle{finance-sequence.png}
+  {Sequence : etablissement d'une facture}
+  {fig:seq-finance}{0.52}
+
+Le cas \exemple{etablir une facture} \essentiel{inclut} la verification
+des missions facturables : la liste proposee au gestionnaire ne contient
+que les missions terminees qui ne sont pas deja rattachees a une facture.
+\essentiel{La double facturation est donc rendue impossible en amont},
+plutot que detectee apres coup.
+
+Le montant n'est pas saisi : il est calcule a partir du cout de la
+mission, auquel s'ajoute la taxe sur la valeur ajoutee au taux en
+vigueur. Les trois montants sont conserves separement, hors taxe, taxe et
+toutes taxes comprises, ce qui evite de recalculer un historique si le
+taux change.
+
+Une facture parcourt cinq etats : brouillon, emise, payee, annulee et en
+retard. Le passage en retard n'est pas une action de l'utilisateur mais
+\essentiel{une consequence du temps} : il est deduit de la date
+d'echeance, et c'est le service d'alertes qui le signale.
+
+% =====================================================================
+\section{Alertes metier}
+
+\figReelle{alerts-usecase.png}
+  {Cas d'utilisation du service d'alertes}
+  {fig:uc-alerts}{0.48}
+
+\figReelle{alerts-sequence.png}
+  {Sequence : execution des controles metier}
+  {fig:seq-alerts}{0.50}
+
+Le service d'alertes ne detient aucune donnee propre : \essentiel{il lit
+celles des autres domaines} et en tire des signaux. La
+figure~\ref{fig:seq-alerts} montre le mecanisme : un balayage parcourt
+les echeances documentaires, les assurances, les permis, les seuils de
+stock et les missions en retard, puis produit une alerte pour chaque
+situation rencontree.
+
+\paragraph{Deux precautions de conception.}
+La premiere est l'\essentiel{ecart des doublons} : le controle verifie
+qu'une alerte identique et encore active n'existe pas deja avant d'en
+creer une nouvelle. Sans cela, un vehicule dont la visite technique est
+expiree produirait une alerte a chaque execution.
+
+La seconde tient au \essentiel{vocabulaire}. Le type d'une alerte n'est
+pas une chaine libre mais une valeur d'enumeration, propre au service.
+Cette enumeration compte quarante et une valeurs et \essentiel{differe de
+celle du projet partage} : ecrire une valeur du projet partage qui n'y
+figure pas fait echouer la lecture. La contrainte a ete rencontree en
+conditions reelles lors de la constitution du jeu de demonstration.
+
+% =====================================================================
+\section{Journal metier}
+
+\figReelle{iboa-usecase.png}
+  {Cas d'utilisation du service de journal metier}
+  {fig:uc-iboa}{0.48}
+
+\figReelle{iboa-communication.png}
+  {Echanges du service de journal metier}
+  {fig:com-iboa}{0.58}
+
+Le service de journal metier occupe une position particuliere :
+\essentiel{il ne consulte rien, il ecoute}. Ecrit en Python, il souscrit
+a l'echange par sujet du courtier de messages et recoit les evenements
+publies par les services metier. Pour chacun, il evalue une criticite,
+regroupe les evenements lies et, au-dela d'un seuil, diffuse une alerte
+par courriel ou par message instantane.
+
+C'est le seul service de la plateforme dont \essentiel{le point d'entree
+principal n'est pas une requete mais un message}. Son interface web ne
+sert qu'a consulter ce qu'il a deja consigne.
+
+\begin{table}[H]
+\centering
+\caption{Entites principales des trois services}
+\label{tab:entites-s5}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.6cm}p{3.4cm}X@{}}
+\toprule
+\textbf{Service} & \textbf{Entite} & \textbf{Role et particularite} \\ \midrule
+Facturation & Facture & Montants hors taxe, taxe et toutes taxes
+  conserves separement ; rattachement optionnel a une mission \\
+Facturation & Devis & Montants et validite ; distinct de la demande de
+  transport du sprint~3, qu'il prolonge cote comptable \\
+Alertes & Alerte & Type, priorite, statut, et references facultatives
+  vers le vehicule, le chauffeur, l'equipement ou la mission concernes \\
+Journal metier & Evenement & Charge utile brute recue du courtier,
+  criticite evaluee, horodatage de reception \\
+Journal metier & Alerte metier & Produite par regroupement d'evenements
+  lies ; porte le canal de diffusion utilise \\
+Journal metier & Preferences & Seuils et canaux choisis par le
+  responsable pour la diffusion \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Realisation et tests de validation}
+
+\figDeux{s5-liste-factures.jpg}{s5-creation-facture.jpg}
+  {Facturation : liste des factures par statut et etablissement d'une
+   facture depuis les missions facturables}
+  {fig:ecrans-finance}{0.50}
+
+\figDeux{s5-centre-alertes.jpg}{s5-journal-iboa.jpg}
+  {Centre d'alertes metier et journal des evenements}
+  {fig:ecrans-alertes}{0.50}
+
+\begin{table}[H]
+\centering
+\caption{Tests de validation du sprint 5}
+\label{tab:tests-s5}
+\small
+\begin{tabularx}{\textwidth}{@{}cXp{2.9cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
+\textbf{Etat} \\ \midrule
+T1 & Mission deja facturee & Absente de la liste des facturables & Reussi \\
+T2 & Facture etablie & Montants hors taxe, taxe et TTC coherents & Reussi \\
+T3 & Echeance depassee sans reglement & Facture signalee en retard & Reussi \\
+T4 & Controles metier lances deux fois & Aucune alerte en double & Reussi \\
+T5 & Evenement publie sur le courtier & Consigne au journal avec sa criticite & Reussi \\
+T6 & Alerte critique produite & Diffusion hors application declenchee & Reussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce sprint livre les trois services d'aval : facturation sans double
+emploi possible, surveillance automatique des echeances et des seuils, et
+journal metier alimente par le courtier de messages. Les quarante-sept
+points du carnet ont ete realises.
+
+Il met aussi en lumiere une \essentiel{limite du systeme d'evenements}.
+La bibliotheque commune declare vingt-deux evenements d'integration ;
+dans l'etat actuel, \essentiel{un seul service en publie et un seul en
+consomme}. Le reste est declare sans emetteur ni destinataire. Ce n'est
+pas un defaut de fonctionnement, mais une reserve de couplage qui n'a pas
+ete exploitee faute de temps. Le chapitre de conclusion y revient au titre
+des perspectives.
+
+Le dernier sprint aborde ce qui reste : la collaboration entre les
+utilisateurs et les deux services d'aide a la decision non encore
+traites.
