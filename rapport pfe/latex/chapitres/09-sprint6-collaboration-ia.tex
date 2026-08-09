@@ -1,0 +1,222 @@
+% =====================================================================
+%  Chapitre 9 - Sprint 6 : collaboration et aide a la decision
+% =====================================================================
+\chapter{Sprint 6 : collaboration et aide a la decision}
+\label{chap:sprint6}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Ce dernier sprint traite de trois services qui ne relevent d'aucun
+domaine metier au sens strict, mais qui conditionnent l'usage quotidien
+de la plateforme : la messagerie interne, l'assistant documentaire et le
+moteur d'optimisation de flotte. Les deux derniers completent l'ensemble
+des quatre services d'aide a la decision, dont l'estimation tarifaire et
+la prediction de pannes ont deja ete traitees.
+
+% =====================================================================
+\section{Planification du sprint}
+
+\subsection{Objectifs}
+
+\begin{enumerate}
+  \item Doter la plateforme d'une messagerie interne en temps reel.
+  \item Offrir au client un assistant capable de repondre dans sa langue.
+  \item Assister le gestionnaire dans l'affectation des vehicules et des
+    chauffeurs.
+  \item Consolider les indicateurs d'exploitation dans un tableau de
+    bord.
+\end{enumerate}
+
+\subsection{Carnet du sprint}
+
+\begin{table}[H]
+\centering
+\caption{Carnet du sprint 6}
+\label{tab:backlog-s6}
+\small
+\begin{tabularx}{\textwidth}{@{}cp{2.3cm}Xcc@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Acteur} & \textbf{Besoin exprime} &
+\textbf{Prio.} & \textbf{Pts} \\ \midrule
+1 & Utilisateur & Echanger en conversation privee ou en groupe & Should & 8 \\
+2 & Utilisateur & Joindre un fichier a un message & Should & 5 \\
+3 & Utilisateur & Voir qui est connecte & Could & 3 \\
+4 & Client & Interroger un assistant sur les services & Could & 8 \\
+5 & Client & Obtenir une reponse dans sa propre langue & Could & 5 \\
+6 & Administrateur & Reindexer la base documentaire & Could & 3 \\
+7 & Responsable & Obtenir une proposition d'affectation & Could & 8 \\
+8 & Responsable & Consulter le tableau de bord consolide & Should & 5 \\
+\midrule
+\multicolumn{4}{@{}r}{\textbf{Total}} & \textbf{45} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Messagerie interne}
+
+\figReelle{chat-usecase.png}
+  {Cas d'utilisation du service de messagerie}
+  {fig:uc-chat}{0.42}
+
+\figReelle{chat-sequence.png}
+  {Sequence : envoi d'un message en temps reel}
+  {fig:seq-chat}{0.46}
+
+La messagerie est le seul service de la plateforme a maintenir une
+\essentiel{liaison permanente} avec le navigateur. La
+figure~\ref{fig:seq-chat} en montre la consequence : un message envoye
+est d'abord persiste, puis diffuse aux participants connectes sans que
+leur navigateur ait a interroger le serveur.
+
+Ce choix a une contrepartie sur l'infrastructure. La passerelle doit
+\essentiel{laisser passer la negociation de protocole} plutot que la
+traiter comme une requete ordinaire, faute de quoi la liaison retombe sur
+un mode degrade. C'est le seul endroit du systeme ou la configuration du
+proxy porte une regle specifique.
+
+\figReelle{chat-class-domain.png}
+  {Modele du domaine du service de messagerie}
+  {fig:dom-chat}{0.34}
+
+Le modele repose sur trois classes. \exemple{Conversation} porte le type,
+privee ou de groupe. \exemple{Participant} est une classe d'association
+entre la conversation et l'utilisateur : elle porte la date de derniere
+lecture, l'epinglage et l'activation des notifications, c'est-a-dire
+\essentiel{ce qui est propre a chaque membre} et non a la conversation.
+\exemple{Message} porte le contenu, un eventuel fichier joint et les
+marqueurs de lecture.
+
+% =====================================================================
+\section{Assistant documentaire}
+
+\figReelle{ayshaa-rag-usecase.png}
+  {Cas d'utilisation de l'assistant documentaire}
+  {fig:uc-rag}{0.50}
+
+\figReelle{ayshaa-rag-sequence.png}
+  {Sequence : traitement d'une question posee a l'assistant}
+  {fig:seq-rag}{0.48}
+
+L'assistant repond a partir d'une base documentaire vectorisee. La
+sequence de la figure~\ref{fig:seq-rag} suit quatre etapes : detection de
+la langue, recherche dans la base, consultation eventuelle des donnees
+metier, puis redaction de la reponse.
+
+\paragraph{Une recherche hybride.}
+La recherche combine deux methodes. La premiere compare des
+\essentiel{vecteurs de sens} : elle retrouve un document dont le
+vocabulaire differe de celui de la question. La seconde est
+\essentiel{lexicale} : elle privilegie la correspondance exacte des
+termes. Les deux se completent, la premiere rattrapant les reformulations
+et la seconde les references precises comme un numero de facture.
+
+\paragraph{Trois langues, dont le dialecte local.}
+Le detecteur de langue distingue le francais, l'anglais et l'arabe, en
+prenant en charge \essentiel{le dialecte tunisien et sa transcription en
+caracteres latins}. Ce point a justifie l'ecriture d'un detecteur propre
+au projet : les detecteurs generiques traitent mal des messages courts et
+melangeant les langues, ce qui est la norme dans les echanges
+commerciaux locaux.
+
+\paragraph{Un repli assume.}
+La redaction finale s'appuie sur un modele de generation lorsqu'il est
+disponible. \essentiel{S'il ne l'est pas, l'assistant ne tombe pas en
+panne} : il restitue les extraits documentaires les plus pertinents. La
+reponse est moins fluide, mais elle reste exacte et sourcee.
+
+% =====================================================================
+\section{Optimisation de l'affectation}
+
+\figReelle{ai-optimizer-usecase.png}
+  {Cas d'utilisation du moteur d'optimisation}
+  {fig:uc-optimizer}{0.50}
+
+\figReelle{ai-optimizer-sequence.png}
+  {Sequence : production d'un plan d'affectation}
+  {fig:seq-optimizer}{0.48}
+
+Le moteur d'optimisation propose une affectation de vehicules et de
+chauffeurs aux missions en attente. Il procede en deux temps
+\essentiel{qu'il importe de distinguer} : d'abord il ecarte les
+candidatures impossibles, ensuite il note celles qui restent.
+
+\begin{table}[H]
+\centering
+\caption{Contraintes eliminatoires et criteres de notation}
+\label{tab:optimisation}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.6cm}X@{}}
+\toprule
+\textbf{Nature} & \textbf{Regles appliquees} \\ \midrule
+Contraintes eliminatoires & Classe du vehicule adaptee au chargement,
+  categorie de permis du chauffeur, vehicule non immobilise pour
+  maintenance, absence de chevauchement d'horaires, amplitude de conduite
+  respectee \\
+Criteres de notation & Proximite, disponibilite, adequation du vehicule a
+  la mission, equilibrage de la charge entre chauffeurs \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\essentiel{Le moteur propose, il ne decide pas.} Le plan produit est
+soumis au gestionnaire, qui l'applique ou le modifie. Ce parti pris est le
+meme que celui retenu pour l'estimation tarifaire au sprint~3 : l'aide a
+la decision reste une aide.
+
+L'echange est \essentiel{asynchrone} : la demande d'optimisation est
+publiee sur le courtier de messages, le moteur la consomme et republie le
+plan. Le gestionnaire n'attend pas devant son ecran, ce qui est acceptable
+pour une operation de planification et impossible pour une estimation de
+prix.
+
+% =====================================================================
+\section{Realisation et tests de validation}
+
+\figDeux{s6-messagerie.jpg}{s6-assistant-ayshaa.jpg}
+  {Messagerie interne et assistant documentaire du portail client}
+  {fig:ecrans-collab}{0.44}
+
+\figDeux{s6-optimisateur.jpg}{s6-tableau-bord-1.jpg}
+  {Plan d'affectation propose et tableau de bord consolide}
+  {fig:ecrans-decision}{0.44}
+
+\begin{table}[H]
+\centering
+\caption{Tests de validation du sprint 6}
+\label{tab:tests-s6}
+\small
+\begin{tabularx}{\textwidth}{@{}cXp{2.9cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
+\textbf{Etat} \\ \midrule
+T1 & Message envoye a un groupe & Recu sans rechargement de page & Reussi \\
+T2 & Fichier joint a un message & Telechargeable par les participants & Reussi \\
+T3 & Question posee en dialecte tunisien & Reponse dans la meme langue & Reussi \\
+T4 & Modele de generation indisponible & Extraits documentaires restitues & Reussi \\
+T5 & Chauffeur sans le permis requis & Ecarte du plan d'affectation & Reussi \\
+T6 & Vehicule en maintenance & Ecarte du plan d'affectation & Reussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce dernier sprint livre la messagerie interne, l'assistant documentaire
+et le moteur d'optimisation. Les quarante-cinq points du carnet ont ete
+realises, ce qui porte a trois cent six le total des points du projet.
+
+Une ligne de conduite commune relie les quatre services d'aide a la
+decision developpes au fil des sprints : \essentiel{aucun ne decide a la
+place de l'utilisateur}. L'estimation propose un prix que le gestionnaire
+peut modifier, la prediction signale un risque en le justifiant, l'assistant
+cite ses sources, l'optimisation soumet un plan. Cette retenue n'est pas
+une limite technique mais un choix : dans une entreprise de transport, la
+responsabilite d'immobiliser un vehicule ou d'engager un tarif reste
+humaine.
+
+La realisation etant achevee, la conclusion generale dresse le bilan du
+projet et en ouvre les perspectives.
