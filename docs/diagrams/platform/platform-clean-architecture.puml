@@ -1,0 +1,57 @@
+@startuml
+skinparam style strictuml
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Verdana
+skinparam defaultFontSize 11
+skinparam backgroundColor #FFFFFF
+skinparam roundcorner 6
+skinparam nodesep 22
+skinparam ranksep 42
+skinparam linetype ortho
+skinparam ArrowColor #546E7A
+skinparam ArrowFontSize 10
+skinparam ArrowFontColor #37474F
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #C5B358
+
+' =====================================================================
+'  Decoupage en couches d'un microservice .NET, tel qu'il est
+'  effectivement declare par les references de projet des .csproj.
+'  Le sens des fleches est celui des DEPENDANCES DE COMPILATION.
+' =====================================================================
+
+component "<Service>.API\n<<presentation>>\n--\ncontroleurs REST, filtres,\nconfiguration, injection de dependances" as API #E3F2FD
+
+component "<Service>.Application\n<<application>>\n--\nservices applicatifs, objets de transfert,\ninterfaces des depots et des services" as APP #E8F5E9
+
+component "<Service>.Domain\n<<domaine>>\n--\nentites metier, enumerations,\nregles de gestion" as DOM #FFF8E1
+
+component "<Service>.Infrastructure\n<<infrastructure>>\n--\nDbContext EF Core, acces a la base,\nappels aux services externes" as INFRA #FCE4EC
+
+component "XparkGMAO.Shared\n<<bibliotheque commune>>\nenumerations, evenements d'integration" as SHARED #F5F5F5
+
+API -down-> APP
+API -down-> INFRA
+INFRA -down-> APP
+APP -down-> DOM
+DOM -down-> SHARED
+
+note right of DOM
+  **Le domaine ne depend de rien.**
+  Il ignore la base de donnees, le
+  protocole HTTP et le bus de messages.
+  On peut donc le tester sans aucune
+  infrastructure.
+end note
+
+note left of INFRA
+  L'infrastructure **implemente** les
+  interfaces declarees dans la couche
+  Application : la dependance est
+  inversee, elle pointe vers l'interieur
+  et non vers la technique.
+end note
+
+@enduml

@@ -1,0 +1,328 @@
+% =====================================================================
+%  Chapitre 3 - Environnement de travail et architecture
+% =====================================================================
+\chapter{Environnement de travail et architecture}
+\label{chap:architecture}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Les exigences etant posees, ce chapitre presente les moyens mis en oeuvre
+pour y repondre. Il decrit d'abord l'environnement de travail, materiel
+et logiciel, puis l'architecture de la plateforme sous ses deux vues
+complementaires : la vue logique, qui organise les responsabilites, et la
+vue physique, qui decrit le deploiement. Il se termine par l'examen des
+trois choix structurants qui caracterisent cette architecture, y compris
+ceux qui s'ecartent du patron de reference.
+
+% =====================================================================
+\section{Environnement materiel}
+
+Le developpement a ete conduit sur un poste unique, qui heberge
+egalement l'ensemble des conteneurs de la plateforme.
+
+\begin{table}[H]
+\centering
+\caption{Caracteristiques du poste de developpement}
+\label{tab:materiel}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.4cm}X@{}}
+\toprule
+\textbf{Element} & \textbf{Caracteristique} \\ \midrule
+Systeme d'exploitation & Windows 11 Professionnel \\
+Environnement conteneurise & Docker Desktop, avec le sous-systeme Linux \\
+Memoire vive & 16 Go, dont environ 8 Go alloues aux conteneurs \\
+Stockage & Disque a semi-conducteurs, indispensable aux temps de
+  compilation des huit services \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ce point merite d'etre souligne : \essentiel{une architecture
+microservices se developpe difficilement sans conteneurisation}. Vingt
+conteneurs cohabitent, dont une base de donnees, un courtier de messages
+et une base vectorielle. Les installer et les configurer un a un sur le
+poste serait long, fragile et non reproductible.
+
+% =====================================================================
+\section{Environnement logiciel}
+
+\subsection{Outils de developpement et de gestion de version}
+
+\begin{table}[H]
+\centering
+\caption{Outils utilises}
+\label{tab:outils}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.2cm}p{3.0cm}X@{}}
+\toprule
+\textbf{Outil} & \textbf{Usage} & \textbf{Motif du choix} \\ \midrule
+Visual Studio Code & Edition du code &
+  Un seul editeur pour C\#, TypeScript, Python et SQL. \\
+Docker Desktop & Execution locale &
+  La definition des services est versionnee : le poste et le serveur
+  executent la meme chose. \\
+Git et GitHub & Gestion de version &
+  Historique, branches et sauvegarde. \\
+Postman & Essais d'API &
+  Verification des points d'entree REST avant toute integration
+  d'interface. \\
+pgAdmin & Administration de la base &
+  Inspection du schema et des donnees. \\
+PlantUML & Modelisation UML &
+  Les diagrammes sont du texte : ils se versionnent et se comparent
+  comme du code. \\
+Trello & Suivi du carnet &
+  Voir la section~\ref{sec:outils-pilotage}. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Langages, cadriciels et briques techniques}
+
+\begin{table}[H]
+\centering
+\caption{Technologies retenues et versions}
+\label{tab:technologies}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.9cm}p{2.6cm}X@{}}
+\toprule
+\textbf{Brique} & \textbf{Version} & \textbf{Role dans la plateforme} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Services metier}} \\
+.NET / C\# & 8.0 & Socle des huit services metier. \\
+ASP.NET Core & 8.0 & Exposition des API REST. \\
+Entity Framework Core & 8.0.11 & Correspondance objet-relationnel. \\
+Npgsql & 8.0.11 & Pilote PostgreSQL. \\
+MassTransit & 8.3.6 & Publication et consommation de messages types. \\
+SignalR & --- & Messagerie en temps reel. \\
+BCrypt.Net & 4.0.3 & Empreinte des mots de passe. \\
+FluentValidation & 11.9.0 & Validation des donnees entrantes. \\
+Serilog & 8.0.3 & Journalisation structuree. \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Interfaces}} \\
+React & 18.3 & Back-office. \\
+Vite & 6.0 & Chaine de construction du back-office. \\
+TypeScript & 5.6 & Typage des deux interfaces web. \\
+Next.js & 14.2 & Portail client. \\
+Expo / React Native & 54 / 0.81 & Application chauffeur. \\
+Leaflet & 1.9 & Cartographie du suivi de mission. \\
+ApexCharts & 4.4 & Graphiques du tableau de bord. \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Aide a la decision}} \\
+Python & 3.11 et 3.12 & Socle des quatre services d'aide a la decision. \\
+FastAPI & 0.115 & Exposition de leurs API. \\
+XGBoost & 2.1.3 & Modele d'estimation tarifaire. \\
+scikit-learn & 1.6.1 & Preparation des donnees et metriques. \\
+fastembed & 0.4.2 & Vectorisation multilingue de l'assistant. \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Infrastructure}} \\
+PostgreSQL & 16 & Base relationnelle. \\
+RabbitMQ & 3.13 & Courtier de messages. \\
+Qdrant & 1.12 & Base vectorielle de l'assistant. \\
+nginx & 1.25 et 1.27 & Passerelle et service des fichiers statiques. \\
+Docker Compose & --- & Orchestration des vingt conteneurs. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-dotnet.png}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-csharp.png}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-react.png}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-typescript.png}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-python.jpg}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-postgres.png}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-rabbitmq.png}\hspace{0.7cm}
+  \includegraphics[height=1.15cm,keepaspectratio]{logo-docker.png}
+  \caption{Principales technologies mises en oeuvre}
+  \label{fig:technologies}
+\end{figure}
+
+% =====================================================================
+\section{Architecture logique}
+\label{sec:archi-logique}
+
+L'architecture logique organise les responsabilites en quatre niveaux
+empiles, le flux descendant de l'interface vers la persistance.
+
+\figReelle{logical-architecture.png}
+  {Architecture logique de la plateforme, en quatre niveaux}
+  {fig:archi-logique}{0.97}
+
+\paragraph{Niveau 1, presentation.}
+Trois applications servent trois publics : le back-office pour le
+personnel, le portail pour les clients, l'application mobile pour les
+chauffeurs. Aucune ne contient de regle metier ; elles consomment des API.
+
+\paragraph{Niveau 2, passerelle.}
+Un serveur nginx assure trois fonctions : le routage vers le service
+concerne d'apres le prefixe de l'URL, la validation du jeton
+d'authentification et le filtrage des origines autorisees. Il constitue
+le point d'entree unique du systeme.
+
+\paragraph{Niveau 3, coeur applicatif.}
+Huit services metier en .NET et quatre services d'aide a la decision en
+Python, relies par un courtier de messages. Une bibliotheque commune
+porte les enumerations et les evenements d'integration partages.
+
+\paragraph{Niveau 4, persistance.}
+Une base relationnelle, une base vectorielle et un volume de fichiers.
+
+\begin{definitionbox}{Une lecture a retenir}
+Sur ce diagramme, les liaisons vont \exemple{de groupe a groupe} et non
+de service a service. Les huit services metier partagent la meme
+passerelle, le meme courtier et la meme base : les relier un a un
+produirait une trentaine de traits sans rien apprendre de plus. Le detail
+service par service figure dans les chapitres de sprint.
+\end{definitionbox}
+
+% =====================================================================
+\section{Architecture physique}
+\label{sec:archi-physique}
+
+La vue physique decrit le deploiement effectif : vingt conteneurs sur un
+hote unique, orchestres par Docker Compose.
+
+\figReelle{physical-architecture.png}
+  {Architecture physique : deploiement conteneurise}
+  {fig:archi-physique}{0.97}
+
+Trois points de cette vue meritent un commentaire.
+
+\paragraph{La resolution des noms.}
+A l'interieur du reseau, les services s'appellent par leur nom et non par
+une adresse. Les ports 5001 a 5009 visibles sur le diagramme ne sont que
+des publications vers l'hote, utiles au diagnostic et aux appels directs
+du portail client.
+
+\paragraph{L'ordre de demarrage.}
+Il repose sur une condition de bonne sante : la base et le courtier
+demarrent d'abord, puis les services metier, puis la passerelle. Les huit
+services .NET exposent un point de controle de sante que
+l'orchestrateur interroge.
+
+\paragraph{Les acces directs.}
+Le portail client et l'application chauffeur ne passent pas systematiquement
+par la passerelle : le suivi de position et l'estimation tarifaire sont
+atteints en direct. Ce n'est pas un oubli mais une consequence du
+perimetre de routage de la passerelle, examinee en
+section~\ref{sec:ecarts}.
+
+% =====================================================================
+\section{Choix structurants}
+\label{sec:choix}
+
+\subsection{Clean Architecture au sein de chaque service}
+
+Chaque service metier est decoupe en quatre projets, dont les
+dependances de compilation sont contraintes.
+
+\figReelle{platform-clean-architecture.png}
+  {Decoupage en couches d'un service metier}
+  {fig:clean-archi}{0.52}
+
+La regle est la suivante : \essentiel{les dependances pointent vers
+l'interieur}. La couche \exemple{Domain}, qui porte les entites et les
+regles de gestion, ne depend de rien d'autre que de la bibliotheque
+commune. Elle ignore la base de donnees, le protocole HTTP et le
+courtier de messages.
+
+L'inversion se joue dans la couche \exemple{Infrastructure} : celle-ci
+\essentiel{implemente} des interfaces declarees dans la couche
+\exemple{Application}, et non l'inverse. Concretement, un service
+applicatif manipule une interface de depot sans savoir qu'elle est
+satisfaite par Entity Framework Core.
+
+L'interet n'est pas theorique. Le domaine se teste sans base de donnees,
+et le remplacement d'une brique technique n'affecte pas les regles
+metier. Le service de maintenance predictive en fournit l'illustration :
+son moteur de prediction est declare par une interface, et l'implantation
+actuelle, fondee sur des regles deterministes, peut ceder la place a un
+modele d'apprentissage sans qu'aucune autre couche ne bouge.
+
+\subsection{Deux bus de messages plutot qu'un}
+
+La plateforme utilise le meme courtier RabbitMQ de deux manieres
+distinctes, ce qui surprend a la premiere lecture.
+
+\begin{table}[H]
+\centering
+\caption{Les deux usages du courtier de messages}
+\label{tab:deux-bus}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.2cm}XX@{}}
+\toprule
+ & \textbf{MassTransit} & \textbf{Echange par sujet} \\ \midrule
+Format & Message type, avec enveloppe & JSON brut, sans enveloppe \\
+Emetteurs & Services .NET & Services .NET \\
+Destinataires & Services .NET & Services Python \\
+Motif & Contrat fortement type entre services d'une meme pile &
+  Les consommateurs Python liraient difficilement l'enveloppe
+  MassTransit ; le JSON brut leur est directement exploitable \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ce choix est un compromis assume : il introduit deux conventions a
+maintenir, mais evite d'imposer aux services Python le decodage d'un
+format concu pour l'ecosysteme .NET.
+
+\subsection{Ecarts assumes par rapport au patron de reference}
+\label{sec:ecarts}
+
+Une architecture microservices de reference prevoit une base de donnees
+par service. \essentiel{Ce n'est pas le cas ici : les neuf chaines de
+connexion pointent toutes vers la meme base.} Cet ecart doit etre
+explicite plutot que masque.
+
+\begin{table}[H]
+\centering
+\caption{Ecarts par rapport au patron de reference}
+\label{tab:ecarts}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.6cm}X@{}}
+\toprule
+\textbf{Ecart} & \textbf{Portee et consequence} \\ \midrule
+Base partagee &
+  Le cloisonnement est LOGIQUE : chaque service ne possede en ecriture
+  que ses propres tables et lit celles des autres domaines en SQL direct.
+  C'est pourquoi certaines entites sont redeclarees en lecture seule dans
+  plusieurs couches Domain. Consequence : le decouplage des donnees
+  repose sur une discipline de developpement, non sur l'infrastructure. \\
+Absence de cache &
+  Aucun cache applicatif n'est deploye. La limitation de debit de
+  l'assistant est tenue en memoire du processus, ce qui ne resisterait
+  pas a une mise a l'echelle horizontale. \\
+Absence de terminaison TLS &
+  La passerelle publie en clair. Le chiffrement devra etre ajoute avant
+  toute mise en ligne. \\
+Hote unique &
+  Le deploiement repose sur Docker Compose, sur une seule machine. Il n'y
+  a ni orchestrateur de grappe ni redondance. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ces ecarts sont le prix d'un projet mene en \stageDuree{} mois par une
+seule personne. Ils sont documentes dans les diagrammes d'architecture
+eux-memes, sous forme de notes, afin qu'un lecteur ne les prenne pas pour
+des oublis.
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce chapitre a decrit les moyens et l'architecture. La plateforme repose
+sur quatre niveaux logiques, deployes en vingt conteneurs sur un hote
+unique. Chaque service metier applique le decoupage en couches de la
+Clean Architecture, dont la regle de dependance protege le domaine des
+choix techniques. Deux usages du courtier de messages coexistent
+volontairement, pour ne pas imposer aux services Python un format concu
+pour .NET. Quatre ecarts par rapport au patron de reference ont enfin ete
+identifies et justifies.
+
+Les six chapitres suivants presentent la realisation, sprint par sprint.
+Le premier d'entre eux traite du socle sur lequel tout le reste
+s'appuie : les identites et les acces.
