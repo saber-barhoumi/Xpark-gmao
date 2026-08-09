@@ -1,0 +1,221 @@
+% =====================================================================
+%  Chapitre 7 - Sprint 4 : maintenance curative et predictive
+% =====================================================================
+\chapter{Sprint 4 : maintenance curative et predictive}
+\label{chap:sprint4}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Une flotte ne vaut que par sa disponibilite. Ce sprint traite du maintien
+en condition operationnelle des vehicules, en deux temps : d'abord la
+maintenance curative, qui organise le travail de l'atelier, puis
+l'anticipation des pannes, qui vise a intervenir avant la defaillance
+plutot qu'apres.
+
+% =====================================================================
+\section{Planification du sprint}
+
+\subsection{Objectifs}
+
+\begin{enumerate}
+  \item Organiser le travail de l'atelier autour d'ordres de travail
+    suivis par etat.
+  \item Tracer les interventions et leur consommation de pieces.
+  \item Tenir le stock de pieces de rechange et alerter sur les seuils
+    bas.
+  \item Conserver l'historique des changements d'etat.
+  \item Estimer le risque de panne par vehicule et designer l'organe
+    concerne.
+\end{enumerate}
+
+\subsection{Carnet du sprint}
+
+\begin{table}[H]
+\centering
+\caption{Carnet du sprint 4}
+\label{tab:backlog-s4}
+\small
+\begin{tabularx}{\textwidth}{@{}cp{2.3cm}Xcc@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Acteur} & \textbf{Besoin exprime} &
+\textbf{Prio.} & \textbf{Pts} \\ \midrule
+1 & Responsable & Ouvrir et instruire un ordre de travail & Must & 8 \\
+2 & Technicien & Faire avancer un ordre de travail par etat & Must & 5 \\
+3 & Utilisateur & Consulter l'historique des changements d'etat & Should & 3 \\
+4 & Technicien & Declarer et suivre une intervention & Must & 8 \\
+5 & Technicien & Consommer ou restituer une piece de rechange & Must & 5 \\
+6 & Responsable & Tenir le catalogue et reapprovisionner le stock & Must & 5 \\
+7 & Technicien & Documenter un ordre de travail & Should & 3 \\
+8 & Responsable & Consulter le risque de panne de la flotte & Could & 8 \\
+9 & Technicien & Connaitre l'organe a risque d'un vehicule & Could & 5 \\
+10 & Administrateur & Purger le dossier de maintenance & Must & 3 \\
+\midrule
+\multicolumn{4}{@{}r}{\textbf{Total}} & \textbf{53} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Elaboration technique}
+
+\subsection{Modelisation fonctionnelle}
+
+\figReelle{maintenance-usecase.png}
+  {Cas d'utilisation du service de maintenance}
+  {fig:uc-maintenance}{0.40}
+
+Le diagramme de la figure~\ref{fig:uc-maintenance} repartit le service en
+cinq domaines. La lecture des associations revele une
+\essentiel{repartition des roles conforme au metier} : le responsable
+ouvre et instruit les ordres de travail, le technicien les fait avancer
+et realise les interventions, l'administrateur seul purge le dossier.
+
+Trois cas figurent hors des domaines, atteints par extension :
+l'historique des statuts, les pieces en stock faible et la consommation
+de pieces. \essentiel{Aucun n'est un but en soi} : on ne se connecte pas
+pour consulter un historique, on y accede depuis l'ordre de travail que
+l'on examine.
+
+\begin{table}[H]
+\centering
+\caption{Description textuelle du cas « declarer une intervention »}
+\label{tab:desc-intervention}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.5cm}X@{}}
+\toprule
+\textbf{Rubrique} & \textbf{Contenu} \\ \midrule
+Acteur & Technicien \\
+Precondition & Un ordre de travail existe et n'est pas cloture \\
+Scenario nominal & Saisie du type d'intervention, de la description et du
+  kilometrage ; enregistrement au statut EN\_ATTENTE ; rattachement a
+  l'ordre de travail \\
+Extension & Consommation de pieces : chaque piece prelevee decremente le
+  stock et alimente le cout de l'intervention \\
+Postcondition & L'intervention est visible dans le dossier du vehicule et
+  son cout s'agrege a celui de l'ordre de travail \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Conception statique}
+
+\figReelle{maintenance-class-domain.png}
+  {Modele du domaine du service de maintenance}
+  {fig:dom-maintenance}{0.48}
+
+Le modele distingue deux notions que l'usage confond souvent.
+\essentiel{L'ordre de travail} est une decision de gestion : il ouvre un
+dossier, porte une priorite et un etat. \essentiel{L'intervention} est un
+acte technique : elle a une duree, un cout et consomme des pieces. Un
+ordre de travail peut donner lieu a plusieurs interventions.
+
+Deux mecanismes de tracabilite le completent. \exemple{HistoriqueStatutOT}
+conserve chaque changement d'etat avec son auteur et son horodatage.
+\exemple{InterventionPiece} porte la quantite et le prix unitaire
+\essentiel{au moment du prelevement, et non le prix courant} : le cout
+d'une intervention passee ne change pas si le tarif du fournisseur
+evolue.
+
+\subsection{Conception dynamique}
+
+\figReelle{maintenance-seq-ordre-travail.png}
+  {Sequence : ouverture et avancement d'un ordre de travail}
+  {fig:seq-ot}{0.52}
+
+\figReelle{maintenance-seq-intervention.png}
+  {Sequence : declaration d'une intervention avec consommation de pieces}
+  {fig:seq-intervention}{0.52}
+
+La premiere sequence montre l'ecriture systematique d'une ligne
+d'historique a chaque changement d'etat. La seconde,
+figure~\ref{fig:seq-intervention}, illustre l'effet de bord de la
+consommation : le stock de la piece est decremente dans la meme unite de
+travail que l'enregistrement de l'intervention. \essentiel{Les deux
+reussissent ou echouent ensemble}, ce qui interdit qu'une piece soit
+comptee consommee sans que l'intervention existe.
+
+\subsection{Anticipation des pannes}
+
+Le service de maintenance predictive est le huitieme et dernier service
+metier ajoute au projet. Il illustre a lui seul l'exigence d'evolutivite
+formulee au chapitre~\ref{chap:analyse} : \essentiel{son ajout n'a impose
+de modifier aucun service existant}. Il offre trois capacites : consulter
+la sante de la flotte, celle d'un vehicule, et recalculer les predictions.
+
+\figReelle{predictionpanne-sequence.png}
+  {Sequence : calcul du risque de panne d'un vehicule}
+  {fig:seq-prediction}{0.52}
+
+\paragraph{Ce que fait reellement le moteur.}
+Il faut ici etre precis, car le terme \exemple{prediction} prete a
+confusion. \essentiel{Le moteur actuellement en service n'est pas un
+modele appris : c'est un ensemble d'heuristiques de maintenance.} Il
+croise quatre facteurs calcules sur les donnees reelles de la
+plateforme : l'usure kilometrique par organe, le vieillissement du
+vehicule, la recurrence des pannes deja constatees et le retard de
+revision.
+
+Ce choix est assume et repose sur deux arguments. D'abord, le module est
+\essentiel{utile immediatement}, sans jeu d'entrainement historique, que
+l'entreprise ne possede pas encore. Ensuite, et surtout, chaque
+prediction est \essentiel{explicable} : le moteur designe l'organe
+concerne et la raison du signalement. Or c'est precisement l'explication
+qu'un exploitant attend avant d'immobiliser un vehicule.
+
+Le moteur est declare derriere une interface, et l'enumeration de la
+source d'une prediction prevoit deja la valeur correspondant a un modele
+appris. \essentiel{Le remplacement se fera en une ligne d'enregistrement
+de dependance}, sans toucher aux couches superieures.
+
+% =====================================================================
+\section{Realisation et tests de validation}
+
+\figDeux{s4-ordres-travail.jpg}{s4-interventions.jpg}
+  {Atelier : tableau des ordres de travail par etat et liste des
+   interventions}
+  {fig:ecrans-atelier}{0.48}
+
+\figDeux{s4-pieces-rechange.jpg}{s4-prediction-pannes.jpg}
+  {Stock de pieces de rechange et tableau de bord des risques de panne}
+  {fig:ecrans-stock}{0.48}
+
+\begin{table}[H]
+\centering
+\caption{Tests de validation du sprint 4}
+\label{tab:tests-s4}
+\small
+\begin{tabularx}{\textwidth}{@{}cXp{2.9cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
+\textbf{Etat} \\ \midrule
+T1 & Changement d'etat d'un ordre de travail & Ligne d'historique ecrite & Reussi \\
+T2 & Consommation de deux pieces & Stock decremente, cout agrege & Reussi \\
+T3 & Piece descendue sous son seuil & Alerte de stock faible levee & Reussi \\
+T4 & Prix fournisseur modifie apres coup & Cout de l'intervention inchange & Reussi \\
+T5 & Vehicule au-dela du seuil de revision & Risque signale, organe designe & Reussi \\
+T6 & Purge du dossier par l'administrateur & Elements retires, vehicule conserve & Reussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce sprint livre l'atelier complet : ordres de travail suivis par etat,
+interventions tracees, stock surveille et tableau de bord des risques.
+Les cinquante-trois points du carnet ont ete realises.
+
+Deux principes le structurent. Le premier est comptable : \essentiel{le
+prix d'une piece est fige au prelevement}, faute de quoi l'historique des
+couts se reecrirait a chaque revision tarifaire. Le second est
+methodologique : \essentiel{ce qui est presente comme une prediction doit
+dire de quoi il retourne}. Un moteur de regles explicables a ete prefere
+a un modele appris que les donnees disponibles n'auraient pas permis
+d'entrainer serieusement, et l'interface qui les separe rend la bascule
+possible sans reprise.
+
+Le sprint suivant traite de ce que la maintenance et les missions
+produisent en aval : la facturation, les alertes metier et le journal des
+evenements.
