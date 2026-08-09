@@ -154,12 +154,12 @@ PLAFONDS = {
     'chapitres/01-etude-prealable.tex': 9.0,
     'chapitres/02-analyse-globale.tex': 8.0,
     'chapitres/03-environnement-architecture.tex': 7.0,
-    'chapitres/04-sprint1-iam.tex': 6.1,
-    'chapitres/05-sprint2-flotte.tex': 6.1,
-    'chapitres/06-sprint3-mission.tex': 6.5,
-    'chapitres/07-sprint4-maintenance.tex': 6.1,
-    'chapitres/08-sprint5-finance-alertes.tex': 6.1,
-    'chapitres/09-sprint6-collaboration-ia.tex': 6.1,
+    'chapitres/04-sprint1-iam.tex': 5.8,
+    'chapitres/05-sprint2-flotte.tex': 5.8,
+    'chapitres/06-sprint3-mission.tex': 6.2,
+    'chapitres/07-sprint4-maintenance.tex': 5.8,
+    'chapitres/08-sprint5-finance-alertes.tex': 5.8,
+    'chapitres/09-sprint6-collaboration-ia.tex': 5.8,
     'chapitres/10-conclusion-generale.tex': 2.0,
 }
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
             print('%-46s %7.1f %5s %5s' % (c + '  (a rediger)', v, '-', '-'))
         total += sum(v for _, v in restants)
     for nom, v in (('biblio/references.tex  (a rediger)', 1.0),
-                   ('annexes/  (a rediger)', 3.0)):
+                   ('annexes/  (a rediger)', 1.5)):
         if not glob.glob(nom.split()[0] + '*'):
             print('%-46s %7.1f %5s %5s' % (nom, v, '-', '-'))
             total += v

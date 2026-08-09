@@ -87,41 +87,25 @@ Trello & Suivi du carnet &
 \small
 \begin{tabularx}{\textwidth}{@{}p{2.9cm}p{2.6cm}X@{}}
 \toprule
-\textbf{Brique} & \textbf{Version} & \textbf{Role dans la plateforme} \\
+\textbf{Domaine} & \textbf{Briques et versions} & \textbf{Role} \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{Services metier}} \\
-.NET / C\# & 8.0 & Socle des huit services metier. \\
-ASP.NET Core & 8.0 & Exposition des API REST. \\
-Entity Framework Core & 8.0.11 & Correspondance objet-relationnel. \\
-Npgsql & 8.0.11 & Pilote PostgreSQL. \\
-MassTransit & 8.3.6 & Publication et consommation de messages types. \\
-SignalR & --- & Messagerie en temps reel. \\
-BCrypt.Net & 4.0.3 & Empreinte des mots de passe. \\
-FluentValidation & 11.9.0 & Validation des donnees entrantes. \\
-Serilog & 8.0.3 & Journalisation structuree. \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Interfaces}} \\
-React & 18.3 & Back-office. \\
-Vite & 6.0 & Chaine de construction du back-office. \\
-TypeScript & 5.6 & Typage des deux interfaces web. \\
-Next.js & 14.2 & Portail client. \\
-Expo / React Native & 54 / 0.81 & Application chauffeur. \\
-Leaflet & 1.9 & Cartographie du suivi de mission. \\
-ApexCharts & 4.4 & Graphiques du tableau de bord. \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Aide a la decision}} \\
-Python & 3.11 et 3.12 & Socle des quatre services d'aide a la decision. \\
-FastAPI & 0.115 & Exposition de leurs API. \\
-XGBoost & 2.1.3 & Modele d'estimation tarifaire. \\
-scikit-learn & 1.6.1 & Preparation des donnees et metriques. \\
-fastembed & 0.4.2 & Vectorisation multilingue de l'assistant. \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Infrastructure}} \\
-PostgreSQL & 16 & Base relationnelle. \\
-RabbitMQ & 3.13 & Courtier de messages. \\
-Qdrant & 1.12 & Base vectorielle de l'assistant. \\
-nginx & 1.25 et 1.27 & Passerelle et service des fichiers statiques. \\
-Docker Compose & --- & Orchestration des vingt conteneurs. \\
+Services metier & .NET / C\# 8.0, ASP.NET Core 8.0, Entity Framework
+  Core et Npgsql 8.0.11, MassTransit 8.3.6, SignalR, BCrypt.Net 4.0.3,
+  FluentValidation 11.9.0, Serilog 8.0.3 &
+  Socle des huit services metier, exposition REST, correspondance
+  objet-relationnel, messagerie et journalisation \\
+Interfaces & React 18.3 et Vite 6.0, Next.js 14.2, Expo 54 avec React
+  Native 0.81, TypeScript 5.6, Leaflet 1.9, ApexCharts 4.4 &
+  Back-office, portail client, application chauffeur, cartographie et
+  graphiques \\
+Aide a la decision & Python 3.11 et 3.12, FastAPI 0.115, XGBoost 2.1.3,
+  scikit-learn 1.6.1, fastembed 0.4.2 &
+  Estimation tarifaire, optimisation, prediction de pannes, assistant
+  documentaire \\
+Infrastructure & PostgreSQL 16, RabbitMQ 3.13, Qdrant 1.12, nginx 1.25
+  et 1.27, Docker Compose &
+  Persistance, courtier de messages, base vectorielle, passerelle et
+  orchestration des vingt conteneurs \\
 \bottomrule
 \end{tabularx}
 \end{table}

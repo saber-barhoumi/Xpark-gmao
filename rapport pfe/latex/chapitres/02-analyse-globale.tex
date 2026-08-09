@@ -33,40 +33,24 @@ apparaitre six acteurs humains et deux systemes tiers.
 \begin{tabularx}{\textwidth}{@{}p{2.4cm}X@{}}
 \toprule
 \textbf{Acteur} & \textbf{Role et perimetre d'action} \\ \midrule
-Utilisateur &
-  Acteur generique dont derivent tous les autres. Il porte ce qui est
-  commun a toute personne authentifiee : gestion de son compte, de son
-  profil et de son second facteur, consultation des donnees non
-  restreintes, participation a la messagerie. \\
-Client &
-  Donneur d'ordre. Il depose une demande de transport, recoit un devis,
-  l'accepte ou le refuse, suit l'acheminement de sa marchandise, consulte
-  ses factures et ouvre des tickets de support. Il peut etre une
-  entreprise ou un particulier. \\
-Employe &
-  Specialisation d'Utilisateur regroupant le personnel interne. Acteur
-  abstrait : il n'agit pas directement mais factorise ce que partagent
-  les roles internes. \\
-Chauffeur &
-  Conduit les vehicules. Il se connecte par code PIN depuis l'application
-  mobile, consulte ses missions, transmet sa position et rend compte de
-  l'execution. \\
-Technicien &
-  Intervient sur les vehicules. Il declare et suit les interventions,
-  consomme des pieces de rechange, fait avancer les ordres de travail et
-  documente les dossiers de maintenance. \\
-Responsable &
-  Acteur abstrait couvrant la combinaison des habilitations
-  Administrateur et Gestionnaire, de loin la plus frequente dans le code.
-  Il tient les referentiels, etablit les devis, planifie les missions,
-  pilote la maintenance et facture. \\
-Administrateur &
-  Specialisation de Responsable disposant des droits exclusifs :
-  approbation et rejet des comptes, gestion des habilitations, archivage
-  et purge, suppressions definitives. \\
-Gestionnaire &
-  Specialisation de Responsable orientee exploitation courante, sans les
-  droits de suppression ni d'administration des comptes. \\
+Utilisateur & Acteur generique dont derivent tous les autres : compte,
+  profil, second facteur, consultations non restreintes, messagerie \\
+Client & Donneur d'ordre, entreprise ou particulier. Depose une demande,
+  recoit un devis, suit l'acheminement, consulte ses factures, ouvre des
+  tickets de support \\
+Employe & Acteur \essentiel{abstrait} regroupant le personnel interne.
+  Il n'agit pas : il factorise ce que partagent les roles internes \\
+Chauffeur & Conduit les vehicules. Connexion par code PIN, consultation
+  de ses missions, transmission de sa position \\
+Technicien & Intervient sur les vehicules : interventions, consommation
+  de pieces, avancement des ordres de travail, documentation \\
+Responsable & Acteur \essentiel{abstrait} couvrant la combinaison
+  Administrateur ou Gestionnaire, la plus frequente du code. Referentiels,
+  devis, missions, maintenance, facturation \\
+Administrateur & Droits exclusifs : approbation et rejet des comptes,
+  habilitations, archivage, purge, suppressions definitives \\
+Gestionnaire & Exploitation courante, sans droit de suppression ni
+  d'administration des comptes \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -209,43 +193,26 @@ d'architecture presentes au chapitre suivant.
 \begin{tabularx}{\textwidth}{@{}p{2.6cm}X@{}}
 \toprule
 \textbf{Exigence} & \textbf{Contenu et reponse retenue} \\ \midrule
-Securite &
-  Authentification par jeton signe, second facteur optionnel par
-  application d'authentification ou par code envoye par courriel,
-  controle d'acces fonde sur les roles, verrouillage du compte apres
-  plusieurs echecs, journalisation des connexions. Aucune suppression
-  definitive d'un compte porteur d'historique : l'archivage est
-  reversible. \\
-Tracabilite &
-  Toute operation sensible laisse une trace exploitable : historique des
-  changements de statut des ordres de travail, journal des connexions,
-  journal des evenements metier. C'est la reponse directe a la
-  volatilite des echanges informels relevee au chapitre precedent. \\
-Performance &
-  Les ecrans de consultation doivent rester utilisables sur des volumes
-  de plusieurs milliers de lignes : pagination systematique, filtrage
-  cote serveur, absence de chargement complet des collections. \\
-Disponibilite &
-  Chaque service expose un point de controle de sante permettant a
-  l'orchestrateur de verifier son etat et d'ordonnancer les demarrages.
-  Un service defaillant ne doit pas empecher les autres de fonctionner. \\
-Maintenabilite &
-  Separation stricte des responsabilites a l'interieur de chaque service
-  et independance des services entre eux : faire evoluer la facturation
-  ne doit obliger ni a recompiler ni a redeployer la maintenance. \\
-Portabilite &
-  L'ensemble de la plateforme se deploie par conteneurs, sans
-  installation manuelle de dependances. Le poste de developpement et le
-  serveur executent la meme definition. \\
-Ergonomie &
-  Trois interfaces distinctes plutot qu'une seule : chaque public ne voit
-  que ce qui le concerne. Le chauffeur, qui travaille sur telephone en
-  mobilite, dispose d'une application dediee et d'une connexion par code
-  court. \\
-Evolutivite &
-  L'ajout d'un domaine metier ne doit pas imposer de reprendre
-  l'existant. Le huitieme service, consacre a la maintenance predictive,
-  a ete ajoute apres coup : il valide ce point. \\
+Securite & Jeton signe, second facteur optionnel, controle d'acces par
+  role, verrouillage apres echecs repetes, journalisation des connexions.
+  Aucune suppression definitive d'un compte porteur d'historique \\
+Tracabilite & Toute operation sensible laisse une trace : historique des
+  statuts d'ordre de travail, journal des connexions, journal metier.
+  Reponse directe a la volatilite des echanges informels \\
+Performance & Pagination systematique et filtrage cote serveur : les
+  ecrans restent utilisables sur plusieurs milliers de lignes \\
+Disponibilite & Chaque service expose un point de controle de sante ;
+  un service defaillant n'empeche pas les autres de fonctionner \\
+Maintenabilite & Responsabilites separees dans chaque service, services
+  independants entre eux : faire evoluer la facturation n'oblige pas a
+  redeployer la maintenance \\
+Portabilite & Deploiement par conteneurs, sans installation manuelle. Le
+  poste et le serveur executent la meme definition \\
+Ergonomie & Trois interfaces plutot qu'une : chaque public ne voit que ce
+  qui le concerne. Le chauffeur dispose d'une application mobile dediee \\
+Evolutivite & Ajouter un domaine ne doit pas imposer de reprendre
+  l'existant. Le huitieme service, la maintenance predictive, a ete
+  ajoute apres coup : il valide ce point \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -260,7 +227,7 @@ de chaque domaine est presente dans le chapitre du sprint correspondant.
 
 \figReelle{platform-usecase-global.png}
   {Diagramme de cas d'utilisation global de la plateforme \sujetCourt}
-  {fig:uc-global}{0.94}
+  {fig:uc-global}{0.72}
 
 \paragraph{Lecture du diagramme.}
 Les acteurs sont alignes a gauche, relies entre eux par des liens de
@@ -315,18 +282,12 @@ selon la repartition du tableau~\ref{tab:equipe}.
 \begin{tabularx}{\textwidth}{@{}p{3.4cm}p{4.2cm}X@{}}
 \toprule
 \textbf{Role Scrum} & \textbf{Tenu par} & \textbf{Responsabilites} \\ \midrule
-Product Owner &
-  \encadrantEntreprise{} \newline (encadrant entreprise) &
-  Porte le besoin metier, ordonne le carnet de produit, valide les
-  increments a chaque fin de sprint. \\
-Scrum Master &
-  \encadrantAcademique{} \newline (encadrant academique) &
-  Veille a l'application du cadre et a la rigueur methodologique, leve
-  les obstacles, suit la qualite des livrables. \\
-Equipe de developpement &
-  \etudiantComplet &
-  Conception, developpement, tests et deploiement de l'ensemble des
-  increments. \\
+Product Owner & \encadrantEntreprise{} \newline (encadrant entreprise) &
+  Porte le besoin metier, ordonne le carnet, valide les increments \\
+Scrum Master & \encadrantAcademique{} \newline (encadrant academique) &
+  Garantit le cadre et la rigueur methodologique, leve les obstacles \\
+Equipe de developpement & \etudiantComplet &
+  Conception, developpement, tests et deploiement \\
 \bottomrule
 \end{tabularx}
 \end{table}

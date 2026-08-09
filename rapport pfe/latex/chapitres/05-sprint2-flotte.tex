@@ -1,0 +1,197 @@
+% =====================================================================
+%  Chapitre 5 - Sprint 2 : referentiel de flotte et d'equipements
+% =====================================================================
+\chapter{Sprint 2 : referentiel de flotte et d'equipements}
+\label{chap:sprint2}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Le sprint precedent a etabli qui utilise la plateforme. Celui-ci etablit
+\essentiel{avec quoi l'entreprise travaille} : le parc de vehicules, les
+equipements embarques, les pieces administratives et le carburant. C'est
+le second socle du systeme, celui sur lequel s'appuieront les missions et
+la maintenance : on n'affecte pas un vehicule qui n'existe pas au
+referentiel.
+
+% =====================================================================
+\section{Planification du sprint}
+
+\subsection{Objectifs}
+
+\begin{enumerate}
+  \item Constituer un referentiel unique des vehicules et des
+    equipements, chacun decrit une seule fois.
+  \item Rattacher a chaque vehicule ses pieces administratives et ses
+    assurances, avec leurs dates d'echeance.
+  \item Suivre le cycle de vie d'un vehicule par son statut
+    d'exploitation.
+  \item Tracer l'affectation et la restitution des equipements.
+  \item Enregistrer les pleins de carburant et en tirer une consommation.
+\end{enumerate}
+
+\subsection{Carnet du sprint}
+
+\begin{table}[H]
+\centering
+\caption{Carnet du sprint 2}
+\label{tab:backlog-s2}
+\small
+\begin{tabularx}{\textwidth}{@{}cp{2.5cm}Xcc@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Acteur} & \textbf{Besoin exprime} &
+\textbf{Prio.} & \textbf{Pts} \\ \midrule
+1 & Utilisateur & Consulter le parc et rechercher un vehicule disponible & Must & 5 \\
+2 & Responsable & Tenir la fiche d'un vehicule & Must & 8 \\
+3 & Responsable & Enregistrer les pieces administratives et les assurances & Must & 5 \\
+4 & Utilisateur & Consulter les echeances a venir & Must & 3 \\
+5 & Responsable & Tenir la fiche d'un equipement & Must & 5 \\
+6 & Utilisateur & Affecter et restituer un equipement & Must & 5 \\
+7 & Utilisateur & Realiser une inspection d'equipement & Should & 3 \\
+8 & Utilisateur & Declarer un plein de carburant & Should & 3 \\
+9 & Utilisateur & Suivre la consommation de la flotte & Should & 5 \\
+10 & Administrateur & Sortir un bien de l'inventaire & Must & 3 \\
+\midrule
+\multicolumn{4}{@{}r}{\textbf{Total}} & \textbf{45} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Elaboration technique}
+
+\subsection{Modelisation fonctionnelle}
+
+\figReelle{fleet-usecase.png}
+  {Cas d'utilisation du service de gestion de flotte}
+  {fig:uc-fleet}{0.48}
+
+La figure~\ref{fig:uc-fleet} distingue trois domaines. \essentiel{L'exploitation
+courante} rassemble ce qui est ouvert a tout utilisateur authentifie : la
+consultation du parc ne porte en effet aucune restriction de role dans le
+code, seules les ecritures en sont assorties. \essentiel{La tenue du
+referentiel} revient au responsable, et \essentiel{le retrait definitif}
+au seul administrateur.
+
+Cette gradation reproduit une regle simple : \essentiel{lire est ouvert,
+ecrire est encadre, supprimer est reserve}. Elle se retrouvera dans tous
+les modules suivants.
+
+\begin{table}[H]
+\centering
+\caption{Description textuelle du cas « immatriculer un vehicule »}
+\label{tab:desc-immat}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.5cm}X@{}}
+\toprule
+\textbf{Rubrique} & \textbf{Contenu} \\ \midrule
+Acteur & Responsable \\
+Precondition & Le vehicule n'existe pas encore au referentiel \\
+Scenario nominal & Saisie de l'immatriculation, du numero de chassis, de
+  la marque, du modele et des caracteristiques techniques ; controle
+  d'unicite de l'immatriculation et du chassis ; enregistrement au statut
+  DISPONIBLE \\
+Alternatives & Immatriculation deja presente : creation refusee. Champ
+  obligatoire manquant : le formulaire signale la ligne fautive \\
+Postcondition & Le vehicule est visible au parc et peut recevoir des
+  equipements, des documents et des missions \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Conception statique}
+
+\figReelle{fleet-class-domain.png}
+  {Modele du domaine du service de gestion de flotte}
+  {fig:dom-fleet}{0.58}
+
+Le modele s'organise autour de la classe \exemple{Vehicule}, a laquelle
+se rattachent quatre familles d'objets : les \exemple{documents
+administratifs} et les \exemple{assurances}, qui portent des dates
+d'echeance ; les \exemple{equipements}, affectes puis restitues ; les
+\exemple{pleins de carburant}, rattaches a une source ; et les
+\exemple{inspections}.
+
+Deux points de conception meritent d'etre releves.
+
+\paragraph{L'echeance est une donnee, pas un calcul.}
+La date de fin de validite est stockee sur le document et sur
+l'assurance. Le service d'alertes la lit pour produire ses avertissements
+plutot que de la deduire : une echeance depassee reste visible meme si
+personne n'a ouvert l'ecran depuis des semaines.
+
+\paragraph{L'equipement a son propre cycle de vie.}
+Il porte un etat, un compteur d'utilisations et des seuils d'usure. Il
+peut etre affecte a un vehicule ou rester au magasin : la relation est
+donc optionnelle des deux cotes, ce que traduit la multiplicite du
+diagramme.
+
+\subsection{Conception dynamique}
+
+\figReelle{fleet-seq-immatriculation.png}
+  {Sequence : immatriculation d'un vehicule}
+  {fig:seq-immat}{0.70}
+
+\figReelle{fleet-seq-suivi-echeances.png}
+  {Sequence : consultation des echeances a venir}
+  {fig:seq-echeances}{0.58}
+
+La premiere sequence montre le controle d'unicite effectue avant tout
+enregistrement. La seconde, figure~\ref{fig:seq-echeances}, illustre un
+mecanisme different : \essentiel{aucune ecriture n'a lieu}, le service
+agrege les dates portees par les documents, les assurances et les permis,
+puis les ordonne par proximite. C'est une lecture transversale, et c'est
+elle qui alimentera le module d'alertes du sprint~5.
+
+Une troisieme sequence, le changement d'etat d'un vehicule, suit la meme
+structure que l'immatriculation et n'est pas reproduite ici.
+
+% =====================================================================
+\section{Realisation et tests de validation}
+
+\figDeux{s2-liste-vehicules.jpg}{s2-liste-equipements.jpg}
+  {Referentiel : parc de vehicules et inventaire des equipements}
+  {fig:ecrans-parc}{0.58}
+
+\figTrois{s2-fiche-vehicule-1.jpg}{s2-fiche-vehicule-2.jpg}{s2-detail-equipement.jpg}
+  {Fiche d'un vehicule, ses pieces administratives, et detail d'un
+   equipement affecte}
+  {fig:ecrans-fiches}{0.42}
+
+\begin{table}[H]
+\centering
+\caption{Tests de validation du sprint 2}
+\label{tab:tests-s2}
+\small
+\begin{tabularx}{\textwidth}{@{}cXp{3.0cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
+\textbf{Etat} \\ \midrule
+T1 & Immatriculation d'un vehicule inedit & Vehicule cree, statut DISPONIBLE & Reussi \\
+T2 & Immatriculation deja presente & Creation refusee & Reussi \\
+T3 & Document dont l'echeance est depassee & Vehicule signale dans les echeances & Reussi \\
+T4 & Affectation d'un equipement a un vehicule & Equipement indisponible au magasin & Reussi \\
+T5 & Restitution d'un equipement & Compteur d'utilisations incremente & Reussi \\
+T6 & Plein de carburant enregistre & Consommation moyenne recalculee & Reussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce sprint livre le referentiel materiel de la plateforme : seize
+vehicules decrits avec leurs caracteristiques, leurs pieces
+administratives et leurs assurances, quatorze equipements suivis avec
+leur etat et leur affectation, et le suivi du carburant. Les
+quarante-cinq points du carnet ont ete realises.
+
+L'apport le plus durable de ce sprint n'est pas un ecran mais une
+donnee : \essentiel{les dates d'echeance sont desormais stockees et
+interrogeables}. Sans elles, la surveillance reglementaire du sprint~5
+n'aurait aucune matiere sur laquelle travailler.
+
+Les deux socles etant poses, le sprint suivant aborde le coeur de
+l'activite : la chaine qui va de la demande du client a la livraison de
+sa marchandise.

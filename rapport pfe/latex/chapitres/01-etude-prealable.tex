@@ -23,43 +23,33 @@ Le present projet de fin d'etudes a ete realise au sein de
 \essentiel{\entreprise}, entreprise de services numeriques implantee a
 \entrepriseVille{} (\entrepriseCodePostal), en Tunisie.
 
-\figReelle{logo-sipro.png}{Logo de l'entreprise \entreprise}
-  {fig:logo-sipro}{0.22}
-
 L'activite de \entreprise{} s'organise autour de trois metiers
-complementaires, qui vont de la conception logicielle a
-l'infrastructure materielle.
+complementaires.
 
 \begin{table}[H]
 \centering
 \caption{Les trois metiers de \entreprise}
 \label{tab:metiers-sipro}
 \small
-\begin{tabularx}{\textwidth}{@{}lX@{}}
+\begin{tabularx}{\textwidth}{@{}p{3.6cm}X@{}}
 \toprule
 \textbf{Metier} & \textbf{Perimetre} \\ \midrule
-Edition logicielle &
-  Developpement de logiciels de gestion et de progiciels destines aux
-  entreprises. C'est le metier historique et celui dont releve le present
-  projet. \\
-Integration RFID &
-  Mise en oeuvre de solutions d'identification par radiofrequence :
-  tracabilite des biens, inventaire et controle d'acces. \\
-Materiel informatique &
-  Vente et maintenance de materiel informatique professionnel, incluant
-  l'assistance aux entreprises clientes. \\
+Edition logicielle & Logiciels de gestion et progiciels d'entreprise.
+  Metier historique, dont releve le present projet \\
+Integration RFID & Identification par radiofrequence : tracabilite des
+  biens, inventaire, controle d'acces \\
+Materiel informatique & Vente, maintenance et assistance sur le materiel
+  professionnel \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Cette combinaison est determinante pour la comprehension du projet. Une
-entreprise qui integre des solutions de tracabilite et qui maintient du
-materiel sur site connait de l'interieur les contraintes de la gestion
-d'un parc : suivi des equipements, planification des interventions,
-surveillance des echeances. \essentiel{Le sujet confie n'est donc pas un
-exercice theorique : il prolonge un savoir-faire metier existant vers un
-domaine, le transport de marchandises, ou la demande des clients de
-\entreprise{} etait exprimee.}
+Cette combinaison eclaire le projet. Une entreprise qui integre des
+solutions de tracabilite et maintient du materiel sur site connait de
+l'interieur les contraintes de la gestion d'un parc : suivi des
+equipements, planification des interventions, surveillance des echeances.
+\essentiel{Le sujet confie prolonge donc un savoir-faire existant vers un
+domaine ou la demande des clients de \entreprise{} etait exprimee.}
 
 \subsection{La mission confiee}
 
@@ -294,42 +284,30 @@ iterations courtes, chacune produisant un increment fonctionnel du
 produit. Le besoin est precise au fil de l'eau, au contact du resultat
 plutot que sur document.
 
-\figReelle{methodo-agile.png}
-  {Principes du developpement agile}
-  {fig:agile}{0.75}
-
 \subsection{Le cadre Scrum}
 
 Scrum est le cadre agile le plus repandu. Il repose sur trois roles, sur
-un ensemble d'evenements rythmant l'iteration et sur trois artefacts.
+des evenements qui rythment l'iteration et sur trois artefacts.
 
 \figReelle{methodo-scrum.jpg}
   {Le processus Scrum}
-  {fig:scrum}{0.85}
+  {fig:scrum}{0.72}
 
 \begin{table}[H]
 \centering
 \caption{Roles, evenements et artefacts de Scrum}
 \label{tab:scrum}
 \small
-\begin{tabularx}{\textwidth}{@{}lX@{}}
+\begin{tabularx}{\textwidth}{@{}p{2.8cm}X@{}}
 \toprule
 \textbf{Element} & \textbf{Definition} \\ \midrule
-\multicolumn{2}{@{}l}{\textit{Roles}} \\
-Product Owner    & Porte la valeur metier, tient le carnet de produit et en fixe l'ordre de priorite. \\
-Scrum Master     & Veille a l'application du cadre et leve les obstacles rencontres par l'equipe. \\
-Equipe de developpement & Concoit, developpe et teste l'increment. Elle est autonome dans ses choix techniques. \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Evenements}} \\
-Planification de sprint & Selectionne les elements du carnet de produit traites pendant l'iteration. \\
-Melee quotidienne       & Point court de synchronisation sur l'avancement et les obstacles. \\
-Revue de sprint         & Presentation de l'increment realise. \\
-Retrospective           & Analyse du deroulement de l'iteration en vue de l'ameliorer. \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Artefacts}} \\
-Carnet de produit  & Liste ordonnee de tout ce qui reste a realiser. \\
-Carnet de sprint   & Sous-ensemble retenu pour l'iteration en cours. \\
-Increment          & Resultat utilisable produit a la fin du sprint. \\
+\textit{Roles} & Product Owner : porte la valeur metier et ordonne le
+  carnet de produit. Scrum Master : garantit le cadre et leve les
+  obstacles. Equipe de developpement : concoit, developpe et teste
+  l'increment \\
+\textit{Evenements} & Planification, melee quotidienne, revue de sprint,
+  retrospective \\
+\textit{Artefacts} & Carnet de produit, carnet de sprint, increment \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -377,37 +355,32 @@ Trois outils ont soutenu la conduite du projet au quotidien.
 \begin{tabularx}{\textwidth}{@{}p{2.2cm}p{3.4cm}X@{}}
 \toprule
 \textbf{Outil} & \textbf{Usage} & \textbf{Apport} \\ \midrule
-Trello & Carnet de produit et suivi des taches &
-  Chaque recit utilisateur devient une carte, deplacee de colonne en
-  colonne au fil de son avancement. Le carnet de sprint est ainsi visible
-  d'un coup d'oeil par les encadrants. \\
-Git et GitHub & Gestion de versions &
-  Historique complet des modifications, travail par branches et
-  possibilite de revenir sur une evolution. Le depot sert egalement de
-  sauvegarde et de support aux revues de code. \\
-WhatsApp & Communication quotidienne &
-  Canal d'echange court avec l'encadrant entreprise : levee rapide des
-  points bloquants, sans attendre le point d'avancement hebdomadaire. \\
+Trello & Carnet et suivi des taches & Chaque recit devient une carte,
+  deplacee au fil de son avancement : le carnet de sprint est visible
+  d'un coup d'oeil \\
+Git et GitHub & Gestion de versions & Historique, branches, retour
+  arriere, sauvegarde et support aux revues de code \\
+WhatsApp & Communication quotidienne & Canal court avec l'encadrant
+  entreprise, sans attendre le point hebdomadaire \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[height=1.5cm,keepaspectratio]{trello-logo.jpg}\hspace{1.4cm}
-  \includegraphics[height=1.5cm,keepaspectratio]{logo-git.png}\hspace{1.4cm}
-  \includegraphics[height=1.5cm,keepaspectratio]{whatsapplogo.jpg}
+  \includegraphics[height=1.35cm,keepaspectratio]{trello-logo.jpg}\hspace{1.4cm}
+  \includegraphics[height=1.35cm,keepaspectratio]{logo-git.png}\hspace{1.4cm}
+  \includegraphics[height=1.35cm,keepaspectratio]{whatsapplogo.jpg}
   \caption{Outils de pilotage et de communication du projet}
   \label{fig:outils-pilotage}
 \end{figure}
 
-Il est notable que \essentiel{WhatsApp figure a la fois dans l'existant
-critique et dans les outils de pilotage}. La contradiction n'est
-qu'apparente : ce qui pose probleme n'est pas l'outil, c'est son emploi
-comme \exemple{support d'information metier}. Coordonner une equipe
-projet par messagerie instantanee est legitime ; y conserver l'etat d'un
-parc de vehicules ne l'est pas. C'est precisement la frontiere que la
-plateforme etablit.
+\essentiel{WhatsApp figure a la fois dans l'existant critique et dans les
+outils de pilotage.} La contradiction n'est qu'apparente : ce qui pose
+probleme n'est pas l'outil mais son emploi comme \exemple{support
+d'information metier}. Coordonner une equipe par messagerie instantanee
+est legitime ; y conserver l'etat d'un parc de vehicules ne l'est pas.
+C'est la frontiere que la plateforme etablit.
 
 % =====================================================================
 \section*{Conclusion}
