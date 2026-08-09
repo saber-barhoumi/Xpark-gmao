@@ -92,15 +92,20 @@
 %  \figPaysage{fichier}{legende}{label}
 %  Diagramme trop large pour la justification : page en paysage.
 % ---------------------------------------------------------------------
+%  La figure occupe seule sa page : on la centre verticalement plutot
+%  que de la laisser en haut avec un grand vide dessous.
 \newcommand{\figPaysage}[3]{%
   \begin{landscape}
+    \thispagestyle{fancy}%
+    \vspace*{\fill}
     \begin{figure}[H]
       \centering
-      \includegraphics[width=0.95\linewidth,height=0.82\textheight,%
+      \includegraphics[width=0.97\linewidth,height=0.80\textheight,%
                        keepaspectratio]{#1}
       \caption{#2}
       \label{#3}
     \end{figure}
+    \vspace*{\fill}
   \end{landscape}%
 }
 

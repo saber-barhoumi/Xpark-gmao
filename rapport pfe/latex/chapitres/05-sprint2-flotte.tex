@@ -128,9 +128,20 @@ diagramme.
 
 \subsection{Conception dynamique}
 
-\figReelle{fleet-seq-immatriculation.png}
+% Ces deux sequences occupaient deja la meme largeur, la justification
+% entiere. Elles paraissaient pourtant de tailles tres differentes, et
+% elles l'etaient : la premiere mesure 1475 pixels de large, la seconde
+% 895. A largeur egale, la premiere subit donc une reduction deux fois
+% plus forte, et son texte devient deux fois plus petit.
+%
+% Egaliser les largeurs ne pouvait rien y faire. C'est le RAPPORT DE
+% RENDU qu'il faut egaliser. La premiere passe en paysage : 24,7 cm au
+% lieu de 16, soit un rendu a 0,63 de sa taille native. La seconde,
+% laissee en pleine justification, rend a 0,68. Les deux textes ont
+% desormais la meme taille a un vingtieme pres.
+\figPaysage{fleet-seq-immatriculation.png}
   {Sequence : immatriculation d'un vehicule}
-  {fig:seq-immat}{1.00}
+  {fig:seq-immat}
 
 \figReelle{fleet-seq-suivi-echeances.png}
   {Sequence : consultation des echeances a venir}

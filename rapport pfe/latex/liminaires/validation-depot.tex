@@ -1,61 +1,102 @@
 % =====================================================================
-%  Formulaire de validation de depot
+%  Formulaire de validation de depot - modele officiel ESPRIT
+% =====================================================================
 %  Le gabarit precise : « Ce formulaire doit etre rempli, signe et
 %  scanne » et « introduit apres la page de garde ».
+%
+%  Mise en page reprise du modele : une phrase bilingue, le nom de
+%  l'etudiant en puce, puis DEUX CADRES rectangulaires distincts, l'un
+%  pour l'encadrant entreprise, l'autre pour l'encadrant academique.
+%  Chaque cadre porte le nom et une zone laissee libre pour le cachet
+%  et la signature manuscrite : c'est cette zone blanche qui donne au
+%  formulaire son usage, il est destine a etre imprime et signe.
+%
+%  Ce fichier reproduit un formulaire officiel : il porte donc ses
+%  accents, contrairement au corps du rapport.
 % =====================================================================
-\sautLiminaire
+\clearpage
 \thispagestyle{empty}
 \sffamily
-\vspace*{1.5cm}
+\vspace*{0.8cm}
 
 \begin{center}
-  {\Large\bfseries\color{bleuTitre}
-   Validation du depot du rapport de projet de fin d'etudes\par}
-  \vspace{4pt}
+  {\Large\bfseries
+   Validation du dépôt du rapport de projet de fin d'études\par}
+  \vspace{5pt}
   {\large\itshape Report submission validation\par}
 \end{center}
 
-\vspace{1.2cm}
+\vspace{1.0cm}
 
 \noindent
-Je valide le depot du rapport de projet de fin d'etudes relatif a
-l'etudiant nomme ci-dessous.\\
-\textit{I validate the submission of the student's report:}
+Je valide le dépôt du rapport PFE relatif à l'étudiant nommé ci-dessous
+\textit{/ I validate the submission of the student's report:}
 
-\vspace{0.8cm}
-\noindent
-\textbf{Nom et prenom} \textit{/ Name and surname} :
-\etudiantComplet
+\vspace{0.5cm}
 
-\vspace{1.6cm}
-\noindent{\color{grisFilet}\rule{\textwidth}{0.6pt}}
-\vspace{0.8cm}
+\begin{itemize}[label=\textbullet,leftmargin=1.4cm,itemsep=0pt,topsep=0pt]
+  \item \textbf{Nom \& Prénom} \textit{/ Name \& Surname} :
+        \etudiantComplet
+\end{itemize}
 
-\noindent
-\begin{minipage}[t]{0.48\textwidth}
-  \textbf{Encadrant entreprise}\\
-  \textit{Business site supervisor}\\[10pt]
-  Nom et prenom : \encadrantEntreprise\\[1.9cm]
-  Cachet et signature\\
-  \textit{Stamp and signature}\\[0.4cm]
-  \noindent{\color{grisFilet}\rule{0.9\linewidth}{0.5pt}}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.48\textwidth}
-  \textbf{Encadrant academique}\\
-  \textit{Academic supervisor}\\[10pt]
-  Nom et prenom : \encadrantAcademique\\[1.9cm]
-  Signature\\
-  \textit{Signature}\\[0.4cm]
-  \noindent{\color{grisFilet}\rule{0.9\linewidth}{0.5pt}}
-\end{minipage}
+\vspace{1.1cm}
+
+% ---------------------------------------------------------------------
+%  Cadre 1 : encadrant entreprise
+% ---------------------------------------------------------------------
+\begin{center}
+\fbox{%
+  \begin{minipage}[t]{0.86\textwidth}
+    \vspace{6pt}
+    \begin{center}
+      Encadrant Entreprise \textit{/ Business site Supervisor}
+    \end{center}
+    \vspace{10pt}
+    \begin{itemize}[label=\textbullet,leftmargin=1.2cm,itemsep=0pt,topsep=0pt]
+      \item Nom \& Prénom \textit{/ Name \& Surname} :
+            \dotfill\hspace{0.2cm}
+    \end{itemize}
+    \vspace{6pt}
+    \begin{center}
+      \small Cachet \& Signature \textit{/ Stamp \& Signature}
+    \end{center}
+    \vspace{2.9cm}
+  \end{minipage}%
+}
+\end{center}
+
+\vspace{0.9cm}
+
+% ---------------------------------------------------------------------
+%  Cadre 2 : encadrant academique
+% ---------------------------------------------------------------------
+\begin{center}
+\fbox{%
+  \begin{minipage}[t]{0.86\textwidth}
+    \vspace{6pt}
+    \begin{center}
+      Encadrant Académique \textit{/ Academic Supervisor}
+    \end{center}
+    \vspace{10pt}
+    \begin{itemize}[label=\textbullet,leftmargin=1.2cm,itemsep=0pt,topsep=0pt]
+      \item Nom \& Prénom \textit{/ Name \& Surname} :
+            \dotfill\hspace{0.2cm}
+    \end{itemize}
+    \vspace{6pt}
+    \begin{center}
+      \small Signature \textit{/ Signature}
+    \end{center}
+    \vspace{2.9cm}
+  \end{minipage}%
+}
+\end{center}
 
 \vfill
 \begin{center}
   \small\itshape
-  Ce formulaire doit etre rempli, signe et scanne.\\
+  Ce formulaire doit être rempli, signé et scanné.\\
   This form must be completed, signed and scanned.
 \end{center}
-\vspace{1cm}
+\vspace{0.5cm}
 
 \rmfamily
