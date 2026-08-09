@@ -1,0 +1,223 @@
+% =====================================================================
+%  Chapitre 6 - Sprint 3 : demande, devis, mission et suivi en direct
+% =====================================================================
+\chapter{Sprint 3 : demande, devis, mission et suivi en direct}
+\label{chap:sprint3}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Les deux sprints precedents ont pose les socles : qui utilise la
+plateforme, et avec quelles ressources. Celui-ci aborde \essentiel{le
+coeur de l'activite} : la chaine qui va de la demande du client a la
+livraison de sa marchandise, en passant par le devis, l'affectation et le
+suivi. C'est le sprint le plus dense du projet, et il mobilise deux
+services : celui des missions et le moteur d'estimation tarifaire.
+
+% =====================================================================
+\section{Planification du sprint}
+
+\subsection{Objectifs}
+
+\begin{enumerate}
+  \item Ouvrir au client un canal autonome de demande de transport.
+  \item Estimer le prix d'un trajet avant meme que le devis ne soit
+    etabli.
+  \item Formaliser le cycle du devis, de l'envoi a l'acceptation ou au
+    refus.
+  \item Creer la mission, l'affecter et en suivre l'execution.
+  \item Restituer la position du vehicule en direct sur une carte.
+\end{enumerate}
+
+\subsection{Carnet du sprint}
+
+\begin{table}[H]
+\centering
+\caption{Carnet du sprint 3}
+\label{tab:backlog-s3}
+\small
+\begin{tabularx}{\textwidth}{@{}cp{2.3cm}Xcc@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Acteur} & \textbf{Besoin exprime} &
+\textbf{Prio.} & \textbf{Pts} \\ \midrule
+1 & Client & Deposer une demande de transport & Must & 8 \\
+2 & Client & Connaitre une fourchette de prix avant de valider & Should & 8 \\
+3 & Responsable & Etablir et envoyer un devis & Must & 8 \\
+4 & Client & Accepter ou refuser un devis recu & Must & 5 \\
+5 & Responsable & Affecter un vehicule et un chauffeur & Must & 5 \\
+6 & Chauffeur & Transmettre sa position depuis l'application mobile & Should & 8 \\
+7 & Client & Suivre sa mission en direct sur une carte & Should & 8 \\
+8 & Responsable & Cloturer ou annuler une mission & Must & 3 \\
+9 & Client & Ouvrir un ticket de support sur une mission & Could & 3 \\
+10 & Responsable & Consulter l'historique d'un trajet & Could & 3 \\
+\midrule
+\multicolumn{4}{@{}r}{\textbf{Total}} & \textbf{59} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Elaboration technique}
+
+\subsection{Modelisation fonctionnelle}
+
+\figReelle{mission-usecase.png}
+  {Cas d'utilisation du service des missions}
+  {fig:uc-mission}{0.54}
+
+Le diagramme de la figure~\ref{fig:uc-mission} organise le service en
+quatre domaines : la demande et le devis, l'execution des missions, le
+suivi en direct et l'assistance. Trois cas se detachent a droite de la
+frontiere, atteints par inclusion ou par extension : l'estimation du
+prix, la creation de la mission et l'affectation des ressources.
+
+\paragraph{Une regle metier structurante.}
+\essentiel{Deposer une demande n'est pas commander une mission.} La
+demande de transport est un \exemple{devis} : elle vit sa propre vie,
+recoit un prix, puis est acceptee ou refusee. \essentiel{La mission n'est
+creee qu'a l'acceptation}, ce que traduit la relation d'inclusion entre
+\exemple{accepter un devis} et \exemple{creer une mission}.
+
+Cette regle a une consequence concrete sur l'interface de programmation :
+le point d'entree qui permettait a un client de creer directement une
+mission a ete \essentiel{retire}. Le laisser aurait ouvert un chemin
+parallele contournant le devis, et donc la tarification.
+
+\begin{table}[H]
+\centering
+\caption{Description textuelle du cas « accepter un devis »}
+\label{tab:desc-devis}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.5cm}X@{}}
+\toprule
+\textbf{Rubrique} & \textbf{Contenu} \\ \midrule
+Acteur & Client \\
+Precondition & La demande porte le statut QUOTATION\_SENT et un prix
+  final a ete fixe \\
+Scenario nominal & Le client consulte le devis, l'accepte ; le systeme
+  cree la mission au statut EN\_ATTENTE, rattache la demande a la mission,
+  fait passer la demande au statut ACCEPTED et publie un evenement sur
+  le bus \\
+Alternatives & Refus : la demande passe au statut REJECTED avec le motif
+  saisi, aucune mission n'est creee. Devis deja traite : l'action est
+  refusee \\
+Postcondition & La mission existe et attend l'affectation d'un vehicule
+  et d'un chauffeur \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Conception statique}
+
+\figReelle{mission-class-domain.png}
+  {Modele du domaine du service des missions}
+  {fig:dom-mission}{0.30}
+
+Le modele distingue nettement \exemple{DemandeTransport}, qui porte la
+negociation (villes, marchandise, prix estime, fourchette, prix final,
+methode de tarification), et \exemple{Mission}, qui porte l'execution
+(vehicule, chauffeur, kilometrages, cout reel). Le lien entre les deux
+est \essentiel{optionnel et oriente} : une demande peut exister sans
+mission, jamais l'inverse.
+
+\paragraph{Trois methodes de tarification.}
+Le prix final s'accompagne d'une methode indiquant comment il a ete
+obtenu : propose par le moteur et retenu tel quel, modifie, ou fixe
+manuellement. \essentiel{Cette information est conservee}, ce qui permet
+de mesurer a posteriori dans quelle mesure l'entreprise suit les
+recommandations du modele.
+
+\subsection{Conception dynamique}
+
+\figReelle{mission-seq-demande-transport.png}
+  {Sequence : depot d'une demande de transport}
+  {fig:seq-demande}{0.54}
+
+\figReelle{mission-seq-devis.png}
+  {Sequence : etablissement puis acceptation ou refus d'un devis}
+  {fig:seq-devis}{0.54}
+
+La premiere sequence montre l'appel au moteur d'estimation \essentiel{avant}
+l'enregistrement : le client voit la fourchette tarifaire au moment ou il
+saisit sa demande. La seconde, figure~\ref{fig:seq-devis}, comporte un
+bloc alternatif : l'acceptation cree la mission et publie un evenement,
+le refus se contente d'enregistrer le motif.
+
+\figReelle{mission-seq-suivi-direct.png}
+  {Sequence : suivi d'une mission en direct}
+  {fig:seq-suivi}{0.54}
+
+Le suivi, figure~\ref{fig:seq-suivi}, repose sur une boucle : tant que la
+mission est en cours, l'application du chauffeur transmet sa position, que
+le client consulte. \essentiel{Ces positions ne transitent pas par la
+passerelle} : l'application mobile s'adresse directement au service des
+missions. Le detail figure a la section~\ref{sec:archi-physique}.
+
+\subsection{Integration avec les services d'aide a la decision}
+
+Le moteur d'estimation est un service Python autonome. Il charge en
+memoire un modele de gradient boosting entraine sur un historique de
+trajets, ainsi qu'une matrice de distances entre les villes desservies.
+Sur reception d'une demande, il calcule la distance, applique le modele et
+renvoie un prix encadre d'une fourchette basse et haute.
+
+\figReelle{mission-communication.png}
+  {Echanges du service des missions}
+  {fig:com-mission}{0.60}
+
+La figure~\ref{fig:com-mission} montre les deux natures d'echange du
+service. L'appel au moteur d'estimation est \essentiel{synchrone} : le
+client attend le prix pour decider. La demande d'optimisation d'une
+tournee est \essentiel{asynchrone}, publiee sur le bus et traitee en
+differe. Le critere est simple : \essentiel{on attend ce dont on a besoin
+sur le champ, on delegue le reste}.
+
+% =====================================================================
+\section{Realisation et tests de validation}
+
+\figDeux{s3-portail-reservation-1.jpg}{s3-estimation-tarifaire-1.jpg}
+  {Portail client : formulaire de demande et fourchette tarifaire
+   proposee}
+  {fig:ecrans-demande}{0.46}
+
+\figTrois{s3-demandes-transport.jpg}{s3-suivi-devis-client.jpg}{s3-carte-suivi.jpg}
+  {Traitement d'une demande cote back-office, suivi du devis cote client,
+   et carte de suivi d'une mission en cours}
+  {fig:ecrans-mission}{0.40}
+
+\begin{table}[H]
+\centering
+\caption{Tests de validation du sprint 3}
+\label{tab:tests-s3}
+\small
+\begin{tabularx}{\textwidth}{@{}cXp{2.9cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
+\textbf{Etat} \\ \midrule
+T1 & Depot d'une demande & Statut PENDING\_QUOTATION, prix estime affiche & Reussi \\
+T2 & Envoi d'un devis modifie & Methode de tarification MODIFIED conservee & Reussi \\
+T3 & Acceptation d'un devis & Mission creee, demande rattachee & Reussi \\
+T4 & Refus d'un devis & Motif enregistre, aucune mission creee & Reussi \\
+T5 & Position transmise par le chauffeur & Point visible sur la carte du client & Reussi \\
+T6 & Trajet inconnu de la matrice & Estimation refusee, saisie manuelle possible & Reussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce sprint livre la chaine commerciale complete, de la demande au suivi en
+direct. Les cinquante-neuf points du carnet ont ete realises, ce qui en
+fait le sprint le plus lourd du projet.
+
+Deux decisions en ressortent. La premiere est metier : \essentiel{la
+reservation est un devis, la mission n'existe qu'apres acceptation} ;
+elle a conduit a retirer un point d'entree qui permettait de la
+contourner. La seconde est une regle d'integration : \essentiel{synchrone
+pour ce dont l'utilisateur a besoin sur le champ, asynchrone pour le
+reste}, reprise telle quelle par les sprints suivants.
+
+Le sprint suivant traite du maintien en condition operationnelle de la
+flotte : maintenance curative, puis anticipation des pannes.
