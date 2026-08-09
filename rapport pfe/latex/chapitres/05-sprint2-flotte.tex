@@ -64,7 +64,7 @@ referentiel.
 
 \figReelle{fleet-usecase.png}
   {Cas d'utilisation du service de gestion de flotte}
-  {fig:uc-fleet}{0.48}
+  {fig:uc-fleet}{0.56}
 
 La figure~\ref{fig:uc-fleet} distingue trois domaines. \essentiel{L'exploitation
 courante} rassemble ce qui est ouvert a tout utilisateur authentifie : la
@@ -130,7 +130,7 @@ diagramme.
 
 \figReelle{fleet-seq-immatriculation.png}
   {Sequence : immatriculation d'un vehicule}
-  {fig:seq-immat}{0.70}
+  {fig:seq-immat}{0.83}
 
 \figReelle{fleet-seq-suivi-echeances.png}
   {Sequence : consultation des echeances a venir}
@@ -147,16 +147,77 @@ Une troisieme sequence, le changement d'etat d'un vehicule, suit la meme
 structure que l'immatriculation et n'est pas reproduite ici.
 
 % =====================================================================
-\section{Realisation et tests de validation}
+\section{Realisation}
 
-\figDeux{s2-liste-vehicules.jpg}{s2-liste-equipements.jpg}
-  {Referentiel : parc de vehicules et inventaire des equipements}
-  {fig:ecrans-parc}{0.58}
+\subsection{Le parc et l'inventaire}
 
-\figTrois{s2-fiche-vehicule-1.jpg}{s2-fiche-vehicule-2.jpg}{s2-detail-equipement.jpg}
-  {Fiche d'un vehicule, ses pieces administratives, et detail d'un
-   equipement affecte}
-  {fig:ecrans-fiches}{0.42}
+La figure~\ref{fig:s2-vehicules} presente l'ecran de tete du module : le
+parc, dans son ensemble. Chaque ligne porte l'immatriculation, la marque,
+le modele, le kilometrage et surtout le \essentiel{statut
+d'exploitation} --- disponible, en mission, en maintenance, hors service.
+Ce statut est la donnee la plus consultee de tout le referentiel, parce
+que c'est elle qui conditionne l'affectation : un vehicule en maintenance
+ne doit pas apparaitre dans la liste des candidats a une mission. Les
+filtres places en tete permettent de restreindre l'affichage a un statut,
+a un type de vehicule ou a une plage de kilometrage.
+
+\capture{s2-liste-vehicules.jpg}
+  {Parc de vehicules : liste filtrable et statuts d'exploitation}
+  {fig:s2-vehicules}
+
+L'inventaire des equipements, figure~\ref{fig:s2-equipements}, obeit a la
+meme logique de presentation mais repond a une question differente :
+\exemple{ou se trouve ce materiel ?} La colonne d'affectation indique soit
+un vehicule, soit le magasin. Un hayon, un groupe frigorifique ou un jeu
+de sangles passe de l'un a l'autre au fil des besoins, et c'est ce
+mouvement que l'ecran doit rendre lisible. Le compteur d'utilisations,
+visible sur la droite, prepare la maintenance preventive du sprint~4 : au
+dela d'un seuil, l'equipement doit etre controle.
+
+\capture{s2-liste-equipements.jpg}
+  {Inventaire des equipements et leur affectation courante}
+  {fig:s2-equipements}
+
+\subsection{La fiche d'un vehicule}
+
+La fiche detaillee est organisee en onglets, pour eviter un formulaire
+unique de plusieurs ecrans de haut. Le premier, figure~\ref{fig:s2-fiche1},
+rassemble l'identite technique : chassis, energie, charge utile,
+kilometrage, date de mise en circulation. Ces valeurs changent peu, mais
+elles alimentent des decisions frequentes --- la charge utile determine
+quelles marchandises le vehicule peut prendre, l'energie sert au calcul de
+consommation.
+
+\capture{s2-fiche-vehicule-1.jpg}
+  {Fiche d'un vehicule : identite et caracteristiques techniques}
+  {fig:s2-fiche1}
+
+Le second onglet, figure~\ref{fig:s2-fiche2}, porte les pieces
+administratives : carte grise, visite technique, vignette, autorisations
+de transport. Chacune est datee et possede une \essentiel{fin de
+validite}. C'est ici que se materialise le choix de conception expose plus
+haut : la date est saisie une fois, stockee, puis relue par le module
+d'alertes. L'ecran signale par une pastille de couleur les pieces dont
+l'echeance approche, ce qui donne au responsable une lecture immediate
+sans qu'il ait a comparer les dates lui-meme.
+
+\capture{s2-fiche-vehicule-2.jpg}
+  {Fiche d'un vehicule : pieces administratives et echeances}
+  {fig:s2-fiche2}
+
+Enfin, la figure~\ref{fig:s2-detail-equip} montre le detail d'un
+equipement affecte. On y retrouve son etat, son compteur d'utilisations,
+le vehicule porteur et l'historique de ses affectations successives. Cet
+historique n'est pas un ornement : lorsqu'un equipement tombe en panne, il
+permet de savoir sur quels vehicules il a servi et donc quelles missions
+ont pu en patir.
+
+\capture{s2-detail-equipement.jpg}
+  {Detail d'un equipement et historique de ses affectations}
+  {fig:s2-detail-equip}
+
+% =====================================================================
+\section{Tests de validation}
 
 \begin{table}[H]
 \centering

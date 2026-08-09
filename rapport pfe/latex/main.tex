@@ -73,12 +73,31 @@
 \input{chapitres/10-conclusion-generale}
 
 % =====================================================================
-%  BIBLIOGRAPHIE ET ANNEXES
+%  FIN DU DOCUMENT
+% =====================================================================
+%  Ordre impose, chaque division ouvrant sur une page de droite grace au
+%  \cleardoublepage place en tete de son fichier :
+%
+%      1. Conclusion generale        chapitres/10-conclusion-generale
+%      2. Bibliographie et netographie
+%      3. Annexes A, B, C
+%      4. Annexe D - interfaces complementaires
+%      5. Resume et abstract
+%      6. Quatrieme de couverture (modele ESPRIT)
+%
+%  La conclusion generale est le dernier fichier de la serie des
+%  chapitres, ci-dessus ; les cinq divisions restantes suivent.
 % =====================================================================
 \input{biblio/references}
 \input{annexes/annexes}
 \input{annexes/annexe-d-interfaces}
 \input{liminaires/resume}
+
+%  Quatrieme de couverture : seconde image du modele officiel ESPRIT
+%  (dos rouge, embleme et coordonnees de l'ecole). Ce n'est PAS une
+%  seconde page de garde : la couverture avant n'est composee qu'une
+%  seule fois, dans liminaires/page-garde. Commenter la ligne suivante
+%  si le dos ne doit pas figurer dans le document remis.
 \input{liminaires/quatrieme-couverture}
 
 \end{document}

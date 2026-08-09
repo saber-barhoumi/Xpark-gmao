@@ -11,6 +11,17 @@
 \chapter*{Bibliographie et netographie}
 \markboth{Bibliographie et netographie}{}
 
+%  Les adresses web ne se coupent qu'a certains caracteres : dans une
+%  colonne justifiee de seize centimetres, la derniere portion deborde
+%  regulierement dans la marge. On relache la justification pour cette
+%  seule division, et on autorise le composeur a etirer davantage les
+%  espaces avant de renoncer.
+\sloppy
+\setlength{\emergencystretch}{4em}
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\-\do\.\do\=\do\?\do\&\do\_}
+\makeatother
+
 \section*{Ouvrages}
 \addcontentsline{toc}{section}{Ouvrages}
 

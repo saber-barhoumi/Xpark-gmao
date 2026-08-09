@@ -4,48 +4,113 @@
 %  Ecrans qui n'ont pas trouve place dans les chapitres de sprint, soit
 %  parce qu'ils prolongent un ecran deja presente par defilement, soit
 %  parce qu'ils relevent du confort d'usage plus que de la demonstration
-%  d'une regle metier. Le plafond de pagination portant desormais a cent
-%  pages, ils sont restitues ici.
+%  d'une regle metier. Chaque capture occupe ici sa propre figure, pour
+%  rester lisible a l'impression.
 % =====================================================================
-\sautLiminaire
+\cleardoublepage
 \section*{Annexe D -- Interfaces complementaires}
 \addcontentsline{toc}{section}{Annexe D -- Interfaces complementaires}
+\serieAnnexe{D}
+
+Les ecrans reunis dans cette annexe completent ceux presentes dans les
+chapitres de sprint. Ils ont ete ecartes du corps du rapport non parce
+qu'ils seraient secondaires dans l'usage, mais parce que la regle metier
+qu'ils servent y etait deja demontree par un autre ecran.
 
 \subsection*{Portail client}
 
-\figDeux{s0-page-accueil.jpg}{s3-portail-reservation-2.jpg}
-  {Page d'accueil du portail client et suite du formulaire de
-   reservation}
-  {fig:annexe-portail}{0.62}
+La page d'accueil du portail, figure~\ref{fig:annexe-accueil}, est le
+premier contact d'un client avec l'entreprise. Elle presente les
+prestations, les zones desservies, et conduit au formulaire de
+reservation. Sa refonte faisait partie du perimetre du stage : le site
+anterieur ne comportait aucun point d'entree vers une demande de
+transport.
 
-\figReelle{s3-portail-reservation-3.jpg}
+\capture{s0-page-accueil.jpg}
+  {Page d'accueil du portail client}
+  {fig:annexe-accueil}
+
+Le formulaire de reservation se poursuit au-dela de ce qui a ete montre
+au chapitre~\ref{chap:sprint3}. La figure~\ref{fig:annexe-reservation2}
+en presente la suite : caracteristiques de la marchandise, contraintes de
+manutention et coordonnees du destinataire.
+
+\capture{s3-portail-reservation-2.jpg}
+  {Suite du formulaire de reservation : marchandise et destinataire}
+  {fig:annexe-reservation2}
+
+Avant l'envoi, le client relit un recapitulatif complet,
+figure~\ref{fig:annexe-recap}. Cette etape a ete ajoutee apres les
+premiers essais d'utilisation : plusieurs demandes de test comportaient
+une ville d'arrivee erronee, choisie par inadvertance dans la liste
+deroulante.
+
+\capture{s3-portail-reservation-3.jpg}
   {Recapitulatif de la demande avant validation par le client}
-  {fig:annexe-recap}{0.62}
+  {fig:annexe-recap}
 
 \subsection*{Application chauffeur}
 
-\figReelle{s3-app-chauffeur.jpg}
-  {Application mobile du chauffeur : liste des missions affectees}
-  {fig:annexe-chauffeur}{0.52}
+L'application mobile, figure~\ref{fig:annexe-chauffeur}, presente au
+chauffeur les seules missions qui lui sont affectees. L'interface est
+volontairement pauvre en options : elle est consultee au volant arrete, en
+quelques secondes, et toute densite supplementaire s'y paierait en erreurs
+de manipulation.
+
+\captureEtroite{s3-app-chauffeur.jpg}
+  {Application mobile du chauffeur : missions affectees}
+  {fig:annexe-chauffeur}
 
 \subsection*{Exploitation de la flotte}
 
-\figDeux{s2-carburant-1.jpg}{s2-carburant-2.jpg}
-  {Suivi du carburant : releve des pleins et statistiques de
-   consommation}
-  {fig:annexe-carburant}{0.62}
+Le suivi du carburant, figure~\ref{fig:annexe-carburant1}, enregistre
+chaque plein avec sa date, son volume, son montant et son kilometrage.
+C'est de ce releve que decoule la consommation moyenne par vehicule.
 
-\figReelle{s2-fiche-vehicule-3.jpg}
-  {Fiche d'un vehicule : assurances et echeances a venir}
-  {fig:annexe-fiche}{0.62}
+\capture{s2-carburant-1.jpg}
+  {Suivi du carburant : releve des pleins}
+  {fig:annexe-carburant1}
+
+Les statistiques de consommation, figure~\ref{fig:annexe-carburant2},
+mettent en regard les vehicules du parc. Un ecart durable par rapport a la
+moyenne d'une meme categorie constitue un indice de derive mecanique, et
+alimente indirectement la maintenance preventive.
+
+\capture{s2-carburant-2.jpg}
+  {Statistiques de consommation comparees de la flotte}
+  {fig:annexe-carburant2}
+
+Le troisieme onglet de la fiche vehicule, figure~\ref{fig:annexe-fiche3},
+regroupe les assurances : compagnie, numero de contrat, garanties et date
+de fin de validite. Ces dates alimentent le module d'alertes au meme titre
+que celles des pieces administratives.
+
+\capture{s2-fiche-vehicule-3.jpg}
+  {Fiche d'un vehicule : assurances et dates de fin de validite}
+  {fig:annexe-fiche3}
 
 \subsection*{Traitement des demandes et pilotage}
 
-\figDeux{s3-demandes-transport-2.jpg}{s6-tableau-bord-2.jpg}
-  {Etablissement d'un devis a partir d'une demande, et second volet du
-   tableau de bord}
-  {fig:annexe-devis}{0.62}
+La figure~\ref{fig:annexe-devis} montre l'ecran d'etablissement d'un devis
+a partir d'une demande recue : le responsable y retient ou corrige le prix
+estime, fixe la duree de validite et envoie la proposition au client.
 
-\figReelle{s6-tableau-bord-3.jpg}
+\capture{s3-demandes-transport-2.jpg}
+  {Etablissement d'un devis a partir d'une demande de transport}
+  {fig:annexe-devis}
+
+Les deux volets suivants du tableau de bord completent celui presente au
+chapitre~\ref{chap:sprint6}. Le premier, figure~\ref{fig:annexe-bord2},
+detaille l'activite de transport par periode et par client.
+
+\capture{s6-tableau-bord-2.jpg}
+  {Tableau de bord : activite de transport par periode}
+  {fig:annexe-bord2}
+
+Le second, figure~\ref{fig:annexe-bord3}, rassemble les indicateurs de
+maintenance et de facturation : cout des interventions, vehicules
+immobilises, encours de reglement.
+
+\capture{s6-tableau-bord-3.jpg}
   {Tableau de bord : indicateurs de maintenance et de facturation}
-  {fig:annexe-bord}{0.62}
+  {fig:annexe-bord3}

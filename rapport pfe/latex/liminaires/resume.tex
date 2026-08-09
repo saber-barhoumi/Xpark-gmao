@@ -1,12 +1,20 @@
 % =====================================================================
-%  Resume et abstract, en quatrieme de couverture
+%  Resume et abstract
 % =====================================================================
-\sautLiminaire
-\thispagestyle{empty}
+%  Derniere grande division du document, apres les annexes. Elle
+%  commence sur une page de droite comme les precedentes et figure a la
+%  table des matieres.
+% =====================================================================
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Resume et abstract}
+\markboth{Resume et abstract}{}
+%  Pas de \thispagestyle{empty} ici : la division figure a la table des
+%  matieres, elle doit donc porter le numero de page qui l'y annonce.
 \vspace*{1cm}
 
 \begin{center}
-  {\Large\sffamily\bfseries\color{bleuTitre} Resume\par}
+  {\Large\sffamily\bfseries\color{noirTitre} Resume\par}
 \end{center}
 \vspace{0.5cm}
 
@@ -38,11 +46,11 @@ collaboration et l'aide a la decision.
 marchandises, Clean Architecture, Scrum, aide a la decision.
 
 \vspace{1.4cm}
-{\color{grisFilet}\rule{\textwidth}{0.8pt}}
+\noindent{\color{grisFilet}\rule{\textwidth}{0.8pt}}
 \vspace{1.4cm}
 
 \begin{center}
-  {\Large\sffamily\bfseries\color{bleuTitre} Abstract\par}
+  {\Large\sffamily\bfseries\color{noirTitre} Abstract\par}
 \end{center}
 \vspace{0.5cm}
 

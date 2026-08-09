@@ -63,7 +63,7 @@ personnel et l'administration des comptes par les responsables.
 
 \figReelle{iam-usecase.png}
   {Cas d'utilisation du service des identites et des acces}
-  {fig:uc-iam}{0.50}
+  {fig:uc-iam}{0.74}
 
 Le diagramme de la figure~\ref{fig:uc-iam} fait apparaitre trois
 regroupements. \essentiel{L'acces au service} rassemble ce qui precede
@@ -105,7 +105,7 @@ Alternatives & Identifiants invalides : compteur d'echecs incremente,
 
 \figReelle{iam-class-domain.png}
   {Modele du domaine du service des identites et des acces}
-  {fig:dom-iam}{0.52}
+  {fig:dom-iam}{0.53}
 
 Le modele repose sur une \essentiel{hierarchie d'heritage}. La classe
 \exemple{Utilisateur} porte ce qui est commun ; \exemple{Client} et
@@ -125,7 +125,7 @@ l'operation reste reversible.
 
 \figReelle{iam-seq-inscription.png}
   {Sequence : inscription d'un compte}
-  {fig:seq-inscription}{0.72}
+  {fig:seq-inscription}{0.81}
 
 La sequence de la figure~\ref{fig:seq-inscription} montre que le compte
 est cree au statut \essentiel{en attente} : il reste inutilisable tant
@@ -149,7 +149,7 @@ chapitre~\ref{chap:architecture}.
 
 \figReelle{iam-communication.png}
   {Echanges du service des identites avec le reste de la plateforme}
-  {fig:com-iam}{0.62}
+  {fig:com-iam}{0.69}
 
 Le service des identites est le seul a \essentiel{publier} des evenements
 types sur le bus de messages. Le service de messagerie les consomme afin
@@ -158,17 +158,83 @@ de creer automatiquement les conversations d'accueil. Ce couplage est
 aboutit malgre tout et l'evenement sera traite au redemarrage.
 
 % =====================================================================
-\section{Realisation et tests de validation}
+\section{Realisation}
 
-\figTrois{s1-connexion.jpg}{s1-double-facteur.jpg}{s1-connexion-pin.jpg}
-  {Parcours d'authentification : connexion, validation du second facteur,
-   connexion par code PIN du chauffeur}
-  {fig:ecrans-auth}{0.40}
+\subsection{Le parcours d'authentification}
 
-\figDeux{s1-comptes-attente.jpg}{s1-comptes-archives.jpg}
-  {Administration des comptes : demandes en attente et comptes archives
-   restaurables}
-  {fig:ecrans-admin}{0.55}
+L'ecran de connexion, figure~\ref{fig:s1-connexion}, est le seul point
+d'entree du back-office. Il ne demande que deux informations, et sa
+sobriete est deliberee : toute la logique se joue apres la validation.
+La reponse du serveur ne distingue jamais un identifiant inconnu d'un mot
+de passe errone. Cette \essentiel{indifferenciation des messages d'erreur}
+prive un attaquant du moyen le plus simple de verifier qu'une adresse est
+enregistree. Le compteur d'echecs, lui, est porte par le compte et non par
+la session : changer de navigateur ne le remet pas a zero.
+
+\capture{s1-connexion.jpg}
+  {Ecran de connexion au back-office}
+  {fig:s1-connexion}
+
+Lorsque le second facteur est actif, la verification des identifiants ne
+delivre pas le jeton d'acces mais un \essentiel{jeton temporaire}, de
+courte duree, qui n'ouvre aucun droit metier. L'ecran de la
+figure~\ref{fig:s1-mfa} reclame alors le code a six chiffres produit par
+l'application d'authentification. Le jeton definitif n'est emis qu'apres
+cette seconde verification. Le decoupage en deux etapes distinctes evite
+qu'un mot de passe derobe suffise a lui seul : il faut encore disposer du
+telephone qui porte le secret partage.
+
+\capture{s1-double-facteur.jpg}
+  {Validation du second facteur apres saisie des identifiants}
+  {fig:s1-mfa}
+
+Le chauffeur n'a ni le temps ni le confort de saisir une adresse
+electronique et un mot de passe long sur un telephone, souvent debout a
+cote de son vehicule. La figure~\ref{fig:s1-pin} montre le mode de
+connexion qui lui est reserve : un code a quatre chiffres, associe a son
+matricule. Ce raccourci n'affaiblit pas le dispositif general, car il est
+\essentiel{limite a l'application mobile} et ne donne acces qu'aux
+missions affectees au chauffeur : aucun ecran d'administration, aucune
+donnee de facturation.
+
+\captureEtroite{s1-connexion-pin.jpg}
+  {Connexion du chauffeur par code PIN depuis l'application mobile}
+  {fig:s1-pin}
+
+\subsection{L'administration des comptes}
+
+Une inscription ne cree pas un acces. Elle cree une \essentiel{demande},
+qui vient alimenter la file de la figure~\ref{fig:s1-attente}.
+L'administrateur y voit le nom, l'adresse, le role sollicite et la date de
+depot ; il approuve ou il refuse. Ce filtre humain est ce qui empeche
+qu'un formulaire public devienne une porte ouverte sur les donnees
+d'exploitation de l'entreprise. Tant que la demande n'est pas tranchee, la
+tentative de connexion est refusee avec un motif explicite, qui evite a
+l'interesse de croire a une panne.
+
+\capture{s1-comptes-attente.jpg}
+  {Demandes d'inscription en attente d'approbation}
+  {fig:s1-attente}
+
+La figure~\ref{fig:s1-archives} presente le pendant de l'inscription : la
+sortie. Les comptes archives y restent visibles, avec la date et l'auteur
+de l'archivage, et un bouton de restauration. C'est la traduction visible
+de la regle enoncee plus haut : \essentiel{un compte qui porte un
+historique n'est jamais efface}. Le depart d'un chauffeur ne doit pas
+faire disparaitre les missions qu'il a conduites, ni le nom qui figure sur
+les factures deja emises. L'archivage retire l'acces, pas la trace.
+
+\capture{s1-comptes-archives.jpg}
+  {Comptes archives, restaurables par l'administrateur}
+  {fig:s1-archives}
+
+% =====================================================================
+\section{Tests de validation}
+
+Les six cas ci-dessous ont ete rejoues a la fin du sprint. Ils ne
+couvrent pas seulement le scenario nominal : quatre d'entre eux verifient
+un refus, car c'est sur les cas d'echec que se juge un service
+d'authentification.
 
 \begin{table}[H]
 \centering

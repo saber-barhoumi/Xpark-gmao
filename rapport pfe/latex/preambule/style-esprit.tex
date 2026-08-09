@@ -1,52 +1,100 @@
 % =====================================================================
 %  Mise en forme imposee par « Rapport Stage Pedagogique.pdf »
+%  et calquee sur « dernier-version-rapport1111.pdf »
 % =====================================================================
 %  Police Times 12 pt, marges 2,5 cm, interligne 1,15, justification,
-%  alinea de premiere ligne 0,50 cm, pagination en bas a droite sous la
-%  forme n/N. Chaque valeur ci-dessous est reprise du guide.
+%  alinea de premiere ligne 0,50 cm.
+%  Pagination : numero de page et nombre total, CENTRE en pied de page.
+%  Titres : NOIR, gras, sobres. Aucune couleur dans la structure.
 % =====================================================================
 
 \setstretch{1.15}
 \setlength{\parindent}{0.5cm}
 \setlength{\parskip}{0.15\baselineskip}
 
-% ---------------------------------------------------------------- Titres
-\definecolor{bleuTitre}{HTML}{1F3864}
-\definecolor{grisFilet}{HTML}{9AA5B1}
-\definecolor{grisFond}{HTML}{F2F4F7}
+% ---------------------------------------------------------------- Couleurs
+%  La structure du document est en noir. Les rares couleurs restantes
+%  servent aux encadres de contenu et aux emplacements reserves.
+\definecolor{noirTitre}{HTML}{000000}
+\definecolor{grisFilet}{HTML}{8A8A8A}
+\definecolor{grisFond}{HTML}{F2F2F2}
+\definecolor{bleuTitre}{HTML}{000000}   % conserve pour compatibilite
+
+% ---------------------------------------------------------------- Chapitres
+%  Presentation reprise du rapport de reference :
+%     barre noire epaisse portant « Chapitre X »
+%     filet fin
+%     titre du chapitre, centre, en grandes capitales
+%     filet fin
+\newlength{\barreChap}
+\setlength{\barreChap}{0.36\textwidth}
+
+%  Aucun \par dans ce qui suit : titlesec lit ses arguments en mode
+%  court, une fin de paragraphe y provoquerait l'erreur
+%  « Paragraph ended before \ttl@format@ii was complete ».
+\newcommand{\filetLarge}{%
+  \noindent{\color{grisFilet}\rule{\textwidth}{0.4pt}}%
+}
+
+\newcommand{\enteteChapitre}[1]{%
+  \noindent
+  \begin{minipage}{\textwidth}
+    \centering
+    \rule[0.30\baselineskip]{\barreChap}{3.5pt}%
+    \hspace{0.5em}{\normalsize\bfseries #1}\hspace{0.5em}%
+    \rule[0.30\baselineskip]{\barreChap}{3.5pt}%
+  \end{minipage}%
+}
 
 \titleformat{\chapter}[display]
-  {\normalfont\sffamily\bfseries\color{bleuTitre}}
-  {\filright\large\MakeUppercase{\chaptertitlename}\ \Huge\thechapter}
-  {8pt}{\huge\filright}
-\titlespacing*{\chapter}{0pt}{-20pt}{28pt}
+  {\normalfont\bfseries\color{noirTitre}\centering}
+  {\enteteChapitre{\MakeUppercase{Chapitre \thechapter}}}
+  {12pt}
+  {\filetLarge\\[10pt]\color{noirTitre}\LARGE\MakeUppercase}
+  [\vspace{8pt}\filetLarge]
+\titlespacing*{\chapter}{0pt}{6pt}{34pt}
 
-\titleformat{\section}{\normalfont\sffamily\large\bfseries\color{bleuTitre}}
+%  Chapitres non numerotes : meme filet, sans la barre « CHAPITRE X »
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\color{noirTitre}\centering}
+  {}
+  {0pt}
+  {\filetLarge\\[10pt]\color{noirTitre}\LARGE\MakeUppercase}
+  [\vspace{8pt}\filetLarge]
+
+% ---------------------------------------------------------------- Sections
+\titleformat{\section}{\normalfont\large\bfseries\color{noirTitre}}
   {\thesection}{0.6em}{}
-\titleformat{\subsection}{\normalfont\sffamily\normalsize\bfseries\color{bleuTitre}}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries\color{noirTitre}}
   {\thesubsection}{0.6em}{}
-\titleformat{\subsubsection}{\normalfont\sffamily\small\bfseries\color{bleuTitre}}
+\titleformat{\subsubsection}{\normalfont\small\bfseries\color{noirTitre}}
   {\thesubsubsection}{0.6em}{}
 
-\titlespacing*{\section}      {0pt}{14pt}{6pt}
-\titlespacing*{\subsection}   {0pt}{11pt}{4pt}
-\titlespacing*{\subsubsection}{0pt}{9pt}{3pt}
+\titlespacing*{\section}      {0pt}{16pt}{7pt}
+\titlespacing*{\subsection}   {0pt}{12pt}{5pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
 
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{2}
 
 % ---------------------------------------------------------------- En-tetes
+%  En-tete : numero et nom du chapitre courant, souligne d'un filet fin.
+%  Pied : numero de page et nombre total, centre.
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0pt}
-\fancyhead[L]{\small\sffamily\nouppercase{\leftmark}}
-\fancyfoot[R]{\small\sffamily\thepage/\pageref{LastPage}}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage/\pageref{LastPage}}
 
+%  La classe report impose le style « plain » sur la premiere page de
+%  chaque chapitre. Sans cette redefinition, ces pages retombent sur le
+%  numero seul, centre : c'est ce qui donnait « 18 » au lieu de « 18/85 ».
 \fancypagestyle{plain}{%
   \fancyhf{}%
   \renewcommand{\headrulewidth}{0pt}%
-  \fancyfoot[R]{\small\sffamily\thepage/\pageref{LastPage}}%
+  \renewcommand{\footrulewidth}{0pt}%
+  \fancyfoot[C]{\small\thepage/\pageref{LastPage}}%
 }
 
 \renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
@@ -59,7 +107,6 @@
 \setlength{\cftfignumwidth}{4.2em}
 \setlength{\cfttabnumwidth}{4.6em}
 
-% Les tableaux portent leur legende au-dessus, les figures en dessous.
 \captionsetup[table]{position=above,skip=4pt}
 \captionsetup[figure]{position=below,skip=6pt}
 
@@ -72,18 +119,30 @@
 %  C'est voulu, et c'est ce que demande le guide, qui recommande
 %  l'impression recto-verso.
 %
-%  Les CHAPITRES conservent ce comportement : commencer un chapitre au
-%  dos d'un autre serait fautif.
-%
-%  Les pages liminaires, elles, n'ont pas cette exigence. Le reglage
-%  ci-dessous permet de choisir :
+%  Les CHAPITRES et les grandes divisions de fin conservent ce
+%  comportement. Les pages liminaires, elles, n'ont pas cette exigence :
 %      \clearpage        -> pas de page blanche entre elles  (defaut)
 %      \cleardoublepage  -> chacune sur une page de droite
 \newcommand{\sautLiminaire}{\clearpage}
 
+% ---------------------------------------------------------------- Flottants
+%  Reglages d'origine de LaTeX : un flottant en tete de page ne peut
+%  occuper que 70 % de la hauteur, et toute page portant un flottant
+%  doit conserver 20 % de texte. Deux diagrammes qui se suivent
+%  franchissent aussitot ces seuils : ils sont alors reportes sur une
+%  page de flottants, qu'ils ne remplissent qu'a moitie. Desserrer ces
+%  bornes supprime ces demi-pages vides.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.80}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+
 % ---------------------------------------------------------------- Divers
-\renewcommand{\arraystretch}{1.25}
+\renewcommand{\arraystretch}{1.30}
 \setlist{itemsep=2pt,parsep=0pt,topsep=4pt}
-\clubpenalty=10000      % pas de ligne isolee en bas de page
-\widowpenalty=10000     % pas de ligne isolee en haut de page
+\clubpenalty=10000
+\widowpenalty=10000
 \raggedbottom

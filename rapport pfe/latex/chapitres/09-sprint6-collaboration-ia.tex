@@ -58,11 +58,11 @@ la prediction de pannes ont deja ete traitees.
 
 \figReelle{chat-usecase.png}
   {Cas d'utilisation du service de messagerie}
-  {fig:uc-chat}{0.42}
+  {fig:uc-chat}{0.63}
 
 \figReelle{chat-sequence.png}
   {Sequence : envoi d'un message en temps reel}
-  {fig:seq-chat}{0.46}
+  {fig:seq-chat}{0.60}
 
 La messagerie est le seul service de la plateforme a maintenir une
 \essentiel{liaison permanente} avec le navigateur. La
@@ -93,11 +93,11 @@ marqueurs de lecture.
 
 \figReelle{ayshaa-rag-usecase.png}
   {Cas d'utilisation de l'assistant documentaire}
-  {fig:uc-rag}{0.50}
+  {fig:uc-rag}{0.65}
 
 \figReelle{ayshaa-rag-sequence.png}
   {Sequence : traitement d'une question posee a l'assistant}
-  {fig:seq-rag}{0.48}
+  {fig:seq-rag}{0.95}
 
 L'assistant repond a partir d'une base documentaire vectorisee. La
 sequence de la figure~\ref{fig:seq-rag} suit quatre etapes : detection de
@@ -131,11 +131,11 @@ reponse est moins fluide, mais elle reste exacte et sourcee.
 
 \figReelle{ai-optimizer-usecase.png}
   {Cas d'utilisation du moteur d'optimisation}
-  {fig:uc-optimizer}{0.50}
+  {fig:uc-optimizer}{0.61}
 
 \figReelle{ai-optimizer-sequence.png}
   {Sequence : production d'un plan d'affectation}
-  {fig:seq-optimizer}{0.48}
+  {fig:seq-optimizer}{0.85}
 
 Le moteur d'optimisation propose une affectation de vehicules et de
 chauffeurs aux missions en attente. Il procede en deux temps
@@ -172,15 +172,63 @@ pour une operation de planification et impossible pour une estimation de
 prix.
 
 % =====================================================================
-\section{Realisation et tests de validation}
+\section{Realisation}
 
-\figDeux{s6-messagerie.jpg}{s6-assistant-ayshaa.jpg}
-  {Messagerie interne et assistant documentaire du portail client}
-  {fig:ecrans-collab}{0.44}
+\subsection{Les outils de collaboration}
 
-\figDeux{s6-optimisateur.jpg}{s6-tableau-bord-1.jpg}
-  {Plan d'affectation propose et tableau de bord consolide}
-  {fig:ecrans-decision}{0.44}
+La messagerie interne, figure~\ref{fig:s6-messagerie}, remplace les
+groupes de discussion externes que l'entreprise utilisait pour coordonner
+ses equipes. Le gain n'est pas le confort mais le \essentiel{rattachement
+au contexte metier} : une conversation est liee a une mission, a un
+vehicule ou a un ordre de travail, si bien que l'echange reste retrouvable
+depuis l'objet qu'il concerne. Sur un fil de discussion generaliste, la
+meme information se perd en quelques jours sous le flux des messages
+suivants.
+
+\capture{s6-messagerie.jpg}
+  {Messagerie interne rattachee au contexte metier}
+  {fig:s6-messagerie}
+
+L'assistant documentaire du portail client, figure~\ref{fig:s6-assistant},
+repond aux questions courantes sur les services proposes, les zones
+desservies et les modalites de reservation. Il s'appuie sur les documents
+de l'entreprise et \essentiel{cite ses sources}, ce qui permet au visiteur
+de verifier la reponse. Son interet pour l'exploitation est de filtrer les
+sollicitations les plus repetitives, qui occupaient jusque-la une part
+non negligeable du temps telephonique.
+
+\capture{s6-assistant-ayshaa.jpg}
+  {Assistant documentaire du portail client}
+  {fig:s6-assistant}
+
+\subsection{Les outils d'aide a la decision}
+
+Le plan d'affectation, figure~\ref{fig:s6-optimisateur}, restitue le
+travail du moteur decrit a la section precedente. Chaque mission en
+attente y recoit une proposition de vehicule et de chauffeur, assortie
+de la note obtenue et des criteres qui l'ont determinee. Le gestionnaire
+conserve la main : il applique le plan tel quel, ou il substitue une
+affectation. Cette reversibilite est ce qui rend l'outil acceptable en
+exploitation, ou une contrainte connue du seul exploitant --- un client
+difficile, un chauffeur en formation --- echappe par nature au moteur.
+
+\capture{s6-optimisateur.jpg}
+  {Plan d'affectation propose par le moteur d'optimisation}
+  {fig:s6-optimisateur}
+
+Le tableau de bord, figure~\ref{fig:s6-bord1}, consolide en une page les
+indicateurs d'exploitation : missions en cours et terminees, taux
+d'utilisation du parc, vehicules immobilises, alertes ouvertes. Il agrege
+des donnees produites par plusieurs services, ce qui en fait le point de
+la plateforme ou la separation en services independants est la moins
+visible pour l'utilisateur --- et c'est bien le resultat recherche.
+
+\capture{s6-tableau-bord-1.jpg}
+  {Tableau de bord : indicateurs d'exploitation consolides}
+  {fig:s6-bord1}
+
+% =====================================================================
+\section{Tests de validation}
 
 \begin{table}[H]
 \centering

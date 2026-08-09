@@ -11,9 +11,15 @@
 %      Intervenants ........ y = 18,5 a 21,5 cm
 %      Logo entreprise ..... cadre en pointilles, y = 23,1 a 26,1 cm
 %      Annee universitaire . sous le cadre, y = 26,6 cm
+%
+%  L'environnement « titlepage » n'est PAS employe : il ajoute un
+%  \cleardoublepage en tete et un \newpage en queue, dont l'effet combine
+%  avec le mode recto-verso peut intercaler une page vierge derriere la
+%  couverture, page que l'on prend aisement pour un doublon. La page est
+%  donc composee a la main : une seule page, sans rien avant ni apres.
 % =====================================================================
-\begin{titlepage}
 \thispagestyle{empty}
+\setcounter{page}{1}
 \null
 \begin{tikzpicture}[remember picture, overlay]
 
@@ -59,4 +65,4 @@
 
 \end{tikzpicture}
 
-\end{titlepage}
+\clearpage

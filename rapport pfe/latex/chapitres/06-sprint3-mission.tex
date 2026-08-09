@@ -63,7 +63,7 @@ services : celui des missions et le moteur d'estimation tarifaire.
 
 \figReelle{mission-usecase.png}
   {Cas d'utilisation du service des missions}
-  {fig:uc-mission}{0.54}
+  {fig:uc-mission}{1.00}
 
 Le diagramme de la figure~\ref{fig:uc-mission} organise le service en
 quatre domaines : la demande et le devis, l'execution des missions, le
@@ -111,7 +111,7 @@ Postcondition & La mission existe et attend l'affectation d'un vehicule
 
 \figReelle{mission-class-domain.png}
   {Modele du domaine du service des missions}
-  {fig:dom-mission}{0.30}
+  {fig:dom-mission}{0.31}
 
 Le modele distingue nettement \exemple{DemandeTransport}, qui porte la
 negociation (villes, marchandise, prix estime, fourchette, prix final,
@@ -131,11 +131,11 @@ recommandations du modele.
 
 \figReelle{mission-seq-demande-transport.png}
   {Sequence : depot d'une demande de transport}
-  {fig:seq-demande}{0.54}
+  {fig:seq-demande}{0.73}
 
 \figReelle{mission-seq-devis.png}
   {Sequence : etablissement puis acceptation ou refus d'un devis}
-  {fig:seq-devis}{0.54}
+  {fig:seq-devis}{0.85}
 
 La premiere sequence montre l'appel au moteur d'estimation \essentiel{avant}
 l'enregistrement : le client voit la fourchette tarifaire au moment ou il
@@ -145,7 +145,7 @@ le refus se contente d'enregistrer le motif.
 
 \figReelle{mission-seq-suivi-direct.png}
   {Sequence : suivi d'une mission en direct}
-  {fig:seq-suivi}{0.54}
+  {fig:seq-suivi}{0.84}
 
 Le suivi, figure~\ref{fig:seq-suivi}, repose sur une boucle : tant que la
 mission est en cours, l'application du chauffeur transmet sa position, que
@@ -163,7 +163,7 @@ renvoie un prix encadre d'une fourchette basse et haute.
 
 \figReelle{ai-predictor-sequence.png}
   {Sequence : estimation du prix d'un trajet par le moteur tarifaire}
-  {fig:seq-estimation}{0.54}
+  {fig:seq-estimation}{0.55}
 
 La sequence de la figure~\ref{fig:seq-estimation} met en evidence une
 propriete importante : \essentiel{le moteur ne consulte aucune base de
@@ -173,7 +173,7 @@ duplicable a l'identique si la charge l'exigeait.
 
 \figReelle{mission-communication.png}
   {Echanges du service des missions}
-  {fig:com-mission}{0.60}
+  {fig:com-mission}{0.92}
 
 La figure~\ref{fig:com-mission} montre les deux natures d'echange du
 service. L'appel au moteur d'estimation est \essentiel{synchrone} : le
@@ -183,17 +183,84 @@ differe. Le critere est simple : \essentiel{on attend ce dont on a besoin
 sur le champ, on delegue le reste}.
 
 % =====================================================================
-\section{Realisation et tests de validation}
+\section{Realisation}
 
-\figDeux{s3-portail-reservation-1.jpg}{s3-estimation-tarifaire-1.jpg}
-  {Portail client : formulaire de demande et fourchette tarifaire
-   proposee}
-  {fig:ecrans-demande}{0.46}
+\subsection{Le depot d'une demande par le client}
 
-\figTrois{s3-demandes-transport.jpg}{s3-suivi-devis-client.jpg}{s3-carte-suivi.jpg}
-  {Traitement d'une demande cote back-office, suivi du devis cote client,
-   et carte de suivi d'une mission en cours}
-  {fig:ecrans-mission}{0.40}
+Le parcours commence sur le portail public, figure~\ref{fig:s3-reservation}.
+Le client decrit ce qu'il veut faire transporter : villes de depart et
+d'arrivee, date souhaitee, nature et poids de la marchandise, type de
+vehicule s'il a une preference. Le formulaire ne demande rien de plus.
+Toute la difficulte de conception a consiste a \essentiel{ne reclamer que
+ce qui est indispensable a l'estimation} : chaque champ supplementaire est
+une occasion d'abandon, et l'entreprise a precisement voulu ce portail
+pour capter des demandes qui, jusque-la, passaient par un appel
+telephonique.
+
+\capture{s3-portail-reservation-1.jpg}
+  {Portail client : formulaire de demande de transport}
+  {fig:s3-reservation}
+
+La reponse, figure~\ref{fig:s3-estimation}, n'est pas un prix ferme mais
+une \essentiel{fourchette}. Ce choix merite d'etre justifie, car il a ete
+discute avec l'encadrant entreprise. Un prix unique aurait valeur
+d'engagement aux yeux du client, alors que le moteur ne connait ni l'etat
+du trafic, ni la disponibilite reelle du parc a la date demandee, ni les
+conditions particulieres qu'un exploitant experimente sait reperer. La
+fourchette annonce un ordre de grandeur, informe la decision du client, et
+\essentiel{laisse au responsable la main sur le prix definitif}. Elle est
+accompagnee de la distance calculee, ce qui rend l'estimation
+comprehensible plutot qu'arbitraire.
+
+\capture{s3-estimation-tarifaire-1.jpg}
+  {Fourchette tarifaire proposee au client avant validation}
+  {fig:s3-estimation}
+
+\subsection{Le traitement de la demande au back-office}
+
+Cote entreprise, la demande arrive dans la file de la
+figure~\ref{fig:s3-demandes}. Le responsable dispose de tout ce que le
+client a saisi, de l'estimation produite par le moteur, et des moyens
+disponibles a la date voulue. Il etablit alors le devis : soit il retient
+le prix propose, soit il le corrige. Dans ce second cas, la plateforme
+conserve la mention que la tarification a ete \essentiel{modifiee
+manuellement}, information qui servira plus tard a mesurer l'ecart entre
+le modele et le jugement humain, et donc a le corriger.
+
+\capture{s3-demandes-transport.jpg}
+  {Back-office : demandes de transport en attente de devis}
+  {fig:s3-demandes}
+
+Le devis revient au client, qui le retrouve dans son espace,
+figure~\ref{fig:s3-devis-client}. Il l'accepte ou le refuse. C'est ce
+geste, et lui seul, qui declenche la creation de la mission. Le
+rappel merite d'etre fait car il constitue le choix structurant du
+sprint : \essentiel{la reservation n'est pas une mission}. Tant que le
+devis n'est pas accepte, aucun vehicule n'est immobilise, aucun chauffeur
+n'est affecte, aucune ligne de facturation n'existe. Cette separation
+evite d'encombrer le planning d'engagements que personne n'a confirmes.
+
+\capture{s3-suivi-devis-client.jpg}
+  {Portail client : suivi d'un devis recu et decision}
+  {fig:s3-devis-client}
+
+\subsection{Le suivi de la mission en cours}
+
+Une fois la mission en route, l'ecran de la figure~\ref{fig:s3-carte}
+donne sa position sur une carte. Les coordonnees proviennent de
+l'application mobile du chauffeur, qui les emet a intervalle regulier tant
+que la mission est active. Le trace conserve les points precedents, ce qui
+permet de reconstituer l'itineraire suivi et non seulement le dernier
+point connu. Pour l'exploitant, cet ecran remplace l'appel telephonique de
+verification ; pour le client, il repond a la question qui motivait la
+plupart de ses relances : \exemple{ou en est ma marchandise ?}
+
+\capture{s3-carte-suivi.jpg}
+  {Suivi d'une mission en direct sur la carte}
+  {fig:s3-carte}
+
+% =====================================================================
+\section{Tests de validation}
 
 \begin{table}[H]
 \centering
@@ -204,8 +271,8 @@ sur le champ, on delegue le reste}.
 \toprule
 \textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
 \textbf{Etat} \\ \midrule
-T1 & Depot d'une demande & Statut PENDING\_QUOTATION, prix estime affiche & Reussi \\
-T2 & Envoi d'un devis modifie & Methode de tarification MODIFIED conservee & Reussi \\
+T1 & Depot d'une demande & Demande en attente de devis, prix estime affiche & Reussi \\
+T2 & Envoi d'un devis modifie & Tarification signalee comme modifiee & Reussi \\
 T3 & Acceptation d'un devis & Mission creee, demande rattachee & Reussi \\
 T4 & Refus d'un devis & Motif enregistre, aucune mission creee & Reussi \\
 T5 & Position transmise par le chauffeur & Point visible sur la carte du client & Reussi \\

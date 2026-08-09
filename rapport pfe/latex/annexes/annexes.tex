@@ -12,6 +12,17 @@
 \chapter*{Annexes}
 \markboth{Annexes}{}
 
+%  Les annexes ouvrent sur un \chapter* : le compteur de chapitre n'est
+%  pas incremente, et sans remise a zero les figures et les tableaux
+%  poursuivraient la numerotation du chapitre 9. \serieAnnexe ouvre une
+%  serie propre a chaque annexe : tableau B.1, figure D.3, etc.
+\newcommand{\serieAnnexe}[1]{%
+  \setcounter{figure}{0}\setcounter{table}{0}%
+  \renewcommand{\thefigure}{#1.\arabic{figure}}%
+  \renewcommand{\thetable}{#1.\arabic{table}}%
+}
+\serieAnnexe{A}
+
 % ---------------------------------------------------------------------
 \section*{Annexe A -- Depot du projet et mise en route}
 \addcontentsline{toc}{section}{Annexe A -- Depot du projet et mise en route}
@@ -39,6 +50,7 @@ client sur le port 3001, la passerelle sur le port 8080.
 % ---------------------------------------------------------------------
 \section*{Annexe B -- Extrait du journal de bord}
 \addcontentsline{toc}{section}{Annexe B -- Extrait du journal de bord}
+\serieAnnexe{B}
 
 \begin{table}[H]
 \centering
@@ -79,6 +91,7 @@ Recette & Mise aux normes des modeles UML, jeu de donnees de
 % ---------------------------------------------------------------------
 \section*{Annexe C -- Jeu de donnees de demonstration}
 \addcontentsline{toc}{section}{Annexe C -- Jeu de donnees de demonstration}
+\serieAnnexe{C}
 
 Les captures d'ecran de ce rapport ont ete prises sur une base peuplee
 par un script idempotent, verse au depot. Ce jeu de donnees couvre

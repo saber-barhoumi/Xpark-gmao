@@ -64,11 +64,11 @@ tardivement : chacun suppose que les modules amont existent deja.
 
 \figReelle{finance-usecase.png}
   {Cas d'utilisation du service de facturation}
-  {fig:uc-finance}{0.52}
+  {fig:uc-finance}{0.53}
 
 \figReelle{finance-sequence.png}
   {Sequence : etablissement d'une facture}
-  {fig:seq-finance}{0.52}
+  {fig:seq-finance}{0.61}
 
 Le cas \exemple{etablir une facture} \essentiel{inclut} la verification
 des missions facturables : la liste proposee au gestionnaire ne contient
@@ -92,11 +92,11 @@ d'echeance, et c'est le service d'alertes qui le signale.
 
 \figReelle{alerts-usecase.png}
   {Cas d'utilisation du service d'alertes}
-  {fig:uc-alerts}{0.48}
+  {fig:uc-alerts}{0.69}
 
 \figReelle{alerts-sequence.png}
   {Sequence : execution des controles metier}
-  {fig:seq-alerts}{0.50}
+  {fig:seq-alerts}{0.55}
 
 Le service d'alertes ne detient aucune donnee propre : \essentiel{il lit
 celles des autres domaines} et en tire des signaux. La
@@ -123,11 +123,11 @@ conditions reelles lors de la constitution du jeu de demonstration.
 
 \figReelle{iboa-usecase.png}
   {Cas d'utilisation du service de journal metier}
-  {fig:uc-iboa}{0.48}
+  {fig:uc-iboa}{0.84}
 
 \figReelle{iboa-communication.png}
   {Echanges du service de journal metier}
-  {fig:com-iboa}{0.58}
+  {fig:com-iboa}{0.66}
 
 Le service de journal metier occupe une position particuliere :
 \essentiel{il ne consulte rien, il ecoute}. Ecrit en Python, il souscrit
@@ -165,16 +165,67 @@ Journal metier & Preferences & Seuils et canaux choisis par le
 \end{table}
 
 % =====================================================================
-\section{Realisation et tests de validation}
+\section{Realisation}
 
-\figDeux{s5-liste-factures.jpg}{s5-creation-facture.jpg}
-  {Facturation : liste des factures par statut et etablissement d'une
-   facture depuis les missions facturables}
-  {fig:ecrans-finance}{0.50}
+\subsection{La facturation}
 
-\figDeux{s5-centre-alertes.jpg}{s5-journal-iboa.jpg}
-  {Centre d'alertes metier et journal des evenements}
-  {fig:ecrans-alertes}{0.50}
+La liste des factures, figure~\ref{fig:s5-factures}, est organisee autour
+du \essentiel{statut de reglement} : brouillon, emise, payee, en retard,
+annulee. C'est la seule lecture qui interesse reellement le service
+administratif, dont la question quotidienne n'est pas \exemple{combien
+avons-nous facture} mais \exemple{qu'est-ce qui n'est pas encore rentre}.
+Les montants hors taxe, la taxe et le montant toutes taxes comprises sont
+affiches separement, conformement au choix de modelisation decrit plus
+haut : les recalculer a l'affichage aurait expose le document a des
+divergences d'arrondi entre l'ecran et le document remis au client.
+
+\capture{s5-liste-factures.jpg}
+  {Factures et statut de reglement}
+  {fig:s5-factures}
+
+L'etablissement d'une facture, figure~\ref{fig:s5-creation}, ne part pas
+d'une page blanche. L'ecran propose les \essentiel{missions facturables}
+du client retenu, c'est-a-dire celles qui sont terminees et qui ne sont
+rattachees a aucune facture. Le montant est preleve sur le devis accepte
+au sprint~3. Cette continuite entre le devis et la facture est ce qui
+supprime la double saisie que l'entreprise pratiquait auparavant entre son
+tableur de suivi et son logiciel comptable, et avec elle les ecarts qu'une
+recopie manuelle finit toujours par produire.
+
+\capture{s5-creation-facture.jpg}
+  {Etablissement d'une facture a partir des missions facturables}
+  {fig:s5-creation}
+
+\subsection{La surveillance}
+
+Le centre d'alertes, figure~\ref{fig:s5-alertes}, rassemble en un seul
+point ce qui reclame une decision : une assurance qui expire, une visite
+technique depassee, un vehicule dont la revision est due, un equipement
+au-dela de son seuil d'usure. Chaque alerte porte une priorite et un
+statut, et peut etre rattachee au vehicule, au chauffeur, a l'equipement
+ou a la mission concernes. Le filtre par priorite est ici l'element
+determinant : sans lui, un centre d'alertes se remplit et cesse d'etre
+consulte, ce qui le rend plus nuisible qu'utile.
+
+\capture{s5-centre-alertes.jpg}
+  {Centre d'alertes metier, filtrable par priorite et par statut}
+  {fig:s5-alertes}
+
+Le journal metier, figure~\ref{fig:s5-iboa}, releve d'une logique
+differente. Il ne signale pas ce qu'il faut faire : il conserve ce qui
+s'est passe. Chaque evenement publie par un service sur le courtier de
+messages y est consigne avec sa criticite et son horodatage. L'ecran sert
+a l'analyse apres coup --- comprendre pourquoi une mission a derape,
+retrouver la chronologie d'un incident --- et non au pilotage courant.
+C'est cette difference de finalite qui a justifie deux modules distincts
+plutot qu'un seul.
+
+\capture{s5-journal-iboa.jpg}
+  {Journal des evenements metier et de leur criticite}
+  {fig:s5-iboa}
+
+% =====================================================================
+\section{Tests de validation}
 
 \begin{table}[H]
 \centering

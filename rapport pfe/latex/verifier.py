@@ -39,6 +39,7 @@ for d in ('figures', 'figures/diagrammes', 'figures/logos',
 # Position de l'argument image et de l'argument etiquette dans chaque macro
 MACROS = {'figReelle': ([0], 2), 'figDeux': ([0, 1], 3),
           'figTrois': ([0, 1, 2], 4), 'figPaysage': ([0], 2),
+          'captureEtroite': ([0], 2), 'capture': ([0], 2),
           'figAttendue': ([], 2), 'captureAttendue': ([], 2)}
 utilisees = set()
 labels_macro = set()

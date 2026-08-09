@@ -63,7 +63,7 @@ plutot qu'apres.
 
 \figReelle{maintenance-usecase.png}
   {Cas d'utilisation du service de maintenance}
-  {fig:uc-maintenance}{0.40}
+  {fig:uc-maintenance}{0.55}
 
 Le diagramme de la figure~\ref{fig:uc-maintenance} repartit le service en
 cinq domaines. La lecture des associations revele une
@@ -102,7 +102,7 @@ Postcondition & L'intervention est visible dans le dossier du vehicule et
 
 \figReelle{maintenance-class-domain.png}
   {Modele du domaine du service de maintenance}
-  {fig:dom-maintenance}{0.48}
+  {fig:dom-maintenance}{0.73}
 
 Le modele distingue deux notions que l'usage confond souvent.
 \essentiel{L'ordre de travail} est une decision de gestion : il ouvre un
@@ -121,11 +121,11 @@ evolue.
 
 \figReelle{maintenance-seq-ordre-travail.png}
   {Sequence : ouverture et avancement d'un ordre de travail}
-  {fig:seq-ot}{0.52}
+  {fig:seq-ot}{0.77}
 
 \figReelle{maintenance-seq-intervention.png}
   {Sequence : declaration d'une intervention avec consommation de pieces}
-  {fig:seq-intervention}{0.52}
+  {fig:seq-intervention}{0.74}
 
 La premiere sequence montre l'ecriture systematique d'une ligne
 d'historique a chaque changement d'etat. La seconde,
@@ -144,11 +144,11 @@ de modifier aucun service existant}.
 
 \figReelle{predictionpanne-usecase.png}
   {Cas d'utilisation du service de maintenance predictive}
-  {fig:uc-prediction}{0.46}
+  {fig:uc-prediction}{0.71}
 
 \figReelle{predictionpanne-sequence.png}
   {Sequence : calcul du risque de panne d'un vehicule}
-  {fig:seq-prediction}{0.52}
+  {fig:seq-prediction}{0.83}
 
 \paragraph{Ce que fait reellement le moteur.}
 Il faut ici etre precis, car le terme \exemple{prediction} prete a
@@ -172,16 +172,65 @@ appris. \essentiel{Le remplacement se fera en une ligne d'enregistrement
 de dependance}, sans toucher aux couches superieures.
 
 % =====================================================================
-\section{Realisation et tests de validation}
+\section{Realisation}
 
-\figDeux{s4-ordres-travail.jpg}{s4-interventions.jpg}
-  {Atelier : tableau des ordres de travail par etat et liste des
-   interventions}
-  {fig:ecrans-atelier}{0.48}
+\subsection{Le pilotage de l'atelier}
 
-\figDeux{s4-pieces-rechange.jpg}{s4-prediction-pannes.jpg}
-  {Stock de pieces de rechange et tableau de bord des risques de panne}
-  {fig:ecrans-stock}{0.48}
+Les ordres de travail sont presentes en colonnes, figure~\ref{fig:s4-ot},
+une colonne par etat d'avancement : a planifier, planifie, en cours,
+termine. Cette disposition n'a pas ete choisie pour l'effet visuel. Elle
+repond a la maniere dont le chef d'atelier raisonne : il ne cherche pas un
+ordre precis, il cherche \exemple{ce qui est en attente} et \exemple{ce
+qui bloque}. Une liste triee par date ne repond pas a cette question, un
+tableau par etat si. Le deplacement d'une carte d'une colonne a l'autre
+declenche le changement d'etat cote serveur et \essentiel{ecrit une ligne
+d'historique}, conformement a la sequence commentee plus haut.
+
+\capture{s4-ordres-travail.jpg}
+  {Ordres de travail presentes par etat d'avancement}
+  {fig:s4-ot}
+
+L'intervention, figure~\ref{fig:s4-interventions}, est le travail
+reellement effectue au titre d'un ordre. Elle porte le technicien, la
+duree, les pieces consommees et le cout. La distinction entre l'ordre et
+l'intervention n'est pas une subtilite de modelisation : un meme ordre
+peut donner lieu a plusieurs interventions successives, quand une
+reparation est reprise ou completee. Confondre les deux aurait rendu
+impossible le calcul du cout reel d'immobilisation d'un vehicule.
+
+\capture{s4-interventions.jpg}
+  {Interventions realisees, avec leur technicien et leur cout}
+  {fig:s4-interventions}
+
+\subsection{Le stock et l'anticipation}
+
+Le magasin de pieces, figure~\ref{fig:s4-pieces}, affiche pour chaque
+reference la quantite disponible et le \essentiel{seuil d'alerte} en
+dessous duquel elle doit etre reapprovisionnee. Le stock n'est jamais
+saisi a la main apres une reparation : il est decremente par
+l'enregistrement de l'intervention, dans la meme unite de travail. Cette
+mecanique, invisible a l'ecran, est ce qui garantit que la quantite
+affichee corresponde a la realite de l'etagere.
+
+\capture{s4-pieces-rechange.jpg}
+  {Stock de pieces de rechange et seuils de reapprovisionnement}
+  {fig:s4-pieces}
+
+Le tableau de bord des risques, figure~\ref{fig:s4-prediction}, restitue
+le travail du moteur decrit a la section precedente. Chaque vehicule y
+porte un niveau de risque, l'organe concerne et \essentiel{la raison du
+signalement} : depassement du kilometrage de revision, recurrence d'une
+panne, anciennete. C'est cette derniere colonne qui fait la valeur de
+l'ecran. Un score seul serait recu avec scepticisme par un exploitant qui
+connait ses vehicules ; un score assorti de son motif se discute, et se
+verifie.
+
+\capture{s4-prediction-pannes.jpg}
+  {Tableau de bord des risques de panne, par vehicule et par organe}
+  {fig:s4-prediction}
+
+% =====================================================================
+\section{Tests de validation}
 
 \begin{table}[H]
 \centering
