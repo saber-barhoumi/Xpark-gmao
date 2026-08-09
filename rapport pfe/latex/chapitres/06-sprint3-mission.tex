@@ -111,7 +111,7 @@ Postcondition & La mission existe et attend l'affectation d'un vehicule
 
 \figReelle{mission-class-domain.png}
   {Modele du domaine du service des missions}
-  {fig:dom-mission}{0.31}
+  {fig:dom-mission}{0.39}
 
 Le modele distingue nettement \exemple{DemandeTransport}, qui porte la
 negociation (villes, marchandise, prix estime, fourchette, prix final,
@@ -131,11 +131,11 @@ recommandations du modele.
 
 \figReelle{mission-seq-demande-transport.png}
   {Sequence : depot d'une demande de transport}
-  {fig:seq-demande}{0.73}
+  {fig:seq-demande}{1.00}
 
 \figReelle{mission-seq-devis.png}
   {Sequence : etablissement puis acceptation ou refus d'un devis}
-  {fig:seq-devis}{0.85}
+  {fig:seq-devis}{1.00}
 
 La premiere sequence montre l'appel au moteur d'estimation \essentiel{avant}
 l'enregistrement : le client voit la fourchette tarifaire au moment ou il
@@ -145,7 +145,7 @@ le refus se contente d'enregistrer le motif.
 
 \figReelle{mission-seq-suivi-direct.png}
   {Sequence : suivi d'une mission en direct}
-  {fig:seq-suivi}{0.84}
+  {fig:seq-suivi}{1.00}
 
 Le suivi, figure~\ref{fig:seq-suivi}, repose sur une boucle : tant que la
 mission est en cours, l'application du chauffeur transmet sa position, que
@@ -163,7 +163,7 @@ renvoie un prix encadre d'une fourchette basse et haute.
 
 \figReelle{ai-predictor-sequence.png}
   {Sequence : estimation du prix d'un trajet par le moteur tarifaire}
-  {fig:seq-estimation}{0.55}
+  {fig:seq-estimation}{1.00}
 
 La sequence de la figure~\ref{fig:seq-estimation} met en evidence une
 propriete importante : \essentiel{le moteur ne consulte aucune base de
@@ -173,7 +173,7 @@ duplicable a l'identique si la charge l'exigeait.
 
 \figReelle{mission-communication.png}
   {Echanges du service des missions}
-  {fig:com-mission}{0.92}
+  {fig:com-mission}{1.00}
 
 La figure~\ref{fig:com-mission} montre les deux natures d'echange du
 service. L'appel au moteur d'estimation est \essentiel{synchrone} : le
@@ -256,7 +256,7 @@ verification ; pour le client, il repond a la question qui motivait la
 plupart de ses relances : \exemple{ou en est ma marchandise ?}
 
 \capture{s3-carte-suivi.jpg}
-  {Suivi d'une mission en direct sur la carte}
+  {Espace client : suivi d'une mission en direct sur la carte}
   {fig:s3-carte}
 
 % =====================================================================

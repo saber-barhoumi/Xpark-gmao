@@ -64,11 +64,11 @@ tardivement : chacun suppose que les modules amont existent deja.
 
 \figReelle{finance-usecase.png}
   {Cas d'utilisation du service de facturation}
-  {fig:uc-finance}{0.53}
+  {fig:uc-finance}{1.00}
 
 \figReelle{finance-sequence.png}
   {Sequence : etablissement d'une facture}
-  {fig:seq-finance}{0.61}
+  {fig:seq-finance}{1.00}
 
 Le cas \exemple{etablir une facture} \essentiel{inclut} la verification
 des missions facturables : la liste proposee au gestionnaire ne contient
@@ -92,11 +92,11 @@ d'echeance, et c'est le service d'alertes qui le signale.
 
 \figReelle{alerts-usecase.png}
   {Cas d'utilisation du service d'alertes}
-  {fig:uc-alerts}{0.69}
+  {fig:uc-alerts}{1.00}
 
 \figReelle{alerts-sequence.png}
   {Sequence : execution des controles metier}
-  {fig:seq-alerts}{0.55}
+  {fig:seq-alerts}{0.90}
 
 Le service d'alertes ne detient aucune donnee propre : \essentiel{il lit
 celles des autres domaines} et en tire des signaux. La
@@ -123,11 +123,11 @@ conditions reelles lors de la constitution du jeu de demonstration.
 
 \figReelle{iboa-usecase.png}
   {Cas d'utilisation du service de journal metier}
-  {fig:uc-iboa}{0.84}
+  {fig:uc-iboa}{1.00}
 
 \figReelle{iboa-communication.png}
   {Echanges du service de journal metier}
-  {fig:com-iboa}{0.66}
+  {fig:com-iboa}{1.00}
 
 Le service de journal metier occupe une position particuliere :
 \essentiel{il ne consulte rien, il ecoute}. Ecrit en Python, il souscrit

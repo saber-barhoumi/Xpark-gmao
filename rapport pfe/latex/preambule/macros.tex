@@ -38,26 +38,29 @@
 %  fond de page. Le regroupement de quatre ou cinq captures sous une
 %  seule figure a ete abandonne : reduites a moins de la moitie de la
 %  largeur du texte, elles devenaient illisibles a l'impression.
-%  Une capture occupe desormais sa propre figure, en 0,92 de la largeur.
+%
+%  LARGEUR UNIQUE. Les trente-sept captures du rapport ont ete prises
+%  dans la meme fenetre : elles partagent le meme rapport, 2,07. Une
+%  largeur unique suffit donc, et c'est elle qui donne a une page
+%  portant deux captures son aplomb. Toute exception se verrait.
 % ---------------------------------------------------------------------
+\newcommand{\largeurCapture}{0.90}
+
 \newcommand{\capture}[3]{%
   \begin{figure}[H]
     \centering
-    \fbox{\includegraphics[width=0.92\textwidth,keepaspectratio]{#1}}
+    \fbox{\includegraphics[width=\largeurCapture\textwidth,keepaspectratio]{#1}}
     \caption{#2}
     \label{#3}
   \end{figure}%
 }
 
-%  Variante pour une capture etroite : telephone, fenetre modale.
-\newcommand{\captureEtroite}[3]{%
-  \begin{figure}[H]
-    \centering
-    \fbox{\includegraphics[width=0.60\textwidth,keepaspectratio]{#1}}
-    \caption{#2}
-    \label{#3}
-  \end{figure}%
-}
+%  Conservee pour compatibilite : elle composait autrefois plus etroit.
+%  Elle ne le fait plus. La seule capture qui l'employait, celle de
+%  l'application chauffeur, mesure 1887 x 912 pixels comme les autres :
+%  la reduire a 0,60 la rendait simplement plus petite que ses voisines,
+%  sans raison.
+\newcommand{\captureEtroite}[3]{\capture{#1}{#2}{#3}}
 
 % ---------------------------------------------------------------------
 %  \figDeux / \figTrois : plusieurs images sous UNE seule legende.

@@ -79,22 +79,32 @@
 
 % ---------------------------------------------------------------- En-tetes
 %  En-tete : numero et nom du chapitre courant, souligne d'un filet fin.
-%  Pied : numero de page et nombre total, centre.
+%  Pied : « Page X | Y », aligne a droite. « Page », la barre et le
+%  total en noir gras ; le numero courant en rouge, seul element colore
+%  du document.
+\definecolor{rougePage}{HTML}{C00000}
+
+\newcommand{\piedPage}{%
+  \textbf{Page}~\textcolor{rougePage}{\textbf{\thepage}}~\textbf{|}~%
+  \textbf{\pageref{LastPage}}%
+}
+
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0pt}
 \fancyhead[L]{\small\nouppercase{\leftmark}}
-\fancyfoot[C]{\small\thepage/\pageref{LastPage}}
+\fancyfoot[R]{\small\piedPage}
 
 %  La classe report impose le style « plain » sur la premiere page de
 %  chaque chapitre. Sans cette redefinition, ces pages retombent sur le
-%  numero seul, centre : c'est ce qui donnait « 18 » au lieu de « 18/85 ».
+%  numero seul, centre : c'est ce qui donnait « 18 » au lieu du pied
+%  complet.
 \fancypagestyle{plain}{%
   \fancyhf{}%
   \renewcommand{\headrulewidth}{0pt}%
   \renewcommand{\footrulewidth}{0pt}%
-  \fancyfoot[C]{\small\thepage/\pageref{LastPage}}%
+  \fancyfoot[R]{\small\piedPage}%
 }
 
 \renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
@@ -102,10 +112,17 @@
 % ---------------------------------------------------------------- Legendes
 \captionsetup[figure]{name=Figure}
 \captionsetup[table]{name=Tableau}
+
+%  Les tables des figures et des tableaux font preceder le numero du mot
+%  « Figure » ou « Tableau ». La boite reservee doit donc contenir
+%  l'entree la plus longue du document, « Tableau 9.10 » ou
+%  « Figure D.10 ». Trop etroite, elle ne deborde pas : elle absorbe
+%  l'espace suivant, et le titre vient se coller au numero, ce qui
+%  donnait « Figure D.1Page d'accueil... ».
 \renewcommand{\cftfigpresnum}{Figure~}
 \renewcommand{\cfttabpresnum}{Tableau~}
-\setlength{\cftfignumwidth}{4.2em}
-\setlength{\cfttabnumwidth}{4.6em}
+\cftsetindents{figure}{0em}{6.4em}
+\cftsetindents{table}{0em}{6.9em}
 
 \captionsetup[table]{position=above,skip=4pt}
 \captionsetup[figure]{position=below,skip=6pt}

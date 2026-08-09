@@ -63,7 +63,7 @@ personnel et l'administration des comptes par les responsables.
 
 \figReelle{iam-usecase.png}
   {Cas d'utilisation du service des identites et des acces}
-  {fig:uc-iam}{0.74}
+  {fig:uc-iam}{0.90}
 
 Le diagramme de la figure~\ref{fig:uc-iam} fait apparaitre trois
 regroupements. \essentiel{L'acces au service} rassemble ce qui precede
@@ -105,7 +105,7 @@ Alternatives & Identifiants invalides : compteur d'echecs incremente,
 
 \figReelle{iam-class-domain.png}
   {Modele du domaine du service des identites et des acces}
-  {fig:dom-iam}{0.53}
+  {fig:dom-iam}{0.75}
 
 Le modele repose sur une \essentiel{hierarchie d'heritage}. La classe
 \exemple{Utilisateur} porte ce qui est commun ; \exemple{Client} et
@@ -125,7 +125,7 @@ l'operation reste reversible.
 
 \figReelle{iam-seq-inscription.png}
   {Sequence : inscription d'un compte}
-  {fig:seq-inscription}{0.81}
+  {fig:seq-inscription}{1.00}
 
 La sequence de la figure~\ref{fig:seq-inscription} montre que le compte
 est cree au statut \essentiel{en attente} : il reste inutilisable tant
@@ -135,7 +135,7 @@ courriel de confirmation valable vingt-quatre heures.
 
 \figReelle{iam-seq-approbation-compte.png}
   {Sequence : approbation d'un compte par l'administrateur}
-  {fig:seq-approbation}{0.72}
+  {fig:seq-approbation}{1.00}
 
 L'approbation, figure~\ref{fig:seq-approbation}, fait passer le compte a
 l'etat actif et publie a son tour un evenement. La lecture des deux
@@ -149,7 +149,7 @@ chapitre~\ref{chap:architecture}.
 
 \figReelle{iam-communication.png}
   {Echanges du service des identites avec le reste de la plateforme}
-  {fig:com-iam}{0.69}
+  {fig:com-iam}{1.00}
 
 Le service des identites est le seul a \essentiel{publier} des evenements
 types sur le bus de messages. Le service de messagerie les consomme afin
@@ -177,29 +177,38 @@ la session : changer de navigateur ne le remet pas a zero.
 
 Lorsque le second facteur est actif, la verification des identifiants ne
 delivre pas le jeton d'acces mais un \essentiel{jeton temporaire}, de
-courte duree, qui n'ouvre aucun droit metier. L'ecran de la
-figure~\ref{fig:s1-mfa} reclame alors le code a six chiffres produit par
-l'application d'authentification. Le jeton definitif n'est emis qu'apres
-cette seconde verification. Le decoupage en deux etapes distinctes evite
-qu'un mot de passe derobe suffise a lui seul : il faut encore disposer du
-telephone qui porte le secret partage.
+courte duree, qui n'ouvre aucun droit metier. Le jeton definitif n'est
+emis qu'apres la seconde verification. Ce decoupage en deux etapes
+distinctes evite qu'un mot de passe derobe suffise a lui seul.
+
+Deux canaux sont proposes, et l'utilisateur choisit celui qui lui
+convient. Le premier, figure~\ref{fig:s1-mfa}, attend le code a six
+chiffres produit par une \essentiel{application d'authentification}
+installee sur le telephone. C'est le plus sur des deux : le code est
+calcule localement, il ne transite par aucun reseau.
 
 \capture{s1-double-facteur.jpg}
-  {Validation du second facteur apres saisie des identifiants}
+  {Second facteur : code produit par l'application d'authentification}
   {fig:s1-mfa}
 
-Le chauffeur n'a ni le temps ni le confort de saisir une adresse
-electronique et un mot de passe long sur un telephone, souvent debout a
-cote de son vehicule. La figure~\ref{fig:s1-pin} montre le mode de
-connexion qui lui est reserve : un code a quatre chiffres, associe a son
-matricule. Ce raccourci n'affaiblit pas le dispositif general, car il est
-\essentiel{limite a l'application mobile} et ne donne acces qu'aux
-missions affectees au chauffeur : aucun ecran d'administration, aucune
-donnee de facturation.
+Le second canal, figure~\ref{fig:s1-mfa-courriel}, envoie le code par
+\essentiel{courriel}, avec une validite de dix minutes. Il est moins
+robuste, puisqu'il suppose la boite de reception sure, mais il ne
+demande aucune installation prealable. Le proposer evite qu'un
+utilisateur renonce purement et simplement au second facteur, ce qui
+serait le pire des deux mondes. Le bouton de renvoi du code, visible sous
+le champ, repond au cas ordinaire du message qui tarde.
 
-\captureEtroite{s1-connexion-pin.jpg}
-  {Connexion du chauffeur par code PIN depuis l'application mobile}
-  {fig:s1-pin}
+\capture{s1-connexion-pin.jpg}
+  {Second facteur : code a usage unique recu par courriel}
+  {fig:s1-mfa-courriel}
+
+Le chauffeur, lui, dispose d'un mode de connexion adapte a la mobilite :
+un code court associe a son matricule, saisi depuis l'application mobile.
+Ce raccourci n'affaiblit pas le dispositif general, car il est
+\essentiel{limite a cette application} et ne donne acces qu'aux missions
+affectees au chauffeur, sans aucun ecran d'administration ni donnee de
+facturation.
 
 \subsection{L'administration des comptes}
 

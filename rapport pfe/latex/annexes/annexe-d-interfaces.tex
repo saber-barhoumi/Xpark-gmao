@@ -49,16 +49,23 @@ deroulante.
   {Recapitulatif de la demande avant validation par le client}
   {fig:annexe-recap}
 
-\subsection*{Application chauffeur}
+\subsection*{Supervision du suivi en direct}
 
-L'application mobile, figure~\ref{fig:annexe-chauffeur}, presente au
-chauffeur les seules missions qui lui sont affectees. L'interface est
-volontairement pauvre en options : elle est consultee au volant arrete, en
-quelques secondes, et toute densite supplementaire s'y paierait en erreurs
-de manipulation.
+Le chapitre~\ref{chap:sprint3} presente le suivi en direct tel que le
+\essentiel{client} le voit. La figure~\ref{fig:annexe-chauffeur} en montre
+le pendant cote \essentiel{exploitation} : le meme trajet, mais depuis le
+back-office, avec la liste de toutes les missions actives en bandeau
+superieur. L'exploitant passe de l'une a l'autre sans quitter la carte,
+et dispose en marge du nom du chauffeur, de sa vitesse instantanee, du
+kilometrage parcouru et de l'heure d'arrivee estimee.
 
-\captureEtroite{s3-app-chauffeur.jpg}
-  {Application mobile du chauffeur : missions affectees}
+La difference entre les deux ecrans n'est pas cosmetique : le client ne
+voit que sa mission, l'exploitant les voit toutes. C'est la meme donnee de
+position, filtree par le role de celui qui la consulte.
+
+\capture{s3-app-chauffeur.jpg}
+  {Suivi en direct cote back-office : supervision de toutes les missions
+   actives}
   {fig:annexe-chauffeur}
 
 \subsection*{Exploitation de la flotte}

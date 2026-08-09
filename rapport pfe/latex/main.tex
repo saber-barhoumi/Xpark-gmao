@@ -6,7 +6,14 @@
 %                 la table des figures et la pagination n/N)
 %  Ou simplement :  compiler.bat
 % =====================================================================
-\documentclass[12pt,a4paper,twoside,openright]{report}
+%  « oneside » et non « twoside, openright ». En recto-verso, chaque
+%  division doit ouvrir sur une page de droite : quand la precedente se
+%  termine elle-meme a droite, LaTeX intercale une page blanche. Le
+%  document en comptait quatre. Le rapport etant lu et remis sous forme
+%  de fichier, la contrainte n'a pas lieu d'etre : en « oneside », les
+%  \cleardoublepage se comportent en simples \clearpage et les pages
+%  blanches disparaissent, sans qu'il faille toucher aux fichiers.
+\documentclass[12pt,a4paper,oneside]{report}
 
 \input{preambule/packages}
 \input{preambule/style-esprit}
