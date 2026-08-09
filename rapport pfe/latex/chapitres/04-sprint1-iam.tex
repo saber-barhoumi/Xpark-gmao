@@ -1,0 +1,208 @@
+% =====================================================================
+%  Chapitre 4 - Sprint 1 : identites, acces et securite
+% =====================================================================
+\chapter{Sprint 1 : identites, acces et securite}
+\label{chap:sprint1}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Ce premier sprint construit le socle sur lequel reposent tous les
+suivants : sans identites ni habilitations, aucun ecran de la plateforme
+ne peut etre protege et aucune action ne peut etre imputee a son auteur.
+Il couvre l'inscription, l'authentification, la gestion du compte
+personnel et l'administration des comptes par les responsables.
+
+% =====================================================================
+\section{Planification du sprint}
+
+\subsection{Objectifs}
+
+\begin{enumerate}
+  \item Permettre a un visiteur de creer un compte et d'en confirmer
+    l'adresse electronique.
+  \item Authentifier les utilisateurs et proteger les acces par un second
+    facteur optionnel.
+  \item Offrir au chauffeur un mode de connexion adapte a la mobilite.
+  \item Donner a l'administrateur les moyens de statuer sur les demandes
+    d'inscription et de gerer le cycle de vie des comptes.
+  \item Rendre toute connexion tracable.
+\end{enumerate}
+
+\subsection{Carnet du sprint}
+
+\begin{table}[H]
+\centering
+\caption{Carnet du sprint 1}
+\label{tab:backlog-s1}
+\small
+\begin{tabularx}{\textwidth}{@{}cp{2.5cm}Xcc@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Acteur} & \textbf{Besoin exprime} &
+\textbf{Prio.} & \textbf{Pts} \\ \midrule
+1 & Visiteur & Creer un compte & Must & 5 \\
+2 & Visiteur & Confirmer son adresse electronique & Must & 3 \\
+3 & Utilisateur & Se connecter a son espace & Must & 5 \\
+4 & Utilisateur & Activer un second facteur & Should & 8 \\
+5 & Chauffeur & Se connecter par code PIN & Should & 5 \\
+6 & Utilisateur & Gerer son profil et son mot de passe & Must & 3 \\
+7 & Administrateur & Statuer sur les demandes d'inscription & Must & 5 \\
+8 & Responsable & Gerer les habilitations d'un compte & Must & 3 \\
+9 & Administrateur & Archiver un compte sans perdre son historique & Must & 5 \\
+10 & Administrateur & Consulter l'historique des connexions & Should & 3 \\
+\midrule
+\multicolumn{4}{@{}r}{\textbf{Total}} & \textbf{45} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section{Elaboration technique}
+
+\subsection{Modelisation fonctionnelle}
+
+\figReelle{iam-usecase.png}
+  {Cas d'utilisation du service des identites et des acces}
+  {fig:uc-iam}{0.56}
+
+Le diagramme de la figure~\ref{fig:uc-iam} fait apparaitre trois
+regroupements. \essentiel{L'acces au service} rassemble ce qui precede
+l'entree dans l'application, \essentiel{le compte personnel} ce que
+l'utilisateur gere pour lui-meme, et \essentiel{l'administration des
+comptes} ce qui est reserve au responsable et a l'administrateur.
+
+Deux relations d'extension meritent d'etre relevees. \exemple{Valider un
+second facteur} etend \exemple{se connecter} : l'etape n'a lieu que si
+l'utilisateur a active la protection. \exemple{Archiver un compte} etend
+\exemple{supprimer un compte} : l'archivage est propose lorsque le compte
+porte un historique metier. Le cas \exemple{consulter les dependances
+metier} est en revanche \essentiel{inclus}, la verification etant
+systematique avant toute suppression.
+
+\begin{table}[H]
+\centering
+\caption{Description textuelle du cas « se connecter »}
+\label{tab:desc-connexion}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.5cm}X@{}}
+\toprule
+\textbf{Rubrique} & \textbf{Contenu} \\ \midrule
+Acteur & Utilisateur \\
+Precondition & Le compte existe et son statut est ACTIF \\
+Scenario nominal & Saisie des identifiants, verification de l'empreinte,
+  emission d'un jeton d'acces valable soixante minutes et d'un jeton de
+  rafraichissement, journalisation de la connexion \\
+Extension & Si le second facteur est actif, un jeton temporaire est emis
+  et le code est demande avant la delivrance du jeton d'acces \\
+Alternatives & Identifiants invalides : compteur d'echecs incremente,
+  verrouillage de quinze minutes au cinquieme echec. Compte en attente,
+  suspendu ou archive : refus motive \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Conception statique}
+
+\figReelle{iam-class-domain.png}
+  {Modele du domaine du service des identites et des acces}
+  {fig:dom-iam}{0.52}
+
+Le modele repose sur une \essentiel{hierarchie d'heritage}. La classe
+\exemple{Utilisateur} porte ce qui est commun ; \exemple{Client} et
+\exemple{Employe} la specialisent, et \exemple{Chauffeur} specialise a son
+tour \exemple{Employe}. Cette hierarchie est stockee dans une table
+unique, distinguee par un discriminant : les specialisations partagent le
+meme identifiant, ce qui evite une jointure a chaque lecture.
+
+Le \essentiel{statut} du compte est un attribut a part entiere, distinct
+de l'indicateur d'activite. Il decrit un cycle de vie en cinq etats : en
+attente, actif, suspendu, desactive, archive. \essentiel{L'archivage n'est
+pas une suppression} : la ligne est conservee, ce qui preserve les
+missions, les factures et les interventions qui la referencent, et
+l'operation reste reversible.
+
+\subsection{Conception dynamique}
+
+\figReelle{iam-seq-inscription.png}
+  {Sequence : inscription d'un compte}
+  {fig:seq-inscription}{0.72}
+
+La sequence de la figure~\ref{fig:seq-inscription} montre que le compte
+est cree au statut \essentiel{en attente} : il reste inutilisable tant
+qu'un administrateur ne l'a pas approuve. Deux effets accompagnent la
+creation : la publication d'un evenement sur le bus et l'envoi d'un
+courriel de confirmation valable vingt-quatre heures.
+
+\figReelle{iam-seq-approbation-compte.png}
+  {Sequence : approbation d'un compte par l'administrateur}
+  {fig:seq-approbation}{0.72}
+
+L'approbation, figure~\ref{fig:seq-approbation}, fait passer le compte a
+l'etat actif et publie a son tour un evenement. La lecture des deux
+diagrammes met en evidence une constante de conception :
+\essentiel{le controleur ne s'adresse jamais directement au depot}. Il
+passe par une interface de service, satisfaite par une implantation qui
+seule connait la base. C'est la regle de dependance exposee au
+chapitre~\ref{chap:architecture}.
+
+\subsection{Integration avec les autres services}
+
+\figReelle{iam-communication.png}
+  {Echanges du service des identites avec le reste de la plateforme}
+  {fig:com-iam}{0.62}
+
+Le service des identites est le seul a \essentiel{publier} des evenements
+types sur le bus de messages. Le service de messagerie les consomme afin
+de creer automatiquement les conversations d'accueil. Ce couplage est
+\essentiel{asynchrone} : si la messagerie est indisponible, l'inscription
+aboutit malgre tout et l'evenement sera traite au redemarrage.
+
+% =====================================================================
+\section{Realisation et tests de validation}
+
+\figTrois{s1-connexion.jpg}{s1-double-facteur.jpg}{s1-connexion-pin.jpg}
+  {Parcours d'authentification : connexion, validation du second facteur,
+   connexion par code PIN du chauffeur}
+  {fig:ecrans-auth}{0.45}
+
+\figDeux{s1-comptes-attente.jpg}{s1-comptes-archives.jpg}
+  {Administration des comptes : demandes en attente et comptes archives
+   restaurables}
+  {fig:ecrans-admin}{0.60}
+
+\begin{table}[H]
+\centering
+\caption{Tests de validation du sprint 1}
+\label{tab:tests-s1}
+\small
+\begin{tabularx}{\textwidth}{@{}cXp{3.0cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Cas teste} & \textbf{Attendu} &
+\textbf{Etat} \\ \midrule
+T1 & Identifiants valides & Jeton delivre, connexion journalisee & Reussi \\
+T2 & Cinq echecs consecutifs & Verrouillage de quinze minutes & Reussi \\
+T3 & Connexion sur un compte en attente & Refus motive & Reussi \\
+T4 & Second facteur actif & Code demande avant le jeton & Reussi \\
+T5 & Archivage d'un compte porteur de missions & Missions preservees & Reussi \\
+T6 & Restauration d'un compte archive & Compte de nouveau actif & Reussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce sprint livre le socle d'identites de la plateforme : inscription
+soumise a approbation, authentification protegee par un second facteur
+optionnel, connexion par code PIN pour les chauffeurs, gestion des
+habilitations et archivage reversible. Les quarante-cinq points du carnet
+ont ete realises et les six tests de validation sont passes.
+
+Le choix le plus structurant de ce sprint n'est pas technique mais
+metier : \essentiel{ne jamais supprimer un compte qui porte un
+historique}. Il conditionne tous les modules suivants, ou les missions,
+les factures et les interventions referencent leur auteur.
+
+Le sprint suivant construit le second socle, celui des ressources
+materielles : le referentiel de la flotte et des equipements.

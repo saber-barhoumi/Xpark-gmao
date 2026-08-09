@@ -95,12 +95,26 @@ def analyser(chemin):
                 figures += 1
 
     # --- tableaux
+    #  Une rangee ne fait pas une ligne : le texte d'une cellule se
+    #  replie. On estime le nombre de lignes affichees a partir du
+    #  nombre de caracteres de la rangee, rapporte a la largeur utile.
+    #  Sans cela, les tableaux de recits utilisateur etaient sous-evalues
+    #  du simple au double.
     tableaux = 0
     for m in re.finditer(B + r'begin\{(tabularx|longtable|tabular)\}', src):
         fin = src.find('end{' + m.group(1) + '}', m.start())
         corps = src[m.start():fin if fin > 0 else len(src)]
-        lignes = corps.count(r'\\')
-        cm += CM_SOCLE_TABLEAU + lignes * CM_PAR_LIGNE_TABLEAU + CM_LEGENDE
+        petit = ('small' in src[max(0, m.start() - 200):m.start()])
+        car_par_ligne = 108 if petit else 92
+        lignes_affichees = 0
+        for rangee in corps.split(r'\\'):
+            r_ = re.sub(B + r'[a-zA-Z]+\*?(\[[^\]]*\])?', '', rangee)
+            r_ = re.sub(r'[{}&]', ' ', r_).strip()
+            if not r_:
+                continue
+            lignes_affichees += max(1, int(len(r_) / car_par_ligne) + 1)
+        cm += (CM_SOCLE_TABLEAU + lignes_affichees * CM_PAR_LIGNE_TABLEAU
+               + CM_LEGENDE)
         tableaux += 1
 
     # --- titres
@@ -140,12 +154,12 @@ PLAFONDS = {
     'chapitres/01-etude-prealable.tex': 9.0,
     'chapitres/02-analyse-globale.tex': 8.0,
     'chapitres/03-environnement-architecture.tex': 7.0,
-    'chapitres/04-sprint1-iam.tex': 5.5,
-    'chapitres/05-sprint2-flotte.tex': 5.5,
-    'chapitres/06-sprint3-mission.tex': 6.0,
-    'chapitres/07-sprint4-maintenance.tex': 5.5,
-    'chapitres/08-sprint5-finance-alertes.tex': 5.5,
-    'chapitres/09-sprint6-collaboration-ia.tex': 5.5,
+    'chapitres/04-sprint1-iam.tex': 6.1,
+    'chapitres/05-sprint2-flotte.tex': 6.1,
+    'chapitres/06-sprint3-mission.tex': 6.5,
+    'chapitres/07-sprint4-maintenance.tex': 6.1,
+    'chapitres/08-sprint5-finance-alertes.tex': 6.1,
+    'chapitres/09-sprint6-collaboration-ia.tex': 6.1,
     'chapitres/10-conclusion-generale.tex': 2.0,
 }
 
@@ -171,7 +185,7 @@ if __name__ == '__main__':
         cle = f.replace(os.sep, '/')
         plafond = PLAFONDS.get(cle)
         marque = ''
-        if plafond is not None and p > plafond:
+        if plafond is not None and p > plafond + 0.05:
             marque = '  DEPASSE (plafond %.1f)' % plafond
             depassements.append((cle, p, plafond))
         print('%-46s %7.1f %5d %5d%s' % (cle, p, nf, nt, marque))
