@@ -1,0 +1,57 @@
+/* ===========================================================================
+   Charte graphique des courriels XPARK — source unique des couleurs
+   ===========================================================================
+
+   POURQUOI CE FICHIER N'EST PAS UNE FEUILLE DE STYLE CLASSIQUE
+
+   Un courriel ne peut pas charger de feuille de style : Gmail et Outlook
+   suppriment les balises <link>, et Outlook pour Windows ignore une large
+   part de ce qui se trouve dans <style>. Le seul style fiable dans un
+   courriel est le style porté par l'attribut « style » de chaque balise.
+
+   Les gabarits HTML de ce dossier portent donc leurs styles en ligne. Pour
+   qu'une couleur ne soit malgré tout definie qu'a UN SEUL endroit, elle est
+   declaree ici, puis injectee dans les gabarits par templates.py : partout
+   ou un gabarit ecrit {{couleur-accent}}, la valeur ci-dessous est
+   substituee au moment du rendu.
+
+   Changer une couleur du courriel = changer une ligne de ce fichier.
+   Aucune couleur n'est ecrite en dur dans un fichier Python.
+   =========================================================================== */
+
+:root {
+  /* Bandeau d'en-tete et titres — bleu nuit de la charte XPARK */
+  --couleur-fond-entete:   #0F1B24;
+  --couleur-titre:         #0F1B24;
+
+  /* Rouge XPARK — liseré d'accent et éléments critiques */
+  --couleur-accent:        #C11425;
+
+  /* Fond de page et carte */
+  --couleur-fond-page:     #f4f6f9;
+  --couleur-fond-carte:    #ffffff;
+  --couleur-fond-doux:     #f8f9fb;
+
+  /* Textes */
+  --couleur-texte:         #1f2933;
+  --couleur-texte-doux:    #4b5563;
+  --couleur-texte-tenu:    #6b7280;
+  --couleur-texte-efface:  #9aa3ad;
+
+  /* Filets et bordures */
+  --couleur-filet:         #e6e9ee;
+
+  /* Niveaux de priorite — pastille et fond du bandeau de priorite */
+  --couleur-critique:      #C11425;
+  --couleur-critique-fond: #fdecee;
+  --couleur-important:     #B45309;
+  --couleur-important-fond:#fef6e7;
+  --couleur-normal:        #1D4ED8;
+  --couleur-normal-fond:   #eef2ff;
+  --couleur-info:          #4b5563;
+  --couleur-info-fond:     #f3f4f6;
+
+  /* Bouton d'action */
+  --couleur-bouton-fond:   #0F1B24;
+  --couleur-bouton-texte:  #ffffff;
+}

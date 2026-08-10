@@ -1,7 +1,13 @@
 # IntelligentBusinessOwnerAssistant (IBOA)
 
-> Service de monitoring temps réel & alertes intelligentes — port **5008**.
-> Documentation complète : [`../INTELLIGENT_BUSINESS_OWNER_ASSISTANT.md`](../INTELLIGENT_BUSINESS_OWNER_ASSISTANT.md)
+> Service de surveillance d'exploitation et d'alertes — port **5008**.
+>
+> **Documentation technique : [`IBOA_ARCHITECTURE.md`](IBOA_ARCHITECTURE.md)** —
+> logique des seuils, règles anti-saturation, heures calmes, structure du
+> gabarit de courriel, configuration et questions fréquentes.
+>
+> Cahier des charges d'origine :
+> [`../INTELLIGENT_BUSINESS_OWNER_ASSISTANT.md`](../INTELLIGENT_BUSINESS_OWNER_ASSISTANT.md)
 
 ## Démarrage rapide
 
@@ -46,5 +52,17 @@ python test_e2e_iboa.py   # bout-en-bout contre la stack Docker
 | `RABBITMQ_HOST/USER/PASS` | rabbitmq / xpark / xpark_secret | Bus d'événements |
 | `DATABASE_URL` | postgres partagé xpark_gmao | Persistence |
 | `TWILIO_ACCOUNT_SID/AUTH_TOKEN/WHATSAPP_FROM` | *(vide → simulation)* | WhatsApp réel |
-| `SMTP_HOST/PORT/USER/PASS/FROM` | *(vide → simulation)* | Email réel |
-| `IBOA_BATCH_INTERVAL_MIN` | 60 | Fréquence du batch groupé |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | repris des clés `EMAIL_*` du `.env` racine | Email réel |
+| `IBOA_BATCH_INTERVAL_MIN` | 60 | Fréquence du résumé groupé |
+| `IBOA_DASHBOARD_URL` | http://localhost:3000/monitoring/iboa | Lien du bouton d'action |
+
+Les noms lus par le code sont `SMTP_USER` et `SMTP_PASS`, **non**
+`SMTP_USERNAME` ni `SMTP_PASSWORD` : une erreur sur ces noms fait retomber le
+service en simulation sans message d'erreur.
+
+## Gabarits de courriel
+
+Tout ce que lit le destinataire vit dans `assets/`, jamais dans un fichier
+Python : `charte.css` (couleurs), `alerte.html` et `resume.html` (mise en
+forme), `libelles.json` (intitulés français), `logo.png` (joint au message).
+Voir [`IBOA_ARCHITECTURE.md`](IBOA_ARCHITECTURE.md) §7.

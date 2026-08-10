@@ -10,11 +10,14 @@ import logging
 import os
 import smtplib
 import time
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import parseaddr
 
 import requests
+
+import templates
 
 logger = logging.getLogger("iboa.delivery")
 
@@ -56,6 +59,42 @@ def _send_whatsapp_once(to_number: str, body: str) -> None:
     resp.raise_for_status()
 
 
+def _message_avec_logo(to_email: str, subject: str, html: str) -> MIMEMultipart:
+    """Compose le message et y joint le logo XPARK.
+
+    Le logo est JOINT au message et appele par « cid:xpark-logo », plutot
+    que charge depuis une adresse web : Gmail bloque les images distantes
+    tant que le destinataire ne les autorise pas, et refuse purement et
+    simplement les images encodees dans l'adresse (data:). Une piece jointe
+    liee est le seul moyen d'afficher le logo des l'ouverture.
+
+    D'ou l'emboitement, impose par la norme :
+        multipart/related
+          |-- multipart/alternative -> le HTML
+          +-- image/png             -> le logo, Content-ID xpark-logo
+    """
+    msg = MIMEMultipart("related")
+    msg["Subject"] = subject
+    msg["From"] = SMTP_FROM
+    msg["To"] = to_email
+
+    corps = MIMEMultipart("alternative")
+    corps.attach(MIMEText(html, "html", "utf-8"))
+    msg.attach(corps)
+
+    try:
+        with open(templates.LOGO, "rb") as f:
+            logo = MIMEImage(f.read(), _subtype="png")
+        logo.add_header("Content-ID", "<%s>" % templates.LOGO_CID)
+        logo.add_header("Content-Disposition", "inline", filename="xpark.png")
+        msg.attach(logo)
+    except OSError as exc:
+        # Un logo manquant ne doit pas empecher l'alerte de partir.
+        logger.warning("Logo introuvable (%s) — message envoyé sans en-tête visuel", exc)
+
+    return msg
+
+
 def _send_email_once(to_email: str, subject: str, html: str) -> None:
     # SMTP_FROM peut porter un nom d'affichage : « XPARK GMAO <boite@gmail.com> ».
     # Cette forme convient a l'en-tete From, que le destinataire voit, mais PAS
@@ -65,11 +104,7 @@ def _send_email_once(to_email: str, subject: str, html: str) -> None:
     # l'adresse nue.
     envelope = parseaddr(SMTP_FROM)[1] or SMTP_USER
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = SMTP_FROM
-    msg["To"] = to_email
-    msg.attach(MIMEText(html, "html", "utf-8"))
+    msg = _message_avec_logo(to_email, subject, html)
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
         server.starttls()
         server.login(SMTP_USER, SMTP_PASS)

@@ -1,6 +1,15 @@
-"""Message Formatter (FICHE §7.2-5 / §4) — WhatsApp, Email HTML, PDF, Excel."""
+"""Message Formatter (FICHE §7.2-5 / §4) — WhatsApp, Email HTML, PDF, Excel.
 
+Le destinataire de ces messages est un exploitant, pas un developpeur. Rien
+de ce qu'il lit n'est ecrit dans ce fichier : les intitules de champs, les
+titres d'evenements et les phrases expliquant la gravite viennent de
+``assets/libelles.json``, la mise en forme de ``assets/alerte.html`` et
+``assets/resume.html``, les couleurs de ``assets/charte.css``.
+"""
+
+import html as html_mod
 import io
+import os
 from datetime import datetime
 from typing import List
 
@@ -12,103 +21,194 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+import templates
 from models import ScoredEvent
 
 CLASS_EMOJI = {"CRITIQUE": "🚨", "IMPORTANT": "⚠️", "NORMAL": "ℹ️", "INFO": "📋"}
 
-# Libellés français par type d'événement
-TYPE_LABELS = {
-    "xpark.fleet.vehicle-breakdown":     "PANNE VÉHICULE",
-    "xpark.fleet.maintenance-due":       "MAINTENANCE DUE",
-    "xpark.fleet.vehicle-added":         "NOUVEAU VÉHICULE",
-    "xpark.mission.task-completed":      "MISSION TERMINÉE",
-    "xpark.mission.task-cancelled":      "MISSION ANNULÉE",
-    "xpark.mission.task-failed":         "MISSION ÉCHOUÉE",
-    "xpark.mission.task-delayed":        "MISSION RETARDÉE",
-    "xpark.finance.cash-flow-critical":  "TRÉSORERIE CRITIQUE",
-    "xpark.finance.profit-decreased":    "BAISSE DE PROFIT",
-    "xpark.finance.unpaid-invoice":      "FACTURE IMPAYÉE",
-    "xpark.client.new-client":           "NOUVEAU CLIENT",
-    "xpark.client.client-lost":          "CLIENT PERDU",
-    "xpark.optimization.plan-generated": "PLAN D'OPTIMISATION GÉNÉRÉ",
-    "xpark.ai.breakdown-prediction":     "PRÉDICTION DE PANNE (IA)",
-}
+LIEN_DASHBOARD = os.getenv("IBOA_DASHBOARD_URL",
+                           "http://localhost:3000/monitoring/iboa")
+
+
+def _descriptif(event_type: str) -> dict:
+    """Titre, situation et action recommandée pour un type d'événement.
+
+    Un type absent du dictionnaire ne fait pas echouer l'envoi : son nom
+    technique est rendu lisible, et les phrases generiques prennent le
+    relais. Ajouter un evenement cote serveur n'oblige donc pas a toucher
+    au formateur.
+    """
+    connus = templates.libelles()["evenements"]
+    if event_type in connus:
+        return connus[event_type]
+    lisible = (event_type or "").replace("xpark.", "").replace(".", " ").replace("-", " ").strip()
+    return {
+        "titre": lisible.capitalize() or "Fait d'exploitation",
+        "situation": "Un fait d'exploitation a été enregistré par la plateforme.",
+        "action": "Consulter le module concerné pour en mesurer les conséquences.",
+    }
 
 
 def type_label(event_type: str) -> str:
-    return TYPE_LABELS.get(event_type, event_type.replace("xpark.", "").replace(".", " › ").upper())
+    """Intitulé métier, utilisé aussi par les rapports PDF et Excel."""
+    return _descriptif(event_type)["titre"]
 
 
 def _interesting_fields(data: dict, limit: int = 8) -> List[tuple]:
-    """Picks the most human-relevant eventData fields for display."""
-    preferred = ["vehicleImmatriculation", "vehiculeImmatriculation", "immatriculation",
-                 "breakdownDescription", "description", "missionId", "vehicleId",
-                 "vehiculeId", "destination", "chauffeurNom", "currentDriver",
-                 "clientName", "amount", "cost", "coutTotal", "estimatedRepairCost",
-                 "reason", "statut", "marque", "modele"]
-    rows = [(k, data[k]) for k in preferred if data.get(k) not in (None, "", [])]
-    for k, v in data.items():
+    """Données à montrer, en intitulés français.
+
+    L'ordre suit ``assets/libelles.json`` : les champs traduits passent en
+    premier, dans l'ordre du fichier, parce que c'est celui qui a ete pense
+    pour la lecture. Les champs d'implementation listes dans
+    ``champsIgnores`` ne sont jamais montres.
+    """
+    lib = templates.libelles()
+    champs, ignores = lib["champs"], set(lib["champsIgnores"])
+
+    rows, vus = [], set()
+    for cle, intitule in champs.items():
+        valeur = data.get(cle)
+        if cle in vus or valeur in (None, "", [], {}):
+            continue
+        if not isinstance(valeur, (str, int, float, bool)):
+            continue
+        rows.append((intitule, valeur))
+        vus.add(cle)
+        if len(rows) >= limit:
+            return rows
+
+    # Champ non traduit : on le montre quand meme, sous un intitule lisible,
+    # plutot que de laisser un trou dans le message.
+    for cle, valeur in data.items():
         if len(rows) >= limit:
             break
-        if all(k != rk for rk, _ in rows) and isinstance(v, (str, int, float, bool)):
-            rows.append((k, v))
+        if cle in vus or cle in ignores or cle in champs:
+            continue
+        if not isinstance(valeur, (str, int, float, bool)):
+            continue
+        rows.append((cle[0].upper() + cle[1:], valeur))
     return rows[:limit]
+
+
+def _facteurs_metier(scored: ScoredEvent) -> List[str]:
+    """Phrases expliquant le niveau de gravité, sans arithmétique."""
+    table = templates.libelles()["facteurs"]
+    return [table[code] for code in scored.severityFactors if code in table]
 
 
 # ── WhatsApp (FICHE §4.1) — concis, emojis, action ───────────────────────────
 
 def format_whatsapp(scored: ScoredEvent) -> str:
     e = scored.event
-    lines = [
-        f"{CLASS_EMOJI[scored.classification]} ALERTE {scored.classification} — {type_label(e.eventType)}",
-        "",
-    ]
-    for key, value in _interesting_fields(e.eventData, limit=6):
-        lines.append(f"• {key}: {value}")
-    lines += [
-        "",
-        f"📊 Criticité: {scored.criticityScore}/100",
-        f"🕐 {e.timestamp:%d/%m/%Y %H:%M}",
-        f"👉 http://localhost:3000/monitoring/iboa (détails)",
-    ]
+    desc = _descriptif(e.eventType)
+    prio = templates.libelles()["priorites"][scored.classification]
+
+    lines = [f"{CLASS_EMOJI[scored.classification]} {desc['titre'].upper()}",
+             f"{prio['libelle']} — gravité {scored.criticityScore}/100", ""]
+    for intitule, valeur in _interesting_fields(e.eventData, limit=6):
+        lines.append(f"• {intitule} : {valeur}")
+
+    facteurs = _facteurs_metier(scored)
+    if facteurs:
+        lines += ["", "Pourquoi : " + ", ".join(facteurs) + "."]
+    lines += ["", f"À faire : {desc['action']}",
+              f"🕐 {e.timestamp:%d/%m/%Y à %H:%M}",
+              f"👉 {LIEN_DASHBOARD}"]
     return "\n".join(lines)
 
 
 # ── Email HTML (FICHE §4.2) ──────────────────────────────────────────────────
+#  Aucune balise n'est ecrite ici : la mise en forme vient de
+#  assets/alerte.html, les couleurs de assets/charte.css.
+
+def _ligne_tableau(intitule: str, valeur, derniere: bool) -> str:
+    c = templates.couleurs()
+    bord = "" if derniere else f"border-bottom:1px solid {c['couleur-filet']};"
+    return (
+        f"<tr>"
+        f"<td style=\"padding:11px 16px;{bord}background-color:{c['couleur-fond-doux']};"
+        f"font-size:13.5px;color:{c['couleur-texte-tenu']};width:45%;\">"
+        f"{html_mod.escape(str(intitule))}</td>"
+        f"<td style=\"padding:11px 16px;{bord}font-size:14px;color:{c['couleur-texte']};"
+        f"font-weight:600;\">{html_mod.escape(str(valeur))}</td>"
+        f"</tr>")
+
+
+def _puces_facteurs(facteurs: List[str], repli: str) -> str:
+    if not facteurs:
+        return html_mod.escape(repli)
+    return "".join(f"• {html_mod.escape(f)}<br>" for f in facteurs).rstrip("<br>")
+
 
 def format_email(scored: ScoredEvent) -> tuple:
     """Returns (subject, html_body)."""
     e = scored.event
-    subject = (f"[{scored.classification}] {type_label(e.eventType)} "
-               f"— criticité {scored.criticityScore}/100")
+    desc = _descriptif(e.eventType)
+    lib = templates.libelles()
+    prio = lib["priorites"][scored.classification]
+    c = templates.couleurs()
 
-    rows = "".join(
-        f"<tr><td style='padding:4px 10px;border:1px solid #ddd'><b>{k}</b></td>"
-        f"<td style='padding:4px 10px;border:1px solid #ddd'>{v}</td></tr>"
-        for k, v in _interesting_fields(e.eventData))
-    breakdown = "".join(f"<li>{b}</li>" for b in scored.scoreBreakdown)
+    subject = f"{desc['titre']} — {prio['libelle'].lower()} ({scored.criticityScore}/100)"
 
-    html = f"""
-<h2>{CLASS_EMOJI[scored.classification]} {type_label(e.eventType)}</h2>
-<p><b>Classification:</b> {scored.classification} — score {scored.criticityScore}/100<br>
-<b>Service source:</b> {e.sourceService} · <b>Horodatage:</b> {e.timestamp:%d/%m/%Y %H:%M}</p>
-<table style="border-collapse:collapse">{rows}</table>
-<h3>Calcul de la criticité</h3><ul>{breakdown}</ul>
-<hr><p><em>Alerte générée automatiquement par XPARK IntelligentBusinessOwnerAssistant</em></p>
-"""
+    champs = _interesting_fields(e.eventData)
+    lignes = "".join(_ligne_tableau(k, v, i == len(champs) - 1)
+                     for i, (k, v) in enumerate(champs))
+
+    html = templates.rendre("alerte.html", {
+        "titre": html_mod.escape(desc["titre"]),
+        "situation": html_mod.escape(desc["situation"]),
+        "action": html_mod.escape(desc["action"]),
+        "prioriteLibelle": html_mod.escape(prio["libelle"]),
+        "prioriteCouleur": c[f"couleur-{prio['jeton']}"],
+        "prioriteFond": c[f"couleur-{prio['jeton']}-fond"],
+        "score": scored.criticityScore,
+        "horodatage": f"{e.timestamp:%d/%m/%Y à %H:%M}",
+        "lignes": lignes,
+        "facteurs": _puces_facteurs(
+            _facteurs_metier(scored),
+            "Niveau déterminé par la nature même du fait signalé."),
+        "lienDashboard": LIEN_DASHBOARD,
+        "annee": datetime.now().year,
+    })
     return subject, html
 
 
 # ── Batch / méta-alerte (FICHE §5.2 R2) ──────────────────────────────────────
 
 def format_batch_email(batch: List[ScoredEvent]) -> tuple:
-    subject = f"[RÉSUMÉ] {len(batch)} événements XPARK regroupés"
-    items = "".join(
-        f"<li>{CLASS_EMOJI[s.classification]} <b>{type_label(s.event.eventType)}</b> "
-        f"(score {s.criticityScore}) — {s.event.timestamp:%H:%M}</li>"
-        for s in sorted(batch, key=lambda s: -s.criticityScore))
-    html = (f"<h2>📦 Résumé groupé — {len(batch)} événements</h2><ul>{items}</ul>"
-            f"<p><em>Regroupés pour éviter la surcharge d'alertes (règle anti-spam IBOA)</em></p>")
+    lib = templates.libelles()
+    c = templates.couleurs()
+    subject = f"Résumé d'exploitation — {len(batch)} faits à consulter"
+
+    tries = sorted(batch, key=lambda s: -s.criticityScore)
+    lignes = []
+    for i, s in enumerate(tries):
+        desc = _descriptif(s.event.eventType)
+        prio = lib["priorites"][s.classification]
+        bord = "" if i == len(tries) - 1 else f"border-bottom:1px solid {c['couleur-filet']};"
+        lignes.append(
+            f"<tr>"
+            f"<td style=\"padding:12px 16px;{bord}font-size:14px;color:{c['couleur-texte']};\">"
+            f"<strong>{html_mod.escape(desc['titre'])}</strong><br>"
+            f"<span style=\"font-size:12.5px;color:{c['couleur-texte-efface']};\">"
+            f"{s.event.timestamp:%d/%m à %H:%M}</span></td>"
+            f"<td align=\"right\" style=\"padding:12px 16px;{bord}white-space:nowrap;\">"
+            f"<span style=\"font-size:12px;font-weight:700;color:{c['couleur-' + prio['jeton']]};\">"
+            f"{html_mod.escape(prio['libelle'])}</span><br>"
+            f"<span style=\"font-size:12px;color:{c['couleur-texte-efface']};\">"
+            f"{s.criticityScore}/100</span></td>"
+            f"</tr>")
+
+    html = templates.rendre("resume.html", {
+        "nombre": len(batch),
+        "periode": ("Période couverte : depuis le dernier résumé"
+                    if not tries else
+                    f"Du {min(s.event.timestamp for s in tries):%d/%m à %H:%M} "
+                    f"au {max(s.event.timestamp for s in tries):%d/%m à %H:%M}"),
+        "lignes": "".join(lignes),
+        "lienDashboard": LIEN_DASHBOARD,
+        "annee": datetime.now().year,
+    })
     return subject, html
 
 

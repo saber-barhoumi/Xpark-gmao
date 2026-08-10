@@ -93,9 +93,15 @@ def _num(value, default=0.0) -> float:
 
 
 def score_event(event: BusinessEvent) -> ScoredEvent:
-    """Computes criticality with an explainable breakdown (FICHE §5.1)."""
+    """Computes criticality with an explainable breakdown (FICHE §5.1).
+
+    Deux sorties pour un seul calcul :
+      scoreBreakdown  le detail chiffre, verifiable ligne a ligne
+      severityFactors les codes des facteurs, pour la lecture metier
+    """
     data, ctx = event.eventData, event.context
     breakdown: List[Tuple[str, int]] = []
+    facteurs: List[str] = []
 
     base = BASE_SCORES.get(event.eventType, DEFAULT_BASE)
     breakdown.append((f"Base {event.eventType}", base))
@@ -105,16 +111,19 @@ def score_event(event: BusinessEvent) -> ScoredEvent:
     sev = SEVERITY_BONUS.get(event.severity.upper(), 0)
     if sev:
         breakdown.append((f"Sévérité {event.severity}", sev))
+        facteurs.append("GRAVITE_ELEVEE")
         score += sev
 
     # +20 si mission active impactée
     if data.get("currentMission") or data.get("missionImpacted") or ctx.get("serviceImpact") == "CRITICAL":
         breakdown.append(("Mission active impactée", 20))
+        facteurs.append("MISSION_ACTIVE")
         score += 20
 
     # +15 si client PREMIUM/VIP
     if str(ctx.get("clientImportance", "")).upper() in ("PREMIUM", "VIP"):
         breakdown.append(("Client PREMIUM/VIP", 15))
+        facteurs.append("CLIENT_VIP")
         score += 15
 
     # +10 si impact financier > 500 TND
@@ -122,6 +131,7 @@ def score_event(event: BusinessEvent) -> ScoredEvent:
                  _num(data.get("cost")), _num(data.get("coutTotal")))
     if amount > 500:
         breakdown.append((f"Impact financier {amount:.0f} TND > 500", 10))
+        facteurs.append("COUT_ELEVE")
         score += 10
 
     # +5 si récurrence (3+ événements similaires ce mois / 7 jours)
@@ -129,22 +139,27 @@ def score_event(event: BusinessEvent) -> ScoredEvent:
                int(_num(ctx.get("sameObjectEventsThisMonth"))))
     if freq >= 3:
         breakdown.append((f"Récurrence ({freq} événements similaires)", 5))
+        facteurs.append("RECURRENCE")
         score += 5
 
     # Cas particuliers FICHE §5.1
     if event.eventType == "xpark.finance.profit-decreased":
         if _num(data.get("changePercent")) < -20:
             breakdown.append(("Baisse > 20%", 15))
+            facteurs.append("BAISSE_MARQUEE")
             score += 15
         if _num(data.get("cashPosition"), 1e9) < 5000:
             breakdown.append(("Cash flow < 5000 TND", 20))
+            facteurs.append("TRESORERIE_BASSE")
             score += 20
     if event.eventType == "xpark.client.new-client":
         if _num(data.get("contractMonthlyValue")) > 5000:
             breakdown.append(("Contrat > 5000 TND/mois", 15))
+            facteurs.append("CONTRAT_IMPORTANT")
             score += 15
         if data.get("strategic"):
             breakdown.append(("Client stratégique", 20))
+            facteurs.append("CLIENT_STRATEGIQUE")
             score += 20
 
     final = _clamp(score)
@@ -154,6 +169,7 @@ def score_event(event: BusinessEvent) -> ScoredEvent:
         classification=classify(final),
         scoreBreakdown=[f"{label}: +{pts}" if pts >= 0 else f"{label}: {pts}"
                         for label, pts in breakdown],
+        severityFactors=facteurs,
     )
 
 

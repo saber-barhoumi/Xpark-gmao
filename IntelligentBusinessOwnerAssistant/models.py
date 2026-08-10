@@ -26,7 +26,14 @@ class ScoredEvent(BaseModel):
     event: BusinessEvent
     criticityScore: int                         # 1-100 (FICHE §5.1)
     classification: str                         # CRITIQUE | IMPORTANT | NORMAL | INFO
-    scoreBreakdown: List[str]                   # explainability of the score
+    scoreBreakdown: List[str]                   # detail chiffre, pour le tableau de bord et l'audit
+
+    # Codes stables des facteurs ayant alourdi le score (MISSION_ACTIVE,
+    # CLIENT_VIP...). Le detail chiffre ci-dessus explique le calcul a qui
+    # doit le verifier ; ces codes servent a en donner une lecture metier
+    # dans les courriels, via assets/libelles.json. Deux lectures d'un meme
+    # scoring, et non deux scorings.
+    severityFactors: List[str] = Field(default_factory=list)
 
 
 # ── Alert (FICHE §7.3 TABLE Alerts) ──────────────────────────────────────────

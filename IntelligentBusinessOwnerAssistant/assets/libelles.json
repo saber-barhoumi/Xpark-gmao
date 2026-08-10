@@ -1,0 +1,218 @@
+{
+  "_lisezMoi": [
+    "Traduction metier des courriels IBOA. Tout ce qu'un exploitant lit se",
+    "trouve ici : aucun libelle n'est ecrit en dur dans un fichier Python.",
+    "",
+    "champs      : nom technique d'une donnee -> intitule affiche dans le tableau",
+    "evenements  : type d'evenement -> titre, phrase de situation, action attendue",
+    "facteurs    : code de facteur de gravite -> phrase metier expliquant le score",
+    "priorites   : classification interne -> intitule lisible et jeton de couleur"
+  ],
+
+  "champs": {
+    "vehicleImmatriculation": "Immatriculation",
+    "vehiculeImmatriculation": "Immatriculation",
+    "immatriculation": "Immatriculation",
+    "plate": "Immatriculation",
+    "breakdownDescription": "Description de la panne",
+    "description": "Description",
+    "vehicleId": "Identifiant véhicule",
+    "vehiculeId": "Identifiant véhicule",
+    "currentDriver": "Chauffeur assigné",
+    "chauffeurNom": "Chauffeur assigné",
+    "driverName": "Chauffeur assigné",
+    "estimatedRepairCost": "Coût estimé des réparations (TND)",
+    "amount": "Montant (TND)",
+    "montant": "Montant (TND)",
+    "cost": "Coût (TND)",
+    "coutTotal": "Coût total (TND)",
+    "missionId": "Mission concernée",
+    "clientName": "Client",
+    "clientNom": "Client",
+    "destination": "Destination",
+    "villeArrivee": "Destination",
+    "villeDepart": "Départ",
+    "origin": "Départ",
+    "distance": "Distance (km)",
+    "distanceKm": "Distance (km)",
+    "reason": "Motif",
+    "raison": "Motif",
+    "motif": "Motif",
+    "statut": "Statut",
+    "status": "Statut",
+    "marque": "Marque",
+    "modele": "Modèle",
+    "invoiceId": "Facture concernée",
+    "employeeId": "Employé concerné",
+    "changePercent": "Variation (%)",
+    "cashPosition": "Trésorerie disponible (TND)",
+    "contractMonthlyValue": "Valeur mensuelle du contrat (TND)"
+  },
+
+  "champsIgnores": [
+    "eventId", "batchId", "executionTimeMs", "correlationId", "traceId",
+    "version", "sourceService", "schemaVersion", "strategic"
+  ],
+
+  "evenements": {
+    "xpark.fleet.vehicle-breakdown": {
+      "titre": "Panne de véhicule",
+      "situation": "Un véhicule du parc est immobilisé par une avarie.",
+      "action": "Ouvrir un ordre de travail, réaffecter les missions en cours et prévenir les clients concernés."
+    },
+    "xpark.fleet.maintenance-due": {
+      "titre": "Entretien à programmer",
+      "situation": "Un véhicule a atteint l'échéance de sa révision périodique.",
+      "action": "Planifier le passage à l'atelier avant la prochaine mission longue."
+    },
+    "xpark.fleet.insurance-expired": {
+      "titre": "Assurance expirée",
+      "situation": "La couverture d'assurance d'un véhicule n'est plus valide.",
+      "action": "Immobiliser le véhicule et renouveler le contrat avant toute nouvelle sortie."
+    },
+    "xpark.fleet.inspection-expired": {
+      "titre": "Visite technique expirée",
+      "situation": "La visite technique d'un véhicule est dépassée.",
+      "action": "Retirer le véhicule de la planification et prendre rendez-vous au centre de contrôle."
+    },
+    "xpark.fleet.fuel-anomalie": {
+      "titre": "Consommation anormale",
+      "situation": "La consommation d'un véhicule s'écarte de sa moyenne habituelle.",
+      "action": "Vérifier le véhicule et les relevés de plein des dernières semaines."
+    },
+    "xpark.fleet.fuel-anomaly": {
+      "titre": "Consommation anormale",
+      "situation": "La consommation d'un véhicule s'écarte de sa moyenne habituelle.",
+      "action": "Vérifier le véhicule et les relevés de plein des dernières semaines."
+    },
+    "xpark.fleet.vehicle-added": {
+      "titre": "Véhicule ajouté au parc",
+      "situation": "Un nouveau véhicule a été enregistré dans la flotte.",
+      "action": "Vérifier que l'assurance, la visite technique et la carte grise sont enregistrées."
+    },
+    "xpark.fleet.low-readiness": {
+      "titre": "Disponibilité du parc dégradée",
+      "situation": "Une part inhabituelle du parc est indisponible.",
+      "action": "Arbitrer les immobilisations en atelier et différer ce qui peut l'être."
+    },
+    "xpark.mission.task-failed": {
+      "titre": "Mission échouée",
+      "situation": "Un transport n'a pas pu être mené à son terme.",
+      "action": "Contacter le client, convenir d'une reprise et déterminer la cause de l'échec."
+    },
+    "xpark.mission.task-delayed": {
+      "titre": "Mission en retard",
+      "situation": "Un transport accuse un retard sur l'heure d'arrivée prévue.",
+      "action": "Prévenir le client et réviser l'heure d'arrivée annoncée."
+    },
+    "xpark.mission.task-cancelled": {
+      "titre": "Mission annulée",
+      "situation": "Un transport prévu a été annulé.",
+      "action": "Replanifier si possible et libérer le véhicule et le chauffeur réservés."
+    },
+    "xpark.mission.task-completed": {
+      "titre": "Mission terminée",
+      "situation": "Un transport a été mené à son terme et clôturé.",
+      "action": "Établir la facture correspondante."
+    },
+    "xpark.mission.client-request": {
+      "titre": "Nouvelle demande de transport",
+      "situation": "Un client a déposé une demande depuis son espace.",
+      "action": "Établir et envoyer un devis."
+    },
+    "xpark.mission.high-workload": {
+      "titre": "Charge de travail élevée",
+      "situation": "Le volume de missions dépasse la capacité habituelle.",
+      "action": "Répartir la charge ou renforcer temporairement l'équipe."
+    },
+    "xpark.mission.low-completion-rate": {
+      "titre": "Taux de réalisation en baisse",
+      "situation": "La proportion de missions menées à terme recule.",
+      "action": "Analyser les motifs d'échec des dernières semaines."
+    },
+    "xpark.finance.unpaid-invoice": {
+      "titre": "Facture impayée",
+      "situation": "Une facture a dépassé sa date d'échéance sans règlement.",
+      "action": "Relancer le client et suspendre les nouvelles prestations si le retard persiste."
+    },
+    "xpark.finance.cash-flow-critical": {
+      "titre": "Trésorerie critique",
+      "situation": "La trésorerie disponible est descendue sous le seuil de sécurité.",
+      "action": "Accélérer les encaissements et différer les dépenses non engagées."
+    },
+    "xpark.finance.profit-decreased": {
+      "titre": "Baisse de rentabilité",
+      "situation": "La marge dégagée recule par rapport à la période précédente.",
+      "action": "Examiner l'évolution des coûts d'exploitation et de la tarification."
+    },
+    "xpark.finance.budget-exceeded": {
+      "titre": "Budget dépassé",
+      "situation": "Une ligne budgétaire a dépassé son enveloppe.",
+      "action": "Identifier le poste concerné et arbitrer les dépenses restantes."
+    },
+    "xpark.finance.major-expense": {
+      "titre": "Dépense importante",
+      "situation": "Une dépense d'un montant inhabituel a été enregistrée.",
+      "action": "Vérifier son rattachement et sa justification."
+    },
+    "xpark.client.client-lost": {
+      "titre": "Client perdu",
+      "situation": "Un client a cessé de confier des transports à l'entreprise.",
+      "action": "Prendre contact pour comprendre le motif et tenter une reconquête."
+    },
+    "xpark.client.new-client": {
+      "titre": "Nouveau client",
+      "situation": "Un nouveau client a été enregistré.",
+      "action": "Vérifier les conditions commerciales et les coordonnées de facturation."
+    },
+    "xpark.client.frequent-complaints": {
+      "titre": "Réclamations répétées",
+      "situation": "Un client a formulé plusieurs réclamations rapprochées.",
+      "action": "Traiter le fond du litige avant qu'il ne mette la relation en cause."
+    },
+    "xpark.hr.employee-departed": {
+      "titre": "Départ d'un collaborateur",
+      "situation": "Un membre de l'équipe a quitté l'entreprise.",
+      "action": "Réaffecter ses missions et prévoir son remplacement."
+    },
+    "xpark.hr.contract-expires": {
+      "titre": "Contrat arrivant à échéance",
+      "situation": "Le contrat d'un collaborateur approche de son terme.",
+      "action": "Décider du renouvellement et engager les formalités."
+    },
+    "xpark.operations.resource-shortage": {
+      "titre": "Ressources insuffisantes",
+      "situation": "Les moyens disponibles ne couvrent pas les besoins planifiés.",
+      "action": "Arbitrer les priorités ou recourir à la sous-traitance."
+    },
+    "xpark.ai.breakdown-prediction": {
+      "titre": "Risque de panne signalé",
+      "situation": "L'analyse de l'usure et de l'historique désigne un véhicule à risque.",
+      "action": "Programmer un contrôle préventif avant la prochaine mission longue."
+    },
+    "xpark.optimization.plan-generated": {
+      "titre": "Plan d'affectation proposé",
+      "situation": "Une répartition des missions en attente a été calculée.",
+      "action": "Vérifier la proposition puis la valider ou l'ajuster."
+    }
+  },
+
+  "facteurs": {
+    "GRAVITE_ELEVEE":     "la gravité déclarée par le service concerné est élevée",
+    "MISSION_ACTIVE":     "une mission en cours est directement affectée",
+    "CLIENT_VIP":         "le client concerné est un compte prioritaire",
+    "COUT_ELEVE":         "l'incidence financière dépasse 500 TND",
+    "RECURRENCE":         "le même problème s'est déjà produit plusieurs fois cette semaine",
+    "BAISSE_MARQUEE":     "le recul dépasse 20 % par rapport à la période précédente",
+    "TRESORERIE_BASSE":   "la trésorerie disponible est sous le seuil de sécurité",
+    "CONTRAT_IMPORTANT":  "le contrat représente plus de 5 000 TND par mois",
+    "CLIENT_STRATEGIQUE": "le client est identifié comme stratégique"
+  },
+
+  "priorites": {
+    "CRITIQUE":  { "libelle": "Traitement immédiat", "jeton": "critique" },
+    "IMPORTANT": { "libelle": "Important",           "jeton": "important" },
+    "NORMAL":    { "libelle": "À suivre",            "jeton": "normal" },
+    "INFO":      { "libelle": "Pour information",    "jeton": "info" }
+  }
+}

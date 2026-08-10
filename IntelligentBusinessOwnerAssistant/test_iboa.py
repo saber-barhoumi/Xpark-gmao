@@ -68,8 +68,14 @@ print("OK object_key")
 prefs = OwnerPreferences()
 agg = Aggregator()
 
+# Jeu de donnees volontairement complet : il sert aussi aux tests de
+# formatage plus bas, qui verifient la traduction de chaque intitule.
 breakdown = score_event(evt("xpark.fleet.vehicle-breakdown", "HIGH",
-                            data={"vehicleId": 45, "estimatedRepairCost": 450,
+                            data={"vehicleId": 45,
+                                  "vehicleImmatriculation": "TN-1234-ABC",
+                                  "breakdownDescription": "Moteur ne démarre plus",
+                                  "currentDriver": "Ahmed Karim",
+                                  "estimatedRepairCost": 450,
                                   "currentMission": {"missionId": 1}},
                             ctx={"clientImportance": "PREMIUM"}))
 
@@ -116,16 +122,57 @@ print("OK R4 fatigue alertes (batch sauf CRITIQUE)")
 
 import formatters
 
+#  Le destinataire est un exploitant : ce qu'il lit doit etre en francais
+#  metier. Ces assertions verifient la traduction ET l'absence de jargon.
+
 wa = formatters.format_whatsapp(breakdown)
-assert "ALERTE CRITIQUE" in wa and "Criticité" in wa
+assert "PANNE DE VÉHICULE" in wa, wa
+assert "Immatriculation : TN-1234-ABC" in wa, wa
+assert "xpark.fleet" not in wa, "nom technique d'evenement visible sur WhatsApp"
+
 subject, html = formatters.format_email(breakdown)
-assert "CRITIQUE" in subject and "<table" in html
+assert "Panne de véhicule" in subject and "traitement immédiat" in subject, subject
+assert "<table" in html
+
+#  Intitules francais imposes, et non les noms de champs du flux.
+for attendu in ("Immatriculation", "Description de la panne", "Identifiant véhicule",
+                "Chauffeur assigné", "Coût estimé des réparations (TND)"):
+    assert attendu in html, "intitule manquant : " + attendu
+
+#  Aucune trace de debug : ni nom technique, ni service source, ni addition.
+for interdit in ("xpark.fleet", "TestConsole", "Service source", "vehicleImmatriculation",
+                 "breakdownDescription", "estimatedRepairCost", "+70", "Base "):
+    assert interdit not in html, "jargon technique dans le courriel : " + interdit
+
+#  Le niveau de gravite est explique en clair, pas par une somme.
+assert "Pourquoi ce niveau de gravité" in html
+assert "une mission en cours est directement affectée" in html
+assert "Action recommandée" in html
+
+#  Le logo est appele par piece jointe liee, jamais par une adresse web.
+assert "cid:xpark-logo" in html
+assert "<!--" not in html, "commentaire de gabarit laisse dans le message"
+
 sub_b, html_b = formatters.format_batch_email([normal, info])
-assert "2 événements" in sub_b
+assert "2 faits" in sub_b, sub_b
+assert "cid:xpark-logo" in html_b
+
 pdf = formatters.build_daily_pdf([], [], {"eventsByClassification": {}})
 assert pdf[:4] == b"%PDF"
 xlsx = formatters.build_daily_excel([], [], {"eventsByClassification": {}, "alerts": []})
 assert xlsx[:2] == b"PK"
 print("OK formatters WhatsApp / Email / batch / PDF / Excel")
+
+
+# ── Assets et gabarits ────────────────────────────────────────────────────────
+
+import templates
+
+assert templates.couleurs()["couleur-accent"] == "#C11425"
+assert "Immatriculation" in templates.libelles()["champs"].values()
+#  Un evenement inconnu ne doit pas faire echouer le formatage.
+inconnu = formatters.format_email(score_event(evt("xpark.zzz.jamais-vu", "LOW")))
+assert inconnu[1].count("{{") == 0, "marqueur non substitue pour un type inconnu"
+print("OK assets : charte, libellés, gabarits, type inconnu")
 
 print("\nALL IBOA UNIT TESTS PASSED")
