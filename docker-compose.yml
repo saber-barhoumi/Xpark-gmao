@@ -422,16 +422,23 @@ services:
       - RABBITMQ_USER=xpark
       - RABBITMQ_PASS=xpark_secret
       - DATABASE_URL=host=postgres port=5432 dbname=xpark_gmao user=xpark_user password=xpark_password_2026
-      # Envoi réel WhatsApp (optionnel) :
-      # - TWILIO_ACCOUNT_SID=ACxxxxxxxx
-      # - TWILIO_AUTH_TOKEN=xxxxxxxx
-      # - TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-      # Envoi réel Email (optionnel) :
-      # - SMTP_HOST=smtp.gmail.com
-      # - SMTP_PORT=587
-      # - SMTP_USER=xxxx@gmail.com
-      # - SMTP_PASS=app-password
-      # - SMTP_FROM=iboa@xpark.tn
+      # Envoi réel Email : mêmes identifiants Gmail que le service des
+      # identités, pris dans le .env de la racine. Les noms de variables
+      # attendus par delivery.py sont SMTP_USER et SMTP_PASS (pas USERNAME
+      # ni PASSWORD). Si le .env est absent, les valeurs restent vides et
+      # le service retombe de lui-même en simulation.
+      - SMTP_HOST=${EMAIL_HOST:-}
+      - SMTP_PORT=${EMAIL_PORT:-587}
+      - SMTP_USER=${EMAIL_USERNAME:-}
+      - SMTP_PASS=${EMAIL_PASSWORD:-}
+      # Porte le nom d'affichage : delivery.py n'en garde que l'adresse
+      # pour l'expéditeur d'enveloppe.
+      - SMTP_FROM=${EMAIL_FROM:-XPARK GMAO <noreply@xpark.tn>}
+      # Envoi réel WhatsApp (laissé en simulation) : renseigner ces trois
+      # clés dans le .env suffit à l'activer, sans changement de code.
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM:-}
     ports:
       - "5008:8000"
     depends_on:

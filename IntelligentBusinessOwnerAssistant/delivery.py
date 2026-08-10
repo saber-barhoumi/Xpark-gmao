@@ -12,6 +12,7 @@ import smtplib
 import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import parseaddr
 
 import requests
 
@@ -37,7 +38,11 @@ def whatsapp_configured() -> bool:
 
 
 def email_configured() -> bool:
-    return bool(SMTP_HOST and SMTP_USER)
+    # Le mot de passe compte autant que l'hote et l'utilisateur : _send_email_once
+    # appelle toujours server.login(). Sans mot de passe, l'envoi echouerait a
+    # coup sur, et le service enchainerait trois tentatives espacees de 0, 5 et
+    # 15 secondes au lieu de retomber franchement en simulation.
+    return bool(SMTP_HOST and SMTP_USER and SMTP_PASS)
 
 
 def _send_whatsapp_once(to_number: str, body: str) -> None:
@@ -52,6 +57,14 @@ def _send_whatsapp_once(to_number: str, body: str) -> None:
 
 
 def _send_email_once(to_email: str, subject: str, html: str) -> None:
+    # SMTP_FROM peut porter un nom d'affichage : « XPARK GMAO <boite@gmail.com> ».
+    # Cette forme convient a l'en-tete From, que le destinataire voit, mais PAS
+    # a l'expediteur d'enveloppe : sendmail() l'emet tel quel dans la commande
+    # MAIL FROM, et le serveur repond alors « syntax error ». On separe donc les
+    # deux : le nom d'affichage reste dans l'en-tete, l'enveloppe ne porte que
+    # l'adresse nue.
+    envelope = parseaddr(SMTP_FROM)[1] or SMTP_USER
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = SMTP_FROM
@@ -60,7 +73,7 @@ def _send_email_once(to_email: str, subject: str, html: str) -> None:
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
         server.starttls()
         server.login(SMTP_USER, SMTP_PASS)
-        server.sendmail(SMTP_FROM, [to_email], msg.as_string())
+        server.sendmail(envelope, [to_email], msg.as_string())
 
 
 def _with_retry(send_fn, channel: str) -> tuple:
