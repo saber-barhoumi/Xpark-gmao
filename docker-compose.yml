@@ -422,9 +422,19 @@ services:
       dockerfile: Dockerfile
     container_name: xpark-ocr
     environment:
+      # Fournisseur : « groq » (api.groq.com, clés « gsk_… ») ou « xai »
+      # (api.x.ai, modèle Grok, clés « xai-… »). Les deux noms se
+      # ressemblent mais désignent deux services sans rapport : une clé de
+      # l'un présentée à l'autre répond 401.
+      - OCR_FOURNISSEUR=${OCR_FOURNISSEUR:-groq}
       # Clé du fournisseur — dans le .env de la racine, jamais versionnée.
+      - OCR_API_KEY=${OCR_API_KEY:-}
+      # Renseigner ces deux-là seulement pour sortir des valeurs par défaut
+      # du fournisseur choisi.
+      - OCR_API_URL=${OCR_API_URL:-}
+      - OCR_VISION_MODEL=${OCR_VISION_MODEL:-}
+      # Ancien nom, encore accepté.
       - GROQ_API_KEY=${GROQ_API_KEY:-}
-      - GROQ_VISION_MODEL=${GROQ_VISION_MODEL:-meta-llama/llama-4-scout-17b-16e-instruct}
       # Mêmes paramètres de jeton que les services .NET : le service
       # n'accepte que les appels porteurs d'un jeton de session valide.
       - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}

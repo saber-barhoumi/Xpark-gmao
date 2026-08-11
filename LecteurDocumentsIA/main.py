@@ -40,10 +40,36 @@ logging.basicConfig(
 logger = logging.getLogger("lecteur-documents")
 
 # --- Fournisseur ------------------------------------------------------------
-GROQ_CLE = os.getenv("GROQ_API_KEY", "")
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODELE_VISION = os.getenv("GROQ_VISION_MODEL",
-                          "meta-llama/llama-4-scout-17b-16e-instruct")
+#  DEUX FOURNISSEURS PORTENT DES NOMS QUASI IDENTIQUES, ET CE N'EST PAS LE
+#  MEME SERVICE :
+#
+#     Groq  — api.groq.com — heberge des modeles ouverts. Cles en « gsk_… »
+#     Grok  — api.x.ai     — le modele de xAI.           Cles en « xai_… »
+#
+#  Une cle de l'un presentee a l'autre repond 401, sans plus d'explication.
+#  L'adresse et le modele sont donc configurables : la meme image de
+#  conteneur sert avec l'un ou l'autre, sans modification de code.
+FOURNISSEURS = {
+    "groq": ("https://api.groq.com/openai/v1/chat/completions",
+             "meta-llama/llama-4-scout-17b-16e-instruct"),
+    "xai":  ("https://api.x.ai/v1/chat/completions",
+             "grok-2-vision-1212"),
+}
+
+_url_defaut, _modele_defaut = FOURNISSEURS.get(
+    os.getenv("OCR_FOURNISSEUR", "groq").lower(), FOURNISSEURS["groq"])
+
+# GROQ_API_KEY reste accepte : c'est le nom employe avant l'ouverture a
+# plusieurs fournisseurs.
+# « or » et non le defaut de getenv : docker-compose definit ces variables
+# meme lorsqu'elles sont vides (« OCR_API_URL=${OCR_API_URL:-} »). Avec
+# os.getenv(nom, defaut), une variable definie a la chaine vide l'emporterait
+# sur le defaut, et le service appellerait une adresse vide.
+FOURNISSEUR_CLE = os.getenv("OCR_API_KEY") or os.getenv("GROQ_API_KEY") or ""
+FOURNISSEUR_URL = os.getenv("OCR_API_URL") or _url_defaut
+MODELE_VISION = (os.getenv("OCR_VISION_MODEL")
+                 or os.getenv("GROQ_VISION_MODEL")
+                 or _modele_defaut)
 
 # --- Jeton d'acces ----------------------------------------------------------
 JWT_CLE = os.getenv("Jwt__Key", "")
@@ -134,19 +160,33 @@ def sante():
     return {
         "status": "healthy",
         "service": "LecteurDocumentsIA",
-        "fournisseurConfigure": bool(GROQ_CLE),
+        "fournisseurConfigure": bool(FOURNISSEUR_CLE),
+        "fournisseurUrl": FOURNISSEUR_URL,
         "verificationAccesActive": bool(JWT_CLE),
         "modele": MODELE_VISION,
     }
 
 
+# Les DEUX ecritures sont declarees, avec et sans barre finale.
+#
+# L'intercepteur du front ajoute une barre finale a chaque URL — un
+# contournement d'un ancien 301 de nginx, qui transformait les POST en GET.
+# Face a « /extraire/ », FastAPI redirige vers « /extraire » par un 307 dont
+# l'adresse est ABSOLUE, reconstruite depuis l'en-tete Host. Derriere deux
+# nginx successifs, cet en-tete ne porte plus le port : le navigateur suivait
+# la redirection vers « http://localhost/extraire », c'est-a-dire le port 80,
+# ou rien n'ecoute — d'ou une erreur reseau incomprehensible cote client.
+#
+# Declarer les deux formes supprime la redirection, donc le probleme, quelle
+# que soit l'ecriture employee par l'appelant.
 @app.post("/extraire")
+@app.post("/extraire/", include_in_schema=False)
 async def extraire(
         fichier: UploadFile = File(...),
         typeDocument: str = Form("AUTO"),
         appelant: str = Depends(utilisateur_courant)):
     """Extrait les champs d'un document. Le fichier n'est jamais conservé."""
-    if not GROQ_CLE:
+    if not FOURNISSEUR_CLE:
         raise HTTPException(503, "Lecture de documents non configurée sur le serveur")
 
     contenu = await fichier.read()
@@ -182,8 +222,8 @@ async def extraire(
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             reponse = await client.post(
-                GROQ_URL, json=corps,
-                headers={"Authorization": "Bearer %s" % GROQ_CLE})
+                FOURNISSEUR_URL, json=corps,
+                headers={"Authorization": "Bearer %s" % FOURNISSEUR_CLE})
     except httpx.RequestError as exc:
         logger.exception("Fournisseur injoignable")
         raise HTTPException(502, "Service de lecture injoignable : %s" % exc)

@@ -204,15 +204,58 @@ service.
 
 ## 7. Configuration
 
+### 7.1 Groq et Grok ne sont pas le même service
+
+C'est la confusion la plus coûteuse de ce module, parce que le symptôme
+n'oriente vers rien : un `401`, sans autre explication.
+
+| | **Groq** | **Grok** |
+|---|---|---|
+| Éditeur | Groq Inc. | xAI |
+| Adresse | `api.groq.com` | `api.x.ai` |
+| Préfixe de clé | `gsk_…` | `xai-…` |
+| Console | console.groq.com/keys | console.x.ai |
+
+Les deux exposent une interface compatible OpenAI, d'où l'illusion
+d'interchangeabilité. Une clé de l'un présentée à l'autre est simplement
+inconnue : le serveur répond `401 Invalid API Key`.
+
+**Vérifiez le préfixe de votre clé avant de choisir le fournisseur.**
+
+### 7.2 Variables
+
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `GROQ_API_KEY` | *(vide → service en 503)* | clé du fournisseur, **serveur uniquement** |
-| `GROQ_VISION_MODEL` | `meta-llama/llama-4-scout-17b-16e-instruct` | modèle de vision |
+| `OCR_FOURNISSEUR` | `groq` | `groq` ou `xai` — fixe l'adresse et le modèle |
+| `OCR_API_KEY` | *(vide → service en 503)* | clé, **serveur uniquement** |
+| `OCR_API_URL` | selon le fournisseur | à ne renseigner que pour en sortir |
+| `OCR_VISION_MODEL` | selon le fournisseur | idem |
+| `GROQ_API_KEY` | — | ancien nom, encore accepté |
 | `Jwt__Key` / `Jwt__Issuer` / `Jwt__Audience` | mêmes valeurs que les services .NET | vérification du jeton |
 
 ```bash
 # .env de la racine — jamais versionné
-GROQ_API_KEY=gsk_votre_nouvelle_cle
+
+# Avec une clé Groq
+OCR_FOURNISSEUR=groq
+OCR_API_KEY=gsk_…
+
+# Avec une clé xAI
+OCR_FOURNISSEUR=xai
+OCR_API_KEY=xai-…
+```
+
+Les valeurs par défaut sont résolues avec `or` et non avec le second
+argument de `os.getenv` : `docker-compose` déclare ces variables même
+vides (`OCR_API_URL=${OCR_API_URL:-}`), et une variable déclarée à la
+chaîne vide l'emporterait sur le défaut. Le service appellerait alors une
+adresse vide.
+
+Le fournisseur retenu est visible sur `/health` :
+
+```json
+{ "fournisseurUrl": "https://api.x.ai/v1/chat/completions",
+  "modele": "grok-2-vision-1212" }
 ```
 
 Après modification :
@@ -232,6 +275,25 @@ La configuration nginx du back-office est **incluse dans son image** :
 recréer le conteneur sans le reconstruire laisse l'ancienne route en place,
 et la requête retombe sur le service de fichiers statiques, qui répond
 `405 Not Allowed` à un POST.
+
+### 7.3 La barre finale, et pourquoi la route est déclarée deux fois
+
+L'intercepteur du front ajoute une barre finale à chaque URL — un
+contournement d'un ancien `301` de nginx, qui transformait les `POST` en
+`GET`. Face à `/extraire/`, FastAPI redirige vers `/extraire` par un `307`
+dont l'adresse est **absolue**, reconstruite depuis l'en-tête `Host`.
+
+Derrière deux nginx successifs, cet en-tête ne porte plus le port. Le
+navigateur suivait donc la redirection vers `http://localhost/extraire`,
+c'est-à-dire le port 80, où rien n'écoute :
+
+```
+POST http://localhost/extraire   net::ERR_CONNECTION_REFUSED
+```
+
+Une erreur réseau, pour un service parfaitement démarré. La route est donc
+déclarée sous **les deux écritures**, avec et sans barre finale : plus
+aucune redirection, quel que soit l'appelant.
 
 ---
 
