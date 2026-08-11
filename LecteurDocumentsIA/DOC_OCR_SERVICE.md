@@ -267,8 +267,11 @@ n'oriente vers rien : un `401`, sans autre explication.
 | Adresse | `api.groq.com` | `api.x.ai` |
 | Préfixe de clé | `gsk_…` | `xai-…` |
 | Console | console.groq.com/keys | console.x.ai |
-| Modèle par défaut | `meta-llama/llama-4-scout-17b-16e-instruct` | `grok-4` |
+| Modèle par défaut | `qwen/qwen3.6-27b` | `grok-4` |
 | Palier gratuit | oui | non — crédit à approvisionner |
+
+Les modèles par défaut sont ceux **vérifiés disponibles** au moment de la
+rédaction. Le catalogue change : voir §6 pour interroger le vôtre.
 
 Les deux exposent une interface compatible OpenAI, d'où l'illusion
 d'interchangeabilité. Une clé de l'un présentée à l'autre est simplement
@@ -284,6 +287,7 @@ inconnue : le serveur répond `401 Invalid API Key`.
 | `OCR_API_KEY` | *(vide → service en 503)* | clé, **serveur uniquement** |
 | `OCR_API_URL` | selon le fournisseur | à ne renseigner que pour en sortir |
 | `OCR_VISION_MODEL` | selon le fournisseur | idem |
+| `OCR_MAX_TOKENS` | `4000` | doit couvrir la réflexion **et** la réponse |
 | `GROQ_API_KEY` | — | ancien nom, encore accepté |
 | `Jwt__Key` / `Jwt__Issuer` / `Jwt__Audience` | mêmes valeurs que les services .NET | vérification du jeton |
 
