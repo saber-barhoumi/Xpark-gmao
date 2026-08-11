@@ -90,6 +90,35 @@ app.add_middleware(
 securite = HTTPBearer(auto_error=False)
 
 
+@app.on_event("startup")
+def annoncer_configuration():
+    """Dit au démarrage ce qui est prêt et ce qui manque.
+
+    Sans cette trace, une clé absente ne se manifeste qu'au premier envoi
+    de document, par un 503 côté navigateur. Le journal du conteneur
+    permet de le savoir avant, et d'un seul coup d'œil.
+    """
+    logger.info("Fournisseur : %s (modèle %s)", FOURNISSEUR_URL, MODELE_VISION)
+    if FOURNISSEUR_CLE:
+        # Le prefixe suffit a reconnaitre le fournisseur sans rien divulguer.
+        logger.info("Clé chargée (%d caractères, commence par « %s »)",
+                    len(FOURNISSEUR_CLE), FOURNISSEUR_CLE[:4])
+        attendu = "gsk_" if "groq.com" in FOURNISSEUR_URL else "xai-"
+        if not FOURNISSEUR_CLE.startswith(attendu):
+            logger.warning(
+                "La clé ne commence pas par « %s », préfixe attendu pour %s. "
+                "Groq (api.groq.com, clés « gsk_ ») et Grok/xAI (api.x.ai, "
+                "clés « xai- ») sont deux services distincts : une clé de "
+                "l'un est refusée par l'autre avec un 401. Vérifiez "
+                "OCR_FOURNISSEUR.",
+                attendu, FOURNISSEUR_URL)
+    else:
+        logger.warning(
+            "AUCUNE CLÉ : la lecture de documents répondra 503. Renseignez "
+            "OCR_API_KEY dans le .env de la racine, puis relancez avec "
+            "« docker compose up -d --build ocr ».")
+
+
 def utilisateur_courant(
         creds: Optional[HTTPAuthorizationCredentials] = Depends(securite)) -> str:
     """Vérifie le jeton d'accès et renvoie l'identifiant de l'appelant.
