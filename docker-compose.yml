@@ -408,6 +408,34 @@ services:
       - xpark-network
     restart: unless-stopped
 
+  # ── Lecteur de documents (OCR assisté) ──────────────────────────
+  # Lit cartes grises, assurances, vignettes, visites techniques,
+  # permis et reçus de carburant, et en extrait les champs.
+  #
+  # Ce service existe pour une raison de sécurité : la clé du
+  # fournisseur ne doit jamais atteindre le navigateur. Elle était
+  # auparavant embarquée dans le paquet JavaScript, donc lisible par
+  # quiconque ouvrait les outils de développement.
+  ocr:
+    build:
+      context: ./LecteurDocumentsIA
+      dockerfile: Dockerfile
+    container_name: xpark-ocr
+    environment:
+      # Clé du fournisseur — dans le .env de la racine, jamais versionnée.
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_VISION_MODEL=${GROQ_VISION_MODEL:-meta-llama/llama-4-scout-17b-16e-instruct}
+      # Mêmes paramètres de jeton que les services .NET : le service
+      # n'accepte que les appels porteurs d'un jeton de session valide.
+      - Jwt__Key=${JWT_KEY:-XparkGMAO_SuperSecret_JWT_Key_2024_MustBe32CharsAtLeast!}
+      - Jwt__Issuer=XparkGMAO
+      - Jwt__Audience=XparkGMAO
+    ports:
+      - "8002:8002"
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
   # ── Intelligent Business Owner Assistant (IBOA) ─────────────────
   # Monitoring temps réel : consomme xpark.# sur l'exchange xpark.ai,
   # score la criticité, alerte WhatsApp/Email, rapports PDF/Excel.

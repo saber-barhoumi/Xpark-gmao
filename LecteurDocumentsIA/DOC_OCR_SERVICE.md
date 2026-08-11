@@ -1,0 +1,277 @@
+# Lecture assistée des documents administratifs
+
+> Service `LecteurDocumentsIA` — port **8002**
+> Route publique : `POST /api/ocr/extraire`
+
+Ce document décrit le service qui lit les cartes grises, assurances,
+vignettes, visites techniques, permis de conduire et reçus de carburant pour
+pré-remplir les formulaires de la plateforme.
+
+Il explique aussi **pourquoi le service existe** : la version précédente
+fonctionnait, mais exposait une clé d'API à tous les visiteurs.
+
+---
+
+## 1. Le problème de sécurité corrigé
+
+### 1.1 Ce qui se passait
+
+Le composant d'import appelait le fournisseur **depuis le navigateur** :
+
+```ts
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || ''
+
+await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
+  …
+})
+```
+
+Vite remplace `import.meta.env.VITE_…` par sa valeur **au moment de la
+compilation**. La clé n'était donc pas lue à l'exécution depuis un fichier de
+configuration : elle était **écrite en clair dans le fichier JavaScript
+livré**, et récupérable ainsi :
+
+```
+Outils de développement → Sources → assets/OCRUploadZone-….js → chercher « gsk_ »
+```
+
+Vérification faite sur le paquet alors en service : la clé s'y trouvait, en
+un seul exemplaire, parfaitement lisible.
+
+### 1.2 Pourquoi aucun réglage n'y changeait rien
+
+Le préfixe `VITE_` ne protège pas : il **autorise** au contraire l'inclusion
+de la variable dans le paquet. Les variables sans ce préfixe sont simplement
+absentes du navigateur.
+
+Plus généralement : **tout ce que le navigateur exécute, l'utilisateur peut le
+lire**. Minification, encodage, découpage en morceaux — rien de tout cela n'est
+un secret, seulement un ralentissement. Le seul remède est de ne jamais
+envoyer la clé au navigateur.
+
+### 1.3 Étendue de l'exposition
+
+| Vérification | Résultat |
+|---|---|
+| Clé présente dans un commit | **non** — `git log -S "gsk_"` ne renvoie rien |
+| Dossier `dist/` versionné | **non** — absent de l'index Git |
+| `.env.local` versionné | **non** — couvert par `*.local` dans `.gitignore` |
+| Clé présente dans le paquet servi | **oui**, jusqu'à cette correction |
+
+L'exposition se limitait donc aux personnes ayant chargé l'application dans
+leur navigateur. Elle n'a jamais atteint le dépôt distant. La clé concernée
+répondait déjà `401 Unauthorized` au moment du diagnostic : elle était
+révoquée ou invalide.
+
+### 1.4 Ce qui a été fait
+
+- Le service front n'appelle plus le fournisseur ; il envoie le fichier à
+  `POST /api/ocr/extraire`.
+- Les variables `VITE_GROQ_API_KEY` et `VITE_GROQ_MODEL` ont été retirées de
+  `frontend/backoffice/.env.local`, pour qu'aucune compilation ultérieure ne
+  puisse les réinjecter.
+- La clé vit désormais dans `GROQ_API_KEY`, lue uniquement par ce service.
+
+**Action restant à votre charge : générer une nouvelle clé** sur
+<https://console.groq.com/keys> et la placer dans le `.env` de la racine.
+Une clé ayant été publiée doit être considérée comme compromise, même
+révoquée.
+
+---
+
+## 2. Chemin d'une lecture
+
+```
+Navigateur
+   │  POST /api/ocr/extraire      (multipart : fichier + typeDocument)
+   │  Authorization: Bearer <jeton de session>
+   ▼
+nginx du back-office (port 3000)
+   │  location /api/ocr/  →  /ocr/…        client_max_body_size 25M
+   ▼
+passerelle (nginx)
+   │  location /ocr/      →  ocr:8002
+   ▼
+LecteurDocumentsIA (FastAPI)
+   │  1. vérifie le jeton de session
+   │  2. contrôle la taille et le type du fichier
+   │  3. encode l'image et appelle le fournisseur avec SA clé
+   │  4. isole l'objet JSON de la réponse
+   ▼
+   { "immatriculation": "…", "marque": "…", "confidence": 0.93 }
+```
+
+Le fichier **n'est jamais écrit sur disque** : il est lu en mémoire, encodé,
+transmis, puis abandonné. Aucune copie du document d'un client ne subsiste.
+
+---
+
+## 3. Contrôle d'accès
+
+Le service refuse tout appel anonyme. Sans cela, il offrirait à quiconque
+connaît l'adresse un accès gratuit au fournisseur, facturé à l'entreprise —
+le problème même que la correction vise à supprimer.
+
+Le jeton est vérifié avec **la même clé, le même émetteur et la même audience**
+que les services .NET : le jeton délivré à la connexion vaut ici sans
+traitement particulier.
+
+Comportement mesuré, aux deux frontières :
+
+| Appel | Réponse |
+|---|---|
+| sans jeton | `401 Jeton d'accès absent` |
+| jeton malformé | `401 Jeton d'accès invalide` |
+| jeton expiré | `401 Session expirée` |
+| jeton valide, clé fournisseur absente | `503 Lecture de documents non configurée` |
+
+Une clé de signature absente provoque un `503`, jamais une ouverture : une
+configuration incomplète ne doit pas se traduire par un service sans
+protection.
+
+---
+
+## 4. Ce que le modèle extrait
+
+Le modèle de vision reçoit l'image et une consigne stricte : répondre par un
+objet JSON plat, sans texte autour.
+
+| Famille | Clés produites |
+|---|---|
+| Véhicule | `immatriculation`, `marque`, `modele`, `vin`, `datePremiereCirculation`, `couleur`, `carburant` |
+| Carburant | `quantite`, `prixUnitaire`, `montantTotal`, `dateRemplissage` |
+| Permis de conduire | `nom`, `prenom`, `numeroPermis`, `categoriePermis`, `dateExpirationPermis` |
+| Toujours | `documentDetecte`, `confidence` |
+
+La consigne porte deux précautions apprises à l'usage :
+
+- **Dates** toujours au format `AAAA-MM-JJ`, **nombres** en nombres et non en
+  chaînes, avec un point décimal — sans quoi `929,36` arrivait comme texte et
+  cassait la saisie.
+- **« A.T.T.T »** sur un permis tunisien désigne l'Agence Technique des
+  Transports Terrestres. Sans consigne explicite, le modèle le prenait pour un
+  nom de famille.
+
+La réponse est nettoyée avant analyse : malgré la consigne, un modèle encadre
+parfois sa réponse d'une clôture markdown ou d'une phrase d'introduction.
+
+---
+
+## 5. Le PDF est refusé, et c'est voulu
+
+Le modèle de vision ne lit pas les PDF. La version précédente basculait alors
+sur un modèle de texte avec cette consigne :
+
+> « Génère le JSON d'extraction pour le fichier "…". **Génère des données
+> réalistes pour la Tunisie.** »
+
+Le modèle ne lisait donc rien : il **inventait** une immatriculation, une
+marque, un numéro de châssis, et ces valeurs venaient remplir le formulaire
+exactement comme si elles avaient été lues sur le document. Un utilisateur
+pressé pouvait enregistrer un véhicule entièrement fictif sans s'en rendre
+compte.
+
+Le service refuse désormais explicitement :
+
+```
+415 — Seules les images sont lues (JPEG, PNG, WebP).
+      Pour un PDF, en fournir une capture.
+```
+
+Un refus clair vaut mieux qu'une donnée inventée. C'est le principe qui guide
+aussi le reste du service : en cas de doute, ne rien pré-remplir.
+
+---
+
+## 6. Dégradation
+
+Le formulaire reste utilisable en toutes circonstances : la lecture assistée
+fait gagner du temps, elle n'est jamais un passage obligé.
+
+| Situation | Réponse | Ce que voit l'utilisateur |
+|---|---|---|
+| Clé absente ou révoquée | `503` | « Lecture momentanément indisponible. Saisissez les champs manuellement. » |
+| Fournisseur injoignable | `502` | « Service de lecture injoignable » |
+| Réponse illisible | `502` | « Document non exploitable, saisie manuelle nécessaire » |
+| Fichier trop lourd | `413` | « Fichier trop volumineux (20 Mo maximum) » |
+
+Le message d'erreur du fournisseur n'est **jamais** relayé au navigateur : il
+peut contenir des indications sur le compte. Le détail reste au journal du
+service.
+
+---
+
+## 7. Configuration
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `GROQ_API_KEY` | *(vide → service en 503)* | clé du fournisseur, **serveur uniquement** |
+| `GROQ_VISION_MODEL` | `meta-llama/llama-4-scout-17b-16e-instruct` | modèle de vision |
+| `Jwt__Key` / `Jwt__Issuer` / `Jwt__Audience` | mêmes valeurs que les services .NET | vérification du jeton |
+
+```bash
+# .env de la racine — jamais versionné
+GROQ_API_KEY=gsk_votre_nouvelle_cle
+```
+
+Après modification :
+
+```bash
+docker compose up -d --build ocr
+```
+
+Une nouvelle route API exige de recharger les deux nginx :
+
+```bash
+docker compose build backoffice && docker compose up -d backoffice
+docker compose restart nginx
+```
+
+La configuration nginx du back-office est **incluse dans son image** :
+recréer le conteneur sans le reconstruire laisse l'ancienne route en place,
+et la requête retombe sur le service de fichiers statiques, qui répond
+`405 Not Allowed` à un POST.
+
+---
+
+## 8. Vérifier soi-même
+
+```bash
+curl http://localhost:8002/health
+```
+
+```json
+{ "status": "healthy", "fournisseurConfigure": true,
+  "verificationAccesActive": true }
+```
+
+Refus d'un appel anonyme :
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  http://localhost:3000/api/ocr/extraire -F fichier=@carte-grise.jpg
+# 401
+```
+
+Lecture réelle, avec le jeton relevé dans `localStorage.xpark_token` :
+
+```bash
+curl -X POST http://localhost:3000/api/ocr/extraire \
+  -H "Authorization: Bearer $JETON" \
+  -F fichier=@carte-grise.jpg -F typeDocument=CARTE_GRISE
+```
+
+---
+
+## 9. Limites connues
+
+- **Pas de mémoire des lectures.** Deux envois du même document donnent deux
+  appels au fournisseur. Une empreinte du fichier suffirait à éviter le
+  second ; utile seulement si le volume augmente.
+- **Pas de quota par utilisateur.** Le jeton de session ferme la porte aux
+  inconnus, mais un compte légitime peut enchaîner les envois. À encadrer si
+  le service sort du cadre interne.
+- **Le résultat n'est jamais tenu pour acquis.** `confidence` est une
+  déclaration du modèle, pas une mesure. Les champs pré-remplis restent
+  modifiables, et doivent être relus avant enregistrement.

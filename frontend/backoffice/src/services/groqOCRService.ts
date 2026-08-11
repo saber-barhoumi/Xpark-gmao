@@ -1,5 +1,24 @@
 // src/services/groqOCRService.ts
+//
+// Lecture assistée des documents administratifs.
+//
+// CE SERVICE N'APPELLE PLUS LE FOURNISSEUR DIRECTEMENT.
+//
+// Il l'a fait, et c'était une faille : la clé d'API était lue depuis
+// `import.meta.env.VITE_GROQ_API_KEY`, donc figée dans le paquet JavaScript
+// à la compilation. Toute personne ouvrant les outils de développement
+// pouvait la relever dans le fichier livré et s'en servir sur son propre
+// compte, aux frais de l'entreprise.
+//
+// Aucun réglage ne corrige cela : ce que le navigateur exécute, l'utilisateur
+// peut le lire. Une variable « VITE_ » n'est pas un secret, c'est une valeur
+// publique. Le document est donc envoyé au service `LecteurDocumentsIA`, qui
+// détient la clé et appelle le fournisseur pour le compte du front.
+//
+// L'appel passe par l'instance axios commune : le jeton de session est joint
+// automatiquement, et le service refuse les appels qui n'en portent pas.
 
+import api from '@/lib/axiosConfig'
 import { trace } from '@/helpers/journal'
 
 // ── Types ────────────────────────────────────────────────────
@@ -66,37 +85,15 @@ export interface ExtractedOCRData {
   champsNonLus?:            string[]
 }
 
-// ── Groq API Settings ────────────────────────────────────────
-// Using import.meta.env for Vite to access env vars safely without exposing them in codebase directly
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || ''
-const GROQ_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
-const GROQ_TEXT_MODEL = import.meta.env.VITE_GROQ_MODEL || 'llama-3.1-8b-instant'
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
+// ── Réglages ─────────────────────────────────────────────────
+/** Point d'entrée serveur. Le modèle et la clé sont choisis côté serveur. */
+const OCR_ENDPOINT = '/ocr/extraire'
 
-const cleanJson = (text: string): ExtractedOCRData => {
-  const cleaned = text
-    .replace(/```json\s*/gi, '')
-    .replace(/```\s*/g, '')
-    .trim()
-  const match = cleaned.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('JSON introuvable dans la réponse')
-  return JSON.parse(match[0])
-}
+const TAILLE_MAX = 20 * 1024 * 1024
 
-/** Convert a File to a base64 data URL string */
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-/** Check if the file is an image type supported by the vision model */
-const isImageFile = (file: File): boolean => {
-  return ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)
-}
+/** Types que le modèle de vision sait lire. */
+const isImageFile = (file: File): boolean =>
+  ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)
 
 // ── SERVICE ──────────────────────────────────────────────────
 const groqOCRService = {
@@ -106,107 +103,41 @@ const groqOCRService = {
     docType: DocumentType = 'AUTO'
   ): Promise<ExtractedOCRData> {
 
-    if (file.size > 20 * 1024 * 1024)
-      throw new Error('Fichier trop volumineux (max 20 Mo)')
+    if (file.size > TAILLE_MAX)
+      throw new Error('Fichier trop volumineux (20 Mo maximum)')
 
-    // Use the VISION model for images, text model as fallback for PDFs
-    const useVision = isImageFile(file)
-    const model = useVision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL
+    // Le PDF n'est pas lisible par le modèle de vision. On le dit clairement
+    // plutôt que de basculer sur un modèle de texte : l'ancienne version
+    // demandait alors au modèle d'INVENTER « des données réalistes pour la
+    // Tunisie », qui venaient ensuite remplir le formulaire comme si elles
+    // avaient été lues sur le document.
+    if (!isImageFile(file))
+      throw new Error(
+        'Seules les images sont lisibles (JPEG, PNG, WebP). ' +
+        'Pour un PDF, fournissez-en une capture d\'écran.')
 
-    trace(`[Groq OCR] 🔄 Extraction avec ${model} (vision: ${useVision}) pour type: ${docType}`)
+    trace(`[OCR] 🔄 Envoi de « ${file.name} » au serveur (type attendu : ${docType})`)
 
-    const systemPrompt = `Tu es le module OCR avancé de XPARK GMAO.
-Tu dois analyser l'image du document fourni et extraire TOUTES les données visibles.
-
-RÈGLES STRICTES :
-1. Réponds UNIQUEMENT avec un objet JSON plat valide — aucun texte autour, aucun markdown. N'utilise pas d'objets imbriqués.
-2. Lis ATTENTIVEMENT chaque valeur visible sur le document (chiffres, textes, dates).
-3. Utilise STRICTEMENT ET EXACTEMENT ces noms de clés pour le JSON (n'invente pas de clés) :
-   - Pour un véhicule: "immatriculation", "marque", "modele", "vin", "datePremiereCirculation", "couleur", "carburant"
-   - Pour un carburant: "quantite", "prixUnitaire", "montantTotal", "dateRemplissage" (format "YYYY-MM-DD"), "carburant"
-   - Pour un chauffeur (PERMIS TUNISIEN): 
-      * "nom" (correspond au champ "1." sur le permis)
-      * "prenom" (correspond au champ "2." sur le permis)
-      * "numeroPermis" (correspond au champ "5." sur le permis, c'est le numéro unique)
-      * "categoriePermis" (correspond au champ "9.", ex: "A", "B", "A B H")
-      * "dateExpirationPermis" (correspond au champ "4b.", à convertir au format "YYYY-MM-DD")
-      * ATTENTION: "A.T.T.T" signifie Agence Technique des Transports Terrestres, CE N'EST PAS UN NOM NI UN PRÉNOM !
-4. Ajoute toujours ces 2 clés:
-   - "documentDetecte": le type détecté (ex: "TICKET_CARBURANT", "CARTE_GRISE", "PERMIS_CONDUIRE")
-   - "confidence": nombre décimal entre 0.85 et 0.99
-5. Les dates doivent être TOUJOURS au format "YYYY-MM-DD" (ex: 2033-05-07).
-6. Les nombres DOIVENT être des nombres (pas entre guillemets). Utilise un point décimal (ex: 929.36, pas "929,36").
-7. IMPORTANT: Ne retourne QUE l'objet JSON. Commence par { et termine par }.`
+    const formulaire = new FormData()
+    formulaire.append('fichier', file)
+    formulaire.append('typeDocument', docType)
 
     try {
-      let messages: any[]
-
-      if (useVision) {
-        // ── VISION: Send image as base64 to the vision model ──
-        const base64Url = await fileToBase64(file)
-        trace(`[Groq OCR] 📷 Image convertie en base64 (${(base64Url.length / 1024).toFixed(0)} Ko)`)
-
-        messages = [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Analyse cette image de document (type attendu: ${docType}). Extrais TOUTES les données visibles et retourne-les en JSON.`
-              },
-              {
-                type: 'image_url',
-                image_url: { url: base64Url }
-              }
-            ]
-          }
-        ]
-      } else {
-        // ── TEXT FALLBACK: For PDFs and non-image files ──
-        messages = [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Génère le JSON d'extraction pour le fichier "${file.name}" de type ${docType}. Génère des données réalistes pour la Tunisie.`
-          }
-        ]
-      }
-
-      const body = {
-        model,
-        messages,
-        temperature: 0.1,
-        max_tokens: 1024,
-      }
-
-      const res = await fetch(GROQ_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify(body),
+      // L'instance axios commune joint le jeton de session ; le service
+      // refuse les appels anonymes.
+      const { data } = await api.post<ExtractedOCRData>(OCR_ENDPOINT, formulaire, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,          // lecture d'image : bien plus long qu'un appel courant
       })
-
-      if (res.ok) {
-        const result = await res.json()
-        const text = result.choices?.[0]?.message?.content
-        if (text) {
-          trace(`[Groq OCR] ✅ Réponse brute:`, text)
-          const parsed = cleanJson(text)
-          trace(`[Groq OCR] ✅ Données extraites:`, parsed)
-          return parsed
-        }
-      }
-
-      const errBody = await res.json().catch(() => ({}))
-      console.error(`[Groq OCR] ❌ Erreur API:`, errBody)
-      throw new Error(errBody?.error?.message ?? res.statusText)
+      trace(`[OCR] ✅ Champs extraits :`, data)
+      return data
 
     } catch (e: any) {
-      console.error(`[Groq OCR] ❌ Exception:`, e)
-      throw new Error(`Erreur OCR Groq: ${e.message}`)
+      // Le serveur renvoie un message déjà rédigé pour l'utilisateur ; le
+      // détail technique, lui, reste dans le journal du service.
+      const message = e?.response?.data?.detail ?? e?.message ?? 'erreur inconnue'
+      console.error('[OCR] ❌ Échec de la lecture :', message)
+      throw new Error(message)
     }
   },
 }

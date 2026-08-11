@@ -29,6 +29,58 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// ─── RENOUVELLEMENT DU JETON : UNE SEULE TENTATIVE À LA FOIS ────────────────
+//
+// POURQUOI CE VERROU EST NÉCESSAIRE
+// Le jeton d'accès vaut soixante minutes. Passé ce délai, une page qui charge
+// plusieurs blocs déclenche plusieurs requêtes qui échouent EN MÊME TEMPS.
+// Sans verrou, chacune lançait son propre renouvellement.
+//
+// Or le serveur remplace le jeton de renouvellement à chaque usage
+// (AuthService.RefreshTokenAsync : `user.RefreshToken = GenerateRefreshToken()`).
+// Le premier appel réussit et invalide l'ancien ; les suivants présentent ce
+// jeton devenu caduc, échouent, et leur gestion d'erreur vidait le stockage
+// local puis renvoyait vers la page de connexion — alors que la session
+// venait précisément d'être renouvelée avec succès.
+//
+// D'où ce mécanisme : le premier échec lance le renouvellement, les autres
+// attendent la même promesse et rejouent leur requête avec le jeton obtenu.
+let renouvellementEnCours: Promise<string> | null = null;
+
+const renouvelerJeton = (): Promise<string> => {
+  if (renouvellementEnCours) return renouvellementEnCours;
+
+  const refreshToken = localStorage.getItem('xpark_refresh_token');
+  if (!refreshToken) return Promise.reject(new Error('Aucun jeton de renouvellement'));
+
+  renouvellementEnCours = axios
+    .post(`${API_URL}/auth/refresh-token/`, { refreshToken })
+    .then((res) => {
+      const auth = res.data?.data ?? res.data;
+      if (!auth?.token) throw new Error('Réponse de renouvellement inexploitable');
+      localStorage.setItem('xpark_token', auth.token);
+      if (auth.refreshToken) localStorage.setItem('xpark_refresh_token', auth.refreshToken);
+      return auth.token as string;
+    })
+    .finally(() => {
+      // Libéré dans tous les cas : sans cela, un échec passager
+      // interdirait définitivement toute nouvelle tentative.
+      renouvellementEnCours = null;
+    });
+
+  return renouvellementEnCours;
+};
+
+const terminerSession = () => {
+  localStorage.removeItem('xpark_token');
+  localStorage.removeItem('xpark_refresh_token');
+  localStorage.removeItem('xpark_user');
+  if (!window.location.pathname.includes('/auth/login')) {
+    sessionStorage.setItem('redirectUrl', window.location.pathname);
+    window.location.href = '/auth/login';
+  }
+};
+
 // ─── INTERCEPTEUR RÉPONSE : Mapping Erreurs → Pages Dédiées ──────────────────
 api.interceptors.response.use(
   (response) => response,
@@ -59,52 +111,26 @@ api.interceptors.response.use(
 
     // --- CAS CRITIQUE : 401 Session Expirée ---
     if (status === 401) {
-      // 1. Tentative de renouvellement silencieux via le refresh token (FICHE §3)
-      //    — une seule tentative par requête (flag _retriedRefresh) pour éviter les boucles.
       const refreshToken = localStorage.getItem('xpark_refresh_token');
       const isAuthCall = (config?.url ?? '').includes('/auth/');
+
+      // Une seule reprise par requête : sans ce drapeau, un jeton renouvelé
+      // mais toujours refusé ferait boucler la requête indéfiniment.
       if (refreshToken && !isAuthCall && !config._retriedRefresh) {
-        return axios
-          .post(`${API_URL}/auth/refresh-token/`, { refreshToken })
-          .then((res) => {
-            const auth = res.data?.data ?? res.data;
-            if (auth?.token) {
-              localStorage.setItem('xpark_token', auth.token);
-              if (auth.refreshToken) localStorage.setItem('xpark_refresh_token', auth.refreshToken);
-              // Rejouer la requête d'origine avec le nouveau token
-              config._retriedRefresh = true;
-              config.headers.Authorization = `Bearer ${auth.token}`;
-              return api(config);
-            }
-            throw error;
+        return renouvelerJeton()
+          .then((jeton) => {
+            config._retriedRefresh = true;
+            config.headers.Authorization = `Bearer ${jeton}`;
+            return api(config);
           })
           .catch(() => {
-            localStorage.removeItem('xpark_token');
-            localStorage.removeItem('xpark_refresh_token');
-            localStorage.removeItem('xpark_user');
-            if (!window.location.pathname.includes('/auth/login')) {
-              sessionStorage.setItem('redirectUrl', window.location.pathname);
-              window.location.href = '/auth/login';
-            }
+            terminerSession();
             return Promise.reject(error);
           });
       }
 
-      // 2. Pas de refresh possible → déconnexion classique
-      const currentPath = window.location.pathname;
-      if (!currentPath.includes('/auth/login')) {
-        sessionStorage.setItem('redirectUrl', currentPath);
-      }
-
-      localStorage.removeItem('xpark_token');
-      localStorage.removeItem('xpark_refresh_token');
-      localStorage.removeItem('xpark_user');
-
-      // NE rediriger que si nous ne sommes pas déjà sur la page de login
-      if (!window.location.pathname.includes('/auth/login')) {
-        window.location.href = '/auth/login';
-      }
-
+      // Aucun renouvellement possible : la session est bel et bien close.
+      terminerSession();
       return Promise.reject(error);
     }
 
