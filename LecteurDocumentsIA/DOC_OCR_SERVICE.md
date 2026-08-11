@@ -297,7 +297,38 @@ aucune redirection, quel que soit l'appelant.
 
 ---
 
-## 8. Vérifier soi-même
+## 8. Tests
+
+```bash
+python test_lecteur.py
+```
+
+Dix-huit vérifications, sans conteneur ni clé de fournisseur : l'appel au
+fournisseur est simulé. Cela permet d'éprouver **les cas d'échec**, qu'un
+essai manuel avec une vraie clé ne produit jamais à la demande — clé
+refusée, quota dépassé, service injoignable, réponse illisible.
+
+| Ce qui est vérifié | |
+|---|---|
+| Contrôle d'accès | appel anonyme, jeton malformé, expiré, d'un autre émetteur |
+| Validation du fichier | PDF refusé, fichier de 21 Mo refusé |
+| Lecture | champs extraits, réponse encadrée de markdown analysée quand même |
+| Étanchéité | la clé part au fournisseur et n'apparaît jamais dans la réponse |
+| Barre finale | `/extraire/` répond sans redirection |
+| Pannes | clé refusée → 503, quota → 502, injoignable → 502, réponse sans JSON → 502 |
+| Configuration | sans clé → 503, jamais un appel au hasard |
+
+Deux assertions méritent d'être relevées, parce qu'elles protègent contre
+des régressions silencieuses :
+
+- **`"Invalid API Key"` ne doit pas apparaître dans la réponse.** Relayer le
+  message du fournisseur au navigateur renseignerait un visiteur sur l'état
+  du compte.
+- **Une clé refusée donne `503`, jamais `401`.** Un `401` serait interprété
+  par l'intercepteur du front comme une session expirée : il déconnecterait
+  l'utilisateur alors que sa session est valide.
+
+## 9. Vérifier à la main
 
 ```bash
 curl http://localhost:8002/health
@@ -326,7 +357,7 @@ curl -X POST http://localhost:3000/api/ocr/extraire \
 
 ---
 
-## 9. Limites connues
+## 10. Limites connues
 
 - **Pas de mémoire des lectures.** Deux envois du même document donnent deux
   appels au fournisseur. Une empreinte du fichier suffirait à éviter le
@@ -337,3 +368,9 @@ curl -X POST http://localhost:3000/api/ocr/extraire \
 - **Le résultat n'est jamais tenu pour acquis.** `confidence` est une
   déclaration du modèle, pas une mesure. Les champs pré-remplis restent
   modifiables, et doivent être relus avant enregistrement.
+- **Le fichier est lu entièrement avant d'être mesuré.** La limite de 20 Mo
+  s'applique après `await fichier.read()` : un envoi de 500 Mo serait donc
+  chargé en mémoire avant d'être rejeté. Les deux nginx plafonnent le corps
+  à 25 Mo, ce qui couvre le chemin normal ; un appel direct au port 8002
+  ne serait pas protégé. À reprendre par une lecture en morceaux si le
+  service devait être exposé hors du réseau interne.
