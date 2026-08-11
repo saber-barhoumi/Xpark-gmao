@@ -94,7 +94,23 @@ JWT_EMETTEUR = os.getenv("Jwt__Issuer", "XparkGMAO")
 JWT_AUDIENCE = os.getenv("Jwt__Audience", "XparkGMAO")
 
 TAILLE_MAX = 20 * 1024 * 1024        # 20 Mo, comme l'ancienne limite du front
-PLAFOND_JETONS = int(os.getenv("OCR_MAX_TOKENS", "4000"))
+
+# Filet de securite. Le raisonnement etant desactive ci-dessous, une lecture
+# consomme environ 150 jetons : ce plafond n'est atteint qu'en cas d'anomalie.
+PLAFOND_JETONS = int(os.getenv("OCR_MAX_TOKENS", "8000"))
+
+# Extraire n'est pas raisonner. Un modele a raisonnement disserte avant de
+# repondre, et cette dissertation compte dans le plafond de jetons : sur une
+# carte grise photographiee, elle l'a entierement consomme et le JSON est
+# arrive tronque. Mesure sur le meme document :
+#
+#     raisonnement actif      731 jetons, bloc <think> a retirer
+#     raisonnement desactive  140 jetons, JSON direct
+#
+# Cinq fois moins, pour un resultat identique — la lecture d'un formulaire
+# ne demande aucune deliberation. Desactive par defaut ; remettre a « false »
+# si un document resiste et merite qu'on laisse le modele reflechir.
+SANS_RAISONNEMENT = os.getenv("OCR_SANS_RAISONNEMENT", "true").lower() != "false"
 TYPES_IMAGE = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 app = FastAPI(title="XparkGMAO — LecteurDocumentsIA", version="1.0")
@@ -213,6 +229,28 @@ def _extraire_json(texte: str) -> dict:
     return json.loads(trouve.group(0))
 
 
+async def _appeler_fournisseur(corps: dict):
+    """Envoie la demande, en retirant au besoin un paramètre non reconnu.
+
+    ``reasoning_effort`` n'est compris que des modèles à raisonnement.
+    Présenté à un autre, il peut valoir un refus. Plutôt que de tenir une
+    liste des modèles qui l'acceptent — liste qui vieillirait aussitôt —
+    on essaie, et on recommence sans lui si le fournisseur s'en plaint.
+    """
+    async with httpx.AsyncClient(timeout=90) as client:
+        entetes = {"Authorization": "Bearer %s" % FOURNISSEUR_CLE}
+        reponse = await client.post(FOURNISSEUR_URL, json=corps, headers=entetes)
+
+        if (reponse.status_code == 400 and "reasoning_effort" in corps
+                and "reasoning" in reponse.text.lower()):
+            logger.info("Le modèle ne connaît pas « reasoning_effort » — "
+                        "nouvel essai sans ce paramètre")
+            sans = {c: v for c, v in corps.items() if c != "reasoning_effort"}
+            reponse = await client.post(FOURNISSEUR_URL, json=sans, headers=entetes)
+
+        return reponse
+
+
 @app.get("/health")
 def sante():
     return {
@@ -222,6 +260,8 @@ def sante():
         "fournisseurUrl": FOURNISSEUR_URL,
         "verificationAccesActive": bool(JWT_CLE),
         "modele": MODELE_VISION,
+        "raisonnementDesactive": SANS_RAISONNEMENT,
+        "plafondJetons": PLAFOND_JETONS,
     }
 
 
@@ -264,11 +304,6 @@ async def extraire(
     corps = {
         "model": MODELE_VISION,
         "temperature": 0.1,
-        # Large, et pas par confort : un modele a raisonnement consomme
-        # plusieurs centaines de jetons a reflechir AVANT d'ecrire sa
-        # reponse. Avec 1024, la reflexion passait et le JSON se trouvait
-        # tronque en plein milieu — le service rendait alors « document non
-        # exploitable » alors que la lecture avait parfaitement reussi.
         "max_tokens": PLAFOND_JETONS,
         "messages": [
             {"role": "system", "content": CONSIGNE},
@@ -282,11 +317,11 @@ async def extraire(
         ],
     }
 
+    if SANS_RAISONNEMENT:
+        corps["reasoning_effort"] = "none"
+
     try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            reponse = await client.post(
-                FOURNISSEUR_URL, json=corps,
-                headers={"Authorization": "Bearer %s" % FOURNISSEUR_CLE})
+        reponse = await _appeler_fournisseur(corps)
     except httpx.RequestError as exc:
         logger.exception("Fournisseur injoignable")
         raise HTTPException(502, "Service de lecture injoignable : %s" % exc)

@@ -220,21 +220,35 @@ Tous ces modèles ne lisent pas les images. Un modèle purement textuel
 répond `messages[0].content must be a string` dès qu'on lui envoie une
 image : c'est le test le plus rapide pour trier le catalogue.
 
-**Un modèle à raisonnement réfléchit avant de répondre.** `qwen/qwen3.6-27b`
-émet un bloc `<think>…</think>` — 729 jetons sur le document d'essai —
-*avant* d'écrire son JSON. Deux conséquences :
+**Extraire n'est pas raisonner.** `qwen/qwen3.6-27b` est un modèle à
+raisonnement : il disserte dans un bloc `<think>…</think>` avant de
+répondre, et cette dissertation compte dans le plafond de jetons. Sur une
+carte grise photographiée, elle l'a **entièrement consommé** : le JSON
+arrivait tronqué et le service rendait « document non exploitable » alors
+que la lecture avait parfaitement réussi.
 
-- Ce bloc contient des accolades et des brouillons de JSON. L'analyse le
-  retire d'abord, sans quoi elle risquerait de retenir le brouillon plutôt
-  que la réponse.
-- Le plafond de jetons doit couvrir la réflexion **et** la réponse. À 1024,
-  le JSON se trouvait tronqué en plein milieu et le service rendait
-  « document non exploitable » alors que la lecture avait parfaitement
-  réussi. Le plafond est passé à 4000, réglable par `OCR_MAX_TOKENS`.
+Relever le plafond ne fait que déplacer la limite — le document suivant,
+plus dense, échouerait de même. Le paramètre `reasoning_effort: "none"`
+supprime la cause. Mesures sur le même document :
 
-Lorsque le fournisseur signale lui-même la troncature
-(`finish_reason: "length"`), le service le dit explicitement plutôt que de
-faire croire à un document illisible.
+| | Jetons | Durée | Résultat |
+|---|---|---|---|
+| Raisonnement actif | 731 | 5,5 s | 7/7 champs, bloc `<think>` à retirer |
+| **Raisonnement désactivé** | **140** | **1,1 s** | 7/7 champs, JSON direct |
+
+Cinq fois moins de jetons, cinq fois plus rapide, pour un résultat
+identique : la lecture d'un formulaire ne demande aucune délibération.
+Désactivé par défaut, réglable par `OCR_SANS_RAISONNEMENT=false` si un
+document résiste et mérite qu'on laisse le modèle réfléchir.
+
+Tous les modèles ne connaissent pas ce paramètre. Plutôt que de tenir une
+liste qui vieillirait aussitôt, le service l'envoie et recommence sans lui
+si le fournisseur s'en plaint.
+
+Les deux garde-fous restent en place pour le cas où le raisonnement serait
+réactivé : le bloc `<think>` est retiré avant analyse, et une troncature
+annoncée par le fournisseur (`finish_reason: "length"`) est signalée telle
+quelle plutôt que présentée comme un document illisible.
 
 
 
@@ -287,7 +301,8 @@ inconnue : le serveur répond `401 Invalid API Key`.
 | `OCR_API_KEY` | *(vide → service en 503)* | clé, **serveur uniquement** |
 | `OCR_API_URL` | selon le fournisseur | à ne renseigner que pour en sortir |
 | `OCR_VISION_MODEL` | selon le fournisseur | idem |
-| `OCR_MAX_TOKENS` | `4000` | doit couvrir la réflexion **et** la réponse |
+| `OCR_SANS_RAISONNEMENT` | `true` | supprime la dissertation du modèle |
+| `OCR_MAX_TOKENS` | `8000` | filet de sécurité ; ~150 jetons suffisent |
 | `GROQ_API_KEY` | — | ancien nom, encore accepté |
 | `Jwt__Key` / `Jwt__Issuer` / `Jwt__Audience` | mêmes valeurs que les services .NET | vérification du jeton |
 

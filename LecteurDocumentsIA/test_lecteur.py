@@ -91,6 +91,17 @@ def simuler_fournisseur(reponse):
     httpx.AsyncClient.post = _post
 
 
+def simuler_suite(reponses):
+    """Répond différemment à chaque appel — pour éprouver les reprises."""
+    suite = list(reponses)
+    simuler_suite.corps = []
+
+    async def _post(self, url, **kwargs):
+        simuler_suite.corps.append(kwargs.get("json"))
+        return suite.pop(0) if suite else suite[-1]
+    httpx.AsyncClient.post = _post
+
+
 def reponse_modele(contenu: str):
     return FausseReponse(200, {"choices": [{"message": {"content": contenu}}]})
 
@@ -226,6 +237,30 @@ simuler_fournisseur(reponse_modele("je ne sais pas lire ce document"))
 r = envoyer(jeton_acces=jeton())
 verifier("réponse sans JSON → 502 et non une erreur 500",
          r.status_code == 502, r.text)
+
+# ── Raisonnement désactivé ───────────────────────────────────────────────────
+# Extraire n'est pas raisonner. Sur le document d'essai, la dissertation du
+# modèle coûtait 731 jetons contre 140 sans elle, et sur une carte grise
+# photographiée elle consommait tout le plafond : le JSON arrivait tronqué.
+
+simuler_suite([reponse_modele('{"marque":"Iveco"}')])
+r = envoyer(jeton_acces=jeton())
+verifier("« reasoning_effort: none » est demandé par défaut",
+         simuler_suite.corps[0].get("reasoning_effort") == "none",
+         simuler_suite.corps[0].get("reasoning_effort"))
+
+# Tous les modeles ne connaissent pas ce parametre. Plutot que de tenir une
+# liste qui vieillirait, on essaie et on recommence sans lui si besoin.
+simuler_suite([
+    FausseReponse(400, {"error": {"message": "unknown parameter reasoning_effort"}},
+                  "unknown parameter reasoning_effort"),
+    reponse_modele('{"marque":"Renault"}')])
+r = envoyer(jeton_acces=jeton())
+verifier("paramètre refusé → nouvel essai sans lui",
+         r.status_code == 200 and r.json().get("marque") == "Renault", r.text)
+verifier("le second essai ne le porte plus",
+         len(simuler_suite.corps) == 2
+         and "reasoning_effort" not in simuler_suite.corps[1], simuler_suite.corps)
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
