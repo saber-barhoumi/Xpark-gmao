@@ -171,9 +171,28 @@ verifier("clé refusée → 503 et non 401",
 verifier("le message du fournisseur n'est pas relayé",
          "Invalid API Key" not in r.text, r.text)
 
+# Credit epuise : le cas rencontre en conditions reelles sur xAI. Ce n'est
+# pas une panne mais une limite administrative : le message doit le dire, et
+# ne surtout pas divulguer l'identifiant d'equipe que renvoie le fournisseur.
+simuler_fournisseur(FausseReponse(
+    403, {"code": "permission-denied",
+          "error": "Your team ccd6dbbb-3595 has either used all available credits"},
+    "Your team ccd6dbbb-3595 has either used all available credits"))
+r = envoyer(jeton_acces=jeton())
+verifier("crédit épuisé → 503 avec message explicite",
+         r.status_code == 503 and "limite" in r.text, r.text)
+verifier("l'identifiant d'équipe du fournisseur reste au journal",
+         "ccd6dbbb" not in r.text, r.text)
+
 simuler_fournisseur(FausseReponse(429, {"error": {"message": "rate limit"}}, "rate limit"))
 r = envoyer(jeton_acces=jeton())
-verifier("fournisseur en erreur → 502", r.status_code == 502, r.text)
+verifier("trop d'appels → 503", r.status_code == 503, r.text)
+
+simuler_fournisseur(FausseReponse(
+    400, {"code": "invalid-argument", "error": "Model not found: grok-2-vision-1212"},
+    "Model not found"))
+r = envoyer(jeton_acces=jeton())
+verifier("modèle inconnu → 502", r.status_code == 502, r.text)
 
 simuler_fournisseur(httpx.ConnectError("injoignable"))
 r = envoyer(jeton_acces=jeton())

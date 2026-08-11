@@ -52,8 +52,11 @@ logger = logging.getLogger("lecteur-documents")
 FOURNISSEURS = {
     "groq": ("https://api.groq.com/openai/v1/chat/completions",
              "meta-llama/llama-4-scout-17b-16e-instruct"),
+    # grok-4 et non grok-2-vision-1212 : la generation 2 a ete retiree et
+    # l'API repond « Model not found » sur tous ses noms. Verifie en sondant
+    # le compte : seuls grok-3 et grok-4 sont reconnus.
     "xai":  ("https://api.x.ai/v1/chat/completions",
-             "grok-2-vision-1212"),
+             "grok-4"),
 }
 
 _url_defaut, _modele_defaut = FOURNISSEURS.get(
@@ -257,17 +260,33 @@ async def extraire(
         logger.exception("Fournisseur injoignable")
         raise HTTPException(502, "Service de lecture injoignable : %s" % exc)
 
+    # Le message du fournisseur n'est JAMAIS relaye au navigateur : il porte
+    # l'identifiant de l'equipe, l'etat du credit, parfois le nom du compte.
+    # Le detail reste au journal, ou l'exploitant peut le lire.
+    if reponse.status_code >= 400:
+        logger.error("Fournisseur en erreur %s : %s",
+                     reponse.status_code, reponse.text[:400])
+
     if reponse.status_code == 401:
-        # Ne jamais relayer le message du fournisseur au navigateur : il peut
-        # contenir des elements sur le compte. Le detail reste au journal.
-        logger.error("Clé du fournisseur refusée (401) — clé absente, "
-                     "révoquée ou expirée")
+        logger.error("Clé refusée : absente, révoquée, ou destinée à l'autre "
+                     "fournisseur (Groq attend « gsk_ », xAI attend « xai- »)")
         raise HTTPException(
             503, "Lecture de documents momentanément indisponible. "
                  "Saisissez les champs manuellement.")
+
+    if reponse.status_code in (402, 403, 429):
+        # Credit epuise, plafond mensuel atteint, ou trop d'appels. Cas
+        # administratif : rien ne se debloquera en reessayant tout de suite,
+        # et l'utilisateur doit le savoir plutot que de recommencer.
+        logger.error("Accès refusé ou quota atteint sur le compte du "
+                     "fournisseur — vérifier le crédit et le plafond de "
+                     "dépense sur la console du fournisseur")
+        raise HTTPException(
+            503, "Lecture de documents indisponible : le compte du service "
+                 "d'analyse a atteint sa limite. Saisissez les champs "
+                 "manuellement et prévenez l'administrateur.")
+
     if reponse.status_code >= 400:
-        logger.error("Fournisseur en erreur %s : %s",
-                     reponse.status_code, reponse.text[:300])
         raise HTTPException(502, "Le service de lecture a refusé la demande")
 
     try:

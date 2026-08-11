@@ -192,9 +192,28 @@ fait gagner du temps, elle n'est jamais un passage obligé.
 | Situation | Réponse | Ce que voit l'utilisateur |
 |---|---|---|
 | Clé absente ou révoquée | `503` | « Lecture momentanément indisponible. Saisissez les champs manuellement. » |
+| Crédit épuisé, plafond atteint, trop d'appels | `503` | « Le compte du service d'analyse a atteint sa limite. Saisissez les champs manuellement et prévenez l'administrateur. » |
+| Modèle inconnu du fournisseur | `502` | « Le service de lecture a refusé la demande » |
 | Fournisseur injoignable | `502` | « Service de lecture injoignable » |
 | Réponse illisible | `502` | « Document non exploitable, saisie manuelle nécessaire » |
 | Fichier trop lourd | `413` | « Fichier trop volumineux (20 Mo maximum) » |
+
+Le crédit épuisé est traité à part parce que c'est un cas **administratif** :
+rien ne se débloquera en réessayant, et l'utilisateur doit le savoir plutôt
+que de recommencer. Le diagnostic exact — identifiant d'équipe, état du
+crédit — reste au journal du service.
+
+### Deux pièges rencontrés en conditions réelles
+
+**Les modèles `grok-2-*` ont été retirés.** Tous leurs noms répondent
+`400 Model not found`. Sondage du compte : seuls `grok-3` et `grok-4` sont
+reconnus, d'où le défaut retenu.
+
+**Le compte xAI n'a pas de palier gratuit.** Un compte sans crédit répond
+`403 permission-denied` sur *tous* les modèles, y compris `/v1/models` —
+ce qui donne l'impression d'une clé invalide alors qu'elle est parfaitement
+valide. Groq offre au contraire un palier gratuit : c'est le fournisseur à
+retenir pour une démonstration.
 
 Le message d'erreur du fournisseur n'est **jamais** relayé au navigateur : il
 peut contenir des indications sur le compte. Le détail reste au journal du
@@ -215,6 +234,8 @@ n'oriente vers rien : un `401`, sans autre explication.
 | Adresse | `api.groq.com` | `api.x.ai` |
 | Préfixe de clé | `gsk_…` | `xai-…` |
 | Console | console.groq.com/keys | console.x.ai |
+| Modèle par défaut | `meta-llama/llama-4-scout-17b-16e-instruct` | `grok-4` |
+| Palier gratuit | oui | non — crédit à approvisionner |
 
 Les deux exposent une interface compatible OpenAI, d'où l'illusion
 d'interchangeabilité. Une clé de l'un présentée à l'autre est simplement
