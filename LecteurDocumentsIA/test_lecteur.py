@@ -147,6 +147,30 @@ r = envoyer(jeton_acces=jeton())
 verifier("réponse encadrée de markdown analysée quand même",
          r.status_code == 200 and r.json().get("marque") == "Renault", r.text)
 
+# Modele a raisonnement : il expose sa reflexion avant de repondre. Ce bloc
+# contient des accolades et des bouts de JSON — le laisser ferait analyser
+# n'importe quoi. Cas rencontre en conditions reelles avec qwen3.6.
+simuler_fournisseur(reponse_modele(
+    '<think>\nLe champ D.1 vaut "IVECO". Je vais construire :\n'
+    '{"marque": "brouillon"}\nNon, plutot ceci.\n</think>\n'
+    '{"marque":"IVECO","immatriculation":"156 TUN 4520"}'))
+r = envoyer(jeton_acces=jeton())
+verifier("bloc de réflexion ignoré, vraie réponse retenue",
+         r.status_code == 200 and r.json().get("marque") == "IVECO", r.text)
+
+# Reflexion jamais refermee : la reponse a ete coupee, il n'y a rien a lire.
+simuler_fournisseur(reponse_modele('<think>\nJe reflechis {"a":1} et je suis coupe'))
+r = envoyer(jeton_acces=jeton())
+verifier("réflexion non refermée → 502 et non un JSON de brouillon",
+         r.status_code == 502, r.text)
+
+# Le fournisseur signale lui-meme la troncature.
+simuler_fournisseur(FausseReponse(200, {"choices": [
+    {"message": {"content": '{"marque":"Ive'}, "finish_reason": "length"}]}))
+r = envoyer(jeton_acces=jeton())
+verifier("réponse tronquée annoncée → 502 explicite",
+         r.status_code == 502 and "incompl" in r.text.lower(), r.text)
+
 # ── Les deux écritures de la route ───────────────────────────────────────────
 # L'intercepteur du front ajoute une barre finale ; sans cette double
 # déclaration, FastAPI répondait par une redirection absolue qui perdait le

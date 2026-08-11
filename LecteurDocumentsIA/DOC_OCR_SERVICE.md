@@ -203,7 +203,40 @@ rien ne se débloquera en réessayant, et l'utilisateur doit le savoir plutôt
 que de recommencer. Le diagnostic exact — identifiant d'équipe, état du
 crédit — reste au journal du service.
 
-### Deux pièges rencontrés en conditions réelles
+### Quatre pièges rencontrés en conditions réelles
+
+**Le catalogue de modèles bouge, et il dépend du compte.**
+`meta-llama/llama-4-scout-17b-16e-instruct` était le défaut de Groq ; il
+répond aujourd'hui `model_not_found` sur un compte ordinaire. Pour savoir
+ce qui est réellement disponible :
+
+```bash
+docker exec xpark-ocr python -c "import os,httpx; print([m['id'] for m in \
+  httpx.get('https://api.groq.com/openai/v1/models', headers={'Authorization': \
+  'Bearer '+os.environ['OCR_API_KEY']}).json()['data']])"
+```
+
+Tous ces modèles ne lisent pas les images. Un modèle purement textuel
+répond `messages[0].content must be a string` dès qu'on lui envoie une
+image : c'est le test le plus rapide pour trier le catalogue.
+
+**Un modèle à raisonnement réfléchit avant de répondre.** `qwen/qwen3.6-27b`
+émet un bloc `<think>…</think>` — 729 jetons sur le document d'essai —
+*avant* d'écrire son JSON. Deux conséquences :
+
+- Ce bloc contient des accolades et des brouillons de JSON. L'analyse le
+  retire d'abord, sans quoi elle risquerait de retenir le brouillon plutôt
+  que la réponse.
+- Le plafond de jetons doit couvrir la réflexion **et** la réponse. À 1024,
+  le JSON se trouvait tronqué en plein milieu et le service rendait
+  « document non exploitable » alors que la lecture avait parfaitement
+  réussi. Le plafond est passé à 4000, réglable par `OCR_MAX_TOKENS`.
+
+Lorsque le fournisseur signale lui-même la troncature
+(`finish_reason: "length"`), le service le dit explicitement plutôt que de
+faire croire à un document illisible.
+
+
 
 **Les modèles `grok-2-*` ont été retirés.** Tous leurs noms répondent
 `400 Model not found`. Sondage du compte : seuls `grok-3` et `grok-4` sont

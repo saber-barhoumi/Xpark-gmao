@@ -49,9 +49,23 @@ logger = logging.getLogger("lecteur-documents")
 #  Une cle de l'un presentee a l'autre repond 401, sans plus d'explication.
 #  L'adresse et le modele sont donc configurables : la meme image de
 #  conteneur sert avec l'un ou l'autre, sans modification de code.
+#  LE CATALOGUE DE MODELES BOUGE, ET IL DEPEND DU COMPTE.
+#  « meta-llama/llama-4-scout-17b-16e-instruct » etait le defaut de Groq ;
+#  il repond aujourd'hui « model_not_found » sur un compte ordinaire. De
+#  meme, la generation grok-2 de xAI a ete entierement retiree.
+#
+#  Pour savoir ce qui est REELLEMENT disponible sur votre compte, et lequel
+#  accepte des images :
+#      docker exec xpark-ocr python -c "import os,httpx; \
+#        print([m['id'] for m in httpx.get( \
+#        'https://api.groq.com/openai/v1/models', headers={'Authorization': \
+#        'Bearer '+os.environ['OCR_API_KEY']}).json()['data']])"
+#
+#  Un modele qui repond « content must be a string » ne lit pas les images.
+#  OCR_VISION_MODEL permet de changer sans toucher au code.
 FOURNISSEURS = {
     "groq": ("https://api.groq.com/openai/v1/chat/completions",
-             "meta-llama/llama-4-scout-17b-16e-instruct"),
+             "qwen/qwen3.6-27b"),
     # grok-4 et non grok-2-vision-1212 : la generation 2 a ete retiree et
     # l'API repond « Model not found » sur tous ses noms. Verifie en sondant
     # le compte : seuls grok-3 et grok-4 sont reconnus.
@@ -80,6 +94,7 @@ JWT_EMETTEUR = os.getenv("Jwt__Issuer", "XparkGMAO")
 JWT_AUDIENCE = os.getenv("Jwt__Audience", "XparkGMAO")
 
 TAILLE_MAX = 20 * 1024 * 1024        # 20 Mo, comme l'ancienne limite du front
+PLAFOND_JETONS = int(os.getenv("OCR_MAX_TOKENS", "4000"))
 TYPES_IMAGE = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 app = FastAPI(title="XparkGMAO — LecteurDocumentsIA", version="1.0")
@@ -177,10 +192,21 @@ RÈGLES STRICTES :
 def _extraire_json(texte: str) -> dict:
     """Isole l'objet JSON de la réponse du modèle.
 
-    Malgré la consigne, un modèle encadre parfois sa réponse d'une clôture
-    markdown ou d'une phrase d'introduction.
+    Trois habitudes de modèles à contourner, constatées en conditions
+    réelles :
+
+    - Un modèle à raisonnement expose sa réflexion dans un bloc
+      « <think>…</think> » avant de répondre. Ce bloc contient des accolades
+      et des extraits de JSON : le laisser fausserait la recherche.
+    - Malgré la consigne, la réponse est souvent encadrée d'une clôture
+      markdown.
+    - Une phrase de politesse précède ou suit parfois l'objet.
     """
-    nettoye = re.sub(r"```(?:json)?", "", texte).strip()
+    sans_reflexion = re.sub(r"<think>.*?</think>", "", texte, flags=re.DOTALL)
+    # Un bloc de reflexion jamais referme signifie une reponse coupee.
+    sans_reflexion = re.sub(r"<think>.*", "", sans_reflexion, flags=re.DOTALL)
+    nettoye = re.sub(r"```(?:json)?", "", sans_reflexion).strip()
+
     trouve = re.search(r"\{[\s\S]*\}", nettoye)
     if not trouve:
         raise ValueError("aucun objet JSON dans la réponse du modèle")
@@ -238,7 +264,12 @@ async def extraire(
     corps = {
         "model": MODELE_VISION,
         "temperature": 0.1,
-        "max_tokens": 1024,
+        # Large, et pas par confort : un modele a raisonnement consomme
+        # plusieurs centaines de jetons a reflechir AVANT d'ecrire sa
+        # reponse. Avec 1024, la reflexion passait et le JSON se trouvait
+        # tronque en plein milieu — le service rendait alors « document non
+        # exploitable » alors que la lecture avait parfaitement reussi.
+        "max_tokens": PLAFOND_JETONS,
         "messages": [
             {"role": "system", "content": CONSIGNE},
             {"role": "user", "content": [
@@ -290,7 +321,17 @@ async def extraire(
         raise HTTPException(502, "Le service de lecture a refusé la demande")
 
     try:
-        texte = reponse.json()["choices"][0]["message"]["content"]
+        choix = reponse.json()["choices"][0]
+        texte = choix["message"]["content"]
+        if choix.get("finish_reason") == "length":
+            # Reponse coupee au plafond : le JSON est incomplet, inutile de
+            # tenter de l'analyser. Le dire clairement plutot que de laisser
+            # croire a un document illisible.
+            logger.error("Réponse tronquée au plafond de %d jetons — relever "
+                         "OCR_MAX_TOKENS", PLAFOND_JETONS)
+            raise HTTPException(
+                502, "Réponse incomplète du service de lecture, "
+                     "saisie manuelle nécessaire")
         donnees = _extraire_json(texte)
     except (KeyError, IndexError, ValueError, json.JSONDecodeError) as exc:
         logger.error("Réponse illisible : %s", exc)
