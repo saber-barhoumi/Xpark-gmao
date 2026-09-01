@@ -253,6 +253,8 @@ public class AuthService(
         user.MotDePasse             = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
         user.PasswordResetToken     = null;
         user.PasswordResetTokenExpiry = null;
+        user.FailedLoginAttempts    = 0;
+        user.AccountLockedUntil     = null;
         await db.SaveChangesAsync();
     }
 
