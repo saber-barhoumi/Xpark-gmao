@@ -14,6 +14,7 @@ const LoginPage = () => {
   // Parser les paramètres URL
   const params = new URLSearchParams(location.search)
   const confirmed = params.get('confirmed') || null
+  const reset = params.get('reset') || null
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -35,8 +36,10 @@ const LoginPage = () => {
   useEffect(() => {
     if (confirmed === 'true') {
       setSuccess('Votre email a été confirmé ! Vous pouvez maintenant vous connecter.')
+    } else if (reset === 'true') {
+      setSuccess('Votre mot de passe a été réinitialisé ! Vous pouvez maintenant vous connecter.')
     }
-  }, [confirmed])
+  }, [confirmed, reset])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
