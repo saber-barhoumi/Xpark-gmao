@@ -32,7 +32,8 @@ const withPendingBadge = (items: MenuItemType[], pending: number): MenuItemType[
 
 const LeftSideBar = () => {
   const pendingMissions = usePendingMissionsCount()
-  const menuItems = withPendingBadge(getMenuItems(), pendingMissions)
+  const currentRole = authService.getCurrentUser()?.role
+  const menuItems = withPendingBadge(getMenuItems(currentRole), pendingMissions)
 
   const { mainMenu, changeMainMenuSize } = useLayoutContext()
 

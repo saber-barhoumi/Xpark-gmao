@@ -8,7 +8,7 @@ namespace Alerts.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class AlertesController(IAlertService service, ILogger<AlertesController> logger) : ControllerBase
 {
     [HttpGet]
@@ -28,7 +28,6 @@ public class AlertesController(IAlertService service, ILogger<AlertesController>
 
     [HttpGet("count")]
     [HttpGet("count-unread")]    // frontend alias
-    [AllowAnonymous]
     public async Task<IActionResult> CountNonLues()
     {
         var count = await service.CountNonLuesAsync();

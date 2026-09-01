@@ -11,10 +11,12 @@ namespace IAM.API.Controllers;
 [Route("api/clients")]
 public class ClientsController(IClientService clientService) : ControllerBase
 {
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<ClientDto>>>> GetAll() =>
         Ok(ApiResponse<List<ClientDto>>.Ok(await clientService.GetAllAsync()));
 
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<ClientDto>>> GetById(long id) =>
         Ok(ApiResponse<ClientDto>.Ok(await clientService.GetByIdAsync(id)));

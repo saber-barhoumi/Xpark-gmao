@@ -7,7 +7,7 @@ namespace Fleet.API.Controllers;
 
 [ApiController]
 [Route("api/assurances")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class AssurancesController(IAssuranceService service) : ControllerBase
 {
     [HttpGet("vehicule/{vehiculeId:long}")]

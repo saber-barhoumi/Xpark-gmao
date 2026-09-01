@@ -7,7 +7,7 @@ namespace Fleet.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class SourcesController(ISourceService service) : ControllerBase
 {
     [HttpGet]

@@ -10,6 +10,7 @@ import authService from '@/services/authService'
 import employeeService from '@/services/employeeService'
 import alerteService, { Alerte } from '@/services/alerteService'
 import transportRequestService from '@/services/transportRequestService'
+import missionService from '@/services/missionService'
 import { StatutDemandeTransport, TransportRequest } from '@/types/transportRequest'
 import { Employee } from '@/types/employee'
 import { StatutMission } from '@/types/mission'
@@ -37,21 +38,27 @@ const MISSION_BADGES: Record<string, string> = {
 
 export default function DashboardPage() {
     const user = authService.getCurrentUser()
-    const perms = useMemo(() => permissionsFor(user?.role), [user?.role])
+    const role = user?.role
+    const perms = useMemo(() => permissionsFor(role), [role])
 
     // Données de base (missions, véhicules) — même hook que la page /analytics
     const { data, stats, loading } = useAnalyticsData(perms)
 
-    // Compléments exécutifs (petites listes)
+    // Compléments exécutifs (petites listes) — réservés au staff : un
+    // CHAUFFEUR/CLIENT n'a pas à recevoir tout le roster employés, toutes
+    // les alertes système ni le pipeline de devis clients juste pour
+    // afficher son propre tableau de bord (voir branches ci-dessous).
+    const isSelfService = role === 'CHAUFFEUR' || role === 'CLIENT'
     const [employees, setEmployees] = useState<Employee[]>([])
     const [alertes, setAlertes] = useState<Alerte[]>([])
     const [demandes, setDemandes] = useState<TransportRequest[]>([])
 
     useEffect(() => {
+        if (isSelfService) return
         employeeService.getAll().then(setEmployees).catch(() => {})
         alerteService.getAll().then(setAlertes).catch(() => {})
         transportRequestService.getAll().then(setDemandes).catch(() => {})
-    }, [])
+    }, [isSelfService])
 
     // ── Agrégats exécutifs (l'essentiel, rien de plus) ────────────────────────
     const cc = useMemo(() => {
@@ -89,6 +96,12 @@ export default function DashboardPage() {
             recentes, demandesEnAttente, revenusMois, revenusJour, alertesRecentes,
         }
     }, [data, employees, demandes, alertes])
+
+    // CHAUFFEUR / CLIENT : pas de vue exécutive fleet-wide — un tableau de
+    // bord réduit à leur propre activité (le reste du module Dashboard,
+    // Analyses & KPIs y compris, leur est fermé côté routes/menu — RBAC).
+    if (role === 'CHAUFFEUR') return <ChauffeurDashboard />
+    if (role === 'CLIENT') return <ClientDashboard />
 
     if (loading) {
         return (
@@ -205,6 +218,74 @@ export default function DashboardPage() {
                 </Row>
             </SectionErrorBoundary>
 
+        </>
+    )
+}
+
+/* ── Tableaux de bord réduits (self-service, hors vue exécutive) ───────────── */
+
+function ChauffeurDashboard() {
+    const [missions, setMissions] = useState<{ statut: StatutMission }[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        missionService.getMyDriverMissions().then(setMissions).catch(() => {}).finally(() => setLoading(false))
+    }, [])
+
+    const enCours = missions.filter(m => m.statut === StatutMission.EN_COURS).length
+    const terminees = missions.filter(m => m.statut === StatutMission.TERMINEE).length
+
+    return (
+        <>
+            <PageBreadcrumb title="Dashboard" />
+            <Row className="g-3 mb-4">
+                {[
+                    { label: 'Missions en cours', value: enCours, icon: 'ri:truck-line', color: 'primary' },
+                    { label: 'Missions terminées', value: terminees, icon: 'ri:checkbox-circle-line', color: 'success' },
+                    { label: 'Total assignées', value: loading ? '…' : missions.length, icon: 'ri:list-check-3', color: 'info' },
+                ].map(c => (
+                    <Col key={c.label} md={4}>
+                        <Card className="border-0 shadow-sm h-100">
+                            <CardBody className="py-3 d-flex align-items-center gap-3">
+                                <span className={`avatar-md bg-${c.color}-subtle text-${c.color} rounded d-flex align-items-center justify-content-center flex-shrink-0`}>
+                                    <IconifyIcon icon={c.icon} className="fs-22" />
+                                </span>
+                                <div>
+                                    <h4 className="mb-0 fw-bold text-dark">{c.value}</h4>
+                                    <span className="text-muted small">{c.label}</span>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+            <div className="d-flex gap-2 flex-wrap">
+                <Link to="/gestion/mes-missions" className="btn btn-primary d-flex align-items-center gap-1">
+                    <IconifyIcon icon="ri:truck-line" /> Mes missions
+                </Link>
+                <Link to="/users/profile" className="btn btn-outline-secondary d-flex align-items-center gap-1">
+                    <IconifyIcon icon="ri:account-circle-line" /> Mon profil
+                </Link>
+                <Link to="/security" className="btn btn-outline-secondary d-flex align-items-center gap-1">
+                    <IconifyIcon icon="ri:shield-keyhole-line" /> Sécurité
+                </Link>
+            </div>
+        </>
+    )
+}
+
+function ClientDashboard() {
+    return (
+        <>
+            <PageBreadcrumb title="Dashboard" />
+            <Card className="border-0 shadow-sm">
+                <CardBody className="text-center py-5">
+                    <IconifyIcon icon="ri:account-circle-line" className="fs-48 text-muted mb-3 d-block" />
+                    <h5>Bienvenue</h5>
+                    <p className="text-muted mb-3">Le suivi de vos missions et factures se fait depuis votre espace client.</p>
+                    <Link to="/users/profile" className="btn btn-primary">Mon profil</Link>
+                </CardBody>
+            </Card>
         </>
     )
 }

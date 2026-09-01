@@ -13,6 +13,7 @@ namespace Maintenance.API.Controllers;
 public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreTravailController> logger) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetAll([FromQuery] string? statut = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var query = context.OrdresTravail
@@ -40,6 +41,7 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
     }
 
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetById(long id)
     {
         var ot = await context.OrdresTravail
@@ -143,6 +145,7 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
     }
 
     [HttpGet("{id:long}/historique")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetHistorique(long id)
     {
         var historique = await context.HistoriqueStatutsOT
@@ -170,6 +173,7 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
     }
 
     [HttpGet("kanban")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetKanban()
     {
         var items = await context.OrdresTravail
@@ -226,6 +230,7 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
     }
 
     [HttpGet("kanban/metadata")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetKanbanMetadata()
     {
         var vehiculeIds = await context.OrdresTravail
@@ -337,6 +342,7 @@ public class OrdreTravailController(MaintenanceDbContext context, ILogger<OrdreT
 
     /// <summary>Vue complète d'un OT : entête + pièces jointes + commentaires.</summary>
     [HttpGet("{id:long}/detail")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetDetail(long id)
     {
         var ot = await context.OrdresTravail

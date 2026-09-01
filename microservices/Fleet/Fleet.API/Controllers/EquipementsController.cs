@@ -13,6 +13,7 @@ namespace Fleet.API.Controllers;
 public class EquipementsController(FleetDbContext context) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? type = null,
         [FromQuery] string? etat = null,
@@ -80,6 +81,7 @@ public class EquipementsController(FleetDbContext context) : ControllerBase
     }
 
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetById(long id)
     {
         var eq = await context.Equipements
@@ -123,6 +125,7 @@ public class EquipementsController(FleetDbContext context) : ControllerBase
     }
 
     [HttpGet("kpis")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetKpis()
     {
         var total = await context.Equipements.CountAsync(e => e.Actif);
@@ -211,6 +214,7 @@ public class EquipementsController(FleetDbContext context) : ControllerBase
     }
 
     [HttpGet("vehicule/{vehiculeId:long}/verification-mission")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> VerifierAvantMission(long vehiculeId)
     {
         var equipementsFixes = await context.Equipements
@@ -233,14 +237,17 @@ public class EquipementsController(FleetDbContext context) : ControllerBase
     }
 
     [HttpPost("checkout")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> CheckOut([FromBody] object dto) =>
         Ok(new { message = "CheckOut enregistré" });
 
     [HttpPost("checkin")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> CheckIn([FromBody] object dto) =>
         Ok(new { message = "CheckIn enregistré" });
 
     [HttpPost("{id:long}/inspections")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> CreerInspection(long id, [FromBody] object dto) =>
         Ok(new { id, message = "Inspection créée" });
 
@@ -250,25 +257,31 @@ public class EquipementsController(FleetDbContext context) : ControllerBase
         Ok(new { imageUrl = "/uploads/equipements/placeholder.jpg" });
 
     [HttpPost("notes")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> AjouterNote([FromBody] object dto) =>
         Ok(new { id = 0, message = "Note ajoutée" });
 
     [HttpPut("notes/{noteId:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> ModifierNote(long noteId, [FromBody] object dto) =>
         Ok(new { id = noteId, message = "Note modifiée" });
 
     [HttpDelete("notes/{noteId:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> SupprimerNote(long noteId) => NoContent();
 
     [HttpPost("contrats")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> AjouterContrat([FromBody] object dto) =>
         Ok(new { id = 0, message = "Contrat ajouté" });
 
     [HttpPut("contrats/{contratId:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> ModifierContrat(long contratId, [FromBody] object dto) =>
         Ok(new { id = contratId, message = "Contrat modifié" });
 
     [HttpDelete("contrats/{contratId:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> SupprimerContrat(long contratId) => NoContent();
 }
 

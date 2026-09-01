@@ -15,6 +15,7 @@ namespace Maintenance.API.Controllers;
 public class InterventionsController(MaintenanceDbContext context, IMaintenanceService maintenanceService, ILogger<InterventionsController> logger) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         [FromQuery] string? statut = null, [FromQuery] string? type = null, [FromQuery] long? vehiculeId = null)
@@ -50,6 +51,7 @@ public class InterventionsController(MaintenanceDbContext context, IMaintenanceS
     }
 
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetById(long id)
     {
         var i = await context.Interventions

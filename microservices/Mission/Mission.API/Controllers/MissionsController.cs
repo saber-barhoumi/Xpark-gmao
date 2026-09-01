@@ -19,7 +19,7 @@ public class MissionsController(
         $"{User.FindFirst("prenom")?.Value} {User.FindFirst("nom")?.Value}".Trim() is { Length: > 0 } n ? n : null;
 
     [HttpGet]
-    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,CHAUFFEUR,TECHNICIEN")]  // staff — les clients passent par /my
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]  // staff — les clients passent par /my, les chauffeurs par /driver (scopé à leurs propres missions)
     public async Task<IActionResult> GetAll([FromQuery] string? statut)
     {
         if (!string.IsNullOrEmpty(statut) && Enum.TryParse<StatutMission>(statut, true, out var s))
@@ -47,6 +47,19 @@ public class MissionsController(
         return Ok(await missionService.GetByDriverNameAsync(CurrentUserName, statut));
     }
 
+    /// <summary>Détail d'UNE mission du chauffeur connecté — 404 si elle ne lui appartient pas
+    /// (même correspondance de nom que /driver, pas une simple vérification de rôle).</summary>
+    [HttpGet("driver/{id:long}")]
+    [Authorize(Roles = "CHAUFFEUR,ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
+    public async Task<IActionResult> GetDriverMissionById(long id)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentUserName))
+            return NotFound(new { message = "Mission introuvable" });
+        var mission = await missionService.GetByIdForDriverAsync(id, CurrentUserName);
+        if (mission == null) return NotFound(new { message = "Mission introuvable" });
+        return Ok(mission);
+    }
+
     /// <summary>Le client annule SA réservation, tant qu'elle est EN_ATTENTE.</summary>
     [HttpPut("my/{id:long}/cancel")]
     public async Task<IActionResult> CancelMyMission(long id)
@@ -57,7 +70,7 @@ public class MissionsController(
     }
 
     [HttpGet("{id:long}")]
-    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,CHAUFFEUR,TECHNICIEN")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetById(long id)
     {
         var mission = await missionService.GetByIdAsync(id);

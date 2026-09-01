@@ -12,6 +12,7 @@ namespace IAM.API.Controllers;
 [Route("api/employees")]
 public class EmployeesController(IEmployeeService employeeService) : ControllerBase
 {
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<EmployeeDto>>>> GetAll(
         [FromQuery] string? statut = null,
@@ -25,14 +26,17 @@ public class EmployeesController(IEmployeeService employeeService) : ControllerB
         return Ok(ApiResponse<List<EmployeeDto>>.Ok(all));
     }
 
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<EmployeeDto>>> GetById(long id) =>
         Ok(ApiResponse<EmployeeDto>.Ok(await employeeService.GetByIdAsync(id)));
 
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     [HttpGet("by-post/{post}")]
     public async Task<ActionResult<ApiResponse<List<EmployeeDto>>>> GetByPost(PostEmployee post) =>
         Ok(ApiResponse<List<EmployeeDto>>.Ok(await employeeService.GetByPostAsync(post)));
 
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     [HttpGet("by-statut/{statut}")]
     public async Task<ActionResult<ApiResponse<List<EmployeeDto>>>> GetByStatut(StatutEmployee statut) =>
         Ok(ApiResponse<List<EmployeeDto>>.Ok(await employeeService.GetByStatutAsync(statut)));

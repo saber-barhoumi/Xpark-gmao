@@ -11,7 +11,7 @@ namespace Chat.API.Controllers;
 
 [ApiController]
 [Route("api/chat")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class ChatController(
     ChatDbContext db,
     IHubContext<ChatHub> hub,

@@ -12,6 +12,7 @@ namespace Finance.API.Controllers;
 public class FacturesController(IFacturationService service, ILogger<FacturesController> logger) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? statut = null)
     {
         var result = await service.GetAllAsync(page, pageSize, statut);
@@ -19,6 +20,7 @@ public class FacturesController(IFacturationService service, ILogger<FacturesCon
     }
 
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> GetById(long id)
     {
         var facture = await service.GetByIdAsync(id);
@@ -45,6 +47,7 @@ public class FacturesController(IFacturationService service, ILogger<FacturesCon
     }
 
     [HttpGet("impayees")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE")]
     public async Task<IActionResult> GetImpayees()
     {
         var factures = await service.GetImpayeesAsync();

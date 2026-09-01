@@ -24,19 +24,28 @@ public class TrackingController(MissionDbContext db) : ControllerBase
 
     private long CurrentUserId => long.Parse(User.FindFirst("userId")!.Value);
     private bool IsStaff => Staff.Any(User.IsInRole);
-    private bool IsDriver => User.IsInRole("CHAUFFEUR") || IsStaff;
+    private string? CurrentUserName =>
+        $"{User.FindFirst("prenom")?.Value} {User.FindFirst("nom")?.Value}".Trim() is { Length: > 0 } n ? n : null;
+
+    /// <summary>Même correspondance de nom que MissionsController/MissionService
+    /// (pas de lien Utilisateur↔Employee — voir NB dans MissionsController.GetDriverMissions).</summary>
+    private bool IsOwnMission(Mission.Domain.Entities.Mission m) =>
+        !string.IsNullOrWhiteSpace(CurrentUserName)
+        && (m.ChauffeurNom ?? "").Trim().Equals(CurrentUserName, StringComparison.OrdinalIgnoreCase);
 
     // ── Écriture (app mobile chauffeur) ───────────────────────────────────────
 
     [HttpPost("ping")]
     public async Task<IActionResult> Ping([FromBody] PingDto dto)
     {
-        if (!IsDriver) return Forbid();
+        if (!IsStaff && !User.IsInRole("CHAUFFEUR")) return Forbid();
         if (dto.Latitude is < -90 or > 90 || dto.Longitude is < -180 or > 180)
             return BadRequest(new { message = "Coordonnées invalides." });
 
         var mission = await db.Missions.FirstOrDefaultAsync(m => m.IdMission == dto.MissionId);
         if (mission == null) return NotFound(new { message = "Mission introuvable." });
+        // Un chauffeur ne peut envoyer sa position que pour SA propre mission.
+        if (!IsStaff && !IsOwnMission(mission)) return Forbid();
 
         db.LivePositions.Add(new LivePosition
         {
@@ -106,8 +115,8 @@ public class TrackingController(MissionDbContext db) : ControllerBase
 
     private bool CanRead(Mission.Domain.Entities.Mission m)
         => IsStaff
-        || m.ClientIdUtilisateur == CurrentUserId    // le client propriétaire
-        || User.IsInRole("CHAUFFEUR");               // les chauffeurs
+        || m.ClientIdUtilisateur == CurrentUserId              // le client propriétaire
+        || (User.IsInRole("CHAUFFEUR") && IsOwnMission(m));    // le chauffeur affecté à CETTE mission uniquement
 }
 
 public record PingDto(

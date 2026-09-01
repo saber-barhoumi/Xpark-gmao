@@ -15,6 +15,8 @@ public interface IMissionService
     Task<bool>                            CancelMyMissionAsync(long clientUserId, long missionId);
     Task<IEnumerable<MissionResponseDto>> GetByClientAsync(long clientUserId);
     Task<IEnumerable<MissionResponseDto>> GetByDriverNameAsync(string chauffeurNom, string? statut);
+    /// <summary>Une mission par id, uniquement si elle appartient au chauffeur (Mission.ChauffeurNom). Null sinon (introuvable ou pas la sienne).</summary>
+    Task<MissionResponseDto?>             GetByIdForDriverAsync(long id, string chauffeurNom);
     Task<bool>                            CancelMissionAsync(long id);
     Task<bool>                            DeleteAsync(long id);
 }

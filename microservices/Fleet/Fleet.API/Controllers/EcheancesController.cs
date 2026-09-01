@@ -11,7 +11,7 @@ namespace Fleet.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/echeances")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class EcheancesController(IEcheanceService service) : ControllerBase
 {
     /// <summary>GET /api/echeances?start=2026-01-01&amp;end=2026-12-31</summary>

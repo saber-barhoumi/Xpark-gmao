@@ -1,6 +1,7 @@
 import { lazy } from 'react'
 import { Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import { STAFF, OPS } from '@/config/rbac'
 
 export interface AppRoute {
   name: string
@@ -41,6 +42,7 @@ const Projects         = lazy(() => import('@/app/(admin)/apps/Projects/page'))
 // Fleet / GMAO
 const Vehicules        = lazy(() => import('@/app/(admin)/gestion/vehicules/page'))
 const Missions         = lazy(() => import('@/app/(admin)/gestion/missions/page'))
+const MesMissions      = lazy(() => import('@/app/(admin)/gestion/mes-missions/page'))
 const DemandesTransport = lazy(() => import('@/app/(admin)/gestion/demandes-transport/page'))
 const Suivi            = lazy(() => import('@/app/(admin)/gestion/suivi/page'))
 const Optimisateur     = lazy(() => import('@/app/(admin)/gestion/optimisateur/page'))
@@ -109,52 +111,53 @@ export const APP_ROUTES: AppRoute[] = [
 
   // Dashboard & Analytics
   { name: 'dashboard',   path: '/dashboard',  element: createElement(Dashboard) },
-  { name: 'analytics',   path: '/analytics',  element: createElement(Analytics) },
-  { name: 'alertes',     path: '/alertes',    element: createElement(Alertes) },
+  { name: 'analytics',   path: '/analytics',  element: createElement(Analytics), allowedRoles: OPS },
+  { name: 'alertes',     path: '/alertes',    element: createElement(Alertes), allowedRoles: OPS },
 
   // Apps
-  { name: 'chat',         path: '/apps/chat',          element: createElement(Chat) },
-  { name: 'calendar',     path: '/apps/calendar',      element: createElement(Calendar) },
-  { name: 'file-manager', path: '/apps/file-manager',  element: createElement(FileManager) },
-  { name: 'projects',     path: '/apps/Projects',      element: createElement(Projects) },
+  { name: 'chat',         path: '/apps/chat',          element: createElement(Chat), allowedRoles: OPS },
+  { name: 'calendar',     path: '/apps/calendar',      element: createElement(Calendar), allowedRoles: STAFF },
+  { name: 'file-manager', path: '/apps/file-manager',  element: createElement(FileManager), allowedRoles: OPS },
+  { name: 'projects',     path: '/apps/Projects',      element: createElement(Projects), allowedRoles: OPS },
 
   // Fleet management
-  { name: 'vehicules',        path: '/gestion/vehicules',          element: createElement(Vehicules) },
-  { name: 'missions',         path: '/gestion/missions',           element: createElement(Missions) },
-  { name: 'demandes-transport', path: '/gestion/demandes-transport', element: createElement(DemandesTransport), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
-  { name: 'suivi',            path: '/gestion/suivi',              element: createElement(Suivi), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
-  { name: 'optimisateur',     path: '/gestion/optimisateur',       element: createElement(Optimisateur), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
-  { name: 'iboa',             path: '/monitoring/iboa',            element: createElement(IboaAssistant), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
+  { name: 'vehicules',        path: '/gestion/vehicules',          element: createElement(Vehicules), allowedRoles: OPS },
+  { name: 'missions',         path: '/gestion/missions',           element: createElement(Missions), allowedRoles: STAFF },
+  { name: 'mes-missions',     path: '/gestion/mes-missions',       element: createElement(MesMissions), allowedRoles: ['CHAUFFEUR'] },
+  { name: 'demandes-transport', path: '/gestion/demandes-transport', element: createElement(DemandesTransport), allowedRoles: STAFF },
+  { name: 'suivi',            path: '/gestion/suivi',              element: createElement(Suivi), allowedRoles: STAFF },
+  { name: 'optimisateur',     path: '/gestion/optimisateur',       element: createElement(Optimisateur), allowedRoles: STAFF },
+  { name: 'iboa',             path: '/monitoring/iboa',            element: createElement(IboaAssistant), allowedRoles: STAFF },
   { name: 'security',         path: '/security',                   element: createElement(SecurityPage) },
-  { name: 'equipements',      path: '/gestion/equipements',        element: createElement(Equipements) },
-  { name: 'equipement-detail',path: '/gestion/equipements/:id',    element: createElement(EquipementDetail) },
-  { name: 'sources',          path: '/operations/sources',         element: createElement(Sources) },
-  { name: 'carburant',        path: '/operations/carburant',       element: createElement(Carburant) },
+  { name: 'equipements',      path: '/gestion/equipements',        element: createElement(Equipements), allowedRoles: OPS },
+  { name: 'equipement-detail',path: '/gestion/equipements/:id',    element: createElement(EquipementDetail), allowedRoles: OPS },
+  { name: 'sources',          path: '/operations/sources',         element: createElement(Sources), allowedRoles: STAFF },
+  { name: 'carburant',        path: '/operations/carburant',       element: createElement(Carburant), allowedRoles: STAFF },
 
   // Maintenance
-  { name: 'ordres-travail',   path: '/maintenance/ordres-travail',  element: createElement(OrdresTravail) },
-  { name: 'interventions',    path: '/maintenance/interventions',   element: createElement(Interventions) },
-  { name: 'pieces-rechange',  path: '/maintenance/pieces-rechange', element: createElement(PiecesRechange) },
-  { name: 'prediction-pannes', path: '/maintenance/prediction-pannes', element: createElement(PredictionPannes), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE', 'TECHNICIEN'] },
+  { name: 'ordres-travail',   path: '/maintenance/ordres-travail',  element: createElement(OrdresTravail), allowedRoles: OPS },
+  { name: 'interventions',    path: '/maintenance/interventions',   element: createElement(Interventions), allowedRoles: OPS },
+  { name: 'pieces-rechange',  path: '/maintenance/pieces-rechange', element: createElement(PiecesRechange), allowedRoles: OPS },
+  { name: 'prediction-pannes', path: '/maintenance/prediction-pannes', element: createElement(PredictionPannes), allowedRoles: OPS },
 
   // HR / Users
   { name: 'employees',    path: '/hr/employees',        element: createElement(Employees),  allowedRoles: ['ADMIN', 'RH'] },
   { name: 'pending-users',path: '/users/pending',       element: createElement(PendingUsers), allowedRoles: ['ADMIN'] },
   { name: 'user-archives',path: '/users/archives',      element: createElement(UserArchives), allowedRoles: ['ADMIN', 'ADMINISTRATEUR'] },
-  { name: 'users-accounts',path: '/users',              element: createElement(UsersAccounts), allowedRoles: ['ADMIN', 'ADMINISTRATEUR', 'GESTIONNAIRE'] },
-  { name: 'contacts',     path: '/users/contacts',      element: createElement(Contacts) },
+  { name: 'users-accounts',path: '/users',              element: createElement(UsersAccounts), allowedRoles: STAFF },
+  { name: 'contacts',     path: '/users/contacts',      element: createElement(Contacts), allowedRoles: OPS },
   { name: 'profile',      path: '/users/profile',       element: createElement(Profile) },
   { name: 'profile-edit', path: '/users/profile/edit',  element: createElement(ProfileEdit) },
 
   // Finance
-  { name: 'wallet',         path: '/wallet',                   element: createElement(Wallet) },
-  { name: 'invoices',       path: '/invoices',                 element: createElement(Invoices) },
-  { name: 'view-invoice',   path: '/invoices/view-invoice',    element: createElement(ViewInvoice) },
-  { name: 'create-invoice', path: '/invoices/create-invoice',  element: createElement(CreateInvoice) },
+  { name: 'wallet',         path: '/wallet',                   element: createElement(Wallet), allowedRoles: STAFF },
+  { name: 'invoices',       path: '/invoices',                 element: createElement(Invoices), allowedRoles: STAFF },
+  { name: 'view-invoice',   path: '/invoices/view-invoice',    element: createElement(ViewInvoice), allowedRoles: STAFF },
+  { name: 'create-invoice', path: '/invoices/create-invoice',  element: createElement(CreateInvoice), allowedRoles: STAFF },
 
   // Tasks
-  { name: 'kanban',       path: '/tasks/kanban',        element: createElement(Kanban) },
-  { name: 'view-details', path: '/tasks/view-details',  element: createElement(ViewDetails) },
+  { name: 'kanban',       path: '/tasks/kanban',        element: createElement(Kanban), allowedRoles: OPS },
+  { name: 'view-details', path: '/tasks/view-details',  element: createElement(ViewDetails), allowedRoles: OPS },
 
   // Pages
   { name: 'faq',          path: '/pages/faq',           element: createElement(FAQ) },

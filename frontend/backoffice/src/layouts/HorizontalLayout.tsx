@@ -4,13 +4,14 @@ import Footer from '@/components/layout/Footer'
 import { getHorizontalMenuItems } from '@/helpers/Manu'
 import { ChildrenType } from '@/types/component-props'
 import { lazy, Suspense } from 'react'
+import authService from '@/services/authService'
 
 
 const HorizontalNavBar = lazy(() => import('@/components/layout/HorizontalNav/page'))
 const TopBar = lazy(() => import('@/components/layout/TopBar/index'))
 
 const HorizontalLayout = ({ children }: ChildrenType) => {
-  const menuItems = getHorizontalMenuItems()
+  const menuItems = getHorizontalMenuItems(authService.getCurrentUser()?.role)
   return (
     <>
       <div className="wrapper">

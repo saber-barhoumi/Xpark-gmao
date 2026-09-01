@@ -12,6 +12,15 @@ namespace IAM.API.Controllers;
 [Route("api/users")]
 public class UsersController(IUserService userService, IamDbContext db) : ControllerBase
 {
+    private static readonly string[] Staff = ["ADMIN", "ADMINISTRATEUR", "GESTIONNAIRE"];
+
+    /// <summary>Le compte visé est soit celui de l'appelant, soit l'appelant est staff.</summary>
+    private bool IsSelfOrStaff(long id)
+    {
+        var callerId = long.Parse(User.FindFirst("userId")!.Value);
+        return callerId == id || Staff.Contains(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value);
+    }
+
     [HttpGet("profile")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetProfile()
     {
@@ -39,13 +48,16 @@ public class UsersController(IUserService userService, IamDbContext db) : Contro
     [HttpGet("{id}/details")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetDetails(long id)
     {
+        if (!IsSelfOrStaff(id)) return Forbid();
         var result = await userService.GetProfileAsync(id);
         return Ok(ApiResponse<UserProfileDto>.Ok(result));
     }
 
     [HttpGet("{id}/stats")]
-    public ActionResult<ApiResponse<object>> GetStats(long id) =>
-        Ok(ApiResponse<object>.Ok(new
+    public ActionResult<ApiResponse<object>> GetStats(long id)
+    {
+        if (!IsSelfOrStaff(id)) return Forbid();
+        return Ok(ApiResponse<object>.Ok(new
         {
             totalInterventions   = 0,
             interventionsEnCours = 0,
@@ -54,11 +66,13 @@ public class UsersController(IUserService userService, IamDbContext db) : Contro
             prioritaires         = 0,
             ordresOuverts        = 0,
         }));
+    }
 
     [HttpPost("{id}/upload-avatar")]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ApiResponse<object>>> UploadAvatar(long id, IFormFile? file)
     {
+        if (!IsSelfOrStaff(id)) return Forbid();
         if (file == null || file.Length == 0)
             return BadRequest(ApiResponse<object>.Fail("Aucun fichier fourni"));
 
@@ -91,6 +105,7 @@ public class UsersController(IUserService userService, IamDbContext db) : Contro
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> UpdateProfileById(
         long id, [FromBody] UpdateProfileDto dto)
     {
+        if (!IsSelfOrStaff(id)) return Forbid();
         var result = await userService.UpdateProfileAsync(id, dto);
         return Ok(ApiResponse<UserProfileDto>.Ok(result));
     }

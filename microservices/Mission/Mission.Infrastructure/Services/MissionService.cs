@@ -265,15 +265,28 @@ public class MissionService(
                   .Select(m => mapper.Map<MissionResponseDto>(m));
     }
 
+    /// <summary>Comparaison de nom réutilisée partout où le chauffeur n'est identifié
+    /// que par Mission.ChauffeurNom (pas de lien Utilisateur↔Employee — voir NB ci-dessus).</summary>
+    private static bool IsSameDriver(string? chauffeurNom, string target) =>
+        (chauffeurNom ?? "").Trim().ToLowerInvariant() == target;
+
     public async Task<IEnumerable<MissionResponseDto>> GetByDriverNameAsync(string chauffeurNom, string? statut)
     {
         var target = chauffeurNom.Trim().ToLowerInvariant();
         var all = await missionRepo.GetAllAsync();
-        var query = all.Where(m => (m.ChauffeurNom ?? "").Trim().ToLowerInvariant() == target);
+        var query = all.Where(m => IsSameDriver(m.ChauffeurNom, target));
         if (!string.IsNullOrWhiteSpace(statut) && Enum.TryParse<StatutMission>(statut, true, out var s))
             query = query.Where(m => m.Statut == s);
         return query.OrderByDescending(m => m.DateDepart)
                     .Select(m => mapper.Map<MissionResponseDto>(m));
+    }
+
+    public async Task<MissionResponseDto?> GetByIdForDriverAsync(long id, string chauffeurNom)
+    {
+        var mission = await missionRepo.GetWithDetailsAsync(id);
+        if (mission == null || !IsSameDriver(mission.ChauffeurNom, chauffeurNom.Trim().ToLowerInvariant()))
+            return null;
+        return mapper.Map<MissionResponseDto>(mission);
     }
 
     public async Task<MissionResponseDto> AssignMissionAsync(long missionId, AssignMissionDto dto)

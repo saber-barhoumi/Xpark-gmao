@@ -7,9 +7,8 @@
  * CHAUFFEUR  : opérations uniquement (volumes de missions, aucun montant TND).
  */
 
-export type AppRole =
-  | 'ADMIN' | 'ADMINISTRATEUR' | 'GESTIONNAIRE'
-  | 'CHAUFFEUR' | 'TECHNICIEN' | 'CLIENT' | string
+import type { AppRole } from '@/config/rbac'
+export type { AppRole } from '@/config/rbac'
 
 export interface AnalyticsPermissions {
   /** Analyses financières privées : revenus, coûts, marges (direction) */

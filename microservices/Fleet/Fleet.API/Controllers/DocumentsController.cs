@@ -7,7 +7,7 @@ namespace Fleet.API.Controllers;
 
 [ApiController]
 [Route("api/documents")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class DocumentsController(IDocumentService service) : ControllerBase
 {
     [HttpGet("vehicule/{vehiculeId:long}")]

@@ -20,6 +20,12 @@ export const MENU_ITEMS: MenuItemType[] = [
     url: '/gestion/missions',
   },
   {
+    key: 'mes-missions',
+    label: 'Mes Missions',
+    icon: 'ri:truck-line',
+    url: '/gestion/mes-missions',
+  },
+  {
     key: 'suivi',
     label: 'Suivi en Direct',
     icon: 'ri:base-station-line',
@@ -171,7 +177,6 @@ export const MENU_ITEMS: MenuItemType[] = [
       { key: 'users-accounts', label: 'Tous les comptes', url: '/users', parentKey: 'users' },
       { key: 'pending-users', label: 'Admissions', url: '/users/pending', parentKey: 'users' },
       { key: 'user-archives', label: 'Archives', url: '/users/archives', parentKey: 'users' },
-      { key: 'profile', label: 'Profil', url: '/users/profile', parentKey: 'users' },
     ],
   },
   {
@@ -179,12 +184,6 @@ export const MENU_ITEMS: MenuItemType[] = [
     label: 'Alertes',
     icon: 'ri:alarm-warning-line',
     url: '/alertes',
-  },
-  {
-    key: 'security',
-    label: 'Sécurité (MFA)',
-    icon: 'ri:shield-keyhole-line',
-    url: '/security',
   },
 
   // ── Pages complémentaires (existantes, usage occasionnel) ───
@@ -194,5 +193,10 @@ export const MENU_ITEMS: MenuItemType[] = [
   { key: 'projects',     label: 'Projets',                 icon: 'tabler:folders',      url: '/apps/Projects' },
   { key: 'file-manager', label: 'Gestionnaire de fichiers', icon: 'tabler:folder',       url: '/apps/file-manager' },
   { key: 'wallet',       label: 'Trésorerie',              icon: 'tabler:wallet',       url: '/wallet' },
-  { key: 'faq',          label: 'FAQ / Support',           icon: 'tabler:help-circle',  url: '/pages/faq' },
+
+  // ── Mon Compte (personnel, visible par tous les rôles) ──────
+  { key: 'sec-compte', label: 'Mon Compte', isTitle: true },
+  { key: 'profile',    label: 'Profil',           icon: 'tabler:user-circle', url: '/users/profile' },
+  { key: 'security',   label: 'Sécurité (MFA)',   icon: 'ri:shield-keyhole-line', url: '/security' },
+  { key: 'faq',         label: 'FAQ / Support',    icon: 'tabler:help-circle', url: '/pages/faq' },
 ]

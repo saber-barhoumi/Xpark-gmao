@@ -12,6 +12,12 @@ export const missionService = {
         return response.data;
     },
 
+    /** Missions du chauffeur connecté uniquement (self-service, app back-office). */
+    getMyDriverMissions: async (statut?: StatutMission): Promise<Mission[]> => {
+        const response = await api.get('/missions/driver', { params: { statut } });
+        return response.data;
+    },
+
     create: async (data: CreateMissionDto): Promise<Mission> => {
         const response = await api.post('/missions', data);
         return response.data;

@@ -12,6 +12,7 @@ namespace Maintenance.API.Controllers;
 public class PiecesRechangeController(MaintenanceDbContext context, ILogger<PiecesRechangeController> logger) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? categorie = null)
     {
         var query = context.PiecesRechange.Where(p => p.Actif).AsQueryable();
@@ -35,6 +36,7 @@ public class PiecesRechangeController(MaintenanceDbContext context, ILogger<Piec
     }
 
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetById(long id)
     {
         var piece = await context.PiecesRechange.FindAsync(id);
@@ -43,6 +45,7 @@ public class PiecesRechangeController(MaintenanceDbContext context, ILogger<Piec
     }
 
     [HttpGet("stock-faible")]
+    [Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
     public async Task<IActionResult> GetStockFaible()
     {
         var pieces = await context.PiecesRechange

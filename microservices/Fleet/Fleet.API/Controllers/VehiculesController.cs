@@ -10,7 +10,7 @@ namespace Fleet.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "ADMIN,ADMINISTRATEUR,GESTIONNAIRE,TECHNICIEN")]
 public class VehiculesController : ControllerBase
 {
     private readonly IVehiculeService _vehiculeService;
@@ -100,7 +100,6 @@ public class VehiculesController : ControllerBase
     }
 
     [HttpGet("alert-data")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetAlertData()
     {
         // Load vehicles with their documents/assurances in memory.
