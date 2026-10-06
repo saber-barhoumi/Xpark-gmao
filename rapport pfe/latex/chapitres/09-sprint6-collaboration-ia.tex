@@ -172,6 +172,67 @@ pour une operation de planification et impossible pour une estimation de
 prix.
 
 % =====================================================================
+\section{Deploiement et supervision}
+
+\subsection{Conteneurisation et orchestration}
+
+La plateforme est deployee en conteneurs Docker et orchestrree avec Docker
+Compose. Les services .NET sont decouples par domaine metier, les
+applications web et les services Python restent ports distincts, et le
+point d'entree unique est la passerelle NGINX sur le port 8080. Le
+reseau Docker interne isole la base PostgreSQL, RabbitMQ et Qdrant des
+services applicatifs et permet la publication des points d'entree
+suivants : 3000 pour le back-office, 3001 pour le front-office, 5001 a
+5009 pour les microservices metiers, 8000 et 8001 pour les services IA,
+8010 pour Ayshaa-RAG, 5432 pour PostgreSQL, 5672/15672 pour RabbitMQ,
+et 9090/3005 pour Prometheus/Grafana.
+
+\begin{figure}[H]
+\centering
+\caption{[CAPTURE A INSERER — GitHub Actions — pipeline CI realisee sur le depot XPARK]}
+\label{fig:gha-ci}
+\end{figure}
+
+\subsection{Integration continue avec GitHub Actions}
+
+La pipeline CI est declenchee sur les evenements \texttt{push} et
+\texttt{pull\_request}. Elle restaure les projets .NET, construit les
+applications React/Next.js et execute les tests Python presents dans le
+repo. Le workflow ne revendique pas une mise en production automatique :
+la mise en ligne est en effet conditionnee par la presence d'un runner ou
+d'un serveur cible et des secrets d'environnement adequats.
+
+\begin{figure}[H]
+\centering
+\caption{[CAPTURE A INSERER — Prometheus — cibles UP et etat des services]}
+\label{fig:prometheus-up}
+\end{figure}
+
+\subsection{Supervision avec Prometheus et Grafana}
+
+L'observabilite est ajoutee sans inventer de metriques non collectees.
+Les services .NET exposent un endpoint \texttt{/health} et le service
+Ayshaa-RAG expose \texttt{/metrics} au format Prometheus. Prometheus
+scrute ces cibles et Grafana les consomme comme source de donnees. Cela
+permet de surveiller la disponibilite des services, les cibles UP et les
+signaux de sant\'e technique de la plateforme.
+
+\begin{figure}[H]
+\centering
+\caption{[CAPTURE A INSERER — Grafana — tableau de bord de supervision XPARK]}
+\label{fig:grafana-dashboard}
+\end{figure}
+
+Le service de supervision est lance par Docker Compose avec les commandes
+suivantes : \texttt{docker compose up -d prometheus grafana}. Le port
+9090 donne acces a l'interface Prometheus et le port 3005 a Grafana,
+avec les identifiants administrateur definis par les variables
+\texttt{GRAFANA\_ADMIN\_USER} et \texttt{GRAFANA\_ADMIN\_PASSWORD}.
+L'architecture reste compatible avec l'environnement reel du projet :
+exposition publique par ngrok, serveur local dockerise, et configuration
+manuelle des secrets lorsqu'une mise en ligne distante est voulue.
+
+% =====================================================================
 \section{Realisation}
 
 \subsection{Les outils de collaboration}

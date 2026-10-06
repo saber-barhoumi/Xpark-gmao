@@ -10,34 +10,22 @@ skinparam ranksep 80
 left to right direction
 
 ' =====================================================================
-'  Cas d'utilisation GLOBAL de la plateforme.
+'  Cas d'utilisation global XPARK GMAO.
 '
-'  Vue de synthese : un cas par capacite metier, et non le detail des
-'  services. Les diagrammes par service, dans microservices/, donnent
-'  le detail ; celui-ci donne la carte d'ensemble.
-'
-'  A ce niveau, les services d'aide a la decision sont INTERNES a la
-'  plateforme : seuls le serveur de messagerie et la passerelle de
-'  messagerie instantanee sont exterieurs au systeme.
+'  Vue de synthese conforme au projet reel : aucun cas n'est invente, et
+'  les relations sont limitees aux liens UML semantiques vrais.
 ' =====================================================================
 
-' Acteurs, alignes a gauche : les porteurs d'associations sont
-' accoles a la frontiere, les acteurs structurels a leur gauche
 actor "Utilisateur" as Utilisateur
 actor "Employe" as Employe
-actor "Responsable" as Responsable
 actor "Administrateur" as Administrateur
 actor "Gestionnaire" as Gestionnaire
 actor "Technicien" as Technicien
 actor "Chauffeur" as Chauffeur
 actor "Client" as Client
 
-' Generalisation : triangle creux, de l'enfant vers le parent
 Employe -down-|> Utilisateur
 Client -left-|> Utilisateur
-Responsable -up-|> Employe
-Administrateur -down-|> Responsable
-Gestionnaire -down-|> Responsable
 Technicien -up-|> Employe
 Chauffeur -up-|> Employe
 
@@ -79,29 +67,26 @@ rectangle "Plateforme XPARK GMAO" {
     usecase "Interroger l'assistant documentaire" as UC_Assistant
   }
 
-  ' Cas d'aide a la decision, atteints depuis les cas de base
   usecase "Estimer le prix du trajet" as UC_Estimation
   usecase "Optimiser l'affectation de la flotte" as UC_Optimisation
   usecase "Anticiper les pannes" as UC_Prediction
 }
 
-' Acteurs secondaires, hors frontiere
 actor "Serveur de messagerie" as SMTP
 actor "Passerelle de messagerie instantanee" as Twilio
 
-' Associations : trait continu sans fleche (relation d'association)
 Utilisateur -- UC_Compte
 Utilisateur -- UC_Exploitation
 Utilisateur -- UC_Messagerie
 Administrateur -- UC_AdminComptes
-Responsable -- UC_Referentiel
-Responsable -- UC_Devis
-Responsable -- UC_Planifier
-Responsable -- UC_OrdresTravail
-Responsable -- UC_Stock
-Responsable -- UC_Facturer
-Responsable -- UC_Alertes
-Responsable -- UC_TableauBord
+Gestionnaire -- UC_Referentiel
+Gestionnaire -- UC_Devis
+Gestionnaire -- UC_Planifier
+Gestionnaire -- UC_OrdresTravail
+Gestionnaire -- UC_Stock
+Gestionnaire -- UC_Facturer
+Gestionnaire -- UC_Alertes
+Gestionnaire -- UC_TableauBord
 Technicien -- UC_Intervention
 Chauffeur -- UC_Executer
 Client -- UC_Demande
@@ -109,20 +94,14 @@ Client -- UC_Suivre
 Client -- UC_MesFactures
 Client -- UC_Assistant
 
-' << include >> : du cas de base vers le cas obligatoire
 UC_Demande ..> UC_Estimation : << include >>
 UC_Planifier ..> UC_Optimisation : << include >>
 UC_OrdresTravail ..> UC_Prediction : << include >>
-
-' << extend >> : la pointe designe le cas de base
 UC_Devis <.. UC_Estimation : << extend >>
 
-' Acteurs secondaires : association simple, sans stereotype
 UC_Compte -down- SMTP
 UC_Alertes -down- SMTP
 UC_Alertes -down- Twilio
-UC_Estimation -[hidden]down- SMTP
-UC_Estimation -[hidden]down- Twilio
 SMTP -[hidden]right- Twilio
 
 @enduml

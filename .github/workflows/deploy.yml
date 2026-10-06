@@ -1,0 +1,63 @@
+name: XPARK GMAO deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: false
+        default: local-docker
+        type: choice
+        options:
+          - local-docker
+          - self-hosted
+
+jobs:
+  deploy-check:
+    name: Deployment preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate deployment prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${{ vars.DEPLOY_HOST }}" || -z "${{ vars.DEPLOY_PATH }}" || -z "${{ secrets.DEPLOY_SSH_KEY }}" ]]; then
+            echo "Deployment is not configured on this repository."
+            echo "Required GitHub variables: DEPLOY_HOST, DEPLOY_PATH"
+            echo "Required GitHub secret: DEPLOY_SSH_KEY"
+            echo "Optional secrets/variables: NGROK_AUTH_TOKEN, NGROK_DOMAIN, DEPLOY_PORT"
+            echo "This project exposes services through Docker Compose and ngrok on a local machine; GitHub Actions alone cannot publish without a reachable runner/server and valid credentials."
+            exit 1
+          fi
+
+          echo "Deployment prerequisites detected. The repository still requires a reachable target host and SSH credentials."
+
+  deploy:
+    name: Remote deployment
+    needs: deploy-check
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_HOST != '' && vars.DEPLOY_PATH != '' && secrets.DEPLOY_SSH_KEY != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ vars.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy project over SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes -p "${{ vars.DEPLOY_PORT || 22 }}" "${{ vars.DEPLOY_USER || 'deploy' }}@${{ vars.DEPLOY_HOST }}" "bash -lc 'cd ${{ vars.DEPLOY_PATH }} && docker compose pull && docker compose up -d'"
+          echo "Deployment command completed on remote host."

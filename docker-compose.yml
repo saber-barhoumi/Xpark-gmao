@@ -112,6 +112,8 @@ services:
       - RabbitMQ__Password=${RABBITMQ_PASSWORD:-xpark_secret}
     ports:
       - "5002:80"
+    volumes:
+      - ./data/uploads:/app/wwwroot/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -362,6 +364,8 @@ services:
       - "8080:80"
     volumes:
       - ./microservices/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./data/uploads:/usr/share/nginx/html/uploads:ro
     depends_on:
       - iam-api
       - fleet-api
@@ -371,6 +375,59 @@ services:
       - alerts-api
       - chat-api
       - backend
+      - frontoffice
+      - ai-predictor
+      - ai-optimizer
+      - iboa
+      - ocr
+      - prediction-api
+      - ayshaa-rag
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  # ── Monitoring stack ─────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: xpark-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - nginx
+      - iam-api
+      - fleet-api
+      - mission-api
+      - maintenance-api
+      - finance-api
+      - alerts-api
+      - chat-api
+      - prediction-api
+      - ayshaa-rag
+    networks:
+      - xpark-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    container_name: xpark-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-changeme}
+    ports:
+      - "3005:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
     networks:
       - xpark-network
     restart: unless-stopped
@@ -477,6 +534,9 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
       - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM:-}
+      # Dashboard URL in IBOA alerts/reports — gateway-relative so it
+      # works behind any public domain without hardcoding ngrok URL.
+      - IBOA_DASHBOARD_URL=${IBOA_DASHBOARD_URL:-http://localhost:8080/backoffice/monitoring/iboa}
     ports:
       - "5008:8000"
     depends_on:
@@ -494,10 +554,13 @@ services:
       context: ./frontend/backoffice
       dockerfile: Dockerfile
       args:
+        # All URLs are gateway-relative — never localhost or Docker hostnames.
+        # These are baked into the Vite JS bundle at build time.
         - VITE_API_URL=/api
-        - VITE_AI_API_URL=http://localhost:8000
-        - VITE_OPTIMIZER_API_URL=http://localhost:8001
-        - VITE_IBOA_API_URL=http://localhost:5008
+        - VITE_AI_API_URL=/ai
+        - VITE_OPTIMIZER_API_URL=/optimizer
+        - VITE_IBOA_API_URL=/iboa
+        - VITE_MISSION_API_URL=/api/missions
     container_name: xpark-backoffice
     ports:
       - "3000:80"
@@ -515,12 +578,12 @@ services:
       context: ./frontend/frontoffice
       dockerfile: Dockerfile
       args:
-        # IAM.API direct (auth + MFA espace client)
-        - NEXT_PUBLIC_API_URL=http://localhost:5001/api
-        # CalculateurPrixTrajetIA (villes, distances, estimation prix)
-        - NEXT_PUBLIC_AI_API_URL=http://localhost:8000
-        # Mission.API direct (reservations + suivi missions client)
-        - NEXT_PUBLIC_MISSION_API_URL=http://localhost:5003/api
+        # Tout passe via le gateway public NGINX sur le host unique
+        - NEXT_PUBLIC_API_URL=/iam/api
+        - NEXT_PUBLIC_AI_API_URL=/ai
+        - NEXT_PUBLIC_MISSION_API_URL=/mission/api
+        - NEXT_PUBLIC_FINANCE_API_URL=/finance/api
+        - NEXT_PUBLIC_AYSHAA_API_URL=/ayshaa
     container_name: xpark-frontoffice
     ports:
       - "3001:3000"
@@ -554,7 +617,13 @@ services:
       - AYSHAA_MEMORY_DB=/data/ayshaa_memory.db
       - AYSHAA_DATA_DIR=/data
       - AYSHAA_ADMIN_API_KEY=${AYSHAA_ADMIN_API_KEY:-dev-only-key}
-      - AYSHAA_CORS_ORIGINS=["http://localhost:3001","http://localhost:8080"]
+      # CORS: list the exact origins the browser uses to reach the gateway.
+      # Do NOT use wildcard (*) — Ayshaa handles authenticated requests.
+      # http://localhost:8080 = local dev gateway
+      # All production traffic arrives same-origin through NGINX, so CORS
+      # is not actually triggered for proxied requests. These origins cover
+      # direct browser access scenarios and local development.
+      - AYSHAA_CORS_ORIGINS=["http://localhost:3001","http://localhost:8080","https://imperfect-civic-cloak.ngrok-free.dev"]
     volumes:
       - ayshaa-data:/data
     depends_on:
@@ -588,3 +657,5 @@ volumes:
   qdrant-data: {}
   ayshaa-data: {}
   ollama-data: {}
+  prometheus-data: {}
+  grafana-data: {}

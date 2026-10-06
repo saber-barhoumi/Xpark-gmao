@@ -1,0 +1,118 @@
+name: XPARK GMAO CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  dotnet-build:
+    name: .NET microservices build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore .NET projects
+        shell: bash
+        run: |
+          set -euo pipefail
+          for proj in microservices/*/*.API/*.csproj; do
+            echo "Restoring $proj"
+            dotnet restore "$proj"
+          done
+
+      - name: Build .NET APIs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for proj in microservices/*/*.API/*.csproj; do
+            echo "Building $proj"
+            dotnet build "$proj" --configuration Release --no-restore
+          done
+
+  frontend-build:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            frontend/backoffice/package-lock.json
+            frontend/frontoffice/package-lock.json
+
+      - name: Install and build backoffice
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd frontend/backoffice
+          npm ci
+          npm run build
+
+      - name: Install and build frontoffice
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd frontend/frontoffice
+          npm ci
+          npm run build
+
+  python-tests:
+    name: Python service checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r AyshaaRAG/requirements-dev.txt
+          pip install -r AyshaaRAG/requirements.txt
+          pip install -r OptimisateurFlotteIA/requirements.txt
+          pip install -r IntelligentBusinessOwnerAssistant/requirements.txt
+          pip install -r LecteurDocumentsIA/requirements.txt
+          pip install -r CalculateurPrixTrajetIA/requirements.txt
+
+      - name: Run available Python tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pytest AyshaaRAG/tests OptimisateurFlotteIA/test_optimizer.py OptimisateurFlotteIA/test_e2e_rabbitmq.py IntelligentBusinessOwnerAssistant/test_iboa.py IntelligentBusinessOwnerAssistant/test_e2e_iboa.py LecteurDocumentsIA/test_lecteur.py -q
+
+  docker-config-check:
+    name: Docker Compose validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.yml config > /tmp/xpark-compose-config.txt
+          echo "Docker Compose configuration validated successfully."
