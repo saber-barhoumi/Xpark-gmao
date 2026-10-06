@@ -134,13 +134,24 @@ class OptimizationContext:
         """Drops assignments that became infeasible (used after GA crossover)."""
         repaired: Solution = {i: None for i in solution}
         order = sorted(solution.keys(),
-                       key=lambda i: (-S.PRIORITY_WEIGHT.get(
-                           self.missions[i].priorite.upper(), 1.0),
+                       key=lambda i: (len(self.feasible_pairs[i]),
+                           -S.PRIORITY_WEIGHT.get(
+                               self.missions[i].priorite.upper(), 1.0),
                            self.missions[i].dateDepart))
         for m_idx in order:
-            pair = solution[m_idx]
-            if pair is not None and self.dynamically_feasible(repaired, m_idx, pair):
-                repaired[m_idx] = pair
+            original_pair = solution[m_idx]
+            candidates = sorted(
+                self.feasible_pairs[m_idx],
+                key=lambda pair: self.pair_score(m_idx, pair, repaired),
+                reverse=True,
+            )
+            if original_pair in candidates:
+                candidates.remove(original_pair)
+                candidates.insert(0, original_pair)
+            for pair in candidates:
+                if self.dynamically_feasible(repaired, m_idx, pair):
+                    repaired[m_idx] = pair
+                    break
         return repaired
 
     # ── Local pair score (greedy + confidence) ────────────────────────────────
@@ -169,8 +180,9 @@ class OptimizationContext:
 def greedy(ctx: OptimizationContext) -> Solution:
     solution: Solution = {i: None for i in range(len(ctx.missions))}
     order = sorted(range(len(ctx.missions)),
-                   key=lambda i: (-S.PRIORITY_WEIGHT.get(
-                       ctx.missions[i].priorite.upper(), 1.0),
+                   key=lambda i: (len(ctx.feasible_pairs[i]),
+                       -S.PRIORITY_WEIGHT.get(
+                           ctx.missions[i].priorite.upper(), 1.0),
                        ctx.missions[i].dateDepart))
     for m_idx in order:
         best, best_score = None, -1.0
@@ -198,7 +210,7 @@ def genetic(ctx: OptimizationContext, seed: Solution) -> Solution:
                           if ctx.dynamically_feasible(sol, m_idx, p)]
             if candidates:
                 sol[m_idx] = random.choice(candidates)
-        return sol
+        return ctx.repair(sol)
 
     def mutate(sol: Solution) -> Solution:
         child = dict(sol)

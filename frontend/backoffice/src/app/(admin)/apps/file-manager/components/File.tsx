@@ -129,7 +129,7 @@ const File = ({
                         <div>
                           <span className="fw-medium d-flex align-items-center gap-1">
                             {item.title}
-                            {item.pinned && <IconifyIcon icon="ri:pushpin-2-fill" className="text-warning fs-14" title="Épinglé" />}
+                            {item.pinned && <IconifyIcon icon="ri:pushpin-2-fill" className="text-warning fs-14" aria-label="Épinglé" />}
                           </span>
                           <p className="mb-0 fs-12 text-muted">{item.subtitle}</p>
                         </div>

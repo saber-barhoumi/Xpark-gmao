@@ -15,17 +15,21 @@ on:
 jobs:
   deploy-check:
     name: Deployment preflight
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Validate deployment prerequisites
         shell: bash
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           set -euo pipefail
 
-          if [[ -z "${{ vars.DEPLOY_HOST }}" || -z "${{ vars.DEPLOY_PATH }}" || -z "${{ secrets.DEPLOY_SSH_KEY }}" ]]; then
+          if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_PATH" || -z "$DEPLOY_SSH_KEY" ]]; then
             echo "Deployment is not configured on this repository."
             echo "Required GitHub variables: DEPLOY_HOST, DEPLOY_PATH"
             echo "Required GitHub secret: DEPLOY_SSH_KEY"
@@ -39,11 +43,10 @@ jobs:
   deploy:
     name: Remote deployment
     needs: deploy-check
-    runs-on: ubuntu-latest
-    if: ${{ vars.DEPLOY_HOST != '' && vars.DEPLOY_PATH != '' && secrets.DEPLOY_SSH_KEY != '' }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up SSH
         shell: bash

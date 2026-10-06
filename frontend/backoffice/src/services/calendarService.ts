@@ -120,8 +120,11 @@ export interface CalendarLoadResult {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const build = (
-  id: string, title: string, start?: string | null,
-  end: string | null | undefined, type: CalendarEventType,
+  id: string,
+  title: string,
+  start: string | null | undefined,
+  end: string | null | undefined,
+  type: CalendarEventType,
   props: Omit<XparkEventProps, 'type' | 'module'>,
   allDay = false,
 ): EventInput | null => {

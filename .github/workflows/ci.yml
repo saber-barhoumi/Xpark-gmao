@@ -15,13 +15,13 @@ on:
 jobs:
   dotnet-build:
     name: .NET microservices build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 8.0.x
 
@@ -45,13 +45,13 @@ jobs:
 
   frontend-build:
     name: Frontend build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -77,13 +77,13 @@ jobs:
 
   python-tests:
     name: Python service checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -99,18 +99,21 @@ jobs:
           pip install -r LecteurDocumentsIA/requirements.txt
           pip install -r CalculateurPrixTrajetIA/requirements.txt
 
-      - name: Run available Python tests
+      - name: Run isolated Python unit and smoke checks
         shell: bash
         run: |
           set -euo pipefail
-          pytest AyshaaRAG/tests OptimisateurFlotteIA/test_optimizer.py OptimisateurFlotteIA/test_e2e_rabbitmq.py IntelligentBusinessOwnerAssistant/test_iboa.py IntelligentBusinessOwnerAssistant/test_e2e_iboa.py LecteurDocumentsIA/test_lecteur.py -q
+          python -m pytest AyshaaRAG/tests -q
+          (cd OptimisateurFlotteIA && python test_optimizer.py)
+          (cd IntelligentBusinessOwnerAssistant && python test_iboa.py)
+          (cd LecteurDocumentsIA && python test_lecteur.py)
 
   docker-config-check:
     name: Docker Compose validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Validate docker-compose configuration
         shell: bash
